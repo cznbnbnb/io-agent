@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "at": "2026-10-20T05:16:11.664Z",
+  "kind": "Pinned Android107 data-only routing and actual fixed60 ZIP local HTTP preparation; no phone/firmware writes",
+  "assertions": 312,
+  "canonical_string_size_and_hash_preserved": true,
+  "exact_native_allowlist": true,
+  "sdk_ambient_write_policy": "passed",
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60OfficialFeed.java",
+      "sha256": "d8a9c5e8bcf8137b3943c9404457a3b2b773504eb026536d89c03ad6cfd81793"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Firmware.java",
+      "sha256": "f6d792857f9565cba70d107b62967bc7901134d8fc74150ad5d64f60f984a562"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Profile.java",
+      "sha256": "bf2c3452afe4b0d984f274f6aa53c0491d3cf349b55290fc25dd1b1541c6c832"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Host107Abi.java",
+      "sha256": "46ddfa863ec7d36ee432ff47dc61b690d16cfe82d3ad60ae580b2f3ec58a6bb8"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\FirmwareQueue.java",
+      "sha256": "06f7a15d700a8ca7e5e97013e1190c223825e7717c9ad96abed19e80427dacc2"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\NavReflect.java",
+      "sha256": "d68c3e662c697269fb9e921caf8866f2008d3c2cf3ed56deffbe9661210d85ef"
+    },
+    {
+      "path": "build\\official-preparation-tests\\ProductInfo.java",
+      "sha256": "0c2919071d4da615c5752878ba9313e8e091a4a268635f379340b3663cb3a45b"
+    },
+    {
+      "path": "native_route107.py",
+      "sha256": "009e3f7e31875db76da20b38e6ab9e3690f337d93d52c3174710222541c122ee"
+    }
+  ],
+  "phone_tested": false,
+  "official_downloader_tested": false,
+  "firmware_written": false,
+  "overall": "passed_for_stated_offline_scope"
+}

@@ -1,0 +1,30 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.turboio.androidtests" android:versionCode="1" android:versionName="1">
+ <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36" />
+ <application android:label="iO Agent UI test driver" android:allowBackup="false" android:hasCode="true" />
+ <instrumentation android:name="com.turboio.androidtests.EmulatorInput" android:targetPackage="com.turboio.androidtests" />
+ <instrumentation android:name="com.turboio.androidtests.ConnectionProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.OtaProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.RecoveryProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LoginProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.ConnectionOwnerProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.OfficialServiceProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.TaskProfilesProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LauncherReadProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.MaterialSourceProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.OfficialAsrProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.RecordingProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.NormalVoiceGuardProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.GatewayHeaderShapeProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.GatewayCalendarReadProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.RecordingArchiveProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LifelogLogShapeProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.MaterialSettingsProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.MaterialCloudProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.FormalMaterialAuditProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.MaterialQueueMigrationProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.GatewayCanonicalProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.GatewayLifelogReadProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.MaterialRefreshReadProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LifelogInventoryProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.OfficialMetadataProbe" android:targetPackage="com.rayneo.venus.pub" />
+</manifest>

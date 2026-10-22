@@ -1,0 +1,67 @@
+package com.turboio.addon;
+
+import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+/** Task pump over existing endpoints. Reception, storage and task progress stay separate. */
+final class TaskApi {
+ interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
+ static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
+ private final TaskConnection connection;private final Transport transport;
+ private long nextCheck;private boolean running;
+ String note="paused";
+ TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
+ static String encode(String value){try{return URLEncoder.encode(value,"UTF-8").replace("+","%20");}catch(Exception impossible){throw new IllegalStateException(impossible);}}
+ static String error(Response response){try{Map<String,Object> value=WireJson.map(WireJson.read(response.body)),e=WireJson.map(value.get("error"));String code=(String)e.get("code");if(code!=null&&code.matches("[A-Z][A-Z0-9_]{0,63}"))return code;}catch(RuntimeException ignored){}return response.status==401?"AUTH_REQUIRED":response.status==403?"FORBIDDEN":"TASK_UNAVAILABLE";}
+ void preflight(long now)throws IOException{
+  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+ }
+ private Map<String,Object> detail(String kind,String id)throws IOException{
+  TaskWire.require(TaskWire.set("task","request","message").contains(kind)&&!TaskWire.set(".","..").contains(TaskWire.id(id)),"TASK_QUERY_INVALID");
+  Response response=transport.exchange("/"+kind+"s/"+encode(id),null);if(response.status!=200)throw new IOException(error(response));
+  Map<String,Object> item=TaskWire.object(WireJson.read(response.body));TaskWire.require(kind.equals(item.get("kind"))&&id.equals(item.get("object_id")),"TASK_RESPONSE_MISMATCH");return item;
+ }
+ synchronized Map<String,Object> refresh(TaskMailbox mailbox,String kind,String id,long now)throws IOException{
+  preflight(now);Map<String,Object> item=detail(kind,id);mailbox.acceptDetail(item,now);
+  if(kind.equals("request")){Map<String,Object> parent=detail("task",(String)TaskWire.body(item).get("task_id"));mailbox.acceptDetail(parent,now);}return item;
+ }
+ synchronized boolean pump(TaskMailbox mailbox,long now)throws IOException{
+  if(running||now<nextCheck)return false;running=true;TaskMailbox.Claim claim=null;boolean requestStarted=false;
+  try{
+   note="checking";preflight(now);
+   for(Object raw:mailbox.pending()){
+    Map<String,Object> row=WireJson.map(raw);if(!row.get("state").equals("awaiting_refresh"))continue;
+    Map<String,Object> e=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))),answer=TaskWire.body(e);
+    try{Map<String,Object> request=detail("request",(String)answer.get("request_id")),parent=detail("task",(String)answer.get("task_id"));mailbox.confirmDraft((String)row.get("operation_id"),request,parent,now);}
+    catch(IOException error){if(TaskWire.set("REQUEST_NOT_FOUND","TASK_NOT_FOUND","REQUEST_CLOSED","EXPIRED").contains(error.getMessage()))mailbox.blockDraft((String)row.get("operation_id"),error.getMessage());else throw error;}
+    break;
+   }
+   claim=mailbox.claim(now);
+   if(claim!=null){
+    Map<String,Object> event=claim.event(),b=TaskWire.body(event);
+    // A queued answer is checked again immediately before the first actual POST.
+    if(claim.action.equals("send")&&event.get("kind").equals("answer")){
+     Map<String,Object> request=detail("request",(String)b.get("request_id")),parent=detail("task",(String)b.get("task_id"));
+     if(TaskWire.positive(b.get("request_revision"))!=TaskWire.positive(request.get("revision"))||!TaskWire.same(b.get("route"),TaskWire.body(request).get("route"))||!TaskWire.canAnswer(request,parent,now)){
+      mailbox.finish(claim,409,WireJson.bytes(WireJson.object("schema_version","1.0","error",WireJson.object("code","REQUEST_CLOSED","retryable",false))),now,0);claim=null;note="REQUEST_CLOSED";return true;
+     }
+    }
+    String path=claim.action.equals("lookup")?"/events/"+encode((String)event.get("event_id")):event.get("kind").equals("answer")?"/answers":"/tasks";
+    note=claim.action.equals("lookup")?"reconciling":"sending";requestStarted=true;
+    Response response=transport.exchange(path,claim.action.equals("lookup")?null:claim.payload.getBytes(StandardCharsets.UTF_8));
+    mailbox.finish(claim,response.status,response.body,now,response.retryAfter);claim=null;
+   }
+   String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
+   if(inbox.status!=200){String code=error(inbox);if(inbox.status==410&&code.equals("CURSOR_RESET_REQUIRED"))mailbox.resetCursor(cursor);throw new IOException(code);}
+   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);return true;
+  }catch(IOException|RuntimeException error){
+   if(claim!=null){mailbox.finish(claim,0,new byte[0],now,0);note=requestStarted?"TRANSPORT_UNKNOWN":"REFRESH_UNAVAILABLE";}
+   else note=safeError(error);
+   nextCheck=now+5000;throw error;
+  }finally{running=false;}
+ }
+ static String safeError(Exception error){String message=error.getMessage();return message!=null&&message.matches("[A-Z][A-Z0-9_]{0,63}")?message:"TASK_UNAVAILABLE";}
+ void cancel(){transport.cancel();}
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "scope": "Synthetic examples. response_facts are projections, not complete API responses.",
+  "endpoint": "POST /v1/requests/request-demo/reconcile",
+  "required_scope": "requests:write",
+  "capability": "request_lifecycle_v1",
+  "command": {"schema_version": "1.0", "request_revision": 1},
+  "question_expires_at": "2026-10-12T10:01:00.000Z",
+  "scenarios": [
+    {"case": "normal", "server_time": "2026-10-12T10:00:30.000Z", "restart_before": false, "repeat": 1,
+      "response_facts": {"state": "pending", "revision": 1, "changed": false, "reason": null, "receipt_count": 0}},
+    {"case": "duplicate", "server_time": "2026-10-12T10:01:00.000Z", "restart_before": false, "repeat": 2,
+      "response_facts": {"state": "expired", "revision": 1, "changed": true, "reason": "deadline", "receipt_count": 1},
+      "retry_facts": {"state": "expired", "revision": 1, "changed": false, "reason": null, "receipt_count": 1}},
+    {"case": "expired", "server_time": "2026-10-12T10:01:00.001Z", "restart_before": false, "repeat": 1,
+      "response_facts": {"state": "expired", "revision": 1, "changed": true, "reason": "deadline", "receipt_count": 1},
+      "late_answer_error": "REQUEST_CLOSED"},
+    {"case": "offline_recovery", "server_time": "2026-10-12T10:02:00.000Z", "restart_before": true, "repeat": 2,
+      "response_facts": {"state": "expired", "revision": 1, "changed": true, "reason": "deadline", "receipt_count": 1},
+      "retry_facts": {"state": "expired", "revision": 1, "changed": false, "reason": null, "receipt_count": 1}},
+    {"case": "cancel_requested", "server_time": "2026-10-12T10:00:30.000Z", "task_state": "cancel_requested", "restart_before": false, "repeat": 1,
+      "response_facts": {"state": "withdrawn", "revision": 1, "changed": true, "reason": "task_closed", "receipt_count": 1},
+      "task_state_after": "cancel_requested", "late_answer_error": "REQUEST_CLOSED"}
+  ],
+  "closure_receipt_facts": {"subject_kind": "request", "subject_id": "request-demo", "subject_revision": 1, "actor_id": "server-lifecycle", "error": null}
+}

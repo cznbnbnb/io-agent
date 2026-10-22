@@ -1,0 +1,42 @@
+{
+  "module": {
+    "name": "entry", "type": "entry", "mainElement": "EntryAbility",
+    "deviceTypes": ["phone", "tablet"],
+    "deliveryWithInstall": true, "installationFree": false,
+    "pages": "$profile:main_pages",
+    "requestPermissions": [{ "name": "ohos.permission.INTERNET" },
+      { "name": "ohos.permission.GET_NETWORK_INFO" },
+      { "name": "ohos.permission.APPROXIMATELY_LOCATION", "reason": "$string:location_reason", "usedScene": { "abilities": ["EntryAbility"], "when": "inuse" } },
+      { "name": "ohos.permission.LOCATION", "reason": "$string:location_reason", "usedScene": { "abilities": ["EntryAbility"], "when": "inuse" } },
+      { "name": "ohos.permission.KEEP_BACKGROUND_RUNNING" }, {
+      "name": "ohos.permission.ACCESS_BLUETOOTH",
+      "reason": "$string:bluetooth_reason",
+      "usedScene": { "abilities": ["EntryAbility", "SuggestionLabAbility", "DailyLabAbility"], "when": "always" }
+    }],
+    "abilities": [{
+      "name": "EntryAbility", "srcEntry": "./ets/entryability/EntryAbility.ets",
+      "backgroundModes": ["bluetoothInteraction"],
+      "icon": "$media:app_icon", "label": "$string:app_name",
+      "startWindowIcon": "$media:app_icon", "startWindowBackground": "$color:background",
+      "exported": true,
+      "skills": [{ "entities": ["entity.system.home"], "actions": ["action.system.home"] }]
+    }, {
+      "name": "SuggestionLabAbility", "srcEntry": "./ets/entryability/SuggestionLabAbility.ets",
+      "backgroundModes": ["bluetoothInteraction"],
+      "icon": "$media:app_icon", "label": "$string:app_name",
+      "startWindowIcon": "$media:app_icon", "startWindowBackground": "$color:background",
+      "exported": true
+    }, {
+      "name": "DailyLabAbility", "srcEntry": "./ets/entryability/DailyLabAbility.ets",
+      "backgroundModes": ["bluetoothInteraction"],
+      "icon": "$media:app_icon", "label": "$string:app_name",
+      "startWindowIcon": "$media:app_icon", "startWindowBackground": "$color:background",
+      "exported": true
+    }, {
+      "name": "PersistenceLabAbility", "srcEntry": "./ets/entryability/PersistenceLabAbility.ets",
+      "icon": "$media:app_icon", "label": "$string:app_name",
+      "startWindowIcon": "$media:app_icon", "startWindowBackground": "$color:background",
+      "exported": true
+    }]
+  }
+}

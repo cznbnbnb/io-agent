@@ -1,0 +1,9 @@
+{
+  "name": "entry", "version": "0.1.0", "description": "Explicit, foreground-only diagnostics",
+  "dependencies": {
+    "sherpa_onnx": "1.13.3",
+    "turbo_core": "file:../turbo_core", "libturbo_audio.so": "file:./src/main/cpp/types/libturbo_audio",
+    "@amap/amap_lbs_navi": "11.2.0", "@amap/amap_lbs_common": "11.2.0",
+    "@amap/amap_lbs_search": "11.2.0", "@amap/amap_lbs_location": "11.2.0"
+  }
+}

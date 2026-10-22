@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "kind": "Fixed synthetic PCM actual official Android 1.0.7 callback trace",
+  "source_pcm_sha256": "7865da6dd988971da7e8da486b74d4bcd5311f3eb495f3aa21873dc6af78e31d",
+  "expected_clauses": [
+    "只做预览。",
+    "不要修改文件。",
+    "补充条件。",
+    "保留全部资料。",
+    "星期五再执行。"
+  ],
+  "callbacks": [
+    {
+      "text": "只",
+      "finished": false
+    },
+    {
+      "text": "只做",
+      "finished": false
+    },
+    {
+      "text": "只做。",
+      "finished": false
+    },
+    {
+      "text": "只做预",
+      "finished": false
+    },
+    {
+      "text": "只做预。",
+      "finished": false
+    },
+    {
+      "text": "只做预览",
+      "finished": false
+    },
+    {
+      "text": "只做预览。",
+      "finished": false
+    },
+    {
+      "text": "只做预览。",
+      "finished": true
+    },
+    {
+      "text": "不要",
+      "finished": false
+    },
+    {
+      "text": "不要。",
+      "finished": false
+    },
+    {
+      "text": "不要修",
+      "finished": false
+    },
+    {
+      "text": "不要修。",
+      "finished": false
+    },
+    {
+      "text": "不要修改",
+      "finished": false
+    },
+    {
+      "text": "不要修改文件",
+      "finished": false
+    },
+    {
+      "text": "不要修改文件。",
+      "finished": false
+    },
+    {
+      "text": "不要修改文件。",
+      "finished": true
+    },
+    {
+      "text": "补充",
+      "finished": false
+    },
+    {
+      "text": "补充。",
+      "finished": false
+    },
+    {
+      "text": "补充调",
+      "finished": false
+    },
+    {
+      "text": "补充调。",
+      "finished": false
+    },
+    {
+      "text": "补充条件",
+      "finished": false
+    },
+    {
+      "text": "补充条件。",
+      "finished": false
+    },
+    {
+      "text": "补充条件。",
+      "finished": true
+    },
+    {
+      "text": "保",
+      "finished": false
+    },
+    {
+      "text": "保。",
+      "finished": false
+    },
+    {
+      "text": "保留",
+      "finished": false
+    },
+    {
+      "text": "保留。",
+      "finished": false
+    },
+    {
+      "text": "保留全部",
+      "finished": false
+    },
+    {
+      "text": "保留全部资料",
+      "finished": false
+    },
+    {
+      "text": "保留全部资料。",
+      "finished": false
+    },
+    {
+      "text": "保留全部资料。",
+      "finished": true
+    },
+    {
+      "text": "星",
+      "finished": false
+    },
+    {
+      "text": "星。",
+      "finished": false
+    },
+    {
+      "text": "星期",
+      "finished": false
+    },
+    {
+      "text": "星期五",
+      "finished": false
+    },
+    {
+      "text": "星期五。",
+      "finished": false
+    },
+    {
+      "text": "星期五再",
+      "finished": false
+    },
+    {
+      "text": "星期五再执行",
+      "finished": false
+    },
+    {
+      "text": "星期五再执行。",
+      "finished": false
+    },
+    {
+      "text": "星期五再执行。",
+      "finished": true
+    }
+  ],
+  "audio_end_callback": false,
+  "native_stop_state": "STOPPED"
+}

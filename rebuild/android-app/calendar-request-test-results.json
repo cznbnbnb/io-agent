@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "at": "2026-10-21T11:53:07.610Z",
+  "scope": "Pure Java explicit single-month request construction; no response, HTTP or production integration",
+  "device": false,
+  "network": false,
+  "calendar_sync_available": false,
+  "passed": true,
+  "checks": 125,
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogCalendarRequest.java",
+      "sha256": "c124edad31e8b4058068a8941076bbdff954557edf85a90b91be00caecb79762"
+    },
+    {
+      "path": "..\\..\\tools\\android\\OfficialLifelogCalendarRequestTest.java",
+      "sha256": "c779e0c2d3af894561c030029d588d6f6147bbcf9d082f835810958cce40904f"
+    },
+    {
+      "path": "..\\..\\tools\\android\\test-calendar-request.mjs",
+      "sha256": "67980746215629942a7ee82687372ebdf8b5a38cb8151f8584b0dc32d528860a"
+    }
+  ],
+  "temporary_classes_removed": true
+}

@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "at": "2026-10-20T06:55:57.526Z",
+  "kind": "JVM: actual pinned firmware verification and simulated protocol/SDK receipts",
+  "checks": 1925,
+  "candidate": "fcbc2d80bca5e64a2e1b1513c63bc0fe4527a85efe2751093bdc6235f8171cd9",
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Profile.java",
+      "sha256": "bf2c3452afe4b0d984f274f6aa53c0491d3cf349b55290fc25dd1b1541c6c832"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Firmware.java",
+      "sha256": "f6d792857f9565cba70d107b62967bc7901134d8fc74150ad5d64f60f984a562"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Journal.java",
+      "sha256": "d81154b06bf674d1b029bd206bbcb987c0b9cd5dca248b8dec792ce38a4d7e96"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Session.java",
+      "sha256": "99e52c03261bb9573d6ae5915da0a40cd3cd27c39221d73a3286c86501673fdf"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\FirmwareRecoverySelection.java",
+      "sha256": "9290dea8a7de599b32c1ae976dc7ed5f5172f3dc2c21cac10963c80276f80886"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\GlassesConnection.java",
+      "sha256": "294dce751acc3dc58aa36490b068797087ddf187477f68c52cf54b10a13faf1f"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\FirmwareQueue.java",
+      "sha256": "948f334c0129e33e40f6c05cbc5fddfe4413a6c5f868af60dcb334f551c822c5"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Host107Abi.java",
+      "sha256": "89be811253381731a03f9cf72d831087323e95a78a5224b7f63ed60f347ba98f"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\NavReflect.java",
+      "sha256": "d68c3e662c697269fb9e921caf8866f2008d3c2cf3ed56deffbe9661210d85ef"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
+      "sha256": "ffdcb28f61cc7cee71d9d0932ff0d2f776247de782ecf21cb3448a9305f4e6ca"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "build\\fixed60-tests\\ProductInfo.java",
+      "sha256": "f5b23c49624fc8d47a6509133d8ace3aa2cfccdd5287e4e5168e9d2e0492b6c6"
+    }
+  ],
+  "device_io": false,
+  "network_io": false,
+  "firmware_written": false,
+  "android_sdk_transport_tested": false,
+  "real_installation_verified": false,
+  "lens_duration_verified": false,
+  "overall": "passed_for_stated_offline_scope"
+}

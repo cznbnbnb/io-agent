@@ -1,0 +1,12 @@
+export const reset: () => void;
+export const decode: (packet: ArrayBuffer) => ArrayBuffer;
+export const close: () => void;
+export const recordingReset: () => void;
+export const recordingDecode: (packet: ArrayBuffer) => ArrayBuffer;
+export const recordingClose: () => void;
+export const lifelogReset: () => void;
+export const lifelogDecode: (packet: ArrayBuffer) => ArrayBuffer;
+export const lifelogClose: () => void;
+export const prompterReset: () => void;
+export const prompterDecode: (packet: ArrayBuffer) => ArrayBuffer;
+export const prompterClose: () => void;

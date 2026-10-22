@@ -1,0 +1,310 @@
+{
+  "scope": "Synthetic ordered r1 ASR, r2 label rename only, r3 explicit merge assignment, r4 text-only split with unknown child timestamps. No embeddings, real names, voice identity, or audio archive claims.",
+  "events": [
+    {
+      "schema_version": "1.2",
+      "event_id": "evt-speaker-r1",
+      "idempotency_key": "idem-speaker-r1",
+      "kind": "material.revision",
+      "producer_id": "phone-test",
+      "created_at": "2026-10-13T00:00:00Z",
+      "expires_at": "2026-10-20T00:00:00Z",
+      "body": {
+        "material_id": "material-speaker-example",
+        "revision": 1,
+        "base_revision": 0,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 1,
+        "utterances": [
+          {
+            "utterance_id": "utterance-original-a",
+            "start_ms": 100,
+            "end_ms": 1000,
+            "text": "今天😀讨论明天交付。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          },
+          {
+            "utterance_id": "utterance-original-b",
+            "start_ms": 1200,
+            "end_ms": 2000,
+            "text": "合成回复：需要确认。",
+            "speaker_id": "material-speaker-example-sB",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "今天😀讨论明天交付。\n合成回复：需要确认。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "processed",
+          "boundary": "token_starts",
+          "recognition_channel": "mix",
+          "user_edited": false
+        },
+        "speakers": [
+          {
+            "speaker_id": "material-speaker-example-sA",
+            "label": "说话人 A",
+            "label_basis": "anonymous",
+            "is_self": false
+          },
+          {
+            "speaker_id": "material-speaker-example-sB",
+            "label": "说话人 B",
+            "label_basis": "anonymous",
+            "is_self": false
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.2",
+      "event_id": "evt-speaker-r2",
+      "idempotency_key": "idem-speaker-r2",
+      "kind": "material.revision",
+      "producer_id": "phone-test",
+      "created_at": "2026-10-13T00:00:00Z",
+      "expires_at": "2026-10-20T00:00:00Z",
+      "body": {
+        "material_id": "material-speaker-example",
+        "revision": 2,
+        "base_revision": 1,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 2,
+        "utterances": [
+          {
+            "utterance_id": "utterance-original-a",
+            "start_ms": 100,
+            "end_ms": 1000,
+            "text": "今天😀讨论明天交付。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          },
+          {
+            "utterance_id": "utterance-original-b",
+            "start_ms": 1200,
+            "end_ms": 2000,
+            "text": "合成回复：需要确认。",
+            "speaker_id": "material-speaker-example-sB",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "今天😀讨论明天交付。\n合成回复：需要确认。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "processed",
+          "boundary": "token_starts",
+          "recognition_channel": "mix",
+          "user_edited": true
+        },
+        "speakers": [
+          {
+            "speaker_id": "material-speaker-example-sA",
+            "label": "合成同事",
+            "label_basis": "user_confirmed",
+            "is_self": false
+          },
+          {
+            "speaker_id": "material-speaker-example-sB",
+            "label": "说话人 B",
+            "label_basis": "anonymous",
+            "is_self": false
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.2",
+      "event_id": "evt-speaker-r3",
+      "idempotency_key": "idem-speaker-r3",
+      "kind": "material.revision",
+      "producer_id": "phone-test",
+      "created_at": "2026-10-13T00:00:00Z",
+      "expires_at": "2026-10-20T00:00:00Z",
+      "body": {
+        "material_id": "material-speaker-example",
+        "revision": 3,
+        "base_revision": 2,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 3,
+        "utterances": [
+          {
+            "utterance_id": "utterance-original-a",
+            "start_ms": 100,
+            "end_ms": 1000,
+            "text": "今天😀讨论明天交付。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          },
+          {
+            "utterance_id": "utterance-original-b",
+            "start_ms": 1200,
+            "end_ms": 2000,
+            "text": "合成回复：需要确认。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "user_confirmed",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "今天😀讨论明天交付。\n合成回复：需要确认。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "processed",
+          "boundary": "token_starts",
+          "recognition_channel": "mix",
+          "user_edited": true
+        },
+        "speakers": [
+          {
+            "speaker_id": "material-speaker-example-sA",
+            "label": "合成同事",
+            "label_basis": "user_confirmed",
+            "is_self": false
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "1.2",
+      "event_id": "evt-speaker-r4",
+      "idempotency_key": "idem-speaker-r4",
+      "kind": "material.revision",
+      "producer_id": "phone-test",
+      "created_at": "2026-10-13T00:00:00Z",
+      "expires_at": "2026-10-20T00:00:00Z",
+      "body": {
+        "material_id": "material-speaker-example",
+        "revision": 4,
+        "base_revision": 3,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 4,
+        "utterances": [
+          {
+            "utterance_id": "utterance-child-a",
+            "start_ms": null,
+            "end_ms": null,
+            "text": "今天😀讨论",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "segment_cluster",
+            "overlap": false,
+            "source_range": {
+              "parent_utterance_id": "utterance-original-a",
+              "parent_revision": 3,
+              "start_ms": 100,
+              "end_ms": 1000,
+              "text_start": 0,
+              "text_end": 6
+            }
+          },
+          {
+            "utterance_id": "utterance-child-b",
+            "start_ms": null,
+            "end_ms": null,
+            "text": "明天交付。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "segment_cluster",
+            "overlap": false,
+            "source_range": {
+              "parent_utterance_id": "utterance-original-a",
+              "parent_revision": 3,
+              "start_ms": 100,
+              "end_ms": 1000,
+              "text_start": 6,
+              "text_end": 11
+            }
+          },
+          {
+            "utterance_id": "utterance-original-b",
+            "start_ms": 1200,
+            "end_ms": 2000,
+            "text": "合成回复：需要确认。",
+            "speaker_id": "material-speaker-example-sA",
+            "speaker_basis": "user_confirmed",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "今天😀讨论明天交付。\n合成回复：需要确认。",
+          "origin": "user"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "processed",
+          "boundary": "unknown",
+          "recognition_channel": "mix",
+          "user_edited": true
+        },
+        "speakers": [
+          {
+            "speaker_id": "material-speaker-example-sA",
+            "label": "合成同事",
+            "label_basis": "user_confirmed",
+            "is_self": false
+          }
+        ]
+      }
+    }
+  ]
+}

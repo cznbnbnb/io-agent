@@ -1,0 +1,77 @@
+package com.turboio.addon;
+import android.app.*;import android.widget.*;import java.io.*;import java.util.*;import java.time.*;
+
+/** Normal material sync entry. Shows server receipts separately from local queue. */
+final class MaterialWorkspace {
+ static String label(String code){switch(code){
+  case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
+  case "syncing":return "正在读取智记并同步…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
+  case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
+  case "LIFELOG_CALENDAR_MONTH_INVALID":return "月份无效，请重新选择";
+  case "LIFELOG_CALENDAR_TIMEZONE_UNSUPPORTED":return "当前月份发现仅支持北京时间";
+  case "MATERIAL_MONTH_SELECTION_STALE":return "账号、连接或同步状态已变化，请重新查找日期";
+  case "LIFELOG_CALENDAR_JSON_INVALID":case "LIFELOG_CALENDAR_ROOT_INVALID":case "LIFELOG_CALENDAR_DATA_INVALID":case "LIFELOG_CALENDAR_ROWS_INVALID":case "LIFELOG_CALENDAR_ROW_INVALID":case "LIFELOG_CALENDAR_DATE_INVALID":case "LIFELOG_CALENDAR_DATE_MONTH_MISMATCH":case "LIFELOG_CALENDAR_DATE_DUPLICATE":case "LIFELOG_CALENDAR_COVERAGE_INCOMPLETE":case "LIFELOG_CALENDAR_HAS_LOG_INVALID":case "LIFELOG_CALENDAR_PAGINATION_UNSUPPORTED":case "LIFELOG_CALENDAR_ACCOUNT_UNSUPPORTED":case "LIFELOG_CALENDAR_DELETION_UNSUPPORTED":case "LIFELOG_CALENDAR_RESPONSE_BUDGET":case "LIFELOG_CALENDAR_LIST_BUDGET":return "本月日期结果尚不能完整核对，已有资料保留，请稍后重试";
+  case "LIFELOG_CALENDAR_RESPONSE_REJECTED":return "官方暂未提供本月智记日期，请稍后重试";
+  case "LIFELOG_DATE_INVALID":case "LIFELOG_DISCOVERY_DAYS_INVALID":return "日期无效，请重新选择同步日期";
+  case "LIFELOG_TIMEZONE_REQUIRED":case "LIFELOG_TIMEZONE_INVALID":return "无法确认日期所在时区，请检查手机日期与时区设置";
+  case "LIFELOG_LIST_DATE_MISMATCH":case "LIFELOG_LIST_TIMEZONE_MISMATCH":return "官方返回的日期或时区与所选范围不一致，本次未导入，请稍后重试";
+  case "LIFELOG_INVENTORY_CHANGED":case "LIFELOG_LIST_DUPLICATE":case "LIFELOG_LIST_SOURCE_DUPLICATE":return "当天智记正在变化，本次未导入，请稍后重试";
+  case "LIFELOG_LIST_PAGINATION_UNSUPPORTED":return "当天记录暂不能完整读取，本次未导入";
+  case "LIFELOG_LIST_DELETION_UNSUPPORTED":return "当天有记录状态需要核对，本次未导入，已有资料保留";
+  case "LIFELOG_DISCOVERY_BUDGET":case "LIFELOG_LIST_BUDGET":case "LIFELOG_LIST_SOURCE_BUDGET":return "当天资料超出本次读取范围，本次未导入，已有资料保留";
+  case "LIFELOG_RESPONSE_REJECTED":return "官方暂未提供当天智记，请稍后重试";
+  case "OFFICIAL_LOGIN_REQUIRED":return "请先完成雷鸟账号登录";case "OFFICIAL_ACCOUNT_CHANGED":case "MATERIAL_ACCOUNT_REBIND_REFUSED":return "当前雷鸟账号与资料连接不一致，请核对账号和登记文件";
+  case "MATERIAL_IMPORT_EXPIRED":case "AUTH_REQUIRED":case "expired":return "资料凭据或待发事件已到期，请更新连接并核对队列";
+  case "LIFELOG_SOURCE_REFRESH_REQUIRED":return "发现正文变化，已暂停发送，等待权威修订核对";
+  case "MATERIAL_TEXT_REVISION_REPAIR_REQUIRED":return "旧修订版本需要核对，资料已保留；请联网后重试同步";
+  case "LIFELOG_PENDING_REVISION_CHANGED":return "待同步正文已有新修改，旧版本暂不发送，需核对其入库结果";
+  case "LIFELOG_SPEAKER_REVIEW_REQUIRED":case "LIFELOG_TEXT_REVIEW_REQUIRED":return "官方更新与已确认更正冲突，保留现有资料，等待核对";
+  case "OFFICIAL_AUTH_REQUIRED":return "雷鸟登录已失效，请重新登录后同步";
+  case "OFFICIAL_SOURCE_UNAVAILABLE":case "OFFICIAL_SOURCE_TIMEOUT":return "暂时无法读取官方最新正文，已保留本机队列，请稍后重试";
+  case "LIFELOG_FRESH_SOURCE_CONFLICT":case "LIFELOG_FRESH_SOURCE_UNOWNED":return "官方正文或记录归属正在变化，本次未发送，请稍后重试";
+  case "OFFICIAL_HOST_UNSUPPORTED":return "当前原厂版本尚未适配正文刷新，资料保留";
+  case "FORBIDDEN":case "MATERIAL_WRITE_SCOPE_REQUIRED":return "资料连接缺少写入权限";case "MATERIAL_IDENTITY_MISMATCH":case "MATERIAL_EXPIRY_MISMATCH":return "服务器返回身份与登记文件不一致";
+  case "MATERIAL_SCHEMA_UNSUPPORTED":return "服务器暂不支持当前资料格式";case "MATERIAL_CONFIG_SAVE_FAILED":return "连接保存失败，请重试";
+  case "MATERIAL_KEY_UNAVAILABLE":case "MATERIAL_CONFIG_INVALID":return "无法读取本机资料连接，请重新登记";
+  case "MATERIAL_RENEWAL_LIMIT":return "资料续传次数已达上限，原文和记录保留，请核对连接";
+  case "MATERIAL_STORE_FULL":case "LIFELOG_IMPORT_FULL":case "LIFELOG_REVISION_FULL":return "本机同步记录已满，资料保留，需整理后继续";
+  case "LIFELOG_IMPORT_SCAN_INCOMPLETE":case "OFFICIAL_CACHE_CHANGED":return "资料正在变化，本次未导入，请稍后重试";
+  case "blocked":return "有资料需要核对，未记为同步成功";case "MATERIAL_IMPORT_UNAVAILABLE":return "未找到资料登记文件";
+  default:return "同步暂未完成，请检查网络或连接配置后重试";
+ }}
+ static void show(Activity activity){EditorialUI.Screen screen=new EditorialUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
+  MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(EditorialUI.text(activity,label(error.isEmpty()?state.note:error),20,EditorialUI.INK));
+   body.addView(EditorialUI.text(activity,"同步已打开的智记，或按日期、月份查找可同步正文，保留说话人和时间。月份查找需手动选择日期；原音、普通录音、全历史和删除同步仍在接入。",14,EditorialUI.MUTED));
+   if(state.config!=null)body.addView(EditorialUI.text(activity,state.config.connection.preview(),13,EditorialUI.MUTED));
+   MaterialSyncSession.Status s=state.status;body.addView(EditorialUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,EditorialUI.INK));
+   if(s.days>0)body.addView(EditorialUI.text(activity,"本次读取 "+s.days+" 天 · 发现智记正文 "+s.discovered+" 份\n未同步普通录音 "+s.recordings+" 条 · 其他类型 "+s.otherEntries+" 条\n发现数量不代表服务器已保存数量。",14,EditorialUI.MUTED));
+   if(s.conflicts+s.unowned+s.invalid>0)body.addView(EditorialUI.text(activity,"正文冲突 "+s.conflicts+" · 归属待核对 "+s.unowned+" · 无效响应 "+s.invalid,14,EditorialUI.MUTED));
+   EditorialUI.button(activity,body,"资料连接设置",false,()->configure(activity,runtime,state.config,refresh[0]));
+   if(state.config!=null&&state.config.enabled){EditorialUI.button(activity,body,"同步一次",true,()->{body.addView(EditorialUI.text(activity,"正在同步，可随时暂停。",14,EditorialUI.MUTED));runtime.sync((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);});});EditorialUI.button(activity,body,"按日期同步",false,()->selectDay(activity,runtime,state.config,()->body.addView(EditorialUI.text(activity,"正在按日期同步…",14,EditorialUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));EditorialUI.button(activity,body,"按月份查找智记",false,()->MaterialMonthWorkspace.show(activity,runtime,state.config,()->!closed[0],()->body.addView(EditorialUI.text(activity,"正在读取所选智记…",14,EditorialUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));EditorialUI.button(activity,body,"暂停同步",false,()->runtime.pause((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);}));}
+   EditorialUI.button(activity,body,"刷新状态",false,refresh[0]);
+  };
+  refresh[0]=()->runtime.read(render);screen.dialog.setOnDismissListener(dialog->{closed[0]=true;runtime.cancelPending();});refresh[0].run();
+ }
+ private static void renderResult(Activity activity,String code,Runnable refresh){if(!code.isEmpty())EditorialUI.notice(activity,label(code));refresh.run();}
+ private static void selectDay(Activity activity,MaterialRuntime runtime,MaterialConfig target,Runnable starting,Runnable refresh){
+  ZoneId zone=ZoneId.systemDefault();LocalDate today=LocalDate.now(zone);String timezone=zone.getId();
+  DatePickerDialog picker=new DatePickerDialog(activity,(view,year,month,day)->{
+   if(activity.isDestroyed())return;String date=LocalDate.of(year,month+1,day).toString();
+   new AlertDialog.Builder(activity).setTitle("按日期同步智记").setMessage("日期："+date+"\n时区："+timezone+"\n\n将该日可读取的智记正文同步至已配置资料空间：\n"+target.connection.preview()+"\n\n普通录音暂不包含在内。当天未发现智记时，已有资料仍会保留。")
+    .setNegativeButton("取消",null).setPositiveButton("开始同步",(dialog,which)->{
+     if(activity.isDestroyed())return;starting.run();runtime.syncDay(date,timezone,(done,code)->{if(!activity.isDestroyed())renderResult(activity,code,refresh);});
+    }).show();
+  },today.getYear(),today.getMonthValue()-1,today.getDayOfMonth());
+  picker.setTitle("选择智记日期");picker.show();
+ }
+ private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] block=new byte[2048];int n;while((n=in.read(block))!=-1){if(bytes.size()+n>8192)throw new IOException("MATERIAL_IMPORT_BUDGET");bytes.write(block,0,n);}return bytes.toByteArray();}}
+ private static void configure(Activity activity,MaterialRuntime runtime,MaterialConfig saved,Runnable refresh){EditorialUI.Screen screen=new EditorialUI.Screen(activity,"资料连接设置");TextView info=EditorialUI.text(activity,"选择电脑生成的资料登记文件。保存前将核对服务器身份，并绑定当前雷鸟账号。",14,EditorialUI.MUTED);screen.body.addView(info);final MaterialConnection[] candidate={null};final boolean[] closed={false};
+  java.util.function.Consumer<byte[]> preview=raw->{try{candidate[0]=MaterialConnection.parse(raw,System.currentTimeMillis());info.setText(candidate[0].preview()+"\n尚未保存；服务器身份将在保存时核对。");}catch(Exception failed){candidate[0]=null;info.setText("登记文件无效或已到期，请重新提供。");}finally{Arrays.fill(raw,(byte)0);}};
+  EditorialUI.button(activity,screen.body,"选择资料登记文件",false,()->TaskFilePicker.pick(activity,uri->{if(closed[0])return;try{InputStream in=activity.getContentResolver().openInputStream(uri);if(in==null)throw new IOException();preview.accept(read(in));}catch(Exception failure){info.setText("无法读取登记文件，请重新选择。");}}));
+  EditorialUI.button(activity,screen.body,"读取电脑登记文件",false,()->{try{File internal=new File(activity.getFilesDir(),"connection-import/material-connection.json"),external=activity.getExternalFilesDir(null),file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/material-connection.json");if(file==null)throw new IOException();preview.accept(read(new FileInputStream(file)));}catch(Exception missing){info.setText(label("MATERIAL_IMPORT_UNAVAILABLE"));}});
+  if(saved!=null)EditorialUI.button(activity,screen.body,"读取已保存连接",false,()->preview.accept(saved.connection.encode()));
+  CheckBox enabled=new CheckBox(activity);enabled.setText("允许将当前账号的智记同步到此服务器");enabled.setTextColor(EditorialUI.INK);screen.body.addView(enabled);
+  EditorialUI.button(activity,screen.body,"核对并保存",true,()->{if(candidate[0]==null){info.setText("请先读取资料登记文件。");return;}info.setText("正在核对服务器身份…");runtime.configure(candidate[0].encode(),enabled.isChecked(),(state,error)->{refresh.run();if(closed[0])return;if(error.isEmpty()){screen.dialog.dismiss();}else info.setText(label(error));});});
+  screen.dialog.setOnDismissListener(dialog->{closed[0]=true;candidate[0]=null;runtime.cancelPending();});
+ }
+}

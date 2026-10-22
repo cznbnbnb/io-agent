@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "recorded_on": "2026-10-22",
+  "executor": "native_subagent",
+  "agent": "/root/material_date_ui",
+  "passed": true,
+  "checks": 98,
+  "reused_completed_evidence": true,
+  "tests_rerun_for_report": false,
+  "runs": [
+    {
+      "kind": "pure_functions",
+      "checks": 19,
+      "passed": true,
+      "command": "& 'D:\\openclaw\\nodejs\\node.exe' --input-type=module -e $normalGuardChecks",
+      "script_location": "Inline PowerShell here-string $normalGuardChecks in the referenced exec call; no separate test file was created.",
+      "execution_reference": "functions.exec / exec_command chunk_id 42ba06",
+      "exit_code": 0,
+      "coverage": [
+        "Java WireJson recursive sorted keys and control-character escaping",
+        "Literal backslash b/f remain literal, Chinese and valid surrogate pairs",
+        "Reject unpaired surrogates, unsafe/noninteger numbers and undefined",
+        "TaskConnection binding including trailing slash normalization",
+        "Request fingerprint excludes body state and irrelevant envelope metadata",
+        "Status metadata excludes text/token and rejects mismatched nonce"
+      ]
+    },
+    {
+      "kind": "capture_drive_fake_ports",
+      "checks": 79,
+      "scenarios": 9,
+      "passed": true,
+      "command": "& 'D:\\openclaw\\nodejs\\node.exe' --input-type=module -e $normalCaptureChecks",
+      "script_location": "Inline PowerShell here-string $normalCaptureChecks in the referenced exec call; no separate test file was created.",
+      "execution_reference": "functions.exec / exec_command chunk_id 97e7e9",
+      "exit_code": 0,
+      "tested_production_functions": [
+        "startAdmission",
+        "placementAdmission",
+        "completedCapture",
+        "driveNormalVoiceCapture"
+      ],
+      "scenarios_covered": [
+        "Success: Load before ping, ping before click, no playback before positive audio frames, DONE before stop",
+        "Preload failure: stop requested, no watchdog arm/start/play",
+        "Watchdog arm failure: stop requested, no UI start/play",
+        "Missing real ping acknowledgment: no UI start/play",
+        "UI control failure: stop requested, no playback",
+        "Player failure: stop requested, safe failure remains unsuccessful",
+        "Watchdog failure: stop requested, safe failure remains unsuccessful",
+        "Missing final condition: safe capture still rejected as incomplete",
+        "Unknown stop: bounded 47-second fake-clock observation, no safe claim"
+      ],
+      "additional_negative_gates": [
+        "Prepared/bound/never-started/readiness/submission and ping flags",
+        "Placement schema, confirmation, PCM/WAV hashes, expiry type and time window",
+        "Original request/task/revision/fingerprint/route booleans",
+        "Complete final segments, transcript hash, frame/PCM counts and four conditions"
+      ]
+    }
+  ],
+  "latest_syntax_check": {
+    "command": "& 'D:\\openclaw\\nodejs\\node.exe' --check tools/android/run-normal-voice-guard.mjs",
+    "execution_reference": "functions.exec / exec_command chunk_id 17947b",
+    "exit_code": 0
+  },
+  "source_hash_basis": "SHA256 read when this retrospective report was written. These are not claimed to be hashes captured at the earlier test executions. The 19 checks preceded capture integration; the 79 checks preceded the final operation-lock failure-path gating edit. The latest syntax check covered that edit.",
+  "source_sha256_observed_at_report": {
+    "tools/android/run-normal-voice-guard.mjs": "e3268bbea2f89fa2e1184bc3ca16f867494aa171e0b1468286c8c37adf842226",
+    "tools/android/NormalVoiceGuardProbe.java": "0d94f7e68b95258118db505998b2904646108fc74707a94390b5cfccbf8ed400",
+    "tools/android/recording-watchdog.mjs": "bf809e9c0d3de967874f826968fedb1a491652fe864c05881a30f7593e4c6b2b",
+    "rebuild/agent-bridge/client.mjs": "f0a483eb252311f7db83cc76b2ac3582e877a6bfded4606f79b118ecd17063ae"
+  },
+  "fake_ports": true,
+  "real_network_requests": 0,
+  "device_operations": 0,
+  "services_started": 0,
+  "credentials_issued": 0,
+  "android_builds": 0,
+  "microphone_started": false,
+  "audio_played": false,
+  "physical_stop_proven_by_these_tests": false,
+  "server_submission_proven_by_these_tests": false,
+  "readiness_created": false,
+  "temporary_test_files_created": false,
+  "limitations": "Fake ports exercise sequencing and refusal gates only. No ADB, PowerShell SoundPlayer, real watchdog process, phone UI, microphone, original audio or server submission was exercised by these two runs."
+}

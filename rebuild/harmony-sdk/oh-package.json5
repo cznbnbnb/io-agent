@@ -1,0 +1,9 @@
+{
+  "modelVersion": "5.0.0",
+  "name": "turbo-io-harmony-research",
+  "version": "0.1.15",
+  "description": "Native HarmonyOS RayNeo iO client and experimental BLE SDK; source-only research release.",
+  "dependencies": {},
+  "devDependencies": {},
+  "dynamicDependencies": {}
+}

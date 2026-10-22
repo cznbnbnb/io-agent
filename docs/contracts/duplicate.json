@@ -1,0 +1,364 @@
+{
+  "description": "三组对象重传同事件；同请求第二终端回答竞争",
+  "events": [
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-1",
+      "idempotency_key": "demo-key-1",
+      "kind": "material.revision",
+      "producer_id": "phone-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "material_id": "material-demo",
+        "revision": 1,
+        "base_revision": 0,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-10T02:00:00Z",
+        "ended_at": "2026-10-10T02:01:00Z",
+        "completeness": "complete",
+        "text_revision": 1,
+        "utterances": [
+          {
+            "utterance_id": "utterance-demo",
+            "start_ms": 0,
+            "end_ms": 1000,
+            "text": "合成样例：明天整理资料",
+            "speaker_id": "A",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-1",
+      "idempotency_key": "demo-key-1",
+      "kind": "material.revision",
+      "producer_id": "phone-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "material_id": "material-demo",
+        "revision": 1,
+        "base_revision": 0,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-10T02:00:00Z",
+        "ended_at": "2026-10-10T02:01:00Z",
+        "completeness": "complete",
+        "text_revision": 1,
+        "utterances": [
+          {
+            "utterance_id": "utterance-demo",
+            "start_ms": 0,
+            "end_ms": 1000,
+            "text": "合成样例：明天整理资料",
+            "speaker_id": "A",
+            "speaker_basis": "segment_cluster",
+            "overlap": false
+          }
+        ],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        }
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-2",
+      "idempotency_key": "demo-key-2",
+      "kind": "task",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "task_id": "task-demo",
+        "revision": 1,
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "state": "queued",
+        "command": "合成任务：选 A 或 B，不执行外部操作",
+        "allow_create_session": false
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-2",
+      "idempotency_key": "demo-key-2",
+      "kind": "task",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "task_id": "task-demo",
+        "revision": 1,
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "state": "queued",
+        "command": "合成任务：选 A 或 B，不执行外部操作",
+        "allow_create_session": false
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-3",
+      "idempotency_key": "demo-key-3",
+      "kind": "request",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "request_id": "request-demo",
+        "revision": 1,
+        "task_id": "task-demo",
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "mode": "choice",
+        "question": "合成问题：选 A 还是 B？",
+        "options": [
+          {
+            "option_id": "A",
+            "label": "方案 A"
+          },
+          {
+            "option_id": "B",
+            "label": "方案 B"
+          }
+        ],
+        "state": "pending",
+        "runtime_request_id": "srq-demo"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-3",
+      "idempotency_key": "demo-key-3",
+      "kind": "request",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "request_id": "request-demo",
+        "revision": 1,
+        "task_id": "task-demo",
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "mode": "choice",
+        "question": "合成问题：选 A 还是 B？",
+        "options": [
+          {
+            "option_id": "A",
+            "label": "方案 A"
+          },
+          {
+            "option_id": "B",
+            "label": "方案 B"
+          }
+        ],
+        "state": "pending",
+        "runtime_request_id": "srq-demo"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-4",
+      "idempotency_key": "demo-key-4",
+      "kind": "message",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "message_id": "message-demo",
+        "revision": 1,
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "task_id": "task-demo",
+        "request_id": "request-demo",
+        "channel": "question",
+        "text": "合成问题：选 A 还是 B？"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-4",
+      "idempotency_key": "demo-key-4",
+      "kind": "message",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "message_id": "message-demo",
+        "revision": 1,
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "task_id": "task-demo",
+        "request_id": "request-demo",
+        "channel": "question",
+        "text": "合成问题：选 A 还是 B？"
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-5",
+      "idempotency_key": "demo-key-5",
+      "kind": "answer",
+      "producer_id": "phone-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "answer_id": "answer-demo",
+        "request_id": "request-demo",
+        "request_revision": 1,
+        "task_id": "task-demo",
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "option_id": "A",
+        "text": "方案 A，但只生成预览",
+        "input_source": "voice",
+        "raw_action": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-5",
+      "idempotency_key": "demo-key-5",
+      "kind": "answer",
+      "producer_id": "phone-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "answer_id": "answer-demo",
+        "request_id": "request-demo",
+        "request_revision": 1,
+        "task_id": "task-demo",
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "option_id": "A",
+        "text": "方案 A，但只生成预览",
+        "input_source": "voice",
+        "raw_action": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-6",
+      "idempotency_key": "demo-key-6",
+      "kind": "receipt",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "receipt_id": "receipt-demo-0",
+        "subject_kind": "message",
+        "subject_id": "message-demo",
+        "subject_revision": 1,
+        "stage": "server_stored",
+        "actor_id": "server-demo",
+        "related_event_id": "event-demo-4",
+        "error": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-6",
+      "idempotency_key": "demo-key-6",
+      "kind": "receipt",
+      "producer_id": "agent-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "receipt_id": "receipt-demo-0",
+        "subject_kind": "message",
+        "subject_id": "message-demo",
+        "subject_revision": 1,
+        "stage": "server_stored",
+        "actor_id": "server-demo",
+        "related_event_id": "event-demo-4",
+        "error": null
+      }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "event-demo-99",
+      "idempotency_key": "demo-key-99",
+      "kind": "answer",
+      "producer_id": "phone-demo",
+      "created_at": "2026-10-10T02:02:00Z",
+      "expires_at": "2026-10-10T03:00:00Z",
+      "body": {
+        "answer_id": "answer-competing",
+        "request_id": "request-demo",
+        "request_revision": 1,
+        "task_id": "task-demo",
+        "route": {
+          "computer_id": "pc-demo",
+          "agent_id": "hermes-demo",
+          "project_id": "project-demo",
+          "session_id": "session-demo-stored"
+        },
+        "option_id": "B",
+        "text": "方案 A，但只生成预览",
+        "input_source": "voice",
+        "raw_action": null
+      }
+    }
+  ],
+  "expected": [
+    "stored",
+    "duplicate",
+    "task_queued",
+    "duplicate",
+    "request_pending",
+    "duplicate",
+    "message_queued",
+    "duplicate",
+    "answer_recorded",
+    "duplicate",
+    "receipt_recorded",
+    "duplicate",
+    "ANSWER_ALREADY_ACCEPTED"
+  ],
+  "server_now": "2026-10-10T02:03:00Z"
+}

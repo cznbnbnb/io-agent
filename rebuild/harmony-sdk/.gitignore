@@ -1,0 +1,15 @@
+.hvigor/
+oh_modules/
+**/build/
+local.properties
+**/*.hap
+**/*.app
+**/*.har
+**/*.p12
+**/*.p7b
+**/*.cer
+**/*private*
+.idea/
+# DevEco writes local signing material references and encrypted passwords here.
+# Publish build-profile.example.json5 instead; never force-add the local file.
+/build-profile.json5

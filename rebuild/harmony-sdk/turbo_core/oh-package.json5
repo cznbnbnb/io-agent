@@ -1,0 +1,1 @@
+{ "name": "turbo_core", "version": "0.1.0", "main": "Index.ets", "description": "Experimental native BLE discovery, authentication and business protocol core", "dependencies": {} }

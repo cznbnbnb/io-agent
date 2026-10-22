@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "at": "2026-10-21T11:10:32.8047379Z",
+  "assertions": 34,
+  "scope": "Real Node children and localhost synthetic endpoints: parent blocked, IPC disconnected, intermediate parent exited; no phone or microphone",
+  "passed": true,
+  "phone_operations": false,
+  "microphone_started": false,
+  "sources": [
+    {
+      "path": "tools/android/recording-watchdog.mjs",
+      "sha256": "bf809e9c0d3de967874f826968fedb1a491652fe864c05881a30f7593e4c6b2b"
+    },
+    {
+      "path": "tools/android/test-recording-watchdog.mjs",
+      "sha256": "cff52f89431c02bf970728735fcec750c1e920b595fcbedce721636378efca2c"
+    }
+  ]
+}

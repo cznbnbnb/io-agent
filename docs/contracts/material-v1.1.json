@@ -1,0 +1,205 @@
+{
+  "scope": "Independent synthetic material payload examples, not a server execution or ordered transaction log. Retry the exact same event bytes; expiry/offline envelopes follow the existing lifecycle rules.",
+  "events": [
+    {
+      "schema_version": "1.1",
+      "event_id": "evt-partial-r2",
+      "idempotency_key": "idem-partial-r2",
+      "kind": "material.revision",
+      "producer_id": "phone-example",
+      "created_at": "2026-10-11T00:02:00Z",
+      "expires_at": "2026-10-18T00:02:00Z",
+      "body": {
+        "material_id": "material-example",
+        "revision": 2,
+        "base_revision": 1,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 1,
+        "utterances": [],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "# 测试资料\n\n已处理前 10.02 秒；当前窗口未检测到语音。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "partial",
+          "covered_ms": 10020,
+          "source_ms": 60000,
+          "speaker": "pending",
+          "boundary": "no_speech",
+          "recognition_channel": "unknown",
+          "user_edited": false
+        }
+      }
+    },
+    {
+      "schema_version": "1.1",
+      "event_id": "evt-complete-r3",
+      "idempotency_key": "idem-complete-r3",
+      "kind": "material.revision",
+      "producer_id": "phone-example",
+      "created_at": "2026-10-11T00:02:00Z",
+      "expires_at": "2026-10-18T00:02:00Z",
+      "body": {
+        "material_id": "material-example",
+        "revision": 3,
+        "base_revision": 2,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 2,
+        "utterances": [],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "# 测试资料\n\n本段已处理完成，未检测到语音。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "pending",
+          "boundary": "no_speech",
+          "recognition_channel": "unknown",
+          "user_edited": false
+        }
+      }
+    },
+    {
+      "schema_version": "1.1",
+      "event_id": "evt-legacy-r1",
+      "idempotency_key": "idem-legacy-r1",
+      "kind": "material.revision",
+      "producer_id": "phone-example",
+      "created_at": "2026-10-11T00:02:00Z",
+      "expires_at": "2026-10-18T00:02:00Z",
+      "body": {
+        "material_id": "legacy-example",
+        "revision": 1,
+        "base_revision": 0,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 1,
+        "utterances": [],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "# 历史文字\n\n没有可靠的逐句时间，保留全文。",
+          "origin": "legacy"
+        },
+        "processing": {
+          "transcription_state": "unknown",
+          "covered_ms": null,
+          "source_ms": null,
+          "speaker": "unknown",
+          "boundary": "unknown",
+          "recognition_channel": "unknown",
+          "user_edited": false
+        }
+      }
+    },
+    {
+      "schema_version": "1.1",
+      "event_id": "evt-gap-r1",
+      "idempotency_key": "idem-gap-r1",
+      "kind": "material.revision",
+      "producer_id": "phone-example",
+      "created_at": "2026-10-11T00:02:00Z",
+      "expires_at": "2026-10-18T00:02:00Z",
+      "body": {
+        "material_id": "gap-example",
+        "revision": 1,
+        "base_revision": 0,
+        "operation": "upsert",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "gap",
+        "text_revision": 1,
+        "utterances": [],
+        "audio": {
+          "state": "missing",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "# 测试资料\n\n已处理前 10.02 秒；当前窗口未检测到语音。",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "partial",
+          "covered_ms": 10020,
+          "source_ms": 60000,
+          "speaker": "pending",
+          "boundary": "no_speech",
+          "recognition_channel": "unknown",
+          "user_edited": false
+        }
+      }
+    },
+    {
+      "schema_version": "1.1",
+      "event_id": "evt-delete-r4",
+      "idempotency_key": "idem-delete-r4",
+      "kind": "material.revision",
+      "producer_id": "phone-example",
+      "created_at": "2026-10-11T00:02:00Z",
+      "expires_at": "2026-10-18T00:02:00Z",
+      "body": {
+        "material_id": "material-example",
+        "revision": 4,
+        "base_revision": 3,
+        "operation": "delete",
+        "source": "lifelog",
+        "started_at": "2026-10-11T00:00:00Z",
+        "ended_at": "2026-10-11T00:01:00Z",
+        "completeness": "complete",
+        "text_revision": 2,
+        "utterances": [],
+        "audio": {
+          "state": "local",
+          "sha256": null,
+          "object_id": null
+        },
+        "full_text": {
+          "format": "markdown",
+          "text": "",
+          "origin": "asr"
+        },
+        "processing": {
+          "transcription_state": "complete",
+          "covered_ms": 60000,
+          "source_ms": 60000,
+          "speaker": "pending",
+          "boundary": "no_speech",
+          "recognition_channel": "unknown",
+          "user_edited": false
+        }
+      }
+    }
+  ]
+}

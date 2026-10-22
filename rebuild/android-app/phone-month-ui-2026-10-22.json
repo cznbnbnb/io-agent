@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T02:40:00.183822+00:00",
+  "product": "0.5.3-dev2 /10424",
+  "month": "2026-10",
+  "normal_month_discovery": true,
+  "discovered_date_count": 3,
+  "empty_selection_sync_disabled": true,
+  "source_ui_sha256": "e0f108da70159f438a0f465c0ba5653327d662dfaeb0e17a59bc3898e55bc4a4",
+  "cancel_before_import_verified": true,
+  "selected_days_sync_verified": false,
+  "no_new_capture": true,
+  "cancel_preserved_ui_counts": [
+    6,
+    0,
+    0,
+    0,
+    0
+  ],
+  "handoff_second_discovery_cancelled": true,
+  "handoff_refresh_cleared_progress_message": true,
+  "no_day_selection_or_month_import_started": true,
+  "device_operations_finished_for_github_handoff": true
+}

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "path": ".private/hosts/RayNeo-1.0.7-230-original.apk",
+  "role": "pinned official input and rollback installer",
+  "version": "1.0.7",
+  "version_code": 230,
+  "bytes": 409041471,
+  "sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+  "signature_verified": true,
+  "certificate_sha256": "a5bd909475e5c7441e0ef48ff7ee69efbc594808a60b470a4feb6d30b0340883",
+  "data_export_verified": false,
+  "rollback_exercised": false,
+  "origin": "read-only ADB package pull before user disconnected; no app sandbox/data pull"
+}

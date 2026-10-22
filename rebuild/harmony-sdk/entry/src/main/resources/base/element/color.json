@@ -1,0 +1,120 @@
+{
+  "color": [
+    {
+      "name": "background",
+      "value": "#F5F6F2"
+    },
+    {
+      "name": "page_bg",
+      "value": "#F5F6F2"
+    },
+    {
+      "name": "card_bg",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "card_bg_alt",
+      "value": "#F1F4EE"
+    },
+    {
+      "name": "card_bg_soft",
+      "value": "#B3FFFFFF"
+    },
+    {
+      "name": "card_raise",
+      "value": "#EBF0E9"
+    },
+    {
+      "name": "input_bg",
+      "value": "#EDF1EB"
+    },
+    {
+      "name": "input_bg_soft",
+      "value": "#B3EEF2F4"
+    },
+    {
+      "name": "row_bg",
+      "value": "#F3F5EF"
+    },
+    {
+      "name": "row_bg_soft",
+      "value": "#B3F2F6F8"
+    },
+    {
+      "name": "border",
+      "value": "#E1E6DE"
+    },
+    {
+      "name": "text_primary",
+      "value": "#1B2821"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#55655B"
+    },
+    {
+      "name": "text_muted",
+      "value": "#6B7C70"
+    },
+    {
+      "name": "brand",
+      "value": "#176B4C"
+    },
+    {
+      "name": "brand_soft",
+      "value": "#176B4C"
+    },
+    {
+      "name": "brand_deep",
+      "value": "#E4F0E7"
+    },
+    {
+      "name": "on_brand",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "warm",
+      "value": "#96650F"
+    },
+    {
+      "name": "warm_bg",
+      "value": "#F6EDDC"
+    },
+    {
+      "name": "danger",
+      "value": "#C0392B"
+    },
+    {
+      "name": "danger_bg",
+      "value": "#FBEAE6"
+    },
+    {
+      "name": "info",
+      "value": "#2F6BD8"
+    },
+    {
+      "name": "info_bg",
+      "value": "#E7EEFB"
+    },
+    {
+      "name": "purple",
+      "value": "#6B5CE7"
+    },
+    {
+      "name": "purple_bg",
+      "value": "#EEEBFC"
+    },
+    {
+      "name": "mask_page",
+      "value": "#88F5F6F2"
+    },
+    {
+      "name": "glass_bg",
+      "value": "#38FFFFFF"
+    },
+    {
+      "name": "menu_bg",
+      "value": "#F5FFFFFF"
+    }
+  ]
+}

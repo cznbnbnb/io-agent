@@ -1,0 +1,9 @@
+{
+  "name": "turboio-material-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.18.0 <23" },
+  "scripts": { "start": "node cli.mjs serve", "test": "node --test tests/*.test.mjs" },
+  "dependencies": { "ajv": "8.20.0", "ajv-formats": "3.0.1" }
+}

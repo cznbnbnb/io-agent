@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T01:36:22.9739265Z",
+  "scope": "Pure JVM parser synthetic tests only; Android Probe source tracked but not compiled",
+  "device": false,
+  "network": false,
+  "android_probe_compiled": false,
+  "passed": true,
+  "checks": 150,
+  "sources": [
+    {
+      "path": "tools/android/GatewayHeaderShapeProbe.java",
+      "sha256": "0ea4bde50909f7651168e9d0f53787e92bda4f56d0e6867a6044d2b577829547"
+    },
+    {
+      "path": "tools/android/GatewayHeaderShapeParser.java",
+      "sha256": "3595157b7deb131b08cb00e81fdffc648f5358fefb537c6abe267f6d9bdfc075"
+    },
+    {
+      "path": "tools/android/GatewayHeaderShapeParserTest.java",
+      "sha256": "11a1f0c617cd11aec0ce06669080ac62c4dd94395f261c72880bda205967f6c4"
+    }
+  ],
+  "temporary_classes_removed": true
+}

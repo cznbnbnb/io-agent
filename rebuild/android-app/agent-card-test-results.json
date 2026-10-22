@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "at": "2026-10-20T11:55:00.584Z",
+  "assertions": 517,
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\AgentCardRequest.java",
+      "sha256": "109adeab960dd0132d9a38466fe42cd69aa5733a82ecaed6c66fbd3d754e060a"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\AgentCardSession.java",
+      "sha256": "3b4fbb72c915d3b361bb3f8a80b3a58145af599f447a0ee2f195d1771434e973"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\HeadGestureSession.java",
+      "sha256": "7c2d30b5e6de5ec9da7ebca3be8e7a0200a55c629c4427531bca6cdb820410b5"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\FixedPeerHash.java",
+      "sha256": "8fe77aa325f7d1135162d9635346d5cc3f872c0d4cdc92fed55d1c0d8441e353"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\CardInputClosure.java",
+      "sha256": "20eea19b4ad8b8326d091b54dea1be41460838c11a2005c449d9c024f321932e"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\SuggestionGate.java",
+      "sha256": "e32458354572d0f2abb92119e36d977976f5ec97622bda6ad945600cc0addef1"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskConnection.java",
+      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskProfiles.java",
+      "sha256": "6630cd70c8c03660d707e10ebd787ae891edbe52a9f5af94e7601829b9ee7a74"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskHub.java",
+      "sha256": "91bacf01e243c40671f6a08304d8d4d107efaa64d9e8ea3794dd84aa526c313a"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskMailbox.java",
+      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskApi.java",
+      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskWire.java",
+      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
+      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\OtaFrame.java",
+      "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
+    },
+    {
+      "path": "..\\..\\tools\\android\\AgentCardTest.java",
+      "sha256": "21facec978bbdb8b554ec2d1d0ff203934e7fec41af562ec8e8cc78e7b0e98cb"
+    },
+    {
+      "path": "..\\..\\tools\\android\\TaskConnectionTest.java",
+      "sha256": "13b9204dee5e01dd55dde6cbb89ff0d888ed6aaafbb0ed62660abac125ac7106"
+    },
+    {
+      "path": "..\\..\\tools\\android\\TaskMailboxTest.java",
+      "sha256": "883829de7471c94ac652056d9c5a01ead99a08c7f394ad35c3038da511dc8ef3"
+    }
+  ],
+  "scope": "JVM original-request native card state machine, real atomic mailbox and multi-context TaskHub/TaskApi with synthetic transports. Device actions and exit observations are simulated.",
+  "phone_tested": false,
+  "lens_tested": false,
+  "real_agent_executed": false
+}

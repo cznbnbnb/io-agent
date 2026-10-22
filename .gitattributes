@@ -1,0 +1,25 @@
+rebuild/harmony-sdk/entry/src/main/resources/rawfile/models/prompter_ctc_zh/tokens.txt -text
+# Preserve the exact bytes referenced by this batch's evidence SHA256 ledgers.
+rebuild/phase1/summary093-* -text
+rebuild/phase1/candidate-runs/20261016-040245850-f09add88/* -text
+rebuild/phase1/candidate-runs/20261016-044503190-984a6f04/* -text
+rebuild/phase1/card-duration-stock-suggest-parser-audit-2026-10-16.json -text
+rebuild/phase1/summary094-* -text
+rebuild/phase1/candidate-runs/20261016-052556027-89cb7802/* -text
+rebuild/phase1/candidate-runs/20261016-054852791-80d77ddd/* -text
+rebuild/phase1/recording094-failed-run-cleanup-2026-10-16.json -text
+rebuild/phase1/todo-delete-stock-protocol-audit-2026-10-16.json -text
+
+rebuild/phase1/todo095-* -text
+rebuild/phase1/candidate-runs/20261016-063317430-4a099fae/* -text
+rebuild/phase1/material-capacity-source-review-2026-10-16.json -text
+rebuild/phase1/scan096-* -text
+rebuild/phase1/query096-* -text
+rebuild/phase1/candidate-runs/20261016-071850454-20aeb9f6/* -text
+rebuild/phase1/candidate-runs/20261016-073924244-7e2cdad9/* -text
+rebuild/phase1/material-outbox-capacity-* -text
+rebuild/phase1/material-outbox-archive-* -text
+
+# Preserve exact upstream/source bytes used by provenance hashes across clones.
+rebuild/android-app/** -text
+tools/android/** -text

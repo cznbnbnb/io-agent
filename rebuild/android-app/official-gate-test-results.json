@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-10-20T06:56:14.434Z",
+  "kind": "Actual fixed1.0.5.5 ZIP, adversarial simulated official frames, real fsync/restart journal",
+  "assertions": 2935,
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Profile.java",
+      "sha256": "bf2c3452afe4b0d984f274f6aa53c0491d3cf349b55290fc25dd1b1541c6c832"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60Firmware.java",
+      "sha256": "f6d792857f9565cba70d107b62967bc7901134d8fc74150ad5d64f60f984a562"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60OfficialGate.java",
+      "sha256": "aed9a0f686b7622b9eeac44e71d3c6bab011f5dda55a9bec5b14cddfc9f6dc03"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\Fixed60OfficialJournal.java",
+      "sha256": "39cccd528d8bbd6f86f3dfde0ff2846072352b12aa014add8b403a1835b17411"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialSdkReceipt.java",
+      "sha256": "9bdaa9c78adc9df58e12a938f20ffdde2aa6d2fea157d2eff0115b2412c0b3e0"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
+      "sha256": "ffdcb28f61cc7cee71d9d0932ff0d2f776247de782ecf21cb3448a9305f4e6ca"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\OtaFrame.java",
+      "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\OtaRecoveryGuard.java",
+      "sha256": "af9b5f5da33696ee74c29d04c8279c4cf198e0e4e9cb07b36aa185cf2751e9f1"
+    },
+    {
+      "path": "..\\..\\tools\\android\\Fixed60OfficialGateTest.java",
+      "sha256": "6741e82adfa4a36a9d5496bbb2e2ba93c5097267221848df41229c0234ca126d"
+    }
+  ],
+  "sdk_hook_integrated": false,
+  "android_build_tested": false,
+  "phone_tested": false,
+  "firmware_written": false,
+  "overall": "passed_for_stated_offline_scope"
+}

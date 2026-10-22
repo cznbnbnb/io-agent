@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "at": "2026-10-21T11:54:18.236Z",
+  "scope": "Pure Java offline signing with independent Python hashlib/hmac fixed vectors",
+  "device": false,
+  "network": false,
+  "post_transport_enabled": false,
+  "current_dart_nonempty_body_vector_verified": false,
+  "passed": true,
+  "checks": 136,
+  "fixed_vectors": 9,
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialGatewaySigning.java",
+      "sha256": "7cff1b2e716e074f2d104ecff48177b77536ab461de8c6cb54d50a9231619dc5"
+    },
+    {
+      "path": "..\\..\\tools\\android\\OfficialGatewaySigningTest.java",
+      "sha256": "c9ceb76e42a0ec3178d27e5a0a032140f72757bc5a1d5ac49f783c3569bbc0ef"
+    },
+    {
+      "path": "..\\..\\tools\\android\\test-gateway-signing.mjs",
+      "sha256": "b87c7355fad88bab08dab60632b0357ad32550dc6c1196f800687fedd0906ba1"
+    }
+  ],
+  "temporary_classes_removed": true
+}

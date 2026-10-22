@@ -1,0 +1,12 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),root=path.join(workspace,'rebuild/android-app'),out=path.join(root,'build/official-gate-tests');fs.mkdirSync(out,{recursive:true});
+function run(cmd,args){const r=spawnSync(cmd,args,{cwd:workspace,encoding:'utf8',timeout:90000,maxBuffer:1024**2});if(r.stdout)process.stdout.write(r.stdout);if(r.stderr)process.stderr.write(r.stderr);if(r.error||r.status!==0)throw Error('Official gate check failed: '+cmd);return r.stdout;}
+const sources=['Fixed60Profile.java','Fixed60Firmware.java','Fixed60OfficialGate.java','Fixed60OfficialJournal.java','OfficialSdkReceipt.java','AtomicDocument.java','WireJson.java'].map(n=>path.join(root,'src/com/turboio/addon',n));
+const upstream=['BoundedJson.java','OtaFrame.java','OtaRecoveryGuard.java'].map(n=>path.join(root,'upstream/android-addon/src/com/turboio/addon',n));
+run('javac',['-encoding','UTF-8','-d',out,...sources,...upstream,'tools/android/Fixed60OfficialGateTest.java','tools/android/OfficialSdkReceiptTest.java']);
+run('java',['-cp',out,'com.turboio.addon.OfficialSdkReceiptTest']);
+// Unique small journal fixture per run; no firmware extraction or full build staging.
+const fixture=fs.mkdtempSync(path.join(out,'journal-'));
+const candidate=path.join(workspace,'rebuild/phase1/device-private/stock-firmware-1.0.5.5/suggestion60-candidate/StrixOS-1.0.5.5-SUGGEST60-OFFLINE-01-UNFLASHED.zip');
+const result=run('java',['-cp',out,'com.turboio.addon.Fixed60OfficialGateTest',candidate,fixture]);const count=/official passive gate: (\d+) assertions passed/.exec(result);if(!count)throw Error('Missing official passive gate result');
+fs.writeFileSync(path.join(root,'official-gate-test-results.json'),JSON.stringify({schema:1,at:new Date().toISOString(),kind:'Actual fixed1.0.5.5 ZIP, adversarial simulated official frames, real fsync/restart journal',assertions:Number(count[1]),sources:[...sources,...upstream,'tools/android/Fixed60OfficialGateTest.java'].map(p=>({path:path.relative(root,p),sha256:crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex')})),sdk_hook_integrated:false,android_build_tested:false,phone_tested:false,firmware_written:false,overall:'passed_for_stated_offline_scope'},null,2)+'\n');

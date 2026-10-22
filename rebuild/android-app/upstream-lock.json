@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/Turbo1123/Turbo-IO",
+  "commit": "f57cc82d0c810435653b684fbdd8c07c533a012f",
+  "archive_sha256": "a2f877f7693e8ebee008b1e5862dc05e5822830acde1e123eacfda53557396e4",
+  "selected": [
+    "android-addon/",
+    "app-gallery/",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    "DEPENDENCIES.json"
+  ],
+  "upstream_original_checkout_unchanged": true
+}

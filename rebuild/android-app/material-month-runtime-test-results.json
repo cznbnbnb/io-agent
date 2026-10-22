@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T02:15:58.683Z",
+  "scope": "Unmodified MaterialRuntime and real month/config core; synthetic Android lifecycle/main queue, settings and downstream IO/session",
+  "device": false,
+  "network": false,
+  "real_queue_or_server_tested": false,
+  "passed": true,
+  "checks": 113,
+  "sources": [
+    {
+      "path": "src\\com\\turboio\\addon\\MaterialRuntime.java",
+      "sha256": "4adf6aa16fa71e2a515b408896ed67006753aa47fa44974aab7d493a54b3b396"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\MaterialConfig.java",
+      "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\MaterialConnection.java",
+      "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialAccountBinding.java",
+      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogMonthDiscovery.java",
+      "sha256": "c8d8430989e467213d8bb105cf1a8f6387cf134444ab7c8cd18f9033ccf22546"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogCalendar.java",
+      "sha256": "3b365adb2473d4820eb3adf408f47cdbfe783fe5dbd8f44a7c67792d6e9af032"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogCalendarRequest.java",
+      "sha256": "8209e9395ea52630dd3b0a8d853c380a4ca998a08ffdc899dec6939f30a667d0"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogInventory.java",
+      "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\OfficialLifelogJson.java",
+      "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskWire.java",
+      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\TaskConnection.java",
+      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+    },
+    {
+      "path": "src\\com\\turboio\\addon\\MaterialWire.java",
+      "sha256": "fba7ef5f34c0bc3e1aebf451a9771782750931eca3dbc03f6c70f3a277b5736b"
+    },
+    {
+      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "..\\..\\tools\\android\\MaterialMonthRuntimeTest.java",
+      "sha256": "733a35475b1654ac10dfd497207d51de66211a668c92c94e450e122acd073415"
+    },
+    {
+      "path": "..\\..\\tools\\android\\test-material-month-runtime.mjs",
+      "sha256": "fa36ffa41364eeff8e78c6c2a790945c29fc671d2755a08166813f7373953b15"
+    }
+  ],
+  "temporary_classes_removed": true
+}

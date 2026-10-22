@@ -1,0 +1,94 @@
+import ctypes
+from ctypes import wintypes
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import time
+import unittest
+from types import SimpleNamespace
+
+from process_job import WindowsProcessJob, ProcessJobError
+
+
+@unittest.skipUnless(os.name == 'nt', 'Windows containment only')
+class ProcessJobTests(unittest.TestCase):
+    def child(self):
+        child = subprocess.Popen([sys.executable, '-I', '-S', '-B', '-c', 'import time; time.sleep(60)'],
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        def cleanup():
+            if child.poll() is None:
+                child.kill()
+            child.wait(timeout=10)
+        self.addCleanup(cleanup)
+        return child
+
+    def test_explicit_shutdown_confirms_zero_descendants_before_close(self):
+        job = WindowsProcessJob()
+        self.addCleanup(job.shutdown)
+        child = self.child()
+        job.attach(child)
+        self.assertEqual(job.active_count(), 1)
+        job.shutdown()
+        self.assertEqual(child.wait(timeout=10), 74)
+        self.assertIsNone(job.handle)
+        job.shutdown()
+
+    def test_closed_job_and_invalid_child_cannot_be_attached(self):
+        job = WindowsProcessJob()
+        self.addCleanup(job.shutdown)
+        with self.assertRaisesRegex(ProcessJobError, '^RUNTIME_JOB_PROCESS_INVALID$'):
+            job.attach(object())
+        with self.assertRaisesRegex(ProcessJobError, '^RUNTIME_JOB_PROCESS_INVALID$'):
+            job.attach(SimpleNamespace(pid=os.getpid()))
+        job.shutdown()
+        with self.assertRaisesRegex(ProcessJobError, '^RUNTIME_JOB_CLOSED$'):
+            job.attach(self.child())
+
+    def test_actual_owner_hard_exit_kills_assigned_child_and_inherited_grandchild(self):
+        with tempfile.TemporaryDirectory(prefix='io-process-job-') as temporary:
+            marker = Path(temporary)/'processes.json'
+            module = str(Path(__file__).resolve().parent)
+            # Child waits until assigned before spawning its own descendant.
+            descendant_code = "import sys,subprocess,time,json,os; from pathlib import Path; sys.stdin.readline(); grandchild=subprocess.Popen([sys.executable,'-I','-S','-B','-c','import time; time.sleep(60)'],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); Path(sys.argv[1]).write_text(json.dumps([os.getpid(),grandchild.pid])); time.sleep(60)"
+            owner_code = "import sys,subprocess,os; sys.path.insert(0,sys.argv[1]); from process_job import WindowsProcessJob; job=WindowsProcessJob(); child=subprocess.Popen([sys.executable,'-I','-S','-B','-c',sys.argv[3],sys.argv[2]],stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); job.attach(child); child.stdin.write(b'go\\n'); child.stdin.flush(); sys.stdin.readline(); os._exit(73)"
+            owner = subprocess.Popen([sys.executable, '-I', '-S', '-B', '-c', owner_code, module, str(marker), descendant_code],
+                                     stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel.OpenProcess.restype = wintypes.HANDLE
+            kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+            kernel.WaitForSingleObject.restype = wintypes.DWORD
+            kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+            handles = []
+            try:
+                for _ in range(150):
+                    if marker.exists():
+                        break
+                    if owner.poll() is not None:
+                        self.fail('fixture owner exited before descendant marker')
+                    time.sleep(0.02)
+                self.assertTrue(marker.exists())
+                for pid in json.loads(marker.read_text()):
+                    handle = kernel.OpenProcess(0x100000, False, pid)  # SYNCHRONIZE; retain handles against PID reuse.
+                    self.assertTrue(handle)
+                    self.assertEqual(kernel.WaitForSingleObject(handle, 0), 258)  # STILL WAITING
+                    handles.append(handle)
+                owner.stdin.write(b'exit\n')
+                owner.stdin.flush()
+                self.assertEqual(owner.wait(timeout=10), 73)
+                for handle in handles:
+                    self.assertEqual(kernel.WaitForSingleObject(handle, 5000), 0)
+            finally:
+                if owner.poll() is None:
+                    owner.kill()
+                owner.wait(timeout=10)
+                owner.stdin.close()
+                for handle in handles:
+                    kernel.CloseHandle(handle)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

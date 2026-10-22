@@ -1,0 +1,138 @@
+{
+  "asOfDate": "2026-10-16",
+  "refreshId": "scan096-overnight-2026-10-16",
+  "previousVersion": "0.1.84",
+  "currentInstalledVersion": "0.1.84",
+  "candidateVersion": "0.1.96",
+  "candidateDelivered": false,
+  "candidateState": "已构建签名验签、尚未安装；0.1.97开发中，未完成完整回归及原生构建",
+  "overallEstimate": 0.45,
+  "overallEstimateRange": [
+    0.4,
+    0.5
+  ],
+  "sourceEvidence": [
+    "docs/product/PRD.md",
+    "docs/product/DEVELOPMENT-PLAN.md",
+    "docs/product/DEVELOPMENT-STATUS.md",
+    "docs/product/USER-VERIFICATION-TODO.md",
+    "docs/product/phase2-local-audio-playback-2026-10-16.md",
+    "docs/product/phase2-saved-summary-reopen-2026-10-16.md",
+    "docs/product/phase2-summary-notes-2026-10-16.md",
+    "docs/product/phase2-summary-integrity-2026-10-16.md",
+    "docs/product/phase2-recording-summary-2026-10-16.md",
+    "docs/product/phase2-todo-delete-2026-10-16.md",
+    "docs/product/phase2-material-local-scan-2026-10-16.md",
+    "docs/product/phase2-material-outbox-capacity-2026-10-16.md",
+    "docs/product/phase5-voice-provenance-2026-10-15.md",
+    "docs/product/phase5-draft-recovery-2026-10-15.md",
+    "rebuild/phase1/summary094-source-audit-offline-2026-10-16.json",
+    "rebuild/phase1/todo095-source-audit-offline-2026-10-16.json",
+    "rebuild/phase1/scan096-source-audit-offline-2026-10-16.json",
+    "rebuild/phase1/scan096-offline-retention-2026-10-16.json",
+    "rebuild/phase1/material-outbox-archive-component-final2-2026-10-16.json",
+    "rebuild/phase1/material-outbox-capacity-observation-context-2026-10-16.json",
+    "rebuild/phase1/card-duration084-joint-2026-10-15.json",
+    "rebuild/phase1/reply084-native-2026-10-15.json"
+  ],
+  "updates": {
+    "F05": {
+      "ability": "保留原始音频和双声道WAV；待安装候选可在正常录音/智记页回放WAV与封口OGG，暂停、明确继续、前后定位，并从有可靠时间的原句起播。",
+      "availability": "部分可用",
+      "evidence": "既有手机原音时长、完整性及声道已核对；候选统一播放器、真实文件来源、正常页及CLI受控验证和原生构建验签通过，尚未安装试听。",
+      "gap": "真实系统播放、听感和输出路由、后台释放及删除共存待真机核对；原音导出公共目标独立读回仍待验，控制回调不等于实际听见。",
+      "estimate": 0.8
+    },
+    "F15": {
+      "ability": "可按日期查看录音与智记时间线，打开最新文字及说话人标签；待安装候选有当前修订的原文引用和原句播放入口，查询换窗或来源变化时关闭旧正文。",
+      "availability": "部分可用",
+      "evidence": "既有普通页当前正文和人工修订已有真机记录；候选原文引用、修订失效及原句定位由实际Store/页面验证和原生构建支持。",
+      "gap": "候选正常页与原句定位尚未真机验证；全部来源、长历史浏览及窄屏/展开/大字体验仍待验。可靠时间未知时不伪造句内定位。",
+      "estimate": 0.8
+    },
+    "F16": {
+      "ability": "普通页可导出当前修订的MD/JSON；待安装候选还可独立导出每日/录音总结和人工附注，选择器返回后再核来源，原AI结果与缓存不被普通上传覆盖。",
+      "availability": "部分可用",
+      "evidence": "既有手机当前修订导出和App内源文件读回通过；候选真实文件IO、正常页、选择器等待/来源变化保护和编译验签通过，非新真机结果。",
+      "gap": "系统公共目标独立读回、手机选择器生命周期及历史/缺原音文件仍需验收；超出容量明确拒绝，不能宣称支持任意长文件。",
+      "estimate": 0.85
+    },
+    "F17": {
+      "ability": "可按日生成含时间轴、覆盖和修订引用的汇总并保存；待安装候选可重开已存版本、另存人工附注，对单录音生成四类结构化总结及原文引用，长文有分步检查点和独立导出。",
+      "availability": "部分可用",
+      "evidence": "历史每日真实模型总结及保存已有手机记录；候选实际Store/总结服务/文件、页面和CLI受控验证、原生构建验签通过，单录音真实模型质量未验。",
+      "gap": "单录音真实模型质量、长文完整覆盖及手机页面/导出仍待验；仅覆盖已存转写文字，不证明原音完整。总结/附注云同步、原AI全文编辑与关联去重未完成。",
+      "estimate": 0.8
+    },
+    "F18": {
+      "ability": "总结绑定原资料和文字修订；待安装候选拒绝过期或不完整模型输出，先独立保存自动AI结果，安全处理选择器等待、冷重开与完整partial显式续完，不覆盖原文和原音。",
+      "availability": "部分可用",
+      "evidence": "既有真实AI输入绑定有手机证据；候选来源更正/删除、截断响应、保存中断与安全导出采用实际服务/文件验证，并通过原生构建验签。",
+      "gap": "真机模型返回期间更正/删除、后台与选择器交错仍待测；人工附注独立于AI原文，不宣称模型结论全真、真实掉电已验或提供方恰好执行一次。",
+      "estimate": 0.8
+    },
+    "F19": {
+      "ability": "日期浏览已可用；待安装候选支持本机canonical关键词和说话人同句筛选、真实原文引用、本窗口命中翻页，以及继续扫描后续资料，换窗替换结果。",
+      "availability": "部分可用",
+      "evidence": "实际Store和正常页/CLI受控验证、原生构建验签通过；首512份之后可由独立续扫入口到达。候选尚未安装，不是新手机查询验收。",
+      "gap": "每窗最多512正文候选/2097152序列化UTF16单位；旧ASR未索引、不可读/超大资料明确局部覆盖。全库元数据枚举性能、全局排序与项目标签未完成。",
+      "estimate": 0.7
+    },
+    "F22": {
+      "ability": "文字、原音可用性与完整性分开保存；缺原音仍保留文字、汇总和导出，待安装候选拒绝不可用回放并继续显示资料，不把缺音频当成没有文字。",
+      "availability": "代码待验",
+      "evidence": "候选真实资料/文件、缺音源与页面保护受控验证和原生构建通过；既有资料独立保存基础保留，没有新增缺音频真机验收。",
+      "gap": "正常手机缺原音详情、导出、不可回放提示与恢复后的状态仍需验证；不能因文字可读认定原音完整或已云归档。",
+      "estimate": 0.75
+    },
+    "F24": {
+      "ability": "手机在明确开启且凭据有效时耐久排队发送同ID文字修订，并保存server_stored回执；服务器存文字不代表原音上传、眼镜显示或Agent接收。",
+      "availability": "部分可用",
+      "evidence": "既有普通手机更正/删除及录音两版实际至云、CLI一致和配置/账本冷启保持；本轮离线候选没有新增云端验证。",
+      "gap": "96仍受1000热行/累计64MiB payload限制，未入队与EOF清警缺口未修；归档组件未接生产，97持久准入告警/写锁/只读CLI仍WIP。凭据续发导入和持续同步仍待验。",
+      "estimate": 0.9
+    },
+    "F26": {
+      "ability": "队列和游标可持久化，既有隔离断网补传、正常配置冷启及短时熄屏联网有证据；正式持续后台联网和长期积压尚未验收。",
+      "availability": "部分可用",
+      "evidence": "历史隔离恢复与短时后台实验保留；归档存储前置组件仅独立本机验证，不代表生产积压回收或手机第1001份补传通过。",
+      "gap": "1000热行/64MiB与历史收据安全归档未闭环；97准入持久化、锁和状态CLI在开发。正式物理断网、丢回包、后台资格、长积压及功耗继续待验。",
+      "estimate": 0.65
+    },
+    "F35": {
+      "ability": "建议卡标题/正文可控；旋转换焦点、短按当前项，点头固定添加、摇头固定删除。接受勾号及两阶段拒绝垃圾桶已确认；连续两分钟显示仍不可用。",
+      "availability": "仅实验可用",
+      "evidence": "用户确认原厂动作、勾号/垃圾桶和消失；84卡提前回时间页时手机仍同UID等待，最终已清理。后续参考固件研究不是新镜片验证。",
+      "gap": "H07-T01仍未修；参考固件短时计时未与当前固件匹配，不证明120秒可读。按钮固定添加/删除，任意多选及自定义结果范围仍有限。",
+      "estimate": 0.75
+    },
+    "F36": {
+      "ability": "原问题可显示为两阶段眼镜卡；两次摇头保存不采用草稿，手机明确提交后回原Hermes任务并显示结果。完整答案确认出口已接线，待安装候选增强提交CAS、中断恢复与口述来源保护。",
+      "availability": "部分可用",
+      "evidence": "用户确认两张拒绝卡、垃圾桶及消失；正常手机提交后原任务继续并完成。后续保护为离线候选证据，没有新增有效口述或镜片最终确认闭环。",
+      "gap": "最终答案镜片确认、采用分支、有声补充、撤回/过期和占用共存仍待联合验收；两分钟可读性未过，AC-ASK与H07-C01仍开放。",
+      "estimate": 0.5
+    },
+    "F37": {
+      "ability": "已安装两阶段明确同意、短时收音及草稿/确认卡接线；待安装候选已有有界排空、原任务全文CAS、冷中断恢复和转存后来源保护。有效语音答案与新委托仍不能认定可用。",
+      "availability": "代码待验",
+      "evidence": "既有收音近静音、无有效文字，83/84被动检查未开麦；85至88保护已离线验证并随96候选继承，尚无新真机有声或真实语音端到端结果。",
+      "gap": "有声输入、完整转写、可靠退出、全文确认及同一原任务继续未验；128来源安全退休、主动委托目标澄清未完成，AC-VOICE及H07仍开放。",
+      "estimate": 0.2
+    },
+    "F39": {
+      "ability": "本地待办页和设备同步基础保留；待安装候选支持单条删除确认、未发撤销、原peer约束下提交、未知结果不自动重发及冷恢复，保留原条目和删除意图。",
+      "availability": "部分可用",
+      "evidence": "正常页/实际LocalWorkspace存储和协议受控验证、Mock HDC及DevEco验签通过；尚未安装候选或观察镜片实际删除。",
+      "gap": "设备删除和重连一致性未验，未归属回执不代表眼镜确认；日程/看板、完整增改完成体验、200条删除历史回收和身份迁移仍缺，v2迁移后84不能无感回退。",
+      "estimate": 0.6
+    },
+    "F47": {
+      "ability": "可通过DevEco构建、签名验签和覆盖安装；手机实际84，96已构建验签待装，安装包与源码/测试/暂存有对应摘要，目前留84/96两物理包及一份96暂存。",
+      "availability": "部分可用",
+      "evidence": "84真实覆盖升级和保护文件保持已验证；96测试/编译/暂存同源、官方验签及离线审计/留存通过。97未完成完整回归及原生构建，不计已交付。",
+      "gap": "96覆盖升级/原资料保留待验；v2迁移后84不能直接读库，不能自动还原旧备份。历史兼容、正式回退和安装异常仍开放，清理产物不增加产品完成度。",
+      "estimate": 0.8
+    }
+  }
+}

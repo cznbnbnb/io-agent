@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T03:01:13.670312+00:00",
+  "state": "installed_single_month_discovery_verified_selected_days_sync_pending",
+  "candidate": "0.5.3-dev2",
+  "version_code": 10424,
+  "candidate_sha256": "fc1512040c6a4f3f87854388e1909e6139c37523ff5185fd5667ce9118401da9",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "compiled_sources": 168,
+  "tests": [
+    {
+      "report": "lifelog-calendar-core-test-results.json",
+      "passed": true,
+      "checks": 347,
+      "sources_match": true
+    },
+    {
+      "report": "lifelog-calendar-http-test-results.json",
+      "passed": true,
+      "checks": 64,
+      "sources_match": true
+    },
+    {
+      "report": "lifelog-month-discovery-test-results.json",
+      "passed": true,
+      "checks": 112,
+      "sources_match": true
+    },
+    {
+      "report": "material-month-runtime-test-results.json",
+      "passed": true,
+      "checks": 113,
+      "sources_match": true
+    }
+  ],
+  "checks": 636,
+  "installed": true,
+  "installation_evidence": "phone-month-dev2-install-2026-10-22.json",
+  "month_ui_evidence": "phone-month-ui-2026-10-22.json",
+  "normal_month_discovery_verified": true,
+  "explicit_month": "2026-10",
+  "dates_found": 3,
+  "empty_selection_disabled": true,
+  "cancel_preserved_counts": true,
+  "selected_days_sync_verified": false,
+  "material_preservation": {
+    "schema": 3,
+    "stored_versions": 6,
+    "queue_and_stored_versions_byte_identical_before_after_upgrade": true,
+    "configuration_enabled": true
+  },
+  "account_ownership_mode": "Authenticated session plus before/after account binding; response contains no independently matched accountId",
+  "production_month_discovery_enabled": true,
+  "automatic_all_day_or_complete_history_sync": false,
+  "original_audio_or_deletions_supported": false,
+  "day_selection_limit": 7,
+  "interruption": "User switched priority to GitHub collaboration during second read-only month discovery; no date chosen, no monthly import attempted",
+  "known_limits": [
+    "Month discovery is foreground and explicitly initiated",
+    "Selected month dates to complete sync remains unverified on device",
+    "Cancel can leave progress text until Refresh Status; operation is cancelled",
+    "Original official host APK, signing material and raw private evidence stay local"
+  ]
+}

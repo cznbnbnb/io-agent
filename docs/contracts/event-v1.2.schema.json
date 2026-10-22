@@ -1,0 +1,616 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://turboio.local/contracts/v1.2/event.schema.json",
+  "title": "Turbo IO material v1.2: material-scoped speakers and honest split source ranges",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "idempotency_key",
+    "kind",
+    "producer_id",
+    "created_at",
+    "expires_at",
+    "body"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.2"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 256
+    },
+    "kind": {
+      "enum": [
+        "material.revision",
+        "message",
+        "receipt",
+        "task",
+        "request",
+        "answer"
+      ]
+    },
+    "producer_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "body": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "material.revision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/material"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "message"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/message"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "receipt"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/receipt"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "task"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/task"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "request"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/request"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "answer"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/answer"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "route": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/route"
+    },
+    "utterance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "utterance_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "start_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "end_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "speaker_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "speaker_basis": {
+          "enum": [
+            "unknown",
+            "segment_cluster",
+            "user_confirmed"
+          ]
+        },
+        "overlap": {
+          "type": "boolean"
+        },
+        "source_range": {
+          "$ref": "#/$defs/source_range"
+        }
+      },
+      "required": [
+        "utterance_id",
+        "start_ms",
+        "end_ms",
+        "text",
+        "speaker_id",
+        "speaker_basis",
+        "overlap"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "start_ms": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "source_range"
+            ],
+            "properties": {
+              "end_ms": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "end_ms": {
+                "type": "null"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "source_range"
+            ],
+            "properties": {
+              "start_ms": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "message": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/message"
+    },
+    "receipt": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/receipt"
+    },
+    "task": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/task"
+    },
+    "request": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/request"
+    },
+    "answer": {
+      "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/answer"
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "material_id",
+        "revision",
+        "base_revision",
+        "operation",
+        "source",
+        "started_at",
+        "ended_at",
+        "completeness",
+        "text_revision",
+        "utterances",
+        "audio",
+        "full_text",
+        "processing",
+        "speakers"
+      ],
+      "properties": {
+        "material_id": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/material_id"
+        },
+        "revision": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/revision"
+        },
+        "base_revision": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/base_revision"
+        },
+        "operation": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/operation"
+        },
+        "source": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/source"
+        },
+        "started_at": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/started_at"
+        },
+        "ended_at": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/ended_at"
+        },
+        "completeness": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/completeness"
+        },
+        "text_revision": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/text_revision"
+        },
+        "utterances": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/utterance"
+          }
+        },
+        "audio": {
+          "$ref": "https://turboio.local/contracts/v1/event.schema.json#/$defs/material/properties/audio"
+        },
+        "full_text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format",
+            "text",
+            "origin"
+          ],
+          "properties": {
+            "format": {
+              "const": "markdown"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 1000000
+            },
+            "origin": {
+              "enum": [
+                "none",
+                "legacy",
+                "asr",
+                "user"
+              ]
+            }
+          }
+        },
+        "processing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "transcription_state",
+            "covered_ms",
+            "source_ms",
+            "speaker",
+            "boundary",
+            "recognition_channel",
+            "user_edited"
+          ],
+          "properties": {
+            "transcription_state": {
+              "enum": [
+                "unknown",
+                "pending",
+                "partial",
+                "complete"
+              ]
+            },
+            "covered_ms": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "source_ms": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "speaker": {
+              "enum": [
+                "unknown",
+                "pending",
+                "processed",
+                "unavailable"
+              ]
+            },
+            "boundary": {
+              "enum": [
+                "unknown",
+                "unverified",
+                "token_starts",
+                "no_speech"
+              ]
+            },
+            "recognition_channel": {
+              "enum": [
+                "unknown",
+                "mix",
+                "left",
+                "right",
+                "legacy_mix"
+              ]
+            },
+            "user_edited": {
+              "type": "boolean"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "transcription_state": {
+                    "const": "unknown"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "covered_ms": {
+                    "type": "null"
+                  },
+                  "source_ms": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "transcription_state": {
+                    "const": "pending"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "covered_ms": {
+                    "const": 0
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "transcription_state": {
+                    "enum": [
+                      "partial",
+                      "complete"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "covered_ms": {
+                    "type": "integer"
+                  },
+                  "source_ms": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "speakers": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/speaker"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "operation": {
+                "const": "delete"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "utterances": {
+                "maxItems": 0
+              },
+              "full_text": {
+                "properties": {
+                  "text": {
+                    "const": ""
+                  }
+                }
+              },
+              "speakers": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "source_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parent_utterance_id",
+        "parent_revision",
+        "start_ms",
+        "end_ms",
+        "text_start",
+        "text_end"
+      ],
+      "properties": {
+        "parent_utterance_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "parent_revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "start_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "end_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "text_start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "text_end": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "speaker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "speaker_id",
+        "label",
+        "label_basis",
+        "is_self"
+      ],
+      "properties": {
+        "speaker_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]+$"
+        },
+        "label_basis": {
+          "enum": [
+            "anonymous",
+            "user_confirmed",
+            "role_match"
+          ]
+        },
+        "is_self": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "is_self": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "label_basis": {
+                "const": "user_confirmed"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
