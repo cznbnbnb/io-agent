@@ -118,3 +118,5 @@
 !/rebuild/android-app/material-month-implementation-2026-10-22.json
 !/rebuild/android-app/phone-month-ui-2026-10-22.json
 !/rebuild/android-app/phone-month-dev2-install-2026-10-22.json
+# Progress spreadsheets and their local edits are managed only on request.
+/outputs/

@@ -53,6 +53,10 @@ def paths():
                  'rebuild/agent-bridge', 'rebuild/material-server', 'rebuild/harmony-sdk'):
         for p in walk(base):
             rel = p.relative_to(ROOT).as_posix()
+            # The Harmony project explicitly reserves this local signing file;
+            # publish its tracked example even when the local copy is unsigned.
+            if rel == 'rebuild/harmony-sdk/build-profile.json5':
+                continue
             resource = '/src/main/resources/' in rel or '/AppScope/resources/' in rel
             if p.suffix.lower() in TEXT or p.suffix.lower() == '.svg' or resource and p.suffix.lower() in {'.png', '.jpg', '.webp'}:
                 selected.add(p)
