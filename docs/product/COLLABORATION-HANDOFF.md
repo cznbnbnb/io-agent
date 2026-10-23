@@ -1,5 +1,9 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 下一项前置已核对：宿主支持控制，项目尚未接入。** 本机只读调查 Codex CLI `0.163.0-alpha.11.1` help / 桌面安装源码与 Claude Code `2.1.234` 安装源码：Codex shared app-server 提供 `turn/interrupt(threadId, turnId)`、对应 `turn/completed` 与原 thread `turn/start`；Claude stream-json / SDK 提供 interrupt，Remote Control 可向原进程传控制和用户消息。因此当前阻塞是取得**拥有原会话的连接、精确回合身份、停止证明**，不是宿主完全没有接口。没有读取无关会话、启动/中断任何会话或接触设备。
+
+建议先做 Codex 单宿主：能力登记→精确回合暂停→匹配完成/中断事件→用户明确继续后原 thread 追加指示；不可用时明确显示不支持。RPC 成功不等于所有工作停止，桌面还处理子代理、Node REPL、后台终端及 goal；Claude 的 control_response success 也仅确认已调用中断。下一批需专门受控会话验证重复请求、丢回执、回合已结束和仍在执行的工具。禁止另起 resume writer 冒充控制原进程。手机仍 dev54 /10476，设备锁继续由 Claude 持有；本提交仅更新计划，无需重测或发包。
+
 **[codex] 2026-10-23 合入 Claude 进度合同 `9c3da9b`，手机仍为 dev54 /10476。** 在 Codex 独立分支合并，保留双方记录、共享 private 根与原会话核验；未修改 Android、未重发包、未部署服务器、未推送或改 Claude 工作目录。给新增进度文件及 `.partial` 补路径检查，`config` 写入前核验原会话和 journal；关闭推送后重试旧 checkpoint 不再发消息或重新开启看门狗。原生 UI 及 Claude dev51 修复已在上一提交 `79db817` 交付。[本次集成证据](../../rebuild/android-app/cli-progress-integration-2026-10-23.json)。
 
 验证：离线路径 2/2、本地真实 CLI 子进程的 Codex/Claude 回环 2/2 通过；服务器 watch/queue/service 共 34 项通过，1 项因旧 ArkTS 真机导出 fixture 缺失未完成，未编造替代件。新增 watch 3 项及队列 14 项全部通过。已知剩余：同一登记多进程同时发送 checkpoint 与关闭推送仍缺串行化/版本约束；本次只证明“关闭完成后重试”的行为。真实眼镜显示由 Claude 持锁验证，本轮未再发 checkpoint，避免占用其通道。
