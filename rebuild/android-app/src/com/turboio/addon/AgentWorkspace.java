@@ -31,6 +31,7 @@ final class AgentWorkspace {
   if(closed)return;lastTab=index;
   if(pages[index]==null){if(index==0){taskPage=new AgentTaskPage(activity,()->AgentConnectionsPage.show(activity));pages[index]=taskPage.view();}else if(index==1){materialPage=new AgentMaterialPage(activity);pages[index]=materialPage.view();}else{ScrollView scroll=new ScrollView(activity);scroll.setFillViewport(true);settingsBody=AgentUI.column(activity);settingsBody.setPadding(AgentUI.dp(activity,20),AgentUI.dp(activity,20),AgentUI.dp(activity,20),AgentUI.dp(activity,24));scroll.addView(settingsBody,new ScrollView.LayoutParams(-1,-2));pages[index]=scroll;renderSettings();}content.addView(pages[index],new FrameLayout.LayoutParams(-1,-1));}
   for(int i=0;i<3;i++){if(pages[i]!=null)pages[i].setVisibility(i==index?View.VISIBLE:View.GONE);icons[i].color(i==index?AgentUI.ACCENT:AgentUI.MUTED);labels[i].setTextColor(i==index?AgentUI.ACCENT:AgentUI.MUTED);((View)labels[i].getParent()).setSelected(i==index);}
+  if(materialPage!=null)materialPage.setActive(index==1);
   if(index==0&&taskPage!=null)taskPage.refresh();if(index==1&&materialPage!=null)materialPage.refresh();if(index==2)renderSettings();
  }
  private String settingsKey(TaskRuntime.Snapshot value){int enabled=0;for(TaskHub.View context:value.contexts)if(context.profile.enabled&&context.profile.connection.expiresAt>System.currentTimeMillis())enabled++;return value.fingerprint+"/"+NativeTransfer.connected()+"/"+enabled+"/"+AgentCardRuntime.enabled();}

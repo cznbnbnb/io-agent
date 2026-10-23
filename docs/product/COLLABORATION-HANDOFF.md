@@ -1,5 +1,15 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 当天智记读取已修复，dev55 /10477 已安装，回退 dev54。** 用户暂缓“暂停并指示”，先修原厂有 23 日智记而资料页为空。根因是资料页只读旧上传队列，选日期没有读原厂；新来源发现又受已到期远程连接限制。现在打开可见资料页/选日期会按当前原厂账号读取当天列表与全文，复核列表后保存在独立本机库；远程连接关闭、过期或上传队列异常不阻止阅读。失败/空日保留旧正文，跨午夜保留原厂日期成员，旧上传续期时间不能覆盖新正文；关闭或切走只取消本页读取。原音和后台自动上传仍待开发。[实现及真机证据](../../rebuild/android-app/material-day-read-dev55-2026-10-23.json)。
+
+真机：原正式资料连接仍过期，23 日从 0 变为 **19 条**，重复刷新仍 19；随后原厂新增，最终正常读取为 20 条（原厂本次返回 20），验证新增增长；22 日返回 0 不清除 23 日；日期圆点、详情正文与导出入口可用；切设置后 Home/返回，同步设置正常恢复。188 份来源编译/哈希、同签 APK 审计及装机哈希通过；定向 430 项（Runtime 342、目录/导出 32、本机库 38、委托 18）。本批未采音、未续签正式资料凭据、未向远程上传新增智记；未重测既有文件导出、切换真实账号或镜片，不关闭 A23-UI02 / R2 / R3 / R4。APK 仅留 dev55 与 dev54，已核对后清理 dev53。
+
+交接：已 fetch 并合入 Claude `a0d5b01` 真实佩戴记录；其 `00e112c` R2 与 `9c3da9b` 早已分别经 `79db817` / `3e8b280` 合入 Codex 历史。后续由 Codex 接手，独立工作区保留，不改写 Claude 分支。重叠改动为 MaterialRuntime、MaterialCatalog、Host107LifelogHttp、AgentMaterialPage 和 AgentWorkspace 可见性接线；录音链路未改。
+
+身份：caller401/402 的任务均已取消、watch 已关、全部短期凭据已撤销；402 手机连接已暂停，401 未出现在活跃列表。caller600 已取消/关 watch/撤销，并移除已到期非默认登记，历史与队列保留。当前真实会话已续接 `caller601-20261023-codex`，到期 **2026-10-23 12:11:05.878 UTC**，手机已启用、原默认不变，临时导入文件已删；checkpoint 已存服务器，不冒充镜片确认；本批交付后 watch 已关闭，下一实际工作重新登记报到。本批提交前释放设备锁；未推送。
+
+下一步：用户询问拔 USB 后异地 Wi-Fi 调试，选择**先说明、暂不安装**。已说明 Tailscale + 无线 ADB 的跨网方案及 Android 16 换网可能关闭调试/改变端口的限制，尚未配置，不能声称拔线后仍可控制。之后建议先收口 R2 的蓝牙断连、整机重启与长时恢复，再依序 R3、R4；真实宿主暂停功能暂缓。
+
 **[codex] 2026-10-23 下一项前置已核对：宿主支持控制，项目尚未接入。** 本机只读调查 Codex CLI `0.163.0-alpha.11.1` help / 桌面安装源码与 Claude Code `2.1.234` 安装源码：Codex shared app-server 提供 `turn/interrupt(threadId, turnId)`、对应 `turn/completed` 与原 thread `turn/start`；Claude stream-json / SDK 提供 interrupt，Remote Control 可向原进程传控制和用户消息。因此当前阻塞是取得**拥有原会话的连接、精确回合身份、停止证明**，不是宿主完全没有接口。没有读取无关会话、启动/中断任何会话或接触设备。
 
 建议先做 Codex 单宿主：能力登记→精确回合暂停→匹配完成/中断事件→用户明确继续后原 thread 追加指示；不可用时明确显示不支持。RPC 成功不等于所有工作停止，桌面还处理子代理、Node REPL、后台终端及 goal；Claude 的 control_response success 也仅确认已调用中断。下一批需专门受控会话验证重复请求、丢回执、回合已结束和仍在执行的工具。禁止另起 resume writer 冒充控制原进程。手机仍 dev54 /10476，设备锁继续由 Claude 持有；本提交仅更新计划，无需重测或发包。
@@ -10,7 +20,7 @@
 
 **设备交接：Codex 已释放，Claude 现持锁。当前安装版以 dev54 /10476 为准，下一包必须从 dev55 /10477 顺延。** 回退包 dev53 已保留。UI 验收 A23-UI02 保持部分可测；下一项仍先验证原会话真实暂停与继续能力，再接手机控制回执，Claude 继续 R2。
 
-**[claude] 2026-10-23 可移植眼镜进度合同 + 服务器看门狗（已上线 cznbnb.cn，未提交）。** 任何 Agent 读 [AGENT-CONTRACT.md](../../rebuild/agent-bridge/questions/AGENT-CONTRACT.md) 或 `cli.mjs help` 即可遵循：每步 `checkpoint`（done + next，推到眼镜并登记下次报到时间），`config` 由 Agent 端开关推送；`ask/wait/status/notify` 回复带 `progress` 义务。服务端新增 `GET/PUT /v1/watches/<task_id>` 与每分钟看门狗：超时 2 分钟仍未报到的有效任务，由服务器自己发一条进度通知（`producer_id=io-server-watchdog`，沿用现有消息格式，手机不用改）。上线前线上文件与 HEAD 一致，备份在 `/opt/turboio/backup-watch-20261023T103625Z`；caller401 线上 checkpoint 已存服务器、watch 已登记，眼镜显示待设备锁释放后验证。
+**[claude] 2026-10-23 可移植眼镜进度合同 + 服务器看门狗（已上线 cznbnb.cn，未提交）。** 任何 Agent 读 [AGENT-CONTRACT.md](../../rebuild/agent-bridge/questions/AGENT-CONTRACT.md) 或 `cli.mjs help` 即可遵循：每步 `checkpoint`（done + next，推到眼镜并登记下次报到时间），`config` 由 Agent 端开关推送；`ask/wait/status/notify` 回复带 `progress` 义务。服务端新增 `GET/PUT /v1/watches/<task_id>` 与每分钟看门狗：超时 2 分钟仍未报到的有效任务，由服务器自己发一条进度通知（`producer_id=io-server-watchdog`，沿用现有消息格式，手机不用改）。上线前线上文件与 HEAD 一致，备份在 `/opt/turboio/backup-watch-20261023T103625Z`；**真机通过（dev54，Codex 构建已含 dev46–51 R2 修复）**：caller402 导入后，checkpoint 18:47:07 显示在眼镜；约定 18:51:46 报到未报，服务器看门狗 18:54:27 自动推送"未按时报到"提醒，用户确认两条都看到。手机已登记会话满 16 条时需先移除已到期登记（移除了本方 17:09 到期的"智记开着口述"）。
 
 **[codex] 2026-10-23 原生 Agent 工作区 dev54 /10476 已安装，回退 dev53，设备锁已释放。** 本批在独立 `codex/agent-workspace-ui` 合入 Claude 已提交 `00e112c`，五个录音/卡片运行时文件与该提交完全一致；不改 Claude 工作目录或历史，`12be672` 只保留为按用户要求迁移前的原型历史。未推送、未合并 main。[真机与构建证据](../../rebuild/android-app/agent-workspace-ui-device-2026-10-23.json)。dev52 验证原厂入口、任务/资料/设置、固定任务列表、真实日期圆点、连接详情暂停/恢复及系统导出；dev53 修正文字居中，dev54 修正宿主白底橙边输入主题。最终同签覆盖安装且 SHA-256 与设备一致，原数据保留。TXT/Markdown/Word 均保存到手机，TXT/Word 已核对实际正文；取消不创建文件。自己的输入测试草稿已清空，最终回到原厂 App。
 
