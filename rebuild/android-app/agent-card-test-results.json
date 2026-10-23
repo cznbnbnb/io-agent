@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "at": "2026-10-23T04:07:48.513Z",
-  "assertions": 777,
+  "at": "2026-10-23T05:43:46.146Z",
+  "assertions": 783,
   "sources": [
     {
       "path": "src/com/turboio/addon/AgentCardRequest.java",
-      "sha256": "a773ea38f1cf366dfaa88744e2162e9fd6bdbab83e3c911296c0a1559f951d64"
+      "sha256": "ccd520fe3c32333d93a1f77c58d4116ec0f5652569aee32e548d8c77595804f7"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -69,7 +69,7 @@
     },
     {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "f6ca21ef3cbeddfbfe537c964ae4350d10a7d020ad971d956bf3713d36dcaf48"
+      "sha256": "49117ac14a9a7e837086e7f35b86bc248bb80923e056a11f1955d0f75559fe8b"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",

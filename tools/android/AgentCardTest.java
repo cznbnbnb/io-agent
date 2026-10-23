@@ -155,6 +155,18 @@ public final class AgentCardTest {
  static String code(Run run)throws Exception{checks++;try{run.run();}catch(IllegalArgumentException e){return e.getMessage();}throw new AssertionError("expected rejection "+checks);}
  /** Card/prompter routing, the prompter manuscript, dictated option numbers and choice confirm cards. */
  static void routes(TaskConnection c,Map<String,Object> textRequest)throws Exception{
+  // Real Codex registration uses a computer ID longer than the native heading slot.
+  Map<String,Object> longSpec=TaskConnectionTest.sample();longSpec.put("computer_id","io-mac-codex-computer");longSpec.put("agent_id","io-current-codex-agent");longSpec.put("expires_at",TaskWire.now(NOW+86400000));
+  TaskConnection longConnection=TaskConnection.parse(WireJson.bytes(longSpec),NOW);
+  Map<String,Object> longRequest=request(longConnection,2);
+  AgentCardRequest longConfirm=AgentCardRequest.prepareConfirm(longConnection,longRequest,task(longConnection),NOW,"选二，保留所有资料");
+  yes(longConfirm.copy(0).source.equals("io-mac-codex-co…")&&longConfirm.copy(0).title.length()==16&&longConfirm.copy(0).title.endsWith("…"));
+  yes(longConfirm.computer.equals(longConnection.computer)&&longConfirm.agent.equals(longConnection.agent)&&longConfirm.confirm.equals("选二，保留所有资料"));
+  yes(TaskWire.same(TaskWire.body(WireJson.map(WireJson.map(longConfirm.json()).get("request"))).get("route"),longConnection.route()));
+  yes(AgentCardRequest.restore(longConfirm.json()).owner.equals(longConfirm.owner)&&longConfirm.matches(longRequest,task(longConnection),NOW));
+  Map<String,Object> otherSpec=WireJson.map(WireJson.copy(longSpec));otherSpec.put("computer_id","io-mac-codex-competing");TaskConnection otherConnection=TaskConnection.parse(WireJson.bytes(otherSpec),NOW);
+  rejects(()->AgentCardRequest.prepareConfirm(otherConnection,longRequest,task(longConnection),NOW,"选二"));
+  rejects(()->AgentCardRequest.prepareConfirm(longConnection,longRequest,task(longConnection),NOW,String.join("",Collections.nCopies(49,"字"))));
   Map<String,Object> text=WireJson.map(WireJson.copy(TaskWire.body(textRequest)));text.put("question",String.join("",Collections.nCopies(36,"问")));yes(AgentCardRequest.route(text).equals("card"));
   text.put("question",String.join("",Collections.nCopies(37,"问")));yes(AgentCardRequest.route(text).equals("prompter"));
   // Every choice, even a short two-option one, goes to the prompter.
