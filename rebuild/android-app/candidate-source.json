@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "5ae08d283134e1a0406472f6fb168759448c986a9bc13f28dcf0b377203273b0"
+      "sha256": "c2455f4ca734726c3d6ecb5620730674cc9be229d74bafeffe6da924fcc9c8c1"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "1db63e0ed68ed1c8cb57c7fcd5373c52da7ea098b4c2495c0fa0f538be4cbedf"
+      "sha256": "1f5eade2ff5afb735772a147c11ee5858da143d3134a59ec7db0ea47122f1a59"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -677,6 +677,14 @@
       "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
     },
     {
+      "path": "src/com/turboio/addon/TaskPrompterNotice.java",
+      "sha256": "6de229874fcb93fff1fad17c098e2518de1e0a6f22c0e1cad8f9d0d4cc2de3e7"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskPrompterOwner.java",
+      "sha256": "85ca3620f2e20d655e3a4a04416fc27bf4d7f690d028738c42d0147d73714ce2"
+    },
+    {
       "path": "src/com/turboio/addon/TaskRuntime.java",
       "sha256": "580d588f834c3cc7273a063eabe00c17c692256f7d51f49b0ff5941cdaad8bdc"
     },
@@ -750,11 +758,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "9b5d71373a29c0cf625baf71ef29523889290272800219748b7bac8a1b9cc9a3"
+      "sha256": "591d5d7e6c1a2c85b134de417b5add14be1a88783674df73d6bd9f54ec0c0b4b"
     }
   ],
-  "product_sha256": "127b9a3dfefdb41174ec5e81818e9ff60a0d10167d50a7353bbcbbc8ee54f319",
-  "addon_sha256": "bcf6d7a3d0c117f17fe52c97dfac3fd946dfb4b5934cf99a9a3ba7165c8f853f",
+  "product_sha256": "6fd923408a309b8bf37ecac13a2a7870f9cca3b4ca6408d745a260ffe833fc13",
+  "addon_sha256": "1be200f73e00897626276d9902caa5eddba790d6469c75352d8ac9da80da539c",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

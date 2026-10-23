@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T13:42:27.755Z",
+  "scope": "Real NewsTele control/receiver/timers, transfer/framing and TaskPrompterOwner; synthetic SDK, Android queue and JSON adapter. No phone, glass observation or recording.",
+  "passed": true,
+  "checks": 92,
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/NewsTele.java",
+      "sha256": "c2455f4ca734726c3d6ecb5620730674cc9be229d74bafeffe6da924fcc9c8c1"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskPrompterNotice.java",
+      "sha256": "6de229874fcb93fff1fad17c098e2518de1e0a6f22c0e1cad8f9d0d4cc2de3e7"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskPrompterOwner.java",
+      "sha256": "85ca3620f2e20d655e3a4a04416fc27bf4d7f690d028738c42d0147d73714ce2"
+    },
+    {
+      "path": "src/com/turboio/addon/PrompterFile.java",
+      "sha256": "67eea585ce7a39b51c4f8ec2496ca516406cc3426791182cfa65446e5bcaf612"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskWire.java",
+      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskConnection.java",
+      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+    },
+    {
+      "path": "src/com/turboio/addon/WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "upstream/android-addon/src/com/turboio/addon/NavCore.java",
+      "sha256": "58c99845526518cd71354eb5e3968b88574a5a1da55438c6a1bd5168f8a84c2a"
+    },
+    {
+      "path": "upstream/android-addon/src/com/turboio/addon/OtaFrame.java",
+      "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
+    },
+    {
+      "path": "../../tools/android/TaskPrompterTest.java",
+      "sha256": "afefa87e85d944c6e9e36a9e5528ad437801e2165165384262d44efef4e9c935"
+    },
+    {
+      "path": "../../tools/android/test-task-prompter.mjs",
+      "sha256": "bcf86a82cc43644b8abec1192fa9225bf65ae542f92f23345e2f45db93008c74"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # 手机远程调试
 
-2026-10-23 配置。Mac 与红米使用同一个 Tailscale 账号，通过 Android 的 TLS 无线调试连接。手机有 Wi-Fi 即可，无需 SIM。当前 App 保持 dev55 /10477。
+2026-10-23 配置。Mac 与红米使用同一个 Tailscale 账号，通过 Android 的 TLS 无线调试连接。手机有 Wi-Fi 即可，无需 SIM。App 当前版本以 `candidate.json` 的实机安装证据和协作交接顶部为准。
 
 ## 离开房间后怎么恢复
 
@@ -21,7 +21,7 @@ Mac 已有配对，本轮重新打开无线调试后无需重复输入配对码�
 - 经 Tailscale 地址执行 ADB，核对 `ro.serialno` 与目标红米一致；读回 App dev55，抓取截图字节有效。
 - 手机 Home 后熄屏，`mWakefulness=Dozing` 时无线 ADB 仍可用。
 - Wi-Fi 断开/接回后 Tailscale 自动恢复，正常 UI 重开无线调试、更新端口并连接成功。
-- 用户随后拔线、换 Wi-Fi，并提供新端口；ADB 列表已无 USB、仅剩 Tailscale 端点。再次核对目标序列号、App dev55、有效 PNG 截图和熄屏 Dozing 下远程命令均通过。手机 LAN 地址已变化。本轮路径仍为可路由的私网直连，尚无异地跨公网或 DERP 中继的 ADB 实测。
+- 用户随后拔线、换 Wi-Fi，并提供新端口；ADB 列表已无 USB、仅剩 Tailscale 端点。再次核对目标序列号、App dev55、有效 PNG 截图和熄屏 Dozing 下远程命令均通过。手机 LAN 地址已变化。首次路径为可路由私网直连；用户再次换 Wi-Fi 后，新端口核对身份及远程 UI 成功，Tailscale ping 确认经香港 DERP 中继、当时未建立直连。
 - 系统 VPN 设置要求先设置锁屏密码，已取消该提示；未修改密码，未设置 Android「始终开启 VPN」。自启动和后台无限制已实际配置；整机重启和长时待机仍待验证。
 
 ## 开发代理命令
@@ -69,6 +69,17 @@ node tools/android/remote-adb.mjs connect --port PORT
 | 应用安装需要手机确认 | 按项目安装约定，核对自有安装包后处理真实安装窗口。无线传输成功不保证 OEM 自动允许安装。 |
 
 停用远程调试：手机关闭无线调试，再断开 Tailscale 即可。不需要卸载项目 App 或清除数据。
+
+## 大安装包的差异传输
+
+完整包约 430 MB。dev56 首次 streamed install 超过工具 5 分钟窗口，未装入手机；不能仅凭这个错误判断卡在传输还是 OEM 安装阶段。可使用 `apk-delta.py` 与 `ApkDelta.java` 减少传输量，**这是开发调试工具，尚不是 App 内远程更新功能**。
+
+1. 持设备锁，读取已安装 APK 的路径和 SHA-256；必须与保留的已装基线一致。核对新包来源、固定签名和回退包。
+2. `python3 tools/android/apk-delta.py BASELINE.apk CANDIDATE.apk OUTPUT.delta`。只复用完全相同的压缩数据，ZIP 头、签名块及目录均保留候选原始字节；主机在生成时验证重建哈希。
+3. 将 `ApkDelta.java` 用项目 SDK 的 javac/D8 编成临时 DEX，通过已核对身份的 `remote-adb.mjs exec -- push` 传 DEX 和差异文件到 `/data/local/tmp/codex-...`。核对两者传输哈希。
+4. 手机 shell 执行 `CLASSPATH=HELPER.dex app_process /system/bin com.turboio.tools.ApkDelta INSTALLED_BASE.apk PATCH.delta OUTPUT.apk EXPECTED_SHA256`。输出与差异文件必须同目录且不能预先存在；错误基线、边界、哈希、截断或多余数据均拒绝，失败删除本次创建的输出。它只重建文件，不安装或启动 App。
+5. 独立核对输出 APK SHA-256 与候选一致后，正常 `pm install -r OUTPUT.apk`；按项目约定核对并确认自有安装提示。再核对实际安装路径的哈希、版本、启动与数据保留。不得关闭系统签名验证。
+6. 结果确认后清理本次 DEX、差异文件和手机临时完整包；保留当前与回退两个签名包。`python3 tools/android/test-apk-delta.py` 覆盖准确重建、损坏/截断/越界、错误基线及既有文件保护。
 
 ## 来源与证据
 

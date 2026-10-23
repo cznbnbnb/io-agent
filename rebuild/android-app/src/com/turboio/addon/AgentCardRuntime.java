@@ -23,13 +23,14 @@ final class AgentCardRuntime {
  private WeakReference<Activity> activity;private volatile long observedGeneration=Long.MIN_VALUE;
  private boolean localLease,fetching,checkingShow,answerBusy,headStarted,restoreStarted,pumping;
  // Questions whose interrupted dictation was closed after a restart; offered again once.
- private final Set<String> reoffer=new HashSet<>();
+ private final Set<String> reoffer=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>();
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Activity host)throws IOException{
   app=(Application)host.getApplication();activity=new WeakReference<>(host);foreground.add(host);tasks=TaskRuntime.get(host);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
   NewsTele.orphans=this::orphan;
+  NewsTele.closed=did->{TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
   VoiceAnswerRuntime.get(app,tasks).recoverInterrupted((binding,request)->{reoffer.add(binding+"\n"+request);message="口述被中断，已结束眼镜录音；这道题会重新发到眼镜";nextAuto=0;refresh();pump();});
   document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-card-v1.json"));session=new AgentCardSession(new AgentCardSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object value)throws Exception{document.save(value);}});
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
@@ -48,9 +49,9 @@ final class AgentCardRuntime {
  static boolean enabled(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("enabled",true);}
  static void enabled(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("enabled",value).commit()){r.message="设置未能保存";return;}if(!value)r.withdraw("已关闭眼镜提醒，原问题留在手机");r.refresh();}
  static void accept(TaskRuntime.Snapshot value){main();AgentCardRuntime r=instance;if(r!=null){r.snapshot=value;r.pump();}}
- static void pause(String binding){main();AgentCardRuntime r=instance;if(r!=null&&r.session.request()!=null&&(binding==null||r.session.request().binding.equals(binding)))r.withdraw("会话已暂停，原问题留在手机");}
+ static void pause(String binding){main();AgentCardRuntime r=instance;if(r!=null){r.withdrawPrompter(binding,null,"会话已暂停，原问题留在手机");if(r.session.request()!=null&&(binding==null||r.session.request().binding.equals(binding)))r.withdrawCard("会话已暂停，原问题留在手机");}}
  private static String focusKey(String binding,String request){return TaskWire.hash(WireJson.bytes(WireJson.object("binding",binding,"request",request)));}
- static void enterPhone(String binding,String request){main();AgentCardRuntime r=instance;if(r!=null){r.phoneFocus.add(focusKey(binding,request));if(r.session.request()!=null&&r.session.request().binding.equals(binding)&&r.session.request().requestId.equals(request))r.withdraw("已转到手机完整回答");}}
+ static void enterPhone(String binding,String request){main();AgentCardRuntime r=instance;if(r!=null){r.phoneFocus.add(focusKey(binding,request));r.withdrawPrompter(binding,request,"已转到手机完整回答");if(r.session.request()!=null&&r.session.request().binding.equals(binding)&&r.session.request().requestId.equals(request))r.withdrawCard("已转到手机完整回答");}}
  static void leavePhone(String binding,String request){main();AgentCardRuntime r=instance;if(r!=null)r.phoneFocus.remove(focusKey(binding,request));}
  /** Only admits the voice preflight. A retired input closure is not proof of
   * mirror exit; the recording owner must still obtain fresh version/idle. */
@@ -119,7 +120,7 @@ final class AgentCardRuntime {
    Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"message".equals(item.get("kind")))continue;
    try{TaskNotice notice=TaskNotice.prepare(c.profile.connection,item,c.item("task",(String)TaskWire.body(item).get("task_id")),System.currentTimeMillis());
     if(offered.contains(notice.key)||offered.size()>=200)continue;
-    nextAuto=now()+10000;if(!NewsTele.notice(notice.text,notice.expires-System.currentTimeMillis()))return;
+    nextAuto=now()+10000;if(!noticePrompt(notice.text,notice.expires-System.currentTimeMillis(),c.binding))return;
     Set<String> next=new HashSet<>(offered);next.add(notice.key);
     if(!prefs.edit().putStringSet("offered",next).commit()){NewsTele.control(6);message="通知显示记录未保存，内容保留在手机";return;}
     offered.clear();offered.addAll(next);message="任务提醒已提交到眼镜；长按退出，无需回答";return;
@@ -134,25 +135,77 @@ final class AgentCardRuntime {
   if(NewsTele.active()||NativeTransfer.fileBusy()||session.pending()||preflight!=null||HeadGestureRuntime.pending()){message="眼镜正有操作，长问题保留在手机";nextAuto=now()+10000;return false;}
   String key=prompterKey(source.binding,request);if(automatic&&offered.contains(key))return false;
   if(offered.size()>=200&&!offered.contains(key)){message=TaskWorkspace.label("TASK_GLASS_HISTORY_FULL");return false;}
-  String binding=source.binding,id=(String)request.get("object_id"),fingerprint=TaskWire.requestFingerprint(request);long revision=TaskWire.positive(request.get("revision"));
   // Only a started manuscript counts as offered; a refused start (e.g. glasses still connecting) is retried.
-  if(!NewsTele.start(AgentCardRequest.manuscript(TaskWire.body(request),TaskWire.body(parent)),PROMPTER_SPEED,()->openPrompterVoice(binding,id,revision,fingerprint))){message="提词器暂不可用："+NewsTele.status()+"；稍后自动重试，长问题保留在手机";nextAuto=now()+10000;refresh();return false;}
-  Set<String> next=new HashSet<>(offered);next.add(key);if(prefs.edit().putStringSet("offered",next).commit()){offered.clear();offered.addAll(next);}
-  try{prefs.edit().putString("prompter_owner",new org.json.JSONObject().put("did",NewsTele.did()).put("binding",binding).put("id",id).put("revision",revision).put("fingerprint",fingerprint).put("until",System.currentTimeMillis()+NewsTele.QUESTION_SHOW_MS).toString()).commit();}catch(org.json.JSONException impossible){}
+  long startedAt=System.currentTimeMillis(),until=TaskPrompterOwner.deadline(source.profile.connection,request,startedAt);String[] display={""};
+  if(!NewsTele.question(AgentCardRequest.manuscript(TaskWire.body(request),TaskWire.body(parent)),PROMPTER_SPEED,until-startedAt,()->openPrompterVoice(display[0]))){message="提词器暂不可用："+NewsTele.status()+"；稍后自动重试，长问题保留在手机";nextAuto=now()+10000;refresh();return false;}
+  display[0]=NewsTele.did();TaskPrompterOwner owner=TaskPrompterOwner.create(display[0],NativeTransfer.connected(),source.profile.connection,request,startedAt);
+  Set<String> next=new HashSet<>(offered);next.add(key);
+  if(!prefs.edit().putStringSet("offered",next).putString("prompter_owner",owner.encode()).commit()){NewsTele.cancelTask(display[0]);message="显示记录未保存，已请求退出；问题保留在手机";return false;}
+  offered.clear();offered.addAll(next);
   message="长问题已发到眼镜提词器；看完长按退出后口述";refresh();return true;
  }
  private void forget(String key){if(!offered.contains(key))return;Set<String> next=new HashSet<>(offered);next.remove(key);if(prefs.edit().putStringSet("offered",next).commit()){offered.clear();offered.addAll(next);}}
- /** The DID of the last agent prompter, kept across a process restart until its show period ends. */
- private NewsTele.Adoption orphan(String did){
-  try{org.json.JSONObject o=new org.json.JSONObject(prefs.getString("prompter_owner","{}"));long remaining=o.optLong("until")-System.currentTimeMillis();
-   if(!did.equals(o.optString("did"))||remaining<=0)return null;String binding=o.getString("binding"),id=o.getString("id"),fingerprint=o.getString("fingerprint");long revision=o.getLong("revision");
-   message="已接回重启前的眼镜提词器；长按退出后口述";refresh();return new NewsTele.Adoption(()->openPrompterVoice(binding,id,revision,fingerprint),remaining);
-  }catch(org.json.JSONException unreadable){return null;}
+ private TaskPrompterNotice prompterNotice(){return TaskPrompterNotice.read(prefs.getString("prompter_notice_owner","{}"));}
+ private boolean noticePrompt(String text,long duration,String binding){
+  long started=System.currentTimeMillis();if(!NewsTele.notice(text,duration))return false;
+  TaskPrompterNotice owner=TaskPrompterNotice.create(NewsTele.did(),NativeTransfer.connected(),binding,duration,started);
+  if(prefs.edit().putString("prompter_notice_owner",owner.encode()).commit())return true;
+  NewsTele.cancelTask(owner.did);return false;
  }
- private void openPrompterVoice(String binding,String id,long revision,String fingerprint){
-  prefs.edit().remove("prompter_owner").apply();
-  if(!openGlassesVoice(binding,id,revision,fingerprint)){message="已退出提词器，请在手机打开原问题口述";refresh();return;}
-  message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
+ private boolean noticeAllowed(TaskPrompterNotice owner){
+  if(!enabled()||!attended()||cancelledPrompters.contains(owner.did))return false;
+  if(owner.binding==null||snapshot==null)return true;TaskHub.View c=snapshot.context(owner.binding);
+  return c!=null&&c.profile.enabled&&c.profile.connection.expiresAt>System.currentTimeMillis();
+ }
+ private TaskPrompterOwner prompter(){return TaskPrompterOwner.read(prefs.getString("prompter_owner","{}"));}
+ private boolean prompterAllowed(TaskPrompterOwner owner,TaskRuntime.Snapshot state){
+  if(owner==null||cancelledPrompters.contains(owner.did)||state==null||!enabled()||!attended())return false;TaskHub.View c=state.context(owner.binding);if(c==null)return false;
+  Map<String,Object> request=c.item("request",owner.id),parent=request==null?null:c.item("task",(String)TaskWire.body(request).get("task_id"));
+  return owner.allows(c.profile.connection,c.profile.enabled,request,parent,phoneFocus.contains(focusKey(owner.binding,owner.id)),hasAnswer(c,owner.id,owner.revision,null),System.currentTimeMillis());
+ }
+ private void withdrawPrompter(String binding,String id,String reason){
+  TaskPrompterNotice notice=prompterNotice();if(id==null&&notice!=null&&notice.matches(binding)){
+   cancelledPrompters.add(notice.did);if(!notice.cancelled)prefs.edit().putString("prompter_notice_owner",notice.cancel().encode()).commit();
+   if(NewsTele.cancelTask(notice.did))message=reason;
+  }
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.matches(binding,id))return;
+  // Persist withdrawal even if the process has not re-adopted its manuscript yet.
+  cancelledPrompters.add(owner.did);
+  if(!owner.cancelled)prefs.edit().putString("prompter_owner",owner.cancel().encode()).commit();
+  if(NewsTele.cancelTask(owner.did))message=reason;
+ }
+ private void checkPrompter(){
+  TaskPrompterNotice notice=prompterNotice();
+  if(notice!=null&&!NewsTele.active()&&notice.peer.equals(NativeTransfer.connected())){
+   String attempt=notice.did+"@"+Host107Ota.link().generation;
+   if(!noticeChecks.contains(attempt)&&NewsTele.recoverNotice(notice.did,notice.peer,notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis())))noticeChecks.add(attempt);
+  }
+  if(notice!=null&&notice.did.equals(NewsTele.did())&&notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis())<=0)withdrawPrompter(notice.binding,null,"通知显示已结束，正在退出提词器");
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(NewsTele.did()))return;
+  // Missing startup snapshot is unknown; the durable deadline still applies.
+  if(!owner.live(System.currentTimeMillis())||!enabled()||!attended()||snapshot!=null&&!prompterAllowed(owner,snapshot))withdrawPrompter(owner.binding,owner.id,"原问题已失效或转到手机，正在退出提词器");
+ }
+ /** A matching expired/withdrawn DID is adopted for stop-only recovery, never for recording. */
+ private NewsTele.Adoption orphan(String did){
+  TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did)){
+   if(!notice.peer.equals(NativeTransfer.connected()))return null;
+   return new NewsTele.Adoption(null,notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis()));
+  }
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||!owner.peer.isEmpty()&&!owner.peer.equals(NativeTransfer.connected()))return null;
+  boolean live=!cancelledPrompters.contains(did)&&owner.live(System.currentTimeMillis())&&!owner.peer.isEmpty()&&enabled()&&attended()&&(snapshot==null||prompterAllowed(owner,snapshot));
+  message=live?"已接回重启前的眼镜提词器；退出后重新核对原问题":"正在清理重启前已失效的提词器";refresh();
+  return new NewsTele.Adoption(live?()->openPrompterVoice(did):null,live?owner.until-System.currentTimeMillis():0);
+ }
+ private void openPrompterVoice(String did){
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis()))return;
+  // The exit event may have been queued before a pause, phone answer, revision, or restart.
+  tasks.detail(owner.binding,"request",owner.id,(state,error)->{
+   TaskPrompterOwner current=prompter();if(current==null||!did.equals(current.did))return;
+   boolean allowed=error.isEmpty()&&prompterAllowed(current,state);snapshot=state;
+   prefs.edit().remove("prompter_owner").commit();
+   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){message="已退出提词器，原问题暂不可口述；请在手机查看";refresh();return;}
+   message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
+  });
  }
  private void openVoice(AgentCardRequest voice){
   if(!openGlassesVoice(voice.binding,voice.requestId,voice.revision,voice.fingerprint)){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
@@ -179,7 +232,7 @@ final class AgentCardRuntime {
  }
  // The refused recording may still hold the message lane for a moment; retry briefly, then give up.
  private void busyNotice(int attempt){
-  if(!NewsTele.active()&&!NativeTransfer.fileBusy()&&NewsTele.notice(BUSY_NOTICE,60000)){android.util.Log.i("TurboIOCard","glasses busy notice shown attempt="+attempt);return;}
+  if(!NewsTele.active()&&!NativeTransfer.fileBusy()&&noticePrompt(BUSY_NOTICE,60000,null)){android.util.Log.i("TurboIOCard","glasses busy notice shown attempt="+attempt);return;}
   if(attempt<8)main.postDelayed(()->busyNotice(attempt+1),1000);else android.util.Log.i("TurboIOCard","glasses busy notice not shown");
  }
  private void confirmVoice(AgentCardRequest voice){
@@ -187,6 +240,9 @@ final class AgentCardRuntime {
  }
  private void releaseLocal(){if(localLease){NativeTransfer.releaseMessages(lease);localLease=false;}}
  private void withdraw(String reason){
+  withdrawPrompter(null,null,reason);withdrawCard(reason);
+ }
+ private void withdrawCard(String reason){
   if(preflight!=null){preflight.stop(reason);preflight=null;releaseLocal();}
   if(session.pending()){if(!session.cancelUnshown())session.suspend(reason);message=reason;lastCleanupOwner="";}pump();
  }
@@ -204,7 +260,7 @@ final class AgentCardRuntime {
  }
  private void pump(){
   main();if(pumping)return;pumping=true;
-  try{Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
+  try{checkPrompter();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
    if(preflight!=null){preflight.tick(link.peer,link.generation,now(),attended());if(preflight.phase().equals("READY")&&!preflight.working()){
      preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump),nodConfirm()&&session.request()!=null&&session.request().confirm!=null);if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
     }else if(!preflight.working()){message="眼镜状态检查未通过，请在手机回答";preflight=null;releaseLocal();session.cancelUnshown();}

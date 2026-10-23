@@ -73,7 +73,24 @@
       "path": "Tailscale direct over routable private endpoint; not a public-network/DERP proof"
     },
     "offline_helper_tests": 16,
-    "helper_connect_updated_user_reported_port": true
+    "helper_connect_updated_user_reported_port": true,
+    "different_wifi_derp": {
+      "at": "2026-10-23T13:06:10.997949+00:00",
+      "user_confirmed_other_wifi": true,
+      "new_port_identity_verified": true,
+      "tailscale_ping": "DERP(hkg), 690 ms",
+      "direct_connection_established": false,
+      "adb_ui_and_private_import_worked": true,
+      "usb_used": false
+    },
+    "wireless_apk_install": {
+      "candidate": "0.5.3-dev58",
+      "version_code": 10480,
+      "delta_bytes": 1413005,
+      "installed_sha256": "f0afc0697db934b591a0f3cbc3667bde7378345e9e627fa094709ee8601ccc39",
+      "exact_reconstruction_and_package_update_verified": true,
+      "evidence": "r2-prompter-lifecycle-dev58-2026-10-23.json"
+    }
   },
   "resolved_setup_issue": {
     "symptom": "ADB protocol fault / No route to host while normal LAN TCP was reachable",
@@ -81,11 +98,8 @@
     "outcome": "LAN TLS and Tailscale-address TLS connections both succeeded"
   },
   "not_verified": [
-    "Different location over public Internet",
-    "ADB through DERP relay",
     "Phone full reboot recovery",
-    "Long-duration sleep",
-    "Wireless APK installation"
+    "Long-duration sleep"
   ],
   "test_identity": {
     "caller": "caller601-20261023-codex",
