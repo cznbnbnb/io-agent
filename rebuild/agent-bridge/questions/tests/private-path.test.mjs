@@ -59,7 +59,8 @@ ExistingCaller(c,j).on_item(source,'item:task:'+c['task_id']+':1')
 j.close()
 print(json.dumps(asyncio.run(execute('ask',dict(question_key='offline',question='Offline path fixture?',mode='free_text',options=[],expires_at=deadline),sys.argv[2]))))`;
  const seeded=spawnSync(python,['-I','-S','-B','-c',seed,questions,path.join(logicalDirectory,'context.json')],{cwd:workspace,env,encoding:'utf8',timeout:10000});assert.equal(seeded.status,0,seeded.stderr);const request=JSON.parse(seeded.stdout);
- function cli(cwd=workspace,extraEnv={}){const result=spawnSync(process.execPath,[path.join(questions,'cli.mjs'),'status'],{cwd,env:{...env,...extraEnv},input:JSON.stringify({request_id:request.request_id}),encoding:'utf8',timeout:10000});return{...result,value:JSON.parse(result.stdout)};}
+ function command(action,input,cwd=workspace,extraEnv={}){const result=spawnSync(process.execPath,[path.join(questions,'cli.mjs'),action],{cwd,env:{...env,...extraEnv},input:JSON.stringify(input),encoding:'utf8',timeout:10000});return{...result,value:JSON.parse(result.stdout)};}
+ function cli(cwd=workspace,extraEnv={}){return command('status',{request_id:request.request_id},cwd,extraEnv);}
  const journal=path.join(directory,'journal.sqlite'),before=fs.readFileSync(journal),good=cli();assert.equal(good.status,0,good.stdout);assert.equal(good.value.state,'pending');assert.equal(good.value.caller_verified,true);assert.equal(good.value.network_checked,false);assert.deepEqual(fs.readFileSync(journal),before);
  assert.equal(cli(root).value.error,'CALLER_PROJECT_MISMATCH');
  assert.equal(cli(workspace,{CODEX_THREAD_ID:'other-thread'}).value.error,'CALLER_ACTIVE_CONTEXT_INVALID');
@@ -70,6 +71,25 @@ print(json.dumps(asyncio.run(execute('ask',dict(question_key='offline',question=
   try{assert.equal(cli().value.error,'CALLER_ACTIVE_CONTEXT_INVALID',entry);}finally{fs.unlinkSync(entry);fs.renameSync(saved,entry);}
  }
  assert.equal(cli().status,0);assert.deepEqual(fs.readFileSync(journal),before);
+
+ // Configuration must verify the original caller and journal before any write,
+ // including the enable-only branch that intentionally makes no server request.
+ const policyFile=path.join(directory,'progress-policy.json');
+ for(const changed of [{...config,caller:{...config.caller,session_id:'other-thread'}},{...config,caller:{...config.caller,cwd:root}},{...config,journal:path.join(root,'elsewhere.sqlite')}]){
+  fs.writeFileSync(contextFile,JSON.stringify(changed));const rejected=command('config',{glasses_progress:true});assert.equal(rejected.status,2);assert.ok(['CALLER_SESSION_MISMATCH','CALLER_ACTIVE_CONTEXT_INVALID'].includes(rejected.value.error));assert.equal(fs.existsSync(policyFile),false);
+ }
+ fs.writeFileSync(contextFile,JSON.stringify(config));assert.equal(command('config',{glasses_progress:true}).status,0);const policyBefore=fs.readFileSync(policyFile);
+ fs.writeFileSync(contextFile,JSON.stringify({...config,caller:{...config.caller,session_id:'other-thread'}}));assert.equal(command('config',{checkin_minutes:30}).value.error,'CALLER_SESSION_MISMATCH');assert.deepEqual(fs.readFileSync(policyFile),policyBefore);fs.writeFileSync(contextFile,JSON.stringify(config));
+
+ const point={checkpoint_key:'offline-progress',done:'完成本地检查',next:'继续检查路径'},pointFile='checkpoint-'+sha(point.checkpoint_key)+'.json';
+ const outside=path.join(root,'outside-progress.json'),outsideData=JSON.stringify({schema:1,glasses_progress:true,checkin_minutes:20,next_checkin_at:'2099-01-01T00:00:00Z',sentinel:'DO_NOT_READ_FOREIGN_PROGRESS'});fs.writeFileSync(outside,outsideData);
+ for(const [name,action,input] of [['progress-policy.json','config',{glasses_progress:true}],['progress-policy.json.partial','config',{glasses_progress:true}],['progress.json','checkpoint',point],['progress.json.partial','checkpoint',point],[pointFile,'checkpoint',point]]){
+  const target=path.join(directory,name),saved=target+'.original',existed=fs.existsSync(target);if(existed)fs.renameSync(target,saved);fs.symlinkSync(outside,target);
+  try{const rejected=command(action,input);assert.equal(rejected.status,2);assert.equal(rejected.value.error,'CALLER_ACTIVE_CONTEXT_INVALID',name);assert.ok(fs.lstatSync(target).isSymbolicLink(),name+' must not be replaced');assert.equal(fs.readFileSync(outside,'utf8'),outsideData);assert.ok(!rejected.stdout.includes('DO_NOT_READ_FOREIGN_PROGRESS'));
+   if(name==='progress.json'||name==='progress-policy.json'){const status=cli();assert.equal(status.status,0);assert.equal(status.value.progress.glasses_progress,null);assert.equal(status.value.progress.checkpoint_due,true);assert.ok(!status.stdout.includes('DO_NOT_READ_FOREIGN_PROGRESS'));}
+  }finally{fs.unlinkSync(target);if(existed)fs.renameSync(saved,target);}
+ }
+ assert.deepEqual(fs.readFileSync(journal),before);
 
  // The real preparation entry reaches expiry validation through both root
  // spellings; intentionally expired, token-free fixtures stop before identity I/O.

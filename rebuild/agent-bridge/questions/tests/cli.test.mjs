@@ -28,6 +28,25 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  assert.equal((await run(caller,'notify',{...notice,text:'changed'})).value.error,'CALLER_NOTIFICATION_CONFLICT');
  assert.equal((await run(caller,'notify',{...notice,route:{session_id:'elsewhere'}})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
  assert.equal((await run(caller,'notify',{...notice,notification_key:'expired',expires_at:'2000-01-01T00:00:00Z'})).value.error,'RUNTIME_DEADLINE_INVALID');
+ // Glasses progress contract (2026-10-23): checkpoint shows done/next on the glasses and arms the server watch;
+ // the agent can switch it off with config, and every reply carries the duty.
+ assert.equal(notified.value.progress.checkpoint_due,true);assert.ok((await run(caller,'help')).value.contract.length>=3);
+ const point={checkpoint_key:'step-1',done:'完成断网恢复',next:'测试蓝牙断连',next_checkin_minutes:15};
+ const pointed=await run(caller,'checkpoint',point);assert.equal(pointed.code,0,JSON.stringify(pointed));assert.equal(pointed.value.glasses_display,'notice');assert.equal(pointed.value.server_watch,'armed');
+ const pointObject=store.queueGet(phone.token,'message',pointed.value.message_id);assert.equal(pointObject.body.channel,'progress');assert.equal(pointObject.body.text,'已完成：完成断网恢复\n下一步：测试蓝牙断连');assert.equal(pointObject.body.task_id,registered.value.task_id);
+ const watched=store.watchGet(agent.token,registered.value.task_id);assert.equal(watched.enabled,true);assert.equal(watched.note,'测试蓝牙断连');assert.ok(Date.parse(watched.next_checkin_at)>Date.now()+14*60000);
+ assert.equal((await run(caller,'checkpoint',point)).value.message_id,pointed.value.message_id);
+ assert.equal((await run(caller,'checkpoint',{...point,next:'changed'})).value.error,'CALLER_CHECKPOINT_CONFLICT');
+ assert.equal((await run(caller,'checkpoint',{...point,checkpoint_key:'too-soon',next_checkin_minutes:1})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
+ assert.equal((await run(caller,'notify',notice)).value.progress.checkpoint_due,false);
+ const off=await run(caller,'config',{glasses_progress:false});assert.equal(off.code,0,JSON.stringify(off));assert.equal(off.value.server_watch,'off');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,false);
+ const originalSubmit=store.queueSubmit.bind(store);let replayedPosts=0;store.queueSubmit=(token,event,kind)=>{if(kind==='message'&&event.event_id===pointObject.event_id)replayedPosts++;return originalSubmit(token,event,kind);};
+ const replayWhileOff=await run(caller,'checkpoint',point);assert.equal(replayWhileOff.code,0,JSON.stringify(replayWhileOff));assert.equal(replayWhileOff.value.glasses_display,'off');assert.equal(replayWhileOff.value.message_id,null);assert.equal(replayWhileOff.value.server_watch,'off');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,false);assert.equal(replayedPosts,0,'old checkpoints must not repost or re-arm after switch-off');store.queueSubmit=originalSubmit;
+ const quiet=await run(caller,'checkpoint',{checkpoint_key:'step-2',done:'核对代码',next:'等设备锁'});assert.equal(quiet.value.glasses_display,'off');assert.equal(quiet.value.message_id,null);assert.equal(quiet.value.server_watch,'off');
+ assert.equal((await run(caller,'notify',notice)).value.progress.glasses_progress,false);
+ assert.equal((await run(caller,'config',{glasses_progress:true,checkin_minutes:30})).value.policy.checkin_minutes,30);
+ const resumedPoint=await run(caller,'checkpoint',{checkpoint_key:'step-3',done:'恢复进度推送',next:'继续原任务'});assert.equal(resumedPoint.code,0,JSON.stringify(resumedPoint));assert.equal(resumedPoint.value.glasses_display,'notice');assert.equal(resumedPoint.value.server_watch,'armed');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,true);
+ assert.equal((await run(caller,'config',{glasses_progress:'yes'})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
  const args={question_key:'one',question:'Preserve the full additional conditions?',mode:'free_text',options:[],expires_at:new Date(Date.now()+300000).toISOString()};
  const asked=await run(caller,'ask',args);assert.equal(asked.code,0,JSON.stringify(asked));assert.equal(asked.value.server_stored,true);
  const again=await run(caller,'ask',args);assert.equal(again.code,0,JSON.stringify(again));assert.equal(again.value.request_id,asked.value.request_id);

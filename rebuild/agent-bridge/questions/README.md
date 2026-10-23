@@ -55,3 +55,7 @@ JSON参数走stdin，UTF-8 JSON结果走stdout。配套说明已安装为`turboi
 `notify` 使用同一真实调用方登记与原任务，只创建 `progress` 消息，不创建问题或等待答案。参数 JSON 为 `notification_key`、`text`（最多1800字）、`expires_at`（未来一小时内 UTC `Z` 时间）。同一通知重试须保持全部参数；同一键更改内容会拒绝。先耐久保存事件再发送，重试沿用事件和幂等键。
 
 安装支持通知的手机版本后，通知在眼镜空闲时走提词器，最长3分钟；长按退出及超时均不开始口述。过期、任务已结束或其他对话的消息不显示。普通问答/录音进行中，通知等待，不覆盖当前交互。`server_stored` 只证明服务器保存；`glasses_display_confirmed=false` 不冒充镜片到达，需另核对设备回报或本人观察。网络失败保留 `message_id` 和本机事件，按原参数重试。
+
+## 每一步的进度报告与服务器看门狗（2026-10-23）
+
+`checkpoint`（`checkpoint_key / done / next / next_checkin_minutes?`）把"已完成 + 下一步"作为进度通知推到眼镜，并在服务器 `PUT /v1/watches/<task_id>` 登记下次报到时间。服务器每分钟检查一次：已开启、超时 2 分钟以上、且任务仍有效的报到，由服务器自己生成一条进度通知（`producer_id=io-server-watchdog`，消息格式不变，手机不用改），每次报到只提醒一次。`config`（`glasses_progress / checkin_minutes`）由 Agent 端开关，关闭时同步关闭服务器报到。`help` 打印合同；`ask/wait/status/notify` 的回复带 `progress` 义务。合同全文：[AGENT-CONTRACT.md](AGENT-CONTRACT.md)。

@@ -1,5 +1,13 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 合入 Claude 进度合同 `9c3da9b`，手机仍为 dev54 /10476。** 在 Codex 独立分支合并，保留双方记录、共享 private 根与原会话核验；未修改 Android、未重发包、未部署服务器、未推送或改 Claude 工作目录。给新增进度文件及 `.partial` 补路径检查，`config` 写入前核验原会话和 journal；关闭推送后重试旧 checkpoint 不再发消息或重新开启看门狗。原生 UI 及 Claude dev51 修复已在上一提交 `79db817` 交付。[本次集成证据](../../rebuild/android-app/cli-progress-integration-2026-10-23.json)。
+
+验证：离线路径 2/2、本地真实 CLI 子进程的 Codex/Claude 回环 2/2 通过；服务器 watch/queue/service 共 34 项通过，1 项因旧 ArkTS 真机导出 fixture 缺失未完成，未编造替代件。新增 watch 3 项及队列 14 项全部通过。已知剩余：同一登记多进程同时发送 checkpoint 与关闭推送仍缺串行化/版本约束；本次只证明“关闭完成后重试”的行为。真实眼镜显示由 Claude 持锁验证，本轮未再发 checkpoint，避免占用其通道。
+
+**设备交接：Codex 已释放，Claude 现持锁。当前安装版以 dev54 /10476 为准，下一包必须从 dev55 /10477 顺延。** 回退包 dev53 已保留。UI 验收 A23-UI02 保持部分可测；下一项仍先验证原会话真实暂停与继续能力，再接手机控制回执，Claude 继续 R2。
+
+**[claude] 2026-10-23 可移植眼镜进度合同 + 服务器看门狗（已上线 cznbnb.cn，未提交）。** 任何 Agent 读 [AGENT-CONTRACT.md](../../rebuild/agent-bridge/questions/AGENT-CONTRACT.md) 或 `cli.mjs help` 即可遵循：每步 `checkpoint`（done + next，推到眼镜并登记下次报到时间），`config` 由 Agent 端开关推送；`ask/wait/status/notify` 回复带 `progress` 义务。服务端新增 `GET/PUT /v1/watches/<task_id>` 与每分钟看门狗：超时 2 分钟仍未报到的有效任务，由服务器自己发一条进度通知（`producer_id=io-server-watchdog`，沿用现有消息格式，手机不用改）。上线前线上文件与 HEAD 一致，备份在 `/opt/turboio/backup-watch-20261023T103625Z`；caller401 线上 checkpoint 已存服务器、watch 已登记，眼镜显示待设备锁释放后验证。
+
 **[codex] 2026-10-23 原生 Agent 工作区 dev54 /10476 已安装，回退 dev53，设备锁已释放。** 本批在独立 `codex/agent-workspace-ui` 合入 Claude 已提交 `00e112c`，五个录音/卡片运行时文件与该提交完全一致；不改 Claude 工作目录或历史，`12be672` 只保留为按用户要求迁移前的原型历史。未推送、未合并 main。[真机与构建证据](../../rebuild/android-app/agent-workspace-ui-device-2026-10-23.json)。dev52 验证原厂入口、任务/资料/设置、固定任务列表、真实日期圆点、连接详情暂停/恢复及系统导出；dev53 修正文字居中，dev54 修正宿主白底橙边输入主题。最终同签覆盖安装且 SHA-256 与设备一致，原数据保留。TXT/Markdown/Word 均保存到手机，TXT/Word 已核对实际正文；取消不创建文件。自己的输入测试草稿已清空，最终回到原厂 App。
 
 验证：187 份 Android 源码 javac/D8、来源哈希和 APK 审计通过；合入后卡片 790、任务语音桥 248、任务呈现 28 项检查通过；沿用上一批 UI 核心 265 项。共享 private 根路径修复通过 Node 2 项、Python caller 11 项并完成真实当前 Codex 会话登记。旧 context-voice fixture 在共享根链接门禁前停止，未算通过；`am kill` 未真正终止进程，不能算导出重建已验证。未起录或新增答案，不重复镜片验收；账号切换、提交中退出及完整资料委托仍见 A23-UI02。

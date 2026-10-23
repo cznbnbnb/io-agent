@@ -110,6 +110,12 @@ export class BridgeClient{
     if(!READ_PATHS[kind]||typeof id!=='string'||!id||['.','..'].includes(id))fail('INVALID_QUERY',{permanent:true});
     return this.#object((await this.#send('GET',`${READ_PATHS[kind]}/${encodeURIComponent(id)}`)).body,kind,id);
   }
+  /** Check-in watch of one task: GET reads it, PUT {enabled,next_checkin_at,note} replaces it (server watchdog). */
+  async watch(taskId,input){
+    if(typeof taskId!=='string'||!taskId||['.','..'].includes(taskId))fail('INVALID_QUERY',{permanent:true});
+    const value=(await this.#send(input===undefined?'GET':'PUT',`watches/${encodeURIComponent(taskId)}`,input===undefined?undefined:JSON.stringify(input))).body;
+    if(value?.task_id!==taskId||typeof value.enabled!=='boolean')fail('INVALID_RESPONSE',{permanent:true});return value;
+  }
   async reconcileRequest(id,revision){
     if(typeof id!=='string'||!id||['.','..'].includes(id)||!integer(revision))fail('INVALID_QUERY',{permanent:true});
     const value=(await this.#send('POST',`requests/${encodeURIComponent(id)}/reconcile`,JSON.stringify({schema_version:'1.0',request_revision:revision}))).body;
