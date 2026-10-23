@@ -22,7 +22,9 @@ try{
       try{traffic=new TrafficLedger(options['--db']+'.traffic.sqlite',serverId);}
       catch{trafficUnavailable=true;process.stderr.write(JSON.stringify({warning:'TRAFFIC_UNAVAILABLE'})+'\n');}
       const server=await listen(store,port,{traffic,trafficUnavailable});process.stdout.write(JSON.stringify({service:'turboio-materials',listen:'127.0.0.1',port})+'\n');
-      let closing=false;const stop=()=>{if(closing)return;closing=true;server.close(()=>{traffic?.close();store.close();process.exit(0);});};
+      // Overdue agent check-ins become one server-made glasses notice each (store.watchdogTick).
+      const watchdog=setInterval(()=>{try{store.watchdogTick();}catch{}},60000);
+      let closing=false;const stop=()=>{if(closing)return;closing=true;clearInterval(watchdog);server.close(()=>{traffic?.close();store.close();process.exit(0);});};
       process.on('SIGINT',stop);process.on('SIGTERM',stop);
     }else if(action==='mint'){
       // O_EXCL prevents overwriting a previous credential. On Windows restrict

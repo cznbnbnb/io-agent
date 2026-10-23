@@ -42,7 +42,7 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       const bearer=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.authorization??'');if(!bearer)reject(401,'UNAUTHENTICATED');
       const token=bearer[1],query={};
       observation.principal=store.auth(token);
-      const route=/^\/v1\/(identity|materials|material-events|changes|inbox|tasks|requests|answers|messages|receipts|events)(?:\/|$)/.exec(url.pathname)?.[1];
+      const route=/^\/v1\/(identity|materials|material-events|changes|inbox|tasks|requests|answers|messages|receipts|events|watches)(?:\/|$)/.exec(url.pathname)?.[1];
       observation.route=route==='material-events'?'materials':route??'other';
       for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_QUERY');query[key]=value;}
       if(req.method==='GET'&&url.pathname==='/v1/operations/summary'){
@@ -55,6 +55,15 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       }
       if(req.method==='GET'&&url.pathname==='/v1/identity'){
         if(url.search)reject(400,'INVALID_QUERY');send(200,store.identity(token));return;
+      }
+      const watch=/^\/v1\/watches\/([^/]+)$/.exec(url.pathname);
+      if(watch&&req.method==='GET'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.watchGet(token,decoded(watch[1])));return;}
+      if(watch&&req.method==='PUT'){
+        if(url.search)reject(400,'INVALID_QUERY');
+        if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']??'')||req.headers['content-encoding'])reject(415,'UNSUPPORTED_MEDIA_TYPE');
+        const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;observation.request_bytes=size;if(size>8192)reject(413,'PAYLOAD_TOO_LARGE');chunks.push(chunk);}
+        let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}catch{reject(400,'INVALID_UNICODE');}
+        send(200,store.watchSet(token,decoded(watch[1]),parseStrict(text)));return;
       }
       const lifecycle=/^\/v1\/requests\/([^/]+)\/reconcile$/.exec(url.pathname);
       if(req.method==='POST'&&(url.pathname==='/v1/material-events'||QUEUE_PATHS.has(url.pathname)||lifecycle)){

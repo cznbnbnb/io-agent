@@ -48,8 +48,52 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
  const active=path.join(base,'active.json');if(!fs.existsSync(active)||readPrivateJson(active).profile!==profile){const partial=path.join(base,'active.partial');writeNew(partial,{schema:1,profile});fs.renameSync(partial,active);}
  return {registered:true,caller_verified:true,context_sha256:hash(JSON.stringify(context.caller)),task_id:taskId,runtime,creates_agent_session:false,...(runtime==='codex'?{creates_codex_session:false}:{})};
 }
+// Glasses progress contract (2026-10-23, user: any agent handed this CLI must report every next step on the
+// glasses, and the agent itself can switch that off). `checkpoint` = what was just done + what comes next; it
+// is shown on the glasses and arms a server watch, so a forgotten report still reaches the wearer as a
+// server-made notice once the declared check-in time passes. Every reply carries `progress` with the duty.
+const POLICY={schema:1,glasses_progress:true,checkin_minutes:20};
+const CONTRACT=['每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；默认推送到眼镜。',
+ '需要用户决定时用 ask，阻塞时用 notify；它们不代替 checkpoint。',
+ '回复里 progress.checkpoint_due=true 时，在结束本轮前先 checkpoint。',
+ 'next_checkin_minutes 是你承诺的下次报到时间；超时未报到，服务器会自己在眼镜上提醒用户。',
+ '用户要求不推送时调用 config {"glasses_progress":false}；恢复用 true。'];
+const shortText=t=>typeof t==='string'&&t.trim().length>0&&t.length<=600&&!/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/.test(t);
+function replace(file,value){const partial=file+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,value);fs.renameSync(partial,file);}
+function policy(directory){const file=path.join(directory,'progress-policy.json');if(!fs.existsSync(file))return{...POLICY};const p=readPrivateJson(file);if(p.schema!==1||typeof p.glasses_progress!=='boolean'||!Number.isInteger(p.checkin_minutes)||p.checkin_minutes<5||p.checkin_minutes>120)fail('CALLER_PROGRESS_POLICY_INVALID');return p;}
+function progressState(directory){const file=path.join(directory,'progress.json');return fs.existsSync(file)?readPrivateJson(file):null;}
+function progress(directory,answered=false){try{const p=policy(directory);if(!p.glasses_progress)return{glasses_progress:false,checkpoint_due:false};const s=progressState(directory);
+ return{glasses_progress:true,checkpoint_due:answered||!s||Date.now()>=Date.parse(s.next_checkin_at),next_checkin_at:s?.next_checkin_at??null,rule:CONTRACT[0]};}catch{return{glasses_progress:null,checkpoint_due:true,rule:CONTRACT[0]};}}
+async function checkpoint(directory,value){
+ const keys=Object.keys(value??{}).sort().join();
+ if(!['checkpoint_key,done,next','checkpoint_key,done,next,next_checkin_minutes'].includes(keys)||typeof value.checkpoint_key!=='string'||!/^[A-Za-z0-9_.-]{1,96}$/.test(value.checkpoint_key)||!shortText(value.done)||!shortText(value.next)||('next_checkin_minutes' in value&&(!Number.isInteger(value.next_checkin_minutes)||value.next_checkin_minutes<5||value.next_checkin_minutes>120)))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
+ const {config,context}=binding(directory),p=policy(directory),id='notice-'+hash(JSON.stringify([context.task_id,'checkpoint',value.checkpoint_key])),file=path.join(directory,'checkpoint-'+hash(value.checkpoint_key)+'.json');
+ let saved;if(fs.existsSync(file)){saved=readPrivateJson(file);if(!isDeepStrictEqual(saved.input,value))fail('CALLER_CHECKPOINT_CONFLICT');}
+ else{const now=Date.now(),minutes=value.next_checkin_minutes??p.checkin_minutes;saved={input:value,glasses_progress:p.glasses_progress,next_checkin_at:new Date(now+minutes*60000).toISOString(),
+  event:p.glasses_progress?{schema_version:'1.0',event_id:'ev-'+id,idempotency_key:'idem-'+id,producer_id:config.bridge.producer_id,kind:'message',created_at:new Date(now).toISOString(),expires_at:new Date(now+3000000).toISOString(),body:{message_id:id,revision:1,task_id:context.task_id,route:context.route,request_id:null,channel:'progress',text:'已完成：'+value.done+'\n下一步：'+value.next}}:null};writeNew(file,saved);}
+ replace(path.join(directory,'progress.json'),{schema:1,last_checkpoint_key:value.checkpoint_key,last_checkpoint_at:saved.event?.created_at??new Date().toISOString(),next_checkin_at:saved.next_checkin_at});
+ const client=new BridgeClient(config.bridge),result={checkpoint:true,checkpoint_key:value.checkpoint_key,glasses_display:saved.event?'notice':'off',glasses_display_confirmed:false,next_checkin_at:saved.next_checkin_at,requires_answer:false};
+ try{const closed=await activeTask({client},directory);if(closed)fail('CALLER_TASK_CLOSED');if(saved.event)await client.post('message',saved.event);
+  const watch=await client.watch(context.task_id,{enabled:saved.glasses_progress,next_checkin_at:saved.glasses_progress?saved.next_checkin_at:null,note:value.next});
+  return{...result,message_id:saved.event?id:null,server_stored:true,server_watch:watch.enabled?'armed':'off',caller_verified:true};}
+ catch(error){return{...result,error:error instanceof BridgeError?error.code:'CALLER_SYNC_FAILED',message_id:saved.event?id:null,locally_stored:true,server_stored_unconfirmed:true};}
+}
+async function configure(directory,value){
+ const keys=Object.keys(value??{});
+ if(!keys.length||keys.some(k=>!['glasses_progress','checkin_minutes'].includes(k))||('glasses_progress' in value&&typeof value.glasses_progress!=='boolean')||('checkin_minutes' in value&&(!Number.isInteger(value.checkin_minutes)||value.checkin_minutes<5||value.checkin_minutes>120)))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
+ const next={...policy(directory),...value,schema:1};replace(path.join(directory,'progress-policy.json'),next);
+ const result={policy:next,contract:CONTRACT};if(next.glasses_progress)return{...result,server_watch:'armed_at_next_checkpoint'};
+ const {config,context}=binding(directory);
+ try{await new BridgeClient(config.bridge).watch(context.task_id,{enabled:false,next_checkin_at:null,note:''});return{...result,server_watch:'off'};}
+ catch(error){return{...result,error:error instanceof BridgeError?error.code:'CALLER_SYNC_FAILED',server_watch:'off_unconfirmed'};}
+}
 async function input(){let bytes=0,parts=[];for await(const part of process.stdin){bytes+=part.length;if(bytes>32768)fail('RUNTIME_CLI_FRAME_TOO_LARGE');parts.push(part);}try{return JSON.parse(Buffer.concat(parts).toString('utf8'));}catch{fail('RUNTIME_TOOL_ARGUMENT_INVALID');}}
-export async function run(action,args){if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');return register(path.resolve(args[1]));}if(args.length||!['ask','wait','status','notify'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
+export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
+async function dispatch(action,args){if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
+ if(action==='help'&&!args.length)return{commands:{ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+ if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
+ if(action==='checkpoint')return checkpoint(directory,value);
+ if(action==='config')return configure(directory,value);
  if(action==='notify'){
   if(!value||Object.keys(value).sort().join()!=='expires_at,notification_key,text'||typeof value.notification_key!=='string'||!/^[A-Za-z0-9_.-]{1,96}$/.test(value.notification_key)||typeof value.text!=='string'||!value.text.trim()||value.text.length>1800||/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/.test(value.text)||typeof value.expires_at!=='string'||!value.expires_at.endsWith('Z')||!Number.isFinite(Date.parse(value.expires_at)))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
   const {config,context}=binding(directory),id='notice-'+hash(JSON.stringify([context.task_id,value.notification_key])),file=path.join(directory,id+'.json');

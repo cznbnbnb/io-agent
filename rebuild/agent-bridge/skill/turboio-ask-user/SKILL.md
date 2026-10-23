@@ -26,3 +26,7 @@ CLI的离线ask返回错误时，`locally_stored=true`和`request_id`表明原�
 ## 无需回答的任务阻塞通知（用户2026-10-22授权）
 
 当前项目遇到实际阻塞时可调用同一固定入口 `cli.mjs notify`，参数 `notification_key / text / expires_at`。通知内容说明具体卡点和下一步，最多1800字；期限为未来一小时内 UTC `Z` 时间。同一未解决阻塞不重复通知，重试必须保持原键、正文与期限。它只发当前原任务的通知，不创建问题；眼镜提词器长按或超时退出均不开始口述。需要选择时继续使用 `ask`。服务器保存不等于眼镜显示，以设备回报/用户观察另行核对；接入失败时在当前聊天明确说明。
+
+## 每一步都向眼镜报告进度（用户2026-10-23要求）
+
+每完成一步或改变计划，调用 `cli.mjs checkpoint`，参数 `checkpoint_key / done / next`，可选 `next_checkin_minutes`（5–120，默认20）：`done` 写刚完成什么，`next` 写推荐的下一步，内容推送到眼镜。同一键重试必须保持原参数。每条命令回复都带 `progress`，`checkpoint_due=true` 时结束本轮前先报告。超过承诺的报到时间没有报告，服务器会自己在眼镜上提醒用户。用户要求不推送时调用 `config {"glasses_progress":false}`，恢复用 `true`。完整合同见 [AGENT-CONTRACT.md](../../questions/AGENT-CONTRACT.md)，`cli.mjs help` 打印同样规则。

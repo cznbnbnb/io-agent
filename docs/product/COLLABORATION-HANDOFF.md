@@ -1,5 +1,7 @@
 # GitHub 协作交接
 
+**[claude] 2026-10-23 可移植眼镜进度合同 + 服务器看门狗（已上线 cznbnb.cn，未提交）。** 任何 Agent 读 [AGENT-CONTRACT.md](../../rebuild/agent-bridge/questions/AGENT-CONTRACT.md) 或 `cli.mjs help` 即可遵循：每步 `checkpoint`（done + next，推到眼镜并登记下次报到时间），`config` 由 Agent 端开关推送；`ask/wait/status/notify` 回复带 `progress` 义务。服务端新增 `GET/PUT /v1/watches/<task_id>` 与每分钟看门狗：超时 2 分钟仍未报到的有效任务，由服务器自己发一条进度通知（`producer_id=io-server-watchdog`，沿用现有消息格式，手机不用改）。上线前线上文件与 HEAD 一致，备份在 `/opt/turboio/backup-watch-20261023T103625Z`；caller401 线上 checkpoint 已存服务器、watch 已登记，眼镜显示待设备锁释放后验证。
+
 **[claude] 2026-10-23 R2 重启/断网恢复真机通过（dev51 /10473，回退 dev50）。** [证据](../../rebuild/android-app/phone-r2-recovery-dev51-2026-10-23.json)。①提词器显示中 App 被杀：重启后按稿件 DID 接回眼镜上的旧提词器，长按退出照常进录音（`NewsTele` 接回，dev46）。②口述中 App 被杀：重启后自动给眼镜发停止关麦、草稿记为中断，并把原题重新发到眼镜（`VoiceAnswerRuntime.recoverInterrupted`，dev47）；页面在自身准备完成前不再因同题旧中断状态关掉自动开始（dev50）。③确认卡前断网提交：连不上服务器时用本机最近副本，答案仍以待核对存入队列，联网后由队列向服务器核对后补发，只发一次（dev51）。断网口述本身做不到：原厂语音识别要联网，已在眼镜通知。未验：眼镜蓝牙断连、手机整机重启、8 小时。收尾：先读完全部答案再撤销凭据。
 
 **[codex] 2026-10-23 Agent 工作区 Web 原型与九条评审反馈。** 仅提交 `docs/prototypes/agent-workspace-v2/`、PRD、A23-UI01 验收待办和本条交接；App 未改、未装机、未操作设备或问答通道，装机版本沿用下方 Claude 记录的 dev45 /10467，未由本轮实机核验。统一连接详情，补任务暂停/追加指示及回执、默认 Agent/工作区、固定列表高度、自动同步规则与开关、日历圆点、三天原音和文档导出、回到原厂 APP。检查：两份 JS 语法通过；浏览器点通上述流程并修复四处状态冲突，列表高 240 px 且切换位置保持。未验证：真人视觉评审、真实自动上传/导出、CLI 默认目标及眼镜主动唤起，均仍待实现或复评。

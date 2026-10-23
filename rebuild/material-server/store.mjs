@@ -11,6 +11,9 @@ const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
 const timestamp=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(s)&&Number.isFinite(Date.parse(s));
 const MAX_BODY=262144,MAX_PAGE=1048576;
+// Agent check-in watches (2026-10-23, user: any agent given the CLI must keep the wearer informed).
+const WATCH_MAX_MS=7200000,WATCH_GRACE_MS=120000,WATCHDOG='io-server-watchdog';
+const WATCH_ACTIVE=['queued','agent_received','running','waiting_answer'];
 // P40 state machines: an event may only publish a state reachable from the
 // current head state. "answered" is never publishable — only the answer
 // transaction sets it, so a client cannot claim the user answered.
@@ -73,6 +76,8 @@ export class MaterialStore {
           CREATE INDEX queue_sequence ON queue_revisions(owner,seq);
           PRAGMA user_version=2;
           COMMIT;`);
+      // Additive table; older databases gain it without a version change.
+      this.db.exec('CREATE TABLE IF NOT EXISTS watches(owner TEXT NOT NULL,task_id TEXT NOT NULL,producer TEXT NOT NULL,enabled INTEGER NOT NULL,next_at INTEGER,note TEXT NOT NULL,fired_at INTEGER,updated_at INTEGER NOT NULL,PRIMARY KEY(owner,task_id)) STRICT;');
       this.tx(()=>{
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('cursor_secret',randomBytes(32).toString('hex'));
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
@@ -223,6 +228,41 @@ export class MaterialStore {
     const p=this.auth(token);
     const row=this.db.prepare('SELECT response FROM events WHERE owner=? AND producer=? AND event_id=?').get(p.owner,p.producer,eventId);
     if(!row)reject(404,'EVENT_NOT_FOUND');return JSON.parse(row.response);
+  }
+  // ---- Check-in watches: the agent declares when it reports next; the server keeps the promise ----
+  watchView(w){return {task_id:w.task_id,enabled:w.enabled===1,next_checkin_at:w.next_at===null?null:iso(w.next_at),note:w.note,fired_at:w.fired_at===null?null:iso(w.fired_at)};}
+  watchGet(token,taskId){
+    const p=this.auth(token,'messages:write'),w=this.db.prepare('SELECT * FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId);
+    if(!w||w.producer!==p.producer)reject(404,'WATCH_NOT_FOUND');return this.watchView(w);
+  }
+  watchSet(token,taskId,input){
+    return this.tx(()=>{
+      const p=this.auth(token,'messages:write'),now=this.clock();
+      if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).sort().join()!=='enabled,next_checkin_at,note'||typeof input.enabled!=='boolean'||typeof input.note!=='string'||input.note.length>600||/[\u0000-\u0008\u000b-\u001f\u007f]/.test(input.note))reject(400,'INVALID');
+      let next=null;
+      if(input.enabled){if(!timestamp(input.next_checkin_at))reject(400,'INVALID');next=Date.parse(input.next_checkin_at);if(next<=now||next>now+WATCH_MAX_MS)reject(400,'INVALID_TIME_RANGE');}
+      else if(input.next_checkin_at!==null)reject(400,'INVALID');
+      if(!this.queueHead(p.owner,'task',taskId))reject(404,'TASK_NOT_FOUND');
+      const prior=this.db.prepare('SELECT producer FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId);if(prior&&prior.producer!==p.producer)reject(403,'FORBIDDEN');
+      this.db.prepare('INSERT INTO watches VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(owner,task_id) DO UPDATE SET enabled=excluded.enabled,next_at=excluded.next_at,note=excluded.note,fired_at=NULL,updated_at=excluded.updated_at').run(p.owner,taskId,p.producer,input.enabled?1:0,next,input.note,null,now);
+      return this.watchView(this.db.prepare('SELECT * FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId));
+    });
+  }
+  /** One progress notice per overdue check-in, from the server itself, while the task is still active. */
+  watchdogTick(){
+    const now=this.clock();let fired=0;
+    for(const w of this.db.prepare('SELECT * FROM watches WHERE enabled=1 AND fired_at IS NULL AND next_at<=?').all(now-WATCH_GRACE_MS))try{this.tx(()=>{
+      const task=this.queueHead(w.owner,'task',w.task_id),expires=task?this.queueRevision(w.owner,'task',w.task_id,task.revision).expires:0;
+      if(task&&WATCH_ACTIVE.includes(task.state)&&expires>now+60000){
+        const id='notice-'+sha(JSON.stringify(['watchdog',w.task_id,w.next_at])),late=Math.max(1,Math.round((now-w.next_at)/60000));
+        const text='已超过约定报到时间约 '+late+' 分钟，Agent 没有报告新进展，可能卡住或忘了提醒。'+(w.note?'它上次说的下一步：'+w.note:'');
+        const event={schema_version:'1.0',event_id:'ev-'+id,idempotency_key:'idem-'+id,producer_id:WATCHDOG,kind:'message',created_at:iso(now),expires_at:iso(Math.min(now+1800000,expires)),body:{message_id:id,revision:1,task_id:w.task_id,route:JSON.parse(task.route),request_id:null,channel:'progress',text}};
+        this.validateQueue(event,'message');
+        if(!this.queueHead(w.owner,'message',id)){const stored=this.queueApply(w.owner,'message',id,event,now);this.saveEvent({owner:w.owner,producer:WATCHDOG},event,sha(canonical(event)),this.queueReceipt(event,'message',id,stored.revision,stored.seq,stored.storedAt));fired++;}
+      }
+      this.db.prepare('UPDATE watches SET fired_at=? WHERE owner=? AND task_id=?').run(now,w.owner,w.task_id);
+    });}catch{/* One bad watch never stops the others. */}
+    return fired;
   }
   // ---- P40 queue: immutable revisions, a live head state, per-identity scopes ----
   queueScope(kind,event){
