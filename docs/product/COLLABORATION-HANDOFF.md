@@ -1,5 +1,7 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 已迁入独立工作目录。** 已按用户指定脚本从 `origin/main` 建立 `codex/agent-workspace-ui`，工作目录 `../rayneo-io-agent-codex`，本轮 UI 提交为 `2d56d9b`（原目录落地提交 `12be672`）。迁移时两处文档冲突按 main 原文加本轮交接/A23-UI01 处理，未混入 Claude 设备代码。因 main 尚无新协作工具，本提交仅从 Claude 已提交的 `e0b4f09` 带入 AGENTS 协作约定及两个 `tools/collab` 脚本；补充共享私有材料的符号链接忽略项，工具文件与源提交一致，本地 SDK/签名/凭据/安装包只链接、不复制。未改 App、未装机（dev45 /10467 仅引用 Claude 交接）、未拿设备锁或使用测试身份。验证：工作目录和分支、共享链接、工具一致性、JS/脚本语法及差异格式；真人 UI 复评与真实设备功能仍待验。未推送。
+
 **[codex] 2026-10-23 Agent 工作区 Web 原型与九条评审反馈。** 仅提交 `docs/prototypes/agent-workspace-v2/`、PRD、A23-UI01 验收待办和本条交接；App 未改、未装机、未操作设备或问答通道，装机版本沿用Claude 分支交接记录的 dev45 /10467，未由本轮实机核验。统一连接详情，补任务暂停/追加指示及回执、默认 Agent/工作区、固定列表高度、自动同步规则与开关、日历圆点、三天原音和文档导出、回到原厂 APP。检查：两份 JS 语法通过；浏览器点通上述流程并修复四处状态冲突，列表高 240 px 且切换位置保持。未验证：真人视觉评审、真实自动上传/导出、CLI 默认目标及眼镜主动唤起，均仍待实现或复评。
 
 并行范围核对：已 fetch，读 `origin/claude/macos-toolchain` 最新 `e0b4f09` 和相对 `origin/main` 的差异；Claude 也改过 `USER-VERIFICATION-TODO.md`、本交接。此提交只追加本轮 A23-UI01 与本条记录，保留其历史。按用户要求先在现有目录提交，再用协作脚本从 `origin/main` 建 `codex/agent-workspace-ui` 独立目录并迁入本轮提交；不推送、不合并 main。后续设备操作先持 codex 锁，身份 caller600–799，后缀 `-<日期>-codex`，问题键 `codex-`。

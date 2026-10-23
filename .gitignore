@@ -120,3 +120,10 @@
 !/rebuild/android-app/phone-month-dev2-install-2026-10-22.json
 # Progress spreadsheets and their local edits are managed only on request.
 /outputs/
+
+# Shared local-material symlinks in agent worktrees (never commit private data).
+!/tools/collab/
+/rebuild/agent-bridge/private
+/rebuild/android-app/.private
+/rebuild/android-app/.tools
+/rebuild/android-app/artifacts
