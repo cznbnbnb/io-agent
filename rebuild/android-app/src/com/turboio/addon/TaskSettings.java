@@ -52,7 +52,14 @@ final class TaskSettings {
    if(!Arrays.equals(loadAll().encode(),plain))throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");
   }finally{Arrays.fill(plain,(byte)0);if(legacy!=null)Arrays.fill(legacy,(byte)0);}
  }
- void save(TaskConnection connection,boolean enabled)throws Exception{synchronized(LOCK){write(loadAll().upsert(connection,enabled,System.currentTimeMillis()));}}
+ void save(TaskConnection connection,boolean enabled)throws Exception{save(connection,enabled,true);}
+ void save(TaskConnection connection,boolean enabled,boolean makeDefault)throws Exception{synchronized(LOCK){write(loadAll().upsert(connection,enabled,System.currentTimeMillis(),makeDefault));}}
+ /** Identity was checked for this exact registry. Do not restore stale tokens or
+  * replace a default changed while the network preflight was in flight. */
+ void resume(TaskProfiles expected,String binding)throws Exception{synchronized(LOCK){
+  TaskProfiles current=loadAll();TaskWire.require(Arrays.equals(current.encode(),expected.encode()),"TASK_TARGET_CHANGED");
+  write(current.enabled(binding,true,System.currentTimeMillis()));
+ }}
  void select(String binding)throws Exception{synchronized(LOCK){write(loadAll().select(binding));}}
  void pause(String binding)throws Exception{synchronized(LOCK){write(loadAll().enabled(binding,false,System.currentTimeMillis()));}}
  void remove(String binding)throws Exception{synchronized(LOCK){write(loadAll().remove(binding,System.currentTimeMillis()));}}

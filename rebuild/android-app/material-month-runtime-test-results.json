@@ -1,16 +1,28 @@
 {
   "schema": 1,
-  "at": "2026-10-22T04:55:59.606Z",
+  "at": "2026-10-23T10:01:13.169Z",
   "scope": "Unmodified MaterialRuntime and real month/config core; synthetic Android lifecycle/main queue, settings and downstream IO/session",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 113,
+  "checks": 128,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "b93ded44ee0ff609d078b90a6223703e88d11559e6edc51c031a6e461deb0e09"
+      "sha256": "95e0329f1a3f65399e373ffc9826eca9263eb5f195991e8e97e4a67445d9f2b0"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialCatalog.java",
+      "sha256": "63994f8c6ef34db24b46721586d4fc5149edca870d0fe2a3e8fe2404e707c7e1"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialOutbox.java",
+      "sha256": "2cfd01afd0676a152dfb3323cc93ab2502cf5de7cdfd8493f05c5fde525b5fef"
+    },
+    {
+      "path": "src/com/turboio/addon/AtomicDocument.java",
+      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -66,11 +78,11 @@
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "45f9e054c36a449417bac1c94e3c01a216caba13354c2960c02b6d1f54c9f8c5"
+      "sha256": "11e3a885b4ce3df960f5e4e18825402ce297a3a88b5d8fbc47609f50899bb3c8"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",
-      "sha256": "fa36ffa41364eeff8e78c6c2a790945c29fc671d2755a08166813f7373953b15"
+      "sha256": "d007ab57869e3b9ff9a24cefcadddb64c3c9ba49a699e7c234dcaed87e037147"
     }
   ],
   "temporary_classes_removed": true

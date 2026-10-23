@@ -62,6 +62,22 @@ final class TaskRuntime {
   enabled.remove(binding);TaskHttp t=transports.get(binding);if(t!=null)t.cancel();
   work(()->{try{settings.pause(binding);hub.apply(settings.loadAll());note="contexts_ready";}catch(Exception failure){if(hub!=null){TaskHub.View v=hub.view(binding);if(v.profile.enabled)enabled.add(binding);}throw failure;}},result);
  }
+ /** Resume this registration only, after a fresh identity check. The default,
+  * other channels and every pending answer retain their original bindings. */
+ void resume(String binding,Result result){
+  final long owner=generation;
+  work(()->{
+   TaskWire.require(owner==generation&&running(),"TASK_PAUSED");TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");
+   TaskProfiles current=settings.loadAll();TaskProfiles.Profile profile=current.get(binding);
+   TaskWire.require(Arrays.equals(current.encode(),hub.profiles().encode()),"TASK_TARGET_CHANGED");
+   TaskHttp probe=new TaskHttp(profile.connection);
+   try{
+    new TaskApi(profile.connection,probe).preflight(System.currentTimeMillis());
+    TaskWire.require(owner==generation&&running(),"TASK_PAUSED");TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");
+    settings.resume(current,binding);hub.apply(settings.loadAll());enabled.add(binding);note="contexts_ready";
+   }finally{probe.cancel();}
+  },result);schedule();
+ }
  /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
   * hub, whose channel set must match the profiles; mailbox files stay on disk. */
  void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}

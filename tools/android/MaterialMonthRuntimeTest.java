@@ -14,6 +14,7 @@ public final class MaterialMonthRuntimeTest {
  static byte[] calendar(){List<Object> rows=new ArrayList<>();for(int day=1;day<=31;day++)rows.add(WireJson.object("date",String.format(Locale.ROOT,"2026-10-%02d",day),"hasLog",day<=8));return WireJson.bytes(WireJson.object("code",0,"data",WireJson.object("dailyLifelogList",rows)));}
  static final class Month implements MaterialRuntime.MonthResult{MaterialRuntime.MonthSelection value;String error;int calls;public void done(MaterialRuntime.MonthSelection v,String e){value=v;error=e;calls++;}}
  static final class Done implements MaterialRuntime.Result{MaterialRuntime.Snapshot value;String error;int calls;public void done(MaterialRuntime.Snapshot v,String e){value=v;error=e;calls++;}}
+ static final class Catalog implements MaterialRuntime.CatalogResult{MaterialRuntime.CatalogSnapshot value;String error;int calls;public void done(MaterialRuntime.CatalogSnapshot v,String e){value=v;error=e;calls++;}}
  static final class Fixture implements AutoCloseable{
   final Application app=new Application(root);final Activity activity=new Activity(app);final MaterialRuntime runtime;final ExecutorService io,cancel;
   Fixture()throws Exception{
@@ -32,6 +33,15 @@ public final class MaterialMonthRuntimeTest {
  static void denied(Done result,String code){yes(result.calls==1&&code.equals(result.error));yes(MaterialSyncSession.started==0&&OfficialLifelogDiscovery.calls==0);}
  public static void main(String[] args)throws Exception{
   root=new File(args[0]);
+  // Catalog reads use the real serialized runtime and queue, reject another
+  // account before revealing text, and permit local reading after upload expiry.
+  try(Fixture f=new Fixture()){MaterialSettings.value=config("a",false,System.currentTimeMillis()-1000);Catalog result=new Catalog();f.runtime.catalog(result);f.idle();f.deliver();yes(result.calls==1&&result.error.isEmpty()&&result.value.catalog.account.equals(OWNER.binding));yes(result.value.catalog.entries.isEmpty()&&MaterialHttp.created==0);}
+  try(Fixture f=new Fixture()){Host107Login.current=OTHER;Catalog result=new Catalog();f.runtime.catalog(result);f.idle();f.deliver();yes(result.value==null&&"OFFICIAL_ACCOUNT_CHANGED".equals(result.error));}
+  try(Fixture f=new Fixture()){Catalog result=new Catalog();f.runtime.catalog(result);f.idle();f.runtime.cancelPending();f.deliver();yes(result.value==null&&"MATERIAL_PAUSED".equals(result.error));}
+  // A stale UI may not restore old credentials while merely changing a switch.
+  try(Fixture f=new Fixture()){String old=MaterialSettings.value.fingerprint();MaterialSettings.value=config("b",false,System.currentTimeMillis()+600000);String current=MaterialSettings.value.fingerprint();Done done=new Done();f.runtime.setEnabled(old,true,done);f.idle();f.deliver();yes("MATERIAL_CONNECTION_CHANGED".equals(done.error)&&MaterialSettings.value.fingerprint().equals(current));yes(MaterialHttp.created==0);}
+  try(Fixture f=new Fixture()){MaterialSettings.value=config("a",false,System.currentTimeMillis()+600000);Done enabled=new Done();f.runtime.setEnabled(MaterialSettings.value.fingerprint(),true,enabled);f.idle();f.deliver();yes(enabled.error.isEmpty()&&MaterialSettings.value.enabled&&MaterialHttp.created==1);Done paused=new Done();f.runtime.setEnabled(MaterialSettings.value.fingerprint(),false,paused);f.idle();f.deliver();yes(paused.error.isEmpty()&&!MaterialSettings.value.enabled&&MaterialHttp.created==1);}
+  try(Fixture f=new Fixture()){String before=MaterialSettings.value.fingerprint();Host107Login.current=OTHER;Done done=new Done();f.runtime.setEnabled(before,false,done);f.idle();f.deliver();yes("OFFICIAL_ACCOUNT_CHANGED".equals(done.error)&&MaterialSettings.value.fingerprint().equals(before));}
   // Login changes after IO must not cause blocking login IO on main. The shown
   // snapshot remains explicitly bound to its original account; using it for
   // synchronization must fail before a session can commit any data.
@@ -86,6 +96,7 @@ final class MaterialSyncSession{
  static int started,completed;static String kind;static void reset(){started=completed=0;kind="";}final AccountSource source;final Guard guard;
  MaterialSyncSession(File dir,MaterialConfig cfg,AccountSource source,Guard guard,MaterialHttp http){started++;this.source=source;this.guard=guard;}
  static Status status(File dir,MaterialConfig config){return new Status();}
+ static File accountFiles(File dir,MaterialConfig config){return new File(dir,"material-accounts/"+config.account);}
  Status sync()throws Exception{guard.check();source.current();if(source instanceof DiscoverySource){kind="discovery";((DiscoverySource)source).discover();}else{kind="fresh";FreshSource fresh=(FreshSource)source;fresh.refresh(fresh.read());}guard.check();source.current();completed++;return new Status();}
 }
 final class OfficialLifelogDiscovery{interface Login{OfficialAccountBinding current()throws Exception;}static final class Snapshot{}static int calls;static List<OfficialLifelogInventory.Request> selected;static CountDownLatch entered,release;static void reset(){calls=0;selected=null;entered=release=null;}static Snapshot read(String owner,List<OfficialLifelogInventory.Request> days,Login login,Host107LifelogHttp http)throws Exception{calls++;selected=new ArrayList<>(days);if(entered!=null){entered.countDown();if(!release.await(2,TimeUnit.SECONDS))throw new IOException("TEST_RELEASE_MISSING");}login.current();return new Snapshot();}}

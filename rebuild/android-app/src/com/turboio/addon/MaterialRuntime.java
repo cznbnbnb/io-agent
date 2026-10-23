@@ -7,6 +7,11 @@ import java.io.*;import java.util.*;import java.util.concurrent.*;
 final class MaterialRuntime {
  interface Result {void done(Snapshot value,String error);}
  interface MonthResult {void done(MonthSelection value,String error);}
+ interface CatalogResult {void done(CatalogSnapshot value,String error);}
+ static final class CatalogSnapshot {
+  final MaterialConfig config;final MaterialCatalog catalog;
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog){this.config=config;this.catalog=catalog;}
+ }
  static final class MonthSelection {
   final OfficialLifelogMonthDiscovery.Snapshot source;final String configFingerprint;private final long owner;
   private MonthSelection(OfficialLifelogMonthDiscovery.Snapshot source,String fingerprint,long owner){this.source=source;configFingerprint=fingerprint;this.owner=owner;}
@@ -28,6 +33,24 @@ final class MaterialRuntime {
  private void counts()throws IOException{MaterialSyncSession.Status next=MaterialSyncSession.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
  void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
+ /** Queue snapshots use this same IO owner as sync. They never race a second
+  * outbox owner or expose another signed-in account's retained text. Expired
+  * upload credentials do not prevent reading one's own already-saved records. */
+ void catalog(CatalogResult result){long owner=generation;io.execute(()->{
+  CatalogSnapshot found=null;String error="";
+  try{
+   check(owner);MaterialConfig saved=settings.load();java.time.ZoneId zone=java.time.ZoneId.systemDefault();
+   if(saved==null)found=new CatalogSnapshot(null,MaterialCatalog.empty("",zone));
+   else{
+    OfficialAccountBinding current=account(owner);MaterialWire.require(saved.account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");
+    MaterialCatalog catalog;try(MaterialOutbox outbox=new MaterialOutbox(MaterialSyncSession.accountFiles(app.getFilesDir(),saved),saved.connection)){catalog=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}
+    MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);found=new CatalogSnapshot(saved,catalog);
+   }
+  }catch(Exception failure){error=safe(failure);}
+  final CatalogSnapshot snapshot=found;final String code=error;main.post(()->{
+   if(!code.isEmpty()){result.done(null,code);return;}try{check(owner);}catch(Exception stale){result.done(null,safe(stale));return;}result.done(snapshot,"");
+  });
+ });}
  void cancelPending(){invalidate();}
  void configure(byte[] raw,boolean enabled,Result result){long owner=invalidate();byte[] input=raw.clone();work(()->{try{
   OfficialAccountBinding source=account(owner);MaterialConnection next=MaterialConnection.parse(input,System.currentTimeMillis());MaterialConfig candidate=new MaterialConfig(next,source.binding,enabled);if(config!=null)config.replaceAllowed(candidate);
@@ -38,6 +61,17 @@ final class MaterialRuntime {
   status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  }finally{Arrays.fill(input,(byte)0);}},result);}
  void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=MaterialSyncSession.status(app.getFilesDir(),config);note="paused";},result);}
+ /** Toggle only the configuration the caller actually saw. Never re-import
+  * credentials from a stale UI snapshot after another registration was saved. */
+ void setEnabled(String expectedFingerprint,boolean enabled,Result result){long owner=invalidate();work(()->{
+  check(owner);MaterialWire.require(config!=null&&config.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");
+  OfficialAccountBinding login=account(owner);MaterialWire.require(config.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig original=config;
+  if(enabled){MaterialWire.require(original.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");MaterialHttp http=new MaterialHttp(original.connection);synchronized(guard){check(owner);transport=http;}
+   try{new MaterialApi(original.connection,http).preflight(System.currentTimeMillis(),true);}finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
+  }
+  synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
+  status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+ },result);}
  void discoverMonth(String month,MonthResult result){long owner=invalidate();io.execute(()->{
   MonthSelection found=null;String error="";Host107LifelogHttp official=null;
   try{
