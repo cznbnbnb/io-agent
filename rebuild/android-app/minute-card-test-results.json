@@ -1,34 +1,38 @@
 {
   "schema": 1,
-  "at": "2026-10-20T07:16:06.430Z",
+  "at": "2026-10-23T08:07:52.620Z",
   "assertions": 126,
   "sources": [
     {
-      "path": "src\\com\\turboio\\addon\\MinuteCardSession.java",
-      "sha256": "c9d4eafd886b83f41ccea3473833859e3c6f38e7c7cf63adb8ee63a8ab9b74db"
+      "path": "src/com/turboio/addon/MinuteCardSession.java",
+      "sha256": "0dd2810bea9e7c378709afcdb49cd2b9634db7ec739037c5b675f434dc8a37ec"
     },
     {
-      "path": "src\\com\\turboio\\addon\\HostBusiness.java",
-      "sha256": "ebb0c6ceafbaec7c43bc340bfcc1fb981db974fb0df14e73183752141a72fb2a"
+      "path": "src/com/turboio/addon/LifelogState.java",
+      "sha256": "0d4a8582d6fbcebbc3c4e3e8bd1afd98c5a62ed300f54e6cbb099c481a28f2f3"
     },
     {
-      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
-      "sha256": "ffdcb28f61cc7cee71d9d0932ff0d2f776247de782ecf21cb3448a9305f4e6ca"
+      "path": "src/com/turboio/addon/HostBusiness.java",
+      "sha256": "3ea34fdca9b7e72e918496ddf9079b1a092c6bd923a18ec1339da15da91ebc24"
     },
     {
-      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "path": "src/com/turboio/addon/AtomicDocument.java",
+      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+    },
+    {
+      "path": "src/com/turboio/addon/WireJson.java",
       "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
     },
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
       "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
     },
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\OtaFrame.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/OtaFrame.java",
       "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
     },
     {
-      "path": "..\\..\\tools\\android\\MinuteCardTest.java",
+      "path": "../../tools/android/MinuteCardTest.java",
       "sha256": "65c274a77ea6cad7d1a47ffe264d72b6025f187055c4befa94cb42fe4105473a"
     }
   ],

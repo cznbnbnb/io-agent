@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "at": "2026-10-23T06:31:43.505Z",
-  "assertions": 478,
+  "at": "2026-10-23T08:07:58.896Z",
+  "assertions": 485,
   "scope": "Independent cutoff and host recording adapter including stop-only cold recovery, same-process rebind and blocked old receiver; physical SDK and idle are test doubles",
   "real_native_asr": false,
   "physical_capture": false,
@@ -10,6 +10,10 @@
     {
       "path": "src/com/turboio/addon/VoiceRecoveryProof.java",
       "sha256": "6c2393390d423e9c64e3f9d372cd8ce01eeb3ac4e0aae3381f1407e12eb78c83"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogState.java",
+      "sha256": "0d4a8582d6fbcebbc3c4e3e8bd1afd98c5a62ed300f54e6cbb099c481a28f2f3"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerEvidence.java",
@@ -57,7 +61,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Recording.java",
-      "sha256": "abbd73c684f26c59afa495a20b467914c5a6d186526408729bc50fb45e6bc008"
+      "sha256": "544636eb7c6d556a760d05b9de8797a443df387f82bd260563703e951ad0af7d"
     },
     {
       "path": "src/com/turboio/addon/HostBusiness.java",
@@ -173,7 +177,7 @@
     },
     {
       "path": "../../tools/android/Host107RecordingTest.java",
-      "sha256": "7cc543fbc0136d3c053a5e5583bdbbc15f63ef52ce1adfee8fc8a4caea756d53"
+      "sha256": "9def8e847ee74198c976bc05bf568c38be987e09c24c69154aeb4c265e8b6b89"
     },
     {
       "path": "../../tools/android/voice-fixtures/Ab/a.java",

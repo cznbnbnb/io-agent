@@ -81,14 +81,17 @@ final class AgentCardRuntime {
    try{if(!usable()||!session.canPrepare()||HeadGestureRuntime.pending())throw new IllegalArgumentException("TASK_GLASS_BUSY");TaskHub.View source=state.context(binding);TaskWire.require(source!=null&&source.profile.enabled,"TASK_PAUSED");Map<String,Object> fresh=source.item("request",request);TaskWire.require(fresh!=null&&TaskWire.positive(fresh.get("revision"))==revision,"TASK_REQUEST_CHANGED");
     TaskWire.require(!hasAnswer(source,request,revision,null),"TASK_ANSWER_ALREADY_SAVED");Map<String,Object> parent=source.item("task",(String)TaskWire.body(fresh).get("task_id"));
     if(confirm==null&&"prompter".equals(AgentCardRequest.route(TaskWire.body(fresh)))){if(!prompt(source,fresh,parent,automatic))notice(message,automatic);return;}
+    showCard(source,fresh,parent,confirm);
+   }catch(Exception bad){session.cancelUnshown();releaseLocal();notice(TaskWorkspace.label(TaskApi.safeError(bad)),automatic);nextAuto=now()+10000;}
+  });
+  return true;
+ }
+ private void showCard(TaskHub.View source,Map<String,Object> fresh,Map<String,Object> parent,String confirm)throws Exception{
     AgentCardRequest frozen=confirm!=null?AgentCardRequest.prepareConfirm(source.profile.connection,fresh,parent,System.currentTimeMillis(),confirm):AgentCardRequest.prepare(source.profile.connection,fresh,parent,System.currentTimeMillis());
     Fixed60Session.Link link=Host107Ota.link();TaskWire.require(link.peer!=null&&!link.peer.isEmpty()&&NativeTransfer.acquireMessages(lease),"TASK_GLASS_BUSY");localLease=true;
     if(!session.prepare(frozen,link.peer,link.generation))throw new IllegalArgumentException("TASK_CARD_STORE_INVALID");
     TaskWire.require(offered.size()<200||offered.contains(frozen.owner),"TASK_GLASS_HISTORY_FULL");Set<String> next=new HashSet<>(offered);next.add(frozen.owner);TaskWire.require(prefs.edit().putStringSet("offered",next).commit(),"TASK_CONFIG_SAVE_FAILED");offered.clear();offered.addAll(next);
     preflight=new MinuteCardSession(new MinuteCardSession.Store(){public Object read(){return null;}public void save(Object value){throw new IllegalStateException();}});TaskWire.require(preflight.inspect(link.peer,link.generation,now(),false),"TASK_GLASS_BUSY");message="正在核对原眼镜状态";headStarted=restoreStarted=false;lastCleanupOwner="";checkingShow=false;pump();
-   }catch(Exception bad){session.cancelUnshown();releaseLocal();notice(TaskWorkspace.label(TaskApi.safeError(bad)),automatic);nextAuto=now()+10000;}
-  });
-  return true;
  }
  private void maybeAuto(){
   if(!enabled()||!usable()||fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||snapshot==null||now()<nextAuto)return;
@@ -143,6 +146,19 @@ final class AgentCardRuntime {
   if(!TaskAttention.background())return false;
   VoiceAnswerWorkspace.showHeadless(app,tasks,binding,id,revision,fingerprint,()->tasks.read(null));
   return true;
+ }
+ static final String BUSY_NOTICE="iO Agent 提醒：口述没有开始\n\n眼镜回报正忙：语音助手或其他应用可能还没退出。\n\n这道题保留在手机：可以直接在手机回答，或回到眼镜桌面后，在手机打开这道题重新口述。\n\n仅通知，无需回答；长按退出。";
+ /** 2026-10-23: a glasses-started dictation refused as busy used to end silently on the lens after
+  * the long press. One lens notice per attempt says why. (全天智记 alone no longer counts: LifelogState.) */
+ static void glassesBusy(){
+  main();AgentCardRuntime r=instance;if(r==null)return;
+  r.message="眼镜正忙，口述没有开始（语音助手或其他应用可能未退出）；问题留在手机";r.refresh();
+  r.busyNotice(0);
+ }
+ // The refused recording may still hold the message lane for a moment; retry briefly, then give up.
+ private void busyNotice(int attempt){
+  if(!NewsTele.active()&&!NativeTransfer.fileBusy()&&NewsTele.notice(BUSY_NOTICE,60000)){android.util.Log.i("TurboIOCard","glasses busy notice shown attempt="+attempt);return;}
+  if(attempt<8)main.postDelayed(()->busyNotice(attempt+1),1000);else android.util.Log.i("TurboIOCard","glasses busy notice not shown");
  }
  private void confirmVoice(AgentCardRequest voice){
   message=VoiceAnswerWorkspace.confirmFromGlasses(voice.binding,voice.requestId,voice.confirm)?"已在眼镜确认，正在保存并提交原文":"手机上的口述已变化或暂不能保存，请在手机核对后保存";refresh();

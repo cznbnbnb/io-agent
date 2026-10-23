@@ -17,6 +17,7 @@
 !/tools/phase1/
 !/tools/android/
 !/tools/github/
+!/tools/collab/
 /rebuild/*
 !/rebuild/harmony-sdk/
 !/rebuild/core-probe/
@@ -180,6 +181,16 @@
 !/rebuild/android-app/phone-background-dev34-2026-10-23.json
 !/rebuild/android-app/phone-background-dev35-install-2026-10-23.json
 !/rebuild/android-app/phone-background-dev35-2026-10-23.json
+!/rebuild/android-app/phone-glasses-busy-dev39-install-2026-10-23.json
+!/rebuild/android-app/phone-glasses-busy-dev39-2026-10-23.json
+!/rebuild/android-app/phone-lifelog-trace-dev40-install-2026-10-23.json
+!/rebuild/android-app/phone-lifelog-pause-dev41-install-2026-10-23.json
+!/rebuild/android-app/phone-lifelog-card-dev42-install-2026-10-23.json
+!/rebuild/android-app/phone-recording-trace-dev43-install-2026-10-23.json
+!/rebuild/android-app/phone-lifelog-idle-dev44-install-2026-10-23.json
+!/rebuild/android-app/phone-lifelog-idle-dev44-2026-10-23.json
+!/rebuild/android-app/phone-raw-rx-dev45-install-2026-10-23.json
+!/rebuild/android-app/phone-head-exit-dev45-2026-10-23.json
 
 !/rebuild/android-app/phone-card-names-dev36-install-2026-10-23.json
 !/rebuild/android-app/phone-screen-off-dev36-2026-10-23.json

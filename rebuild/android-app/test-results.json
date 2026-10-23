@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "date": "2026-10-23T04:07:41.702Z",
+  "date": "2026-10-23T08:07:52.185Z",
   "host_resolver": "passed",
   "upstream_237_files": "passed",
   "local_launcher_manifest": "passed",
@@ -12,7 +12,7 @@
   "sources": [
     {
       "path": "src/com/turboio/addon/Host107Abi.java",
-      "sha256": "193b5cf7047689cd3c45d257cef1ba74424b48c9293741c974b5b3f500d988b0"
+      "sha256": "2a14a642723604832f6695b3c597bf0c48c216cdb1a264901b3cde2e466269f1"
     },
     {
       "path": "src/com/turboio/addon/HeadGestureGate.java",
@@ -88,7 +88,7 @@
     },
     {
       "path": "build/host-tests/ProductInfo.java",
-      "sha256": "492da3e3eb0478e8cb4a2fb1158eccf3c570bbf8de2126030aa02112b46601e0"
+      "sha256": "d6d76fa2dd078efb9cb6497ca500fefcb8681fa79bf81db5abdeedc5032a6ab9"
     },
     {
       "path": "../../tools/android/host-policy-fixtures/com/turboio/addon/Host107Recording.java",

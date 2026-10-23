@@ -70,3 +70,13 @@ Excel仅在用户明确要求更新时修改；普通开发、测试和口头进
 - 每完成一项，结合现有计划与最新证据推荐下一项；用户已经授权的连续工作直接推进，不因子项完成而无故结束。需要真人动作时先做好可独立完成的准备，集中请求必要验收。
 - 当前顺序：先核实并推进“双摇头退出任务提词器/任务录音”，再收口 R2，随后 R3、R4。遇到真实外部瓶颈时在眼镜通知，并继续同阶段可独立完成的工作；阶段未完成时不擅自宣布完成或跳过。
 - 工作连接可以在本次连续开发期间保留；使用最小权限与有期限凭据，记录到期时间。阶段/测试身份结束后照常关闭任务、暂停连接、撤销凭据；长期正式凭据另行设计，不把测试连接称为永久在线。
+
+## Claude / Codex 并行协作（2026-10-23 用户约定）
+
+两个 AI 共用同一台 Mac、同一部手机、同一副眼镜和同一条眼镜问答通道，所以只写 Git 备注不够，还要分开工作目录、独占设备、编号不撞。
+
+- **分支与工作目录**：Claude 用 `claude/<主题>`，Codex 用 `codex/<主题>`，都从 `origin/main` 拉出；各自用 `tools/collab/worktree.sh <claude|codex> <主题>` 建自己的工作目录（`../rayneo-io-agent-<agent>`），SDK、签名、测试身份、安装包等本地材料以链接共用，不复制。不在对方的工作目录里改文件，不提交对方未提交的改动。
+- **开工前**：`git fetch`，读 `COLLABORATION-HANDOFF.md` 顶部和对方分支最新提交（`git log origin/codex/…`）。要改的文件若对方分支也改过（`git diff --stat origin/main...origin/<对方分支>`），先在交接里说明再改。
+- **提交备注**：标题以 `[claude]` 或 `[codex]` 开头；正文写改了什么、装机版本、跑了哪些测试、还没验证什么。每次提交同时在 `COLLABORATION-HANDOFF.md` 顶部加一条带同样前缀的记录。只在用户同意时推送；合并到 `main` 走 PR，由用户决定。
+- **设备锁**：碰手机、眼镜或问答通道（装 APK、adb、发题、等答案、测试身份收尾）之前必须 `node tools/collab/device-lock.mjs acquire --owner <claude|codex> --minutes N --purpose "…"`，结束后 `release`；`status` 看谁在用。锁被对方持有就等或做不碰设备的工作，不抢、不删对方的锁；到期未续的锁视为释放。
+- **编号分段**：测试身份 Claude 用 `caller400`–`caller599`，Codex 用 `caller600`–`caller799`，后缀分别为 `-<日期>-claude` / `-<日期>-codex`（例 `caller400-20261023-claude`）；题目 `question_key` 以 `claude-` / `codex-` 开头。安装版本号 **不分段**（安卓不能降版本覆盖安装）：持锁一方取下一个 `devNN` / `version_code`，写进锁的 `purpose` 和交接记录。

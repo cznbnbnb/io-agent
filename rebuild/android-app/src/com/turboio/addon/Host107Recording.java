@@ -41,7 +41,7 @@ final class Host107Recording {
  private final AtomicBoolean faultDelivered=new AtomicBoolean();private final AtomicInteger posting=new AtomicInteger();
  private final AtomicLong events=new AtomicLong();
  private volatile String faultCode="";private volatile boolean closed;
- private boolean begun,preparedReleased,idleRetryPending;private volatile boolean startAttempted,stopRequested,stopAccepted;
+ private boolean begun,preparedReleased,idleRetryPending,glassesBusy;private volatile boolean startAttempted,stopRequested,stopAccepted;
  private long idleSent,idleUntil,idleFence,checkSent,checkUntil,checkFence,readyUntil;private boolean checkedVersion,checkedIdle;
  private Host107Recording(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
   this.draft=draft;this.cutoff=cutoff;this.receiver=receiver;token=draft.token();this.peer=peer;peerHash=FixedPeerHash.of(peer);this.generation=generation;this.recoveryOnly=recoveryOnly;lease="agent-voice-"+token;
@@ -88,9 +88,10 @@ final class Host107Recording {
  }
  void inspect(){
   main();if(recoveryOnly||!current()||faultPosted.get()||begun||cutoff.pending()||!draft.phase().equals("PREPARED")||!sameLink()||checkSent!=0)throw new IllegalStateException("VOICE_PREFLIGHT_NOT_READY");
-  readyUntil=0;checkedVersion=checkedIdle=false;checkSent=SystemClock.elapsedRealtime();checkUntil=checkSent+8000;checkFence=events.get();
+  readyUntil=0;checkedVersion=checkedIdle=glassesBusy=false;checkSent=SystemClock.elapsedRealtime();checkUntil=checkSent+8000;checkFence=events.get();
   for(int type:new int[]{1,11})send(9,type,null,(ok,at)->{if(!ok){checkUntil=readyUntil=0;fault("VOICE_PREFLIGHT_SUBMISSION_FAILED");}});
-  long until=checkUntil;MAIN.postDelayed(()->{if(current()&&checkUntil==until){checkUntil=0;fault("VOICE_PREFLIGHT_TIMEOUT");}},8000);
+  long until=checkUntil;MAIN.postDelayed(()->{// Busy for the whole window is the glasses refusing (e.g. 全天智记 listening), not a lost reply.
+  if(current()&&checkUntil==until){checkUntil=0;fault(glassesBusy?"VOICE_GLASSES_BUSY":"VOICE_PREFLIGHT_TIMEOUT");}},8000);
  }
  void begin(){
   main();deadline=TaskWire.nonnegative(WireJson.map(draft.snapshot()).get("deadline"));
@@ -205,7 +206,7 @@ final class Host107Recording {
     if(frame.binary.length==0&&(frame.type==1||frame.type==11))MAIN.post(()->owner.preflight(frame.type,body,received,event));
     if(frame.type==11&&frame.binary.length==0&&body.get("Result") instanceof Boolean)MAIN.post(()->{
      if(owner.current()&&owner.sameLink()&&owner.idleUntil!=0&&event>owner.idleFence&&received>=owner.idleSent&&received<=owner.idleUntil){
-      owner.idleSent=owner.idleUntil=0;owner.dispatch(()->owner.receiver.idle((Boolean)body.get("Result"),received));
+      owner.idleSent=owner.idleUntil=0;owner.dispatch(()->owner.receiver.idle(LifelogState.idle(body.get("Result")),received));
      }
     });
     return false;
@@ -224,11 +225,12 @@ final class Host107Recording {
  }
  private void preflight(int type,Map<String,Object> body,long received,long event){
   main();if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||event<=checkFence||received<checkSent||received>=checkUntil)return;
-  boolean valid=type==1?"Strix OS 1.0.5.5".equals(body.get("OsVersion"))&&"idle".equals(body.get("OtaValidationState"))&&Boolean.TRUE.equals(body.get("OtaValidationConfirmed"))&&body.get("PackageTypes") instanceof List&&((List<?>)body.get("PackageTypes")).contains("files"):Boolean.TRUE.equals(body.get("Result"));
+  boolean valid=type==1?"Strix OS 1.0.5.5".equals(body.get("OsVersion"))&&"idle".equals(body.get("OtaValidationState"))&&Boolean.TRUE.equals(body.get("OtaValidationConfirmed"))&&body.get("PackageTypes") instanceof List&&((List<?>)body.get("PackageTypes")).contains("files"):LifelogState.idle(body.get("Result"));
   // The prompter can ACK exit before its audio/display owners are idle. Keep the
-  // original 8 s deadline and query again; never turn busy into capture permission.
-  if(type==11&&Boolean.FALSE.equals(body.get("Result"))){
-   checkedIdle=false;
+  // original 8 s deadline and query again; never turn busy into capture permission
+  // (a busy reply that only 全天智记 explains is already idle above, see LifelogState).
+  if(type==11&&!valid&&Boolean.FALSE.equals(body.get("Result"))){
+   checkedIdle=false;glassesBusy=true;
    if(!idleRetryPending){idleRetryPending=true;MAIN.postDelayed(()->{
     idleRetryPending=false;
     if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||SystemClock.elapsedRealtime()>=checkUntil)return;

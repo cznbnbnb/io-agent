@@ -72,7 +72,7 @@ final class Host107RecordingTest {
    emit(VoiceAnswerTest.PEER,9,1,version(),null);emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",false),null);
    Handler.drain();yes(!e.sink.events.contains("ready:true"));
    SystemClock.advance(500);Handler.drain();yes(RecordingPlatform.sent("MARS_FOTA",11).size()==2);
-   SystemClock.advance(7500);Handler.drain();waitFor(()->e.sink.events.contains("VOICE_PREFLIGHT_TIMEOUT"));
+   SystemClock.advance(7500);Handler.drain();waitFor(()->e.sink.events.contains("VOICE_GLASSES_BUSY"));yes(!e.sink.events.contains("VOICE_PREFLIGHT_TIMEOUT"));
    yes(RecordingPlatform.sent("RECORDING_SERVICE",1).isEmpty()&&RecordingPlatform.sent("RECORDING_SERVICE",4).isEmpty());
    yes(!e.draft.needsStop());
   }
@@ -88,6 +88,16 @@ final class Host107RecordingTest {
    waitFor(e.owner::releasePrepared);yes(e.owner.releasePrepared()); // duplicate cleanup remains released
    // A disposed owner's delayed query must not touch a later owner.
    int sent=RecordingPlatform.messages.size();SystemClock.advance(8000);Handler.drain();yes(RecordingPlatform.messages.size()==sent);
+  }
+  // 2026-10-23: with 全天智记 on, a busy idle reply (which only that setting explains) admits capture
+  // without any retry; with it off the same reply still blocks (above).
+  try(Env e=new Env()){
+   LifelogState.set(true);
+   e.owner.inspect();for(RecordingPlatform.Message m:RecordingPlatform.messages)m.receipt(true);
+   emit(VoiceAnswerTest.PEER,9,1,version(),null);emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",false),null);
+   waitFor(()->e.sink.events.contains("ready:true"));yes(e.sink.events.stream().noneMatch(x->x.startsWith("VOICE_")));
+   yes(RecordingPlatform.sent("MARS_FOTA",11).size()==1);
+   waitFor(e.owner::releasePrepared);LifelogState.reset();
   }
   // Invalid version is a terminal failure, never a reason to poll until accepted.
   try(Env e=new Env()){

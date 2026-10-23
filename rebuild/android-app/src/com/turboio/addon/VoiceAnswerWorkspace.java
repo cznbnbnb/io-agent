@@ -15,6 +15,7 @@ final class VoiceAnswerWorkspace {
   case "VOICE_TARGET_CHANGED":case "TASK_TARGET_CHANGED":case "TASK_ROUTE_MISMATCH":return "当前语音草稿与原任务不一致，请返回原问题查看";
   case "VOICE_DRAFT_NOT_READY":case "VOICE_ANSWER_NOT_READY":case "VOICE_BUSY":case "VOICE_CAPTURE_BUSY":case "STORE_IN_USE":return "已有语音流程尚未结束，请先处理已有草稿或停止核对";
   case "VOICE_START_NOT_READY":case "VOICE_PREFLIGHT_NOT_READY":case "VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED":case "VOICE_PREFLIGHT_IDLE_INVALID":case "VOICE_PREFLIGHT_VERSION_INVALID":return "眼镜尚未满足采音条件，请保持连接并等待其他功能结束";
+  case "VOICE_GLASSES_BUSY":return "眼镜正忙，口述没有开始：语音助手或其他应用可能还没退出。可直接在这里回答，或回到眼镜桌面后重新口述";
   case "VOICE_PREFLIGHT_TIMEOUT":case "VOICE_PREFLIGHT_SUBMISSION_FAILED":case "VOICE_CONNECTION_CHANGED":return "眼镜连接或状态核对未完成，草稿保留";
   case "VOICE_STOP_QUERY_NOT_READY":case "VOICE_STOP_QUERY_FAILED":case "VOICE_STOP_QUERY_TIMEOUT":case "VOICE_STOP_SUBMISSION_UNCONFIRMED":case "VOICE_STOP_DISPATCH_FAILED":case "VOICE_STOP_OBLIGATION_INVALID":return "尚未确认采音停止，请保持眼镜连接并重试停止核对";
   case "VOICE_INTERRUPTED":return "语音流程曾中断，需要先完成停止核对";
@@ -52,15 +53,15 @@ final class VoiceAnswerWorkspace {
   final android.os.Handler main=new android.os.Handler(android.os.Looper.getMainLooper());
   final long autoUntil=SystemClock.elapsedRealtime()+20000;final VoiceAnswerRuntime.Observer observer=value->main.post(()->render(value));
   final Runnable expire=()->close("lifetime");
-  boolean autoStart=true,busy,closed,glassesSave,started;String offeredText;long retryAt;VoiceAnswerRuntime.Snapshot latest;
+  boolean autoStart=true,busy,closed,glassesSave,started,busyNoticed;String offeredText;long retryAt;VoiceAnswerRuntime.Snapshot latest;
   Headless(VoiceAnswerRuntime runtime,String binding,String requestId,long revision,String fingerprint,Runnable refresh){this.runtime=runtime;this.binding=binding;this.requestId=requestId;this.revision=revision;this.fingerprint=fingerprint;this.refresh=refresh;}
   void open(){headless=this;AgentCardRuntime.enterPhone(binding,requestId);runtime.keepInBackground(this,true);busy=true;runtime.observeHeadless(observer);main.postDelayed(expire,LIFETIME_MS);android.util.Log.i("TurboIOVoice","headless open");runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
   boolean owned(){return latest!=null&&binding.equals(latest.binding)&&requestId.equals(latest.requestId);}
-  void completed(VoiceAnswerRuntime.Snapshot value,String code){main.post(()->{if(closed)return;busy=false;boolean failed=code!=null&&!code.isEmpty();if(failed){glassesSave=false;android.util.Log.i("TurboIOVoice","headless step failed: "+code);}
+  void completed(VoiceAnswerRuntime.Snapshot value,String code){main.post(()->{if(closed)return;busy=false;boolean failed=code!=null&&!code.isEmpty();noticeBusy(code,value);if(failed){glassesSave=false;android.util.Log.i("TurboIOVoice","headless step failed: "+code);}
    if(glassesSave&&"SAVED".equals(value.phase)){close("saved");return;}
    if(failed&&!value.needsStop&&!"REVIEW".equals(value.phase)){close("failed");return;}render(value);});}
   void render(VoiceAnswerRuntime.Snapshot value){
-   if(closed||value==null)return;latest=value;if(!owned()||busy)return;
+   if(closed||value==null)return;latest=value;if(!owned())return;noticeBusy("",value);if(busy)return;
    if(autoStart&&(!TaskWire.set("IDLE","PREPARED").contains(value.phase)||SystemClock.elapsedRealtime()>=autoUntil)){autoStart=false;if(!started&&!value.needsStop&&!"REVIEW".equals(value.phase)){close("not started");return;}}
    if(autoStart&&value.canStart){autoStart=false;started=true;busy=true;runtime.start(this::completed);return;}
    if(autoStart&&"PREPARED".equals(value.phase))main.postDelayed(()->{if(!closed&&latest!=null)render(latest);},1000);
@@ -71,6 +72,7 @@ final class VoiceAnswerWorkspace {
     else{android.util.Log.i("TurboIOVoice","headless confirm refused: "+AgentCardRuntime.lastMessage());retryAt=SystemClock.elapsedRealtime()+3000;main.postDelayed(()->{if(!closed&&latest!=null)render(latest);},3100);}
    }
   }
+  void noticeBusy(String code,VoiceAnswerRuntime.Snapshot value){if(!busyNoticed&&("VOICE_GLASSES_BUSY".equals(code)||value!=null&&"VOICE_GLASSES_BUSY".equals(value.note))){busyNoticed=true;AgentCardRuntime.glassesBusy();}}
   boolean confirmed(String b,String r,String expected){
    if(closed||!binding.equals(b)||!requestId.equals(r)||!owned()||busy||!"REVIEW".equals(latest.phase)||!latest.canSave||!expected.equals(latest.text))return false;
    glassesSave=true;busy=true;runtime.edit(expected,(value,code)->main.post(()->{if(closed)return;if(code!=null&&!code.isEmpty()){completed(value,code);return;}runtime.save(this::completed);}));return true;
@@ -85,7 +87,7 @@ final class VoiceAnswerWorkspace {
   final Activity activity;final String binding,requestId,fingerprint;final long revision;final Runnable refresh;
   final VoiceAnswerRuntime runtime;final EditorialUI.Screen screen;final TextView status,explanation,localState;final EditText text;final LinearLayout actions;
   final VoiceAnswerRuntime.Observer observer;final Application application;final Application.ActivityLifecycleCallbacks lifecycle;
-  final boolean fromGlasses;final long autoUntil;boolean autoStart,glassesSave;String offeredText,refused="";long retryAt;
+  final boolean fromGlasses;final long autoUntil;boolean autoStart,glassesSave,busyNoticed;String offeredText,refused="";long retryAt;
   VoiceAnswerRuntime.Snapshot latest;boolean closed,busy,dirty,programmatic,exitPending,exitStopRequested;String error="";
   Page(Activity activity,String binding,String requestId,long revision,String fingerprint,Runnable refresh,boolean fromGlasses){
    this.fromGlasses=autoStart=fromGlasses;autoUntil=SystemClock.elapsedRealtime()+20000;
@@ -116,6 +118,7 @@ final class VoiceAnswerWorkspace {
    if(closed||activity.isDestroyed()||value==null)return;latest=value;if(code!=null&&!code.isEmpty())error=code;
    boolean same=owned();if(!same){status.setText(error.isEmpty()?"正在核对原问题…":label(error));text.setEnabled(false);actions.removeAllViews();EditorialUI.button(activity,actions,"返回原问题",false,this::exit);return;}
    boolean review="REVIEW".equals(value.phase);
+   if(fromGlasses&&!busyNoticed&&("VOICE_GLASSES_BUSY".equals(error)||"VOICE_GLASSES_BUSY".equals(value.note))){busyNoticed=true;AgentCardRuntime.glassesBusy();}
    // A note that only repeats the phase (e.g. "review") carries no extra information.
    boolean note=value.note!=null&&!value.note.isEmpty()&&!label(value.note).equals(label(value.phase));
    status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"请逐句核对识别文字，尤其是“不/没/别”等否定词、数字和日期，识别错一个字可能让意思相反。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");

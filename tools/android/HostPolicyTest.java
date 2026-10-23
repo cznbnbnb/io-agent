@@ -37,6 +37,14 @@ public final class HostPolicyTest {
   Message ownedCard=new Message(Business.NOTIFICATION,ordinary);check(SuggestionGate.register(ownedCard,"synthetic-peer",ordinary,()->true)&&Host107Abi.allowQueue(ownedCard));
   TaskAttention.release("prompter");check(!TaskAttention.active()&&Host107Abi.allowQueue(new Message(Business.NOTIFICATION,ordinary)));
   TaskAttention.hold("card",-1);check(!TaskAttention.active()&&Host107Abi.allowQueue(new Message(Business.NOTIFICATION,ordinary))&&TaskAttention.blockedCount()==1);
+  // 2026-10-23: 全天智记 state comes from the stock life_log_switch sync; a busy idle reply is idle only while it is on.
+  LifelogState.reset();check(!LifelogState.on()&&!LifelogState.idle(false)&&LifelogState.idle(true)&&!LifelogState.idle(null));
+  byte[] stockOn=OtaFrame.encode(20,OtaFrame.object("cmd","life_log_switch","payload",OtaFrame.object("data","{\"delay\":2}","mode",0,"value",1)),null);
+  check(Host107Abi.allowQueue(new Message(Business.LAUNCHER,stockOn)));check(LifelogState.on()&&LifelogState.idle(false)&&!LifelogState.idle("false"));
+  LifelogState.observe("rx",OtaFrame.encode(21,OtaFrame.object("cmd","life_log_switch_result","payload",OtaFrame.object("data","","mode",0,"value",0)),null));check(LifelogState.on());
+  LifelogState.observe("rx",OtaFrame.encode(20,OtaFrame.object("cmd","life_log_switch","payload",OtaFrame.object("data","","mode",0,"value",0)),null));check(!LifelogState.on()&&!LifelogState.idle(false));
+  LifelogState.observe("rx",OtaFrame.encode(20,OtaFrame.object("cmd","life_log_switch","payload",OtaFrame.object("data","","mode",0,"value",7)),null));check(!LifelogState.on());
+  LifelogState.reset();
   TaskAttention.hold("voice",60000);TaskAttention.hold("card",60000);TaskAttention.release("voice");check(!Host107Abi.allowQueue(new Message(Business.NOTIFICATION,ordinary)));TaskAttention.release("card");check(Host107Abi.allowQueue(new Message(Business.NOTIFICATION,ordinary)));
   Object owner=new Object();String peerHash=Fixed60Firmware.hash("SHA-256","synthetic-peer".getBytes(java.nio.charset.StandardCharsets.UTF_8));
   FirmwareQueue.PassivePolicy readonly=(message,peer,bytes)->OtaFrame.readOnly(bytes);

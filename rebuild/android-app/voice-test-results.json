@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "at": "2026-10-23T04:07:54.237Z",
-  "assertions": 1938,
+  "at": "2026-10-23T08:08:04.162Z",
+  "assertions": 1960,
   "kind": "JVM real atomic voice journals and answer mailbox; reflection-based official ASR boundary with ABI doubles",
   "abi": {
     "host": "1.0.7",
@@ -206,6 +206,10 @@
       "sha256": "6c2393390d423e9c64e3f9d372cd8ce01eeb3ac4e0aae3381f1407e12eb78c83"
     },
     {
+      "path": "src/com/turboio/addon/LifelogState.java",
+      "sha256": "0d4a8582d6fbcebbc3c4e3e8bd1afd98c5a62ed300f54e6cbb099c481a28f2f3"
+    },
+    {
       "path": "src/com/turboio/addon/VoiceAnswerEvidence.java",
       "sha256": "408e8ea22cda4c8c1a4fc3b39fbc3d9d6ec5a5159f6f43c4bb5733207c5880ad"
     },
@@ -251,7 +255,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Recording.java",
-      "sha256": "0e6608d2991baf6e184219d86c7ca740ff6d87663715da641934606cf0340e37"
+      "sha256": "544636eb7c6d556a760d05b9de8797a443df387f82bd260563703e951ad0af7d"
     },
     {
       "path": "src/com/turboio/addon/HostBusiness.java",
@@ -367,7 +371,7 @@
     },
     {
       "path": "../../tools/android/Host107RecordingTest.java",
-      "sha256": "74dbc95f769533885e83e70f4e31c05cbcbd12f461873197acb7a6e3149bad35"
+      "sha256": "9def8e847ee74198c976bc05bf568c38be987e09c24c69154aeb4c265e8b6b89"
     },
     {
       "path": "../../tools/android/voice-fixtures/Ab/a.java",

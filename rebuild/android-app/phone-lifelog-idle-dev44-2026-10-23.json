@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "installed": "0.5.3-dev44",
+  "version_code": 10466,
+  "sha256": "630e1b1f1e7bad1a1e962befb0a2b564d8a56730d3f4144bb42ee0094890f2c1",
+  "rollback": "0.5.3-dev43",
+  "user_reports": [
+    "看到提词器，长按退出之后，没有进入录音（dev36-dev38）",
+    "原厂录音不会弹“退出全天智记”，你这条路径会明显看到退出和打开全天智记的弹窗（dev42）"
+  ],
+  "root_cause": "全天智记 on makes the glasses OTA idle predicate (0x105635a0: top app, setting 0x2b, AssistantService; never the recorder) report busy; our voice preflight, voice stop proof and card preflight required idle",
+  "stock_recording_trace_dev43": {
+    "idle_query_sent": false,
+    "lifelog_switch_sent": false,
+    "recording_frames": [
+      "tx 14/type14 isAppForeground",
+      "tx 14/type1 action2 code1 sid+uuid (ack of glasses start)",
+      "tx 14/type4 action2 code1 (ack of glasses stop)",
+      "tx 14/type14 isAppForeground false"
+    ],
+    "firmware": "AlwaysOnStateMonitor: disabled by audio recording / prompter / assistant; resumes after"
+  },
+  "rejected_approach": {
+    "versions": "dev41-dev42",
+    "what": "pause 全天智记 with the stock LAUNCHER type20 life_log_switch value0 frame (data {\"delay\":2}, mode 0) and resume with value1",
+    "device_result": "capture and confirm card passed (answer: 一。录音卡和确认都正常。); dev41 resumed at REVIEW so the card preflight saw busy and the card was refused",
+    "why_removed": "glasses visibly show 退出/打开全天智记 popups; stock recording never does"
+  },
+  "change": [
+    "LifelogState: 全天智记 state from the stock life_log_switch sync; LifelogState.idle(Result) reads a false Result as idle only while 全天智记 is known on",
+    "Host107Recording preflight and stop idle proof, and MinuteCardSession preflight, use LifelogState.idle",
+    "Pause/resume code removed; busy notice text no longer blames 全天智记",
+    "LifelogTrace and RecordingTrace diagnostics (control frames only; audio counted)"
+  ],
+  "device_run": {
+    "lifelog_on": true,
+    "lifelog_switch_frames_sent_by_us": 0,
+    "busy_reply_read_as_idle": true,
+    "capture_started": true,
+    "wearer_ended_on_glasses": true,
+    "stop_proven": true,
+    "confirm_card_shown": true,
+    "wearer_submitted": true,
+    "saved": true,
+    "answer_text": "啊，都正常，没有制剂弹窗。",
+    "note": "制剂 is the recognizer's rendering of 智记"
+  },
+  "tests": {
+    "recording_recovery_assertions": 485,
+    "voice_assertions": 1960,
+    "agent_card_assertions": 790,
+    "minute_card_assertions": 126,
+    "head_gesture_assertions": 498,
+    "host_policy": "passed incl. LifelogState"
+  },
+  "cleanup": {
+    "identities": [
+      "caller317-20261023-a",
+      "caller318-20261023-a"
+    ],
+    "tasks_cancelled": true,
+    "questions_settled_before_revoke": true,
+    "verified_401": true,
+    "phone_slots": "removed expired synthetic entries and the old io-claude-code entry"
+  },
+  "not_verified": [
+    "assistant or another app actually on top while 全天智记 is on (busy would then also be read as idle)",
+    "headless (no App page) path with 全天智记 on"
+  ]
+}
