@@ -1,5 +1,9 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 Agent 工作区 Web 原型与九条评审反馈。** 仅提交 `docs/prototypes/agent-workspace-v2/`、PRD、A23-UI01 验收待办和本条交接；App 未改、未装机、未操作设备或问答通道，装机版本沿用下方 Claude 记录的 dev45 /10467，未由本轮实机核验。统一连接详情，补任务暂停/追加指示及回执、默认 Agent/工作区、固定列表高度、自动同步规则与开关、日历圆点、三天原音和文档导出、回到原厂 APP。检查：两份 JS 语法通过；浏览器点通上述流程并修复四处状态冲突，列表高 240 px 且切换位置保持。未验证：真人视觉评审、真实自动上传/导出、CLI 默认目标及眼镜主动唤起，均仍待实现或复评。
+
+并行范围核对：已 fetch，读 `origin/claude/macos-toolchain` 最新 `e0b4f09` 和相对 `origin/main` 的差异；Claude 也改过 `USER-VERIFICATION-TODO.md`、本交接。此提交只追加本轮 A23-UI01 与本条记录，保留其历史。按用户要求先在现有目录提交，再用协作脚本从 `origin/main` 建 `codex/agent-workspace-ui` 独立目录并迁入本轮提交；不推送、不合并 main。后续设备操作先持 codex 锁，身份 caller600–799，后缀 `-<日期>-codex`，问题键 `codex-`。
+
 **[claude] 2026-10-23 协作规则 + 摇头探测（dev45 /10467，回退 dev44）。** 用户定下 Claude/Codex 并行规则，见 `AGENTS.md`「Claude / Codex 并行协作」：各自 `claude/`、`codex/` 分支与工作目录（`tools/collab/worktree.sh`），碰手机/眼镜/问答通道前拿 `tools/collab/device-lock.mjs` 设备锁，测试身份 Claude caller400–599、Codex caller600–799，安装版本号持锁顺延。dev45 只加诊断 `RawRxTrace`（记所有接收事件的原始业务号，原先只认 9/15/17/19/20/21）。[探测证据](../../rebuild/android-app/phone-head-exit-dev45-2026-10-23.json)：提词器期间只有 4 次翻页同步（pageOffset 43/44/117/44），录音期间只有结束信号，未发现头势信号；尚待用户说明这两处是否由摇头引起。双摇头退出仍未实现。caller319 已收尾、401 已核对。
 
 **2026-10-23 全天智记开着时任务口述+确认卡真机通过，不碰智记开关（dev44 /10466，回退 dev43）。** [证据](../../rebuild/android-app/phone-lifelog-idle-dev44-2026-10-23.json)。用户反馈“长按退出不进录音”的原因：全天智记开着时，眼镜空闲判断（0x105635a0，只看前台应用、智记设置 0x2b、助手，从不看录音器）一直报忙，我们的口述预检、停止证明、任务卡预检都用它。原厂录音实测既不查空闲也不碰智记开关，由固件 AlwaysOnStateMonitor 运行时让路。dev44：原厂每次连接都同步 `life_log_switch` 状态，已知智记开着时把“忙”读作空闲（`LifelogState`）；智记关时照旧完整判断。dev41/42 曾按原厂帧暂停/恢复智记，能通但眼镜会弹“退出/打开全天智记”，用户否决，代码已删除。dev39 起：整段预检都忙给 `VOICE_GLASSES_BUSY` 并在眼镜提示原因。`LifelogTrace`/`RecordingTrace` 记录智记开关与录音/空闲控制帧（音频只计数）。清理注意：撤销凭据前先关任务并让 CLI 对账（`wait`/`status`），否则本地“未结”题会拒绝下次登记。
