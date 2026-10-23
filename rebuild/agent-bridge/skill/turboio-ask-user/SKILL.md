@@ -9,7 +9,7 @@ description: 在当前已登记的雷鸟 iO 电脑任务中向用户提问，通
 
 Hermes继续使用运行时提供的 `io_ask_user`、`io_wait_answer`、`io_question_status`，绑定和调用语义相同。两条入口都不会创建替代Agent会话。
 
-提问时使用稳定的 `question_key`；重试同一问题保持原问题、选项和期限。`mode=choice` 提供2–4个带 `option_id` 和 `label` 的选项，`mode=free_text` 的 `options=[]`。问题会显示到眼镜上，`ask` 结果里的 `glasses_display` 说明走哪条路：`card` 只用于一行的短口述题（`free_text` 不超过36字），佩戴者按＋口述；所有选择题和较长的问题都是 `prompter` 提词器，开头标明 Agent、项目和会话前8位，完整显示问题和编号选项，佩戴者看完长按退出后口述回答，选择题说“选二”并可补充条件，答案里会带上对应的 `option_id` 和完整原话。没听出唯一选项号时 `option_id` 为空，请按原话理解或再问。一次只问一件事。佩戴者看不到你的对话，问题要自带背景（在做什么、为什么要问），选项写清楚各自的后果。`expires_at` 为未来一小时内的 UTC ISO 时间，以 `Z` 结尾（macOS 可用 `date -u -v+30M +%Y-%m-%dT%H:%M:%SZ`）。
+提问时使用稳定的 `question_key`；重试同一问题保持原问题、选项和期限。`mode=choice` 提供2–4个带 `option_id` 和 `label` 的选项，`mode=free_text` 的 `options=[]`。问题会显示到眼镜上，`ask` 结果里的 `glasses_display` 说明走哪条路：`card` 只用于一行的短口述题（`free_text` 不超过36字），佩戴者按＋口述；所有选择题和较长的问题都是 `prompter` 提词器，开头标明 Agent 和登记时的对话主题（未登记主题时显示项目），完整显示问题和编号选项，佩戴者看完长按退出后口述回答，选择题说“选二”并可补充条件，答案里会带上对应的 `option_id` 和完整原话。没听出唯一选项号时 `option_id` 为空，请按原话理解或再问。一次只问一件事。佩戴者看不到你的对话，问题要自带背景（在做什么、为什么要问），选项写清楚各自的后果。`expires_at` 为未来一小时内的 UTC ISO 时间，以 `Z` 结尾（macOS 可用 `date -u -v+30M +%Y-%m-%dT%H:%M:%SZ`）。
 
 保存返回的 `request_id`，用 `wait`（Hermes为`io_wait_answer`）等待。Hermes每次最多30秒；CLI的`wait_seconds`可到600秒，工具调用能阻塞或后台运行的Agent（如Claude Code）可一次等足，同一时间只挂一个wait。`pending` 继续等待同一请求，不新建问题。`status`只读本机状态，`network_checked=false`，不证明联网或答案已被原任务消费。实际wait消费答案才产生“原任务继续”的回执。
 

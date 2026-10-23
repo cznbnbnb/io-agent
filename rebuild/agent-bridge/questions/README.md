@@ -22,7 +22,7 @@ macOS 已有本项目的受控准备入口：先由 `tools/android/caller-test-c
 node tools/android/prepare-current-caller.mjs --run-id <同一测试运行ID> --python <Python 3.10+ 的绝对路径>
 ```
 
-准备入口按上表读取当前进程的对话标识，不接受命令行手填会话 ID；Codex 沿用 `io-mac-codex-computer / io-current-codex`，其他 Agent 登记为 `io-mac-computer / io-<runtime>`。先核对隔离 owner、凭据期限及 `tasks:write` 权限，再调用下述已有登记接口，生成手机登记文件。重复执行只允许相同配置，不覆盖不同登记；不启动新的 Agent 会话。当前宿主还应对照应用聊天清单核对会话，保留该环境和版本的适配证据。测试结束后暂停手机连接、关闭测试任务并撤销凭据。
+准备入口按上表读取当前进程的对话标识，不接受命令行手填会话 ID；Codex 沿用 `io-mac-codex-computer / io-current-codex`，其他 Agent 登记为 `io-mac-computer / io-<runtime>`。先核对隔离 owner、凭据期限及 `tasks:write` 权限，再调用下述已有登记接口，生成手机登记文件。可选 `--topic <主题>`（登记配置的 `topic`，单行、不超过40字、无控制字符）作为任务命令，手机任务列表和眼镜提词稿开头显示“<Agent> 提问：<主题>”；不填则显示项目。重复执行只允许相同配置，不覆盖不同登记；不启动新的 Agent 会话。当前宿主还应对照应用聊天清单核对会话，保留该环境和版本的适配证据。测试结束后暂停手机连接、关闭测试任务并撤销凭据。
 
 宿主准备私有JSON文件，字段为`bridge / project_id / operation_key / python`。`bridge`沿用电脑连接配置，额外需要`tasks:write`以创建原调用的任务镜像；`python`是绝对解释器路径。调用：
 

@@ -36,7 +36,51 @@ final class VoiceAnswerWorkspace {
  static void show(Activity activity,String binding,String requestId,long revision,String fingerprint,Runnable refresh,boolean fromGlasses){new Page(activity,binding,requestId,revision,fingerprint,refresh,fromGlasses).open();}
  private static java.lang.ref.WeakReference<Page> glassesPage=new java.lang.ref.WeakReference<>(null);
  /** The confirm card was accepted: save only if the open page still shows exactly that unedited draft. */
- static boolean confirmFromGlasses(String binding,String requestId,String text){Page page=glassesPage.get();return page!=null&&page.confirmed(binding,requestId,text);}
+ static boolean confirmFromGlasses(String binding,String requestId,String text){Page page=glassesPage.get();if(page!=null&&page.confirmed(binding,requestId,text))return true;Headless h=headless;return h!=null&&h.confirmed(binding,requestId,text);}
+ private static Headless headless;
+ /** Glasses-started dictation with no App page (screen off, App in background). */
+ static void showHeadless(Application app,TaskRuntime tasks,String binding,String requestId,long revision,String fingerprint,Runnable refresh){
+  if(headless!=null)headless.close("replaced");new Headless(VoiceAnswerRuntime.get(app,tasks),binding,requestId,revision,fingerprint,refresh).open();
+ }
+ /** The page's glasses steps without UI (2026-10-23, user: dictation must work with the screen off):
+  * prepare, start once within 20 s, let the wearer end on the glasses or at 60 s, offer the unedited
+  * transcript to the confirm card, and save only when that card is confirmed. Anything else leaves
+  * the draft on the phone, where opening the question resumes it. Closes itself after 5 minutes. */
+ private static final class Headless {
+  static final long LIFETIME_MS=300000;
+  final VoiceAnswerRuntime runtime;final String binding,requestId,fingerprint;final long revision;final Runnable refresh;
+  final android.os.Handler main=new android.os.Handler(android.os.Looper.getMainLooper());
+  final long autoUntil=SystemClock.elapsedRealtime()+20000;final VoiceAnswerRuntime.Observer observer=value->main.post(()->render(value));
+  final Runnable expire=()->close("lifetime");
+  boolean autoStart=true,busy,closed,glassesSave,started;String offeredText;long retryAt;VoiceAnswerRuntime.Snapshot latest;
+  Headless(VoiceAnswerRuntime runtime,String binding,String requestId,long revision,String fingerprint,Runnable refresh){this.runtime=runtime;this.binding=binding;this.requestId=requestId;this.revision=revision;this.fingerprint=fingerprint;this.refresh=refresh;}
+  void open(){headless=this;AgentCardRuntime.enterPhone(binding,requestId);runtime.keepInBackground(this,true);busy=true;runtime.observeHeadless(observer);main.postDelayed(expire,LIFETIME_MS);android.util.Log.i("TurboIOVoice","headless open");runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
+  boolean owned(){return latest!=null&&binding.equals(latest.binding)&&requestId.equals(latest.requestId);}
+  void completed(VoiceAnswerRuntime.Snapshot value,String code){main.post(()->{if(closed)return;busy=false;boolean failed=code!=null&&!code.isEmpty();if(failed){glassesSave=false;android.util.Log.i("TurboIOVoice","headless step failed: "+code);}
+   if(glassesSave&&"SAVED".equals(value.phase)){close("saved");return;}
+   if(failed&&!value.needsStop&&!"REVIEW".equals(value.phase)){close("failed");return;}render(value);});}
+  void render(VoiceAnswerRuntime.Snapshot value){
+   if(closed||value==null)return;latest=value;if(!owned()||busy)return;
+   if(autoStart&&(!TaskWire.set("IDLE","PREPARED").contains(value.phase)||SystemClock.elapsedRealtime()>=autoUntil)){autoStart=false;if(!started&&!value.needsStop&&!"REVIEW".equals(value.phase)){close("not started");return;}}
+   if(autoStart&&value.canStart){autoStart=false;started=true;busy=true;runtime.start(this::completed);return;}
+   if(autoStart&&"PREPARED".equals(value.phase))main.postDelayed(()->{if(!closed&&latest!=null)render(latest);},1000);
+   if(TaskWire.set("CANCELLED","INCOMPLETE","BLOCKED").contains(value.phase)&&!value.needsStop){close(value.phase);return;}
+   if("SAVED".equals(value.phase)&&!value.needsStop){close("saved");return;}
+   if("REVIEW".equals(value.phase)&&value.canSave&&value.cleaned&&!value.needsStop&&value.text!=null&&!value.text.equals(offeredText)&&SystemClock.elapsedRealtime()>=retryAt){
+    if(AgentCardRuntime.offerConfirm(null,binding,requestId,revision,value.text)){offeredText=value.text;android.util.Log.i("TurboIOVoice","headless confirm offered");}
+    else{android.util.Log.i("TurboIOVoice","headless confirm refused: "+AgentCardRuntime.lastMessage());retryAt=SystemClock.elapsedRealtime()+3000;main.postDelayed(()->{if(!closed&&latest!=null)render(latest);},3100);}
+   }
+  }
+  boolean confirmed(String b,String r,String expected){
+   if(closed||!binding.equals(b)||!requestId.equals(r)||!owned()||busy||!"REVIEW".equals(latest.phase)||!latest.canSave||!expected.equals(latest.text))return false;
+   glassesSave=true;busy=true;runtime.edit(expected,(value,code)->main.post(()->{if(closed)return;if(code!=null&&!code.isEmpty()){completed(value,code);return;}runtime.save(this::completed);}));return true;
+  }
+  void close(String why){
+   if(closed)return;closed=true;main.removeCallbacks(expire);android.util.Log.i("TurboIOVoice","headless close: "+why);
+   if(latest!=null&&owned()&&latest.needsStop)runtime.stop(true,(value,code)->{});
+   AgentCardRuntime.leavePhone(binding,requestId);runtime.unobserveHeadless(observer);runtime.keepInBackground(this,false);if(headless==this)headless=null;if(refresh!=null)refresh.run();
+  }
+ }
  private static final class Page {
   final Activity activity;final String binding,requestId,fingerprint;final long revision;final Runnable refresh;
   final VoiceAnswerRuntime runtime;final EditorialUI.Screen screen;final TextView status,explanation,localState;final EditText text;final LinearLayout actions;
@@ -64,9 +108,9 @@ final class VoiceAnswerWorkspace {
    ViewGroup header=(ViewGroup)screen.root.getChildAt(0);for(int i=0;i<header.getChildCount();i++){View child=header.getChildAt(i);if("返回".contentEquals(child.getContentDescription()==null?"":child.getContentDescription()))child.setOnClickListener(v->exit());}
    screen.dialog.setOnDismissListener(dialog->{if(owned()&&(busy||latest.needsStop))runtime.stop(true,(value,code)->{});detach();});
   }
-  void open(){if(fromGlasses){glassesPage=new java.lang.ref.WeakReference<>(this);AgentCardRuntime.enterPhone(binding,requestId);}application.registerActivityLifecycleCallbacks(lifecycle);busy=true;runtime.observe(activity,observer);runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
+  void open(){if(fromGlasses){glassesPage=new java.lang.ref.WeakReference<>(this);AgentCardRuntime.enterPhone(binding,requestId);runtime.keepInBackground(this,true);}application.registerActivityLifecycleCallbacks(lifecycle);busy=true;runtime.observe(activity,observer);runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
   boolean owned(){return latest!=null&&binding.equals(latest.binding)&&requestId.equals(latest.requestId);}
-  void detach(){if(closed)return;closed=true;if(fromGlasses)AgentCardRuntime.leavePhone(binding,requestId);runtime.unobserve(observer);application.unregisterActivityLifecycleCallbacks(lifecycle);}
+  void detach(){if(closed)return;closed=true;if(fromGlasses){AgentCardRuntime.leavePhone(binding,requestId);runtime.keepInBackground(this,false);}runtime.unobserve(observer);application.unregisterActivityLifecycleCallbacks(lifecycle);}
   void completed(VoiceAnswerRuntime.Snapshot value,String code){activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;busy=false;if(code!=null&&!code.isEmpty()){exitPending=false;glassesSave=false;}render(value,code);if(glassesSave&&"SAVED".equals(value.phase)&&!closed){glassesSave=false;leave();return;}if(exitPending&&!closed){if(owned()&&value.needsStop&&!exitStopRequested){exitStopRequested=true;begin();runtime.stop(true,this::completed);}else if(!owned())leave();}});}
   void render(VoiceAnswerRuntime.Snapshot value,String code){
    if(closed||activity.isDestroyed()||value==null)return;latest=value;if(code!=null&&!code.isEmpty())error=code;

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T03:19:15.874Z",
+  "at": "2026-10-23T04:08:08.315Z",
   "assertions": 498,
   "sources": [
     {
@@ -21,7 +21,11 @@
     },
     {
       "path": "src/com/turboio/addon/SuggestionGate.java",
-      "sha256": "e32458354572d0f2abb92119e36d977976f5ec97622bda6ad945600cc0addef1"
+      "sha256": "22c226191d99a7bafda122ad743edece3a7c101d00fd311366118f87e69355b8"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskAttention.java",
+      "sha256": "d87a531c792f2bf515d545bd3e6c38e80b61e4aae413bf1181a5adeaffa10226"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",

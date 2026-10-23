@@ -26,11 +26,11 @@ final class AgentCardRuntime {
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Activity host)throws IOException{
-  app=(Application)host.getApplication();activity=new WeakReference<>(host);foreground.add(host);tasks=TaskRuntime.get(host);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));
+  app=(Application)host.getApplication();activity=new WeakReference<>(host);foreground.add(host);tasks=TaskRuntime.get(host);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
   document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-card-v1.json"));session=new AgentCardSession(new AgentCardSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object value)throws Exception{document.save(value);}});
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityStarted(Activity a){foreground.add(a);activity=new WeakReference<>(a);}
-   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty())withdraw("App已切到后台，原问题留在手机");}
+   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!TaskAttention.background())withdraw("App已切到后台，原问题留在手机");}
    public void onActivityDestroyed(Activity a){foreground.remove(a);}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });main.post(poll);tasks.read(null);
@@ -39,6 +39,8 @@ final class AgentCardRuntime {
  // Opt-in (2026-10-23, user): nod/shake answers only the final confirm card of a dictated answer.
  static boolean nodConfirm(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("nod_confirm",false);}
  static void nodConfirm(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("nod_confirm",value).commit())r.message="设置未能保存";r.refresh();}
+ static boolean backgroundAnswer(){return TaskAttention.background();}
+ static void backgroundAnswer(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("background_answer",value).commit()){r.message="设置未能保存";return;}TaskAttention.background(value);if(!value&&!r.visible())r.withdraw("已关闭后台回答，原问题留在手机");r.refresh();}
  static boolean enabled(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("enabled",true);}
  static void enabled(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("enabled",value).commit()){r.message="设置未能保存";return;}if(!value)r.withdraw("已关闭眼镜提醒，原问题留在手机");r.refresh();}
  static void accept(TaskRuntime.Snapshot value){main();AgentCardRuntime r=instance;if(r!=null){r.snapshot=value;r.pump();}}
@@ -53,12 +55,14 @@ final class AgentCardRuntime {
   return r!=null&&r.phoneFocus.contains(focusKey(binding,request))&&!r.fetching&&!r.checkingShow&&!r.answerBusy&&!r.pumping&&r.preflight==null&&!r.localLease&&r.queued.get()==0&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&(!r.session.cardMayExist()||r.session.closure()!=null)&&HeadGestureRuntime.voiceHandoffReady();
  }
  /** Shows a finished glasses-started dictation for confirmation; failure leaves saving on the phone. */
- static boolean offerConfirm(Activity host,String binding,String request,long revision,String text){main();AgentCardRuntime r=instance;if(r==null)return false;r.activity=new WeakReference<>(host);return r.offer(binding,request,revision,true,text);}
+ static boolean offerConfirm(Activity host,String binding,String request,long revision,String text){main();AgentCardRuntime r=instance;if(r==null)return false;if(host!=null)r.activity=new WeakReference<>(host);return r.offer(binding,request,revision,true,text);}
  /** Why the last glasses offer did not go ahead, for the page that asked. */
  static String lastMessage(){AgentCardRuntime r=instance;return r==null?"眼镜任务卡暂不可用":r.message;}
  static void offer(Activity host,String binding,String request,long revision){main();AgentCardRuntime r=instance;if(r==null){TaskWorkspace.notice(host,"眼镜任务卡暂不可用，请在手机回答");return;}r.activity=new WeakReference<>(host);r.offer(binding,request,revision,false);}
  private boolean visible(){return !foreground.isEmpty();}
- private boolean usable(){return visible()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending();}
+ /** The App is on screen, or the wearer allowed answering with the screen off / App in background. */
+ private boolean attended(){return visible()||TaskAttention.background();}
+ private boolean usable(){return attended()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending();}
  private TaskHub.View context(){AgentCardRequest r=session.request();return snapshot==null||r==null?null:snapshot.context(r.binding);}
  private boolean current(){AgentCardRequest r=session.request();TaskHub.View c=context();return r!=null&&c!=null&&c.profile.enabled&&r.matches(c.item("request",r.requestId),c.item("task",r.taskId),System.currentTimeMillis())&&(!hasAnswer(c,r.requestId,r.revision,r.operation())||session.hasSelection());}
  private static boolean hasAnswer(TaskHub.View c,String id,long revision,String except){
@@ -108,15 +112,23 @@ final class AgentCardRuntime {
   message="长问题已发到眼镜提词器；看完长按退出后口述";refresh();return true;
  }
  private void openPrompterVoice(String binding,String id,long revision,String fingerprint){
-  Activity host=activity.get();
-  if(!visible()||host==null||host.isFinishing()||host.isDestroyed()){message="已退出提词器，请在手机打开原问题口述";refresh();return;}
-  message="已退出提词器，正在打开原问题语音回答";refresh();VoiceAnswerWorkspace.show(host,binding,id,revision,fingerprint,()->tasks.read(null),true);
+  if(!openGlassesVoice(binding,id,revision,fingerprint)){message="已退出提词器，请在手机打开原问题口述";refresh();return;}
+  message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
  }
  private void openVoice(AgentCardRequest voice){
-  Activity host=activity.get();
-  if(!visible()||host==null||host.isFinishing()||host.isDestroyed()){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
-  message="已在眼镜选择口述，正在打开原问题语音回答";refresh();
-  VoiceAnswerWorkspace.show(host,voice.binding,voice.requestId,voice.revision,voice.fingerprint,()->tasks.read(null),true);
+  if(!openGlassesVoice(voice.binding,voice.requestId,voice.revision,voice.fingerprint)){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
+  message=visible()?"已在眼镜选择口述，正在打开原问题语音回答":"已在眼镜选择口述，手机在后台开始口述";refresh();
+ }
+ /** A live App page (also when stopped by screen-off) shows the voice page; with no page left the
+  * same glasses flow runs without UI, if background answering is allowed. */
+ private boolean openGlassesVoice(String binding,String id,long revision,String fingerprint){
+  Activity host=activity.get();boolean page=host!=null&&!host.isFinishing()&&!host.isDestroyed();
+  if(!visible()&&!TaskAttention.background())return false;
+  TaskAttention.hold("voice",30000);
+  if(page)try{VoiceAnswerWorkspace.show(host,binding,id,revision,fingerprint,()->tasks.read(null),true);return true;}catch(RuntimeException windowGone){page=false;}
+  if(!TaskAttention.background())return false;
+  VoiceAnswerWorkspace.showHeadless(app,tasks,binding,id,revision,fingerprint,()->tasks.read(null));
+  return true;
  }
  private void confirmVoice(AgentCardRequest voice){
   message=VoiceAnswerWorkspace.confirmFromGlasses(voice.binding,voice.requestId,voice.confirm)?"已在眼镜确认，正在保存并提交原文":"手机上的口述已变化或暂不能保存，请在手机核对后保存";refresh();
@@ -128,7 +140,7 @@ final class AgentCardRuntime {
  }
  private boolean claimCleanup(){if(HeadGestureRuntime.claimCleanup(session.owner()))return true;if(NativeTransfer.acquireMessages(lease)){localLease=true;return true;}return false;}
  private void persistChoice(){
-  AgentCardSession.Answer answer=session.pendingAnswer();if(answer==null||answerBusy||!visible()||!Host107Login.loggedIn())return;TaskHub.View c=context();if(c==null||!c.profile.enabled)return;
+  AgentCardSession.Answer answer=session.pendingAnswer();if(answer==null||answerBusy||!attended()||!Host107Login.loggedIn())return;TaskHub.View c=context();if(c==null||!c.profile.enabled)return;
   answerBusy=true;tasks.answerGlasses(answer.request.binding,answer.operation,answer.request.requestId,answer.request.revision,answer.option,answer.text,answer.request.fingerprint,(state,error)->{answerBusy=false;snapshot=state;session.answerStored(answer.operation,error.isEmpty(),error);message=error.isEmpty()?"选择已保存，正在核对并提交原问题":TaskWorkspace.label(error);pump();});
  }
  private void showAfterRefresh(){
@@ -141,7 +153,7 @@ final class AgentCardRuntime {
  private void pump(){
   main();if(pumping)return;pumping=true;
   try{Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
-   if(preflight!=null){preflight.tick(link.peer,link.generation,now(),visible());if(preflight.phase().equals("READY")&&!preflight.working()){
+   if(preflight!=null){preflight.tick(link.peer,link.generation,now(),attended());if(preflight.phase().equals("READY")&&!preflight.working()){
      preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump),nodConfirm()&&session.request()!=null&&session.request().confirm!=null);if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
     }else if(!preflight.working()){message="眼镜状态检查未通过，请在手机回答";preflight=null;releaseLocal();session.cancelUnshown();}
     else{MinuteCardSession.Emission e=preflight.next(now());MinuteCardSession bound=preflight;if(e!=null)Host107Suggestion.send(link,e,ok->{if(preflight==bound){bound.result(e.ticket,ok,now());pump();}});}
@@ -150,7 +162,7 @@ final class AgentCardRuntime {
    if(preflight==null&&session.pending()&&session.phase().equals("PREPARING")){
     if(head)showAfterRefresh();else if(headStarted&&!HeadGestureRuntime.active(session.owner())){session.cancelUnshown();message="交互保护未确认，问题保留在手机";}
    }
-   session.tick(link.peer,link.generation,now(),System.currentTimeMillis(),head,visible(),current());persistChoice();
+   session.tick(link.peer,link.generation,now(),System.currentTimeMillis(),head,attended(),current());persistChoice();
    if(session.nextPageReady(now())){if(usable()&&current()&&HeadGestureRuntime.extendForPage(session.owner())&&HeadGestureRuntime.cardMayShow(session.owner())&&session.show(link.peer,link.generation,now(),System.currentTimeMillis(),true))message="已提交下一个完整选项";else session.suspend("下一选项暂不可显示，原问题留在手机");}
    if(session.pending()&&preflight==null&&TaskWire.set("RECOVERY_PENDING","CLEANUP_PENDING","ANSWER_SAVE_FAILED").contains(session.phase())&&(!lastCleanupOwner.equals(session.owner())||lastCleanupGeneration!=link.generation)){
     if(session.cancelUnshown()){releaseLocal();}
@@ -177,7 +189,8 @@ final class AgentCardRuntime {
   r.main.post(()->{try{Fixed60Session.Link fresh=Host107Ota.link();if(taskEvent)r.session.receive(peer,gen,bytes,now(),System.currentTimeMillis(),r.usable()&&r.current()&&HeadGestureRuntime.permission(r.session.owner(),peer,gen));else if(r.preflight!=null)r.preflight.receive(peer,gen,9,bytes,now());r.pump();}finally{r.queued.decrementAndGet();}});return ours;
  }
  private String text(){return message+"\n"+(HeadGestureRuntime.pending()?"待办交互设置正在保护或恢复":"待办交互设置没有待恢复记录")+(session.cardMayExist()?"\n镜片实际退场尚未另行核对":"")+(!session.answerFailure().isEmpty()?"\n"+TaskWorkspace.label(session.answerFailure()):"");}
- private void refresh(){String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;
+ private void refresh(){// Only a live card counts: cardMayExist() stays true after retirement until a lens exit is proven.
+  if(session.pending()||preflight!=null)TaskAttention.hold("card",20000);else TaskAttention.release("card");String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"background",TaskAttention.background(),"attention",TaskAttention.owners(),"notifications_held",TaskAttention.blockedCount(),"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;
   // 2026-10-23: the wearer saw the confirm card about a minute after dictation ended; each status change
   // is logged with its time so the slow step can be found (no question or answer text is logged).
   android.util.Log.i("TurboIOCard","card phase="+session.phase()+" pending="+session.pending()+" head="+HeadGestureRuntime.pending()+" preflight="+(preflight==null?"":preflight.phase())+" fetching="+fetching+" show="+checkingShow+" busy="+answerBusy+" msg="+message);
@@ -185,6 +198,8 @@ final class AgentCardRuntime {
  }
  static void show(Activity host){init(host);AgentCardRuntime r=instance;if(r==null){TaskWorkspace.notice(host,"眼镜交互记录暂不可用，请在手机回答");return;}EditorialUI.Screen screen=new EditorialUI.Screen(host,"眼镜任务卡");TextView status=EditorialUI.text(host,r.text(),15,EditorialUI.INK);screen.body.addView(status);r.views.add(status);
   CheckBox automatic=new CheckBox(host);automatic.setText("新问题自动显示到眼镜");automatic.setTextColor(EditorialUI.INK);automatic.setChecked(enabled());automatic.setOnCheckedChangeListener((button,value)->enabled(value));screen.body.addView(automatic);
+  CheckBox background=new CheckBox(host);background.setText("熄屏或App在后台时也在眼镜提问、口述并确认");background.setTextColor(EditorialUI.INK);background.setChecked(backgroundAnswer());background.setOnCheckedChangeListener((button,value)->backgroundAnswer(value));screen.body.addView(background);
+  screen.body.addView(EditorialUI.text(host,"任务提词器、任务卡或任务口述在镜片上时，手机普通通知暂不发到眼镜，手机上照常保留。",13,EditorialUI.MUTED));
   CheckBox nod=new CheckBox(host);nod.setText("口述确认卡允许点头提交、摇头留手机（需原厂待办头势已开启；其他卡仍只认按键）");nod.setTextColor(EditorialUI.INK);nod.setChecked(nodConfirm());nod.setOnCheckedChangeListener((button,value)->nodConfirm(value));screen.body.addView(nod);
   EditorialUI.button(host,screen.body,"停止本次眼镜显示",false,()->r.withdraw("已停止本卡输入，原问题继续等待"));
   EditorialUI.button(host,screen.body,"重试清理与设置恢复",false,()->{r.lastCleanupOwner="";r.restoreStarted=false;r.withdraw("正在重试卡片清理与设置恢复");});

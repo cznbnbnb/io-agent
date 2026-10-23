@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev33",
-  "version_code": 10455,
-  "revision": "io-agent-android-107-question-route-16",
+  "version": "0.5.3-dev35",
+  "version_code": 10457,
+  "revision": "io-agent-android-107-question-route-18",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-23T03:37:59.291Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev33.apk",
-  "bytes": 429621529,
-  "sha256": "d626dcd5b69985d74151d5b3710a9bb8d284d6a16d608d23ce9e452cfefdc4b2",
+  "signed": "2026-10-23T04:26:37.576Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev35.apk",
+  "bytes": 429625625,
+  "sha256": "6a1d6b663309df150a3d52642ad46bea4ed06877c09518babef89775ea582a87",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -51,5 +51,5 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "phone_install_evidence": "phone-keep-dev33-install-2026-10-23.json"
+  "phone_install_evidence": "phone-background-dev35-install-2026-10-23.json"
 }

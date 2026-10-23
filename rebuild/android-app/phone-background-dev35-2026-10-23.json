@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "candidates": {"dev34": {"version_code": 10456, "sha256": "9ca4ea96fc6fb699e88bb0360d1bfde35e0cf69560f630eb90186bfcb0265baf"}, "dev35": {"version_code": 10457, "sha256": "6a1d6b663309df150a3d52642ad46bea4ed06877c09518babef89775ea582a87", "installed": true, "rollback": "dev34"}},
+  "request": "用户：开始做熄屏/后台自动口述，顺便处理手机通知不能盖住任务弹窗。",
+  "change": [
+    "TaskAttention: background answering switch (眼镜任务卡页, default on) consulted by TaskRuntime, AgentCardRuntime, HeadGestureRuntime and VoiceAnswerRuntime instead of foreground-only gates",
+    "VoiceAnswerWorkspace.Headless: glasses-started dictation without an App page (prepare, auto start, glasses or 60 s stop, confirm card, save); drafts that are not confirmed stay on the phone",
+    "SuggestionGate: stock business 21 type 2 ordinary notification body is not sent while a task prompter/card/dictation holds TaskAttention; owned task cards, notification status and suggestion frames pass",
+    "Background mailbox poll every 10 s, 3 s while a task interaction is active"
+  ],
+  "tests": {"host_policy": "passed incl. notification hold leases", "agent_card_assertions": 777, "head_gesture_assertions": 498, "voice_assertions": 1938},
+  "device": {
+    "phone": "bae62ca9, screen off (Dozing) and App in background via HOME + SLEEP key events",
+    "identity": "caller313-20261023-a (synthetic owner, Claude Code session caller, topic 熄屏口述测试); caller312 issued with the wrong issuer and revoked unused",
+    "dev34_run": {"question_reached_prompter_with_screen_off": true, "prompter_timeout_after_ms": 180000, "wearer_long_press": false, "ordinary_notifications_held": "yes, during prompter", "defect": "card hold used cardMayExist(), which stays true after retirement; notifications stayed held back after the prompter closed (12:20-12:24 local)"},
+    "dev35_fix": "card hold only while session.pending() or preflight; idle status shows attention empty, notifications_held 0",
+    "dev35_run": {"question_reached_prompter_with_screen_off": true, "prompter_timeout_after_ms": 180000, "wearer_long_press": false}
+  },
+  "not_verified": ["screen-off dictation, confirm card and save on the device (wearer did not respond in either run)", "headless path with no App page", "a real phone notification arriving during dictation or the confirm card on dev35"],
+  "cleanup": {"task_cancelled": true, "credentials_revoked": ["caller312-20261023-a", "caller313-20261023-a"], "verified_401": true, "phone_session_slots": "one expired synthetic session (io-android-text-check) removed to free a slot"},
+  "real_agent_executed": false
+}

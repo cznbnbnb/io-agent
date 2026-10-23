@@ -31,7 +31,7 @@ final class HeadGestureRuntime {
   });
   ((Application)activity.getApplication()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){foreground.add(a);}
-   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("App进入后台；卡片停止接收答案，封存后恢复设置");}
+   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!TaskAttention.background()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("App进入后台；卡片停止接收答案，封存后恢复设置");}
    public void onActivityDestroyed(Activity a){foreground.remove(a);}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });
@@ -75,7 +75,7 @@ final class HeadGestureRuntime {
   String value=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"started_at",checkStarted,"check_passed",passed,"states",new ArrayList<>(checkPhases),"facts",facts,"card_or_capture_started",false)),java.nio.charset.StandardCharsets.UTF_8);if(value.equals(checkExport))return;
   try{File dir=app.getExternalFilesDir(null);if(dir!=null){try(FileOutputStream out=new FileOutputStream(new File(dir,"io-agent-head-check.json"))){out.write(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));}checkExport=value;}}catch(IOException ignored){}
  }
- private boolean usable(){return !foreground.isEmpty()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending()&&!OtaController.busy()&&!OfficialOtaBridge.busy();}
+ private boolean usable(){return (!foreground.isEmpty()||TaskAttention.background())&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending()&&!OtaController.busy()&&!OfficialOtaBridge.busy();}
  private boolean claim(){if(!session.healthy()||!usable()||!NativeTransfer.acquireMessages(lease))return false;claimed=true;return true;}
  private boolean claimRestore(){Fixed60Session.Link link=Host107Ota.link();if(!session.healthy()||!session.pending()||!session.matchesTarget(link.peer)||FirmwareQueue.busy()||Fixed60OfficialRuntime.pending()||!NativeTransfer.acquireMessages(lease))return false;claimed=true;return true;}
  private void releaseLease(){if(claimed){NativeTransfer.releaseMessages(lease);claimed=false;}}
