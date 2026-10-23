@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev45",
-  "version_code": 10467,
-  "revision": "io-agent-android-107-task-notice-28",
+  "version": "0.5.3-dev54",
+  "version_code": 10476,
+  "revision": "io-agent-android-107-agent-workspace-ui-3",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-23T09:02:07.477Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev45.apk",
-  "bytes": 429633817,
-  "sha256": "980d0d170437a976efe944d7761d966d85c05ab393f0210b92fcb0bddf76a00b",
+  "signed": "2026-10-23T10:34:08.141Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev54.apk",
+  "bytes": 429687065,
+  "sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -51,5 +51,5 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "phone_install_evidence": "phone-raw-rx-dev45-install-2026-10-23.json"
+  "phone_install_evidence": "phone-workspace-ui-dev54-install-2026-10-23.json"
 }

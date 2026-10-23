@@ -1,5 +1,23 @@
 # GitHub 协作交接
 
+**[codex] 2026-10-23 原生 Agent 工作区 dev54 /10476 已安装，回退 dev53，设备锁已释放。** 本批在独立 `codex/agent-workspace-ui` 合入 Claude 已提交 `00e112c`，五个录音/卡片运行时文件与该提交完全一致；不改 Claude 工作目录或历史，`12be672` 只保留为按用户要求迁移前的原型历史。未推送、未合并 main。[真机与构建证据](../../rebuild/android-app/agent-workspace-ui-device-2026-10-23.json)。dev52 验证原厂入口、任务/资料/设置、固定任务列表、真实日期圆点、连接详情暂停/恢复及系统导出；dev53 修正文字居中，dev54 修正宿主白底橙边输入主题。最终同签覆盖安装且 SHA-256 与设备一致，原数据保留。TXT/Markdown/Word 均保存到手机，TXT/Word 已核对实际正文；取消不创建文件。自己的输入测试草稿已清空，最终回到原厂 App。
+
+验证：187 份 Android 源码 javac/D8、来源哈希和 APK 审计通过；合入后卡片 790、任务语音桥 248、任务呈现 28 项检查通过；沿用上一批 UI 核心 265 项。共享 private 根路径修复通过 Node 2 项、Python caller 11 项并完成真实当前 Codex 会话登记。旧 context-voice fixture 在共享根链接门禁前停止，未算通过；`am kill` 未真正终止进程，不能算导出重建已验证。未起录或新增答案，不重复镜片验收；账号切换、提交中退出及完整资料委托仍见 A23-UI02。
+
+工作连接 `caller600-20261023-codex` 保留给连续开发，到期 **2026-10-23 11:18:17.871 UTC**；不是永久连接。原默认 Claude 不变，手机临时导入文件已删除，没有待回答题。缺失后端能力已通过 CLI 发一条无需回答的通知，服务器保存成功，未确认镜片显示。APK 只留 dev54 与 dev53，核对哈希后回收 dev50/51/52（约 1.29 GB），不删用户资料、原音或私有凭据。
+
+下一项分工：Codex 先验证“精确原会话中断→停止确认→追加指示继续”的宿主能力，再接暂停/指示/继续协议、常驻 Bridge 与手机回执；当前适配器没有真实中断接口，不能把取消或 CLI 退出显示为已暂停。Claude 继续 R2。只读复核发现两处需 Claude 评估的恢复风险：`VoiceAnswerRuntime.recoverInterrupted` 在异步停止/释放完成前记清理成功；`AgentCardRuntime` 遇已过期孤立 DID 可能不主动关闭。尚未设备复现，未擅自改其运行时。自动同步、远程原音 72 小时保存/导出及 CLI 默认目标仍待开发，UI 交付不关闭 R2/R3/R4。
+
+收尾时发现 Claude 新提交 `9c3da9b`（进度通知合同与服务器看门狗），不含 Android 改动；其 `questions/cli.mjs` 与本批共享根修复重叠，登记在此。先提交本批已装版本，再在 Codex 分支合入并定向验证；无需重发 APK。
+
+**[codex] 2026-10-23 dev54 /10476 已预留。** dev53 输入实测发现宿主主题使 EditText 变白底橙边、浅色字难以阅读；统一 Agent 输入框和选择控件主题后再次装机。只改视图样式，Claude dev51 录音/恢复源码原样保留；回退 dev53。当前 Codex 持设备锁。
+
+**[codex] 2026-10-23 dev53 /10475 已预留。** dev52 已同签覆盖安装、原厂启动和三页实机检查通过；补正真机发现的底部导航及日期文字居中后统一交付。dev52 为本次回退；详情证据和验收边界在装机后补齐。当前 Codex 持设备锁。
+
+**[codex] 2026-10-23 dev52 /10474 已保留，正在集成装机。** 独立 Codex 分支合入 Claude 已提交的 `00e112c`（dev51 R2），源码无冲突；保留双方交接及用户已通过原型的记录，不改 Claude 分支历史。已取得设备锁，实机版本 0.5.3-dev51 /10473，APK SHA-256 与已提交 candidate 完全一致；dev51 将作为回退包。下一步重编译、签名和新版原生 UI 设备验收。此记录仅为版本预留，不表示 dev52 已安装或验收通过。
+
+**[claude] 2026-10-23 R2 重启/断网恢复真机通过（dev51 /10473，回退 dev50）。** [证据](../../rebuild/android-app/phone-r2-recovery-dev51-2026-10-23.json)。①提词器显示中 App 被杀：重启后按稿件 DID 接回眼镜上的旧提词器，长按退出照常进录音（`NewsTele` 接回，dev46）。②口述中 App 被杀：重启后自动给眼镜发停止关麦、草稿记为中断，并把原题重新发到眼镜（`VoiceAnswerRuntime.recoverInterrupted`，dev47）；页面在自身准备完成前不再因同题旧中断状态关掉自动开始（dev50）。③确认卡前断网提交：连不上服务器时用本机最近副本，答案仍以待核对存入队列，联网后由队列向服务器核对后补发，只发一次（dev51）。断网口述本身做不到：原厂语音识别要联网，已在眼镜通知。未验：眼镜蓝牙断连、手机整机重启、8 小时。收尾：先读完全部答案再撤销凭据。
+
 **[codex] 2026-10-23 原生 Agent 工作区第一批已接入，等待与 Claude 合包装机。** 独立目录 `../rayneo-io-agent-codex` / 分支 `codex/agent-workspace-ui`：新增 `AgentUI` 主题和任务/资料/设置三页，保留原厂悬浮入口、登录与宿主适配。连接列表统一查看详情，详情暂停/身份核对后恢复；默认目标与本次委托目标分开，登记不再悄悄替换已有默认。任务读取真实状态/回执，固定列表高度，原问题和草稿保持 binding/版本隔离；未知结果的旧答案不可重新作答，已入队 operation 不可当作未提交草稿继续改写。资料使用当前账号最新保留修订、日期圆点和完整正文；实现 Word/Markdown/TXT 系统导出，以及经明确填写要求、核验账号/修订后基于全文创建委托。导出准备使用有界私有缓存，支持选择器重建；旧页面切换同步开关不得覆盖新凭据。测试/诊断移至高级设置。
 
 本批只改视图和最小运行时接口：`TaskRuntime.resume`、`TaskSettings`/`TaskProfiles` 的明确默认选择、`MaterialRuntime.catalog/setEnabled`；未改 Claude 正在处理的 `AgentCardRuntime`、`NewsTele`、录音状态机或设备协议。此前已登记这些重叠文件；本轮新增纯目录、导出和资料委托辅助类。现有 `VoiceAnswerWorkspace` 的采音/停止及确认流程保留，尚未做新界面设备回归。
@@ -20,7 +38,7 @@
 
 并行范围核对：已 fetch，读 `origin/claude/macos-toolchain` 最新 `e0b4f09` 和相对 `origin/main` 的差异；Claude 也改过 `USER-VERIFICATION-TODO.md`、本交接。此提交只追加本轮 A23-UI01 与本条记录，保留其历史。按用户要求先在现有目录提交，再用协作脚本从 `origin/main` 建 `codex/agent-workspace-ui` 独立目录并迁入本轮提交；不推送、不合并 main。后续设备操作先持 codex 锁，身份 caller600–799，后缀 `-<日期>-codex`，问题键 `codex-`。
 
-**[claude] 2026-10-23 协作规则 + 摇头探测（dev45 /10467，回退 dev44）。** 用户定下 Claude/Codex 并行规则，见 `AGENTS.md`「Claude / Codex 并行协作」：各自 `claude/`、`codex/` 分支与工作目录（`tools/collab/worktree.sh`），碰手机/眼镜/问答通道前拿 `tools/collab/device-lock.mjs` 设备锁，测试身份 Claude caller400–599、Codex caller600–799，安装版本号持锁顺延。dev45 只加诊断 `RawRxTrace`（记所有接收事件的原始业务号，原先只认 9/15/17/19/20/21）。[探测证据](../../rebuild/android-app/phone-head-exit-dev45-2026-10-23.json)：提词器期间只有 4 次翻页同步（pageOffset 43/44/117/44），录音期间只有结束信号，未发现头势信号；尚待用户说明这两处是否由摇头引起。双摇头退出仍未实现。caller319 已收尾、401 已核对。
+**[claude] 2026-10-23 协作规则 + 摇头探测（dev45 /10467，回退 dev44）。** 用户定下 Claude/Codex 并行规则，见 `AGENTS.md`「Claude / Codex 并行协作」：各自 `claude/`、`codex/` 分支与工作目录（`tools/collab/worktree.sh`），碰手机/眼镜/问答通道前拿 `tools/collab/device-lock.mjs` 设备锁，测试身份 Claude caller400–599、Codex caller600–799，安装版本号持锁顺延。dev45 只加诊断 `RawRxTrace`（记所有接收事件的原始业务号，原先只认 9/15/17/19/20/21）。[探测证据](../../rebuild/android-app/phone-head-exit-dev45-2026-10-23.json)：提词器期间只有 4 次翻页同步（pageOffset 43/44/117/44），录音期间只有结束信号，未发现头势信号。用户确认录音是手动结束、摇头时提词器不滚动，故原厂 1.0.5.5 下手机收不到提词器/录音期间的头势：**双摇头退出挂起，留待后续固件方案**（用户 2026-10-23），转推 R2。caller319 已收尾、401 已核对。
 
 **2026-10-23 全天智记开着时任务口述+确认卡真机通过，不碰智记开关（dev44 /10466，回退 dev43）。** [证据](../../rebuild/android-app/phone-lifelog-idle-dev44-2026-10-23.json)。用户反馈“长按退出不进录音”的原因：全天智记开着时，眼镜空闲判断（0x105635a0，只看前台应用、智记设置 0x2b、助手，从不看录音器）一直报忙，我们的口述预检、停止证明、任务卡预检都用它。原厂录音实测既不查空闲也不碰智记开关，由固件 AlwaysOnStateMonitor 运行时让路。dev44：原厂每次连接都同步 `life_log_switch` 状态，已知智记开着时把“忙”读作空闲（`LifelogState`）；智记关时照旧完整判断。dev41/42 曾按原厂帧暂停/恢复智记，能通但眼镜会弹“退出/打开全天智记”，用户否决，代码已删除。dev39 起：整段预检都忙给 `VOICE_GLASSES_BUSY` 并在眼镜提示原因。`LifelogTrace`/`RecordingTrace` 记录智记开关与录音/空闲控制帧（音频只计数）。清理注意：撤销凭据前先关任务并让 CLI 对账（`wait`/`status`），否则本地“未结”题会拒绝下次登记。
 

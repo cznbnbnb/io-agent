@@ -6,6 +6,7 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {BridgeClient, readPrivateJson} from '../../rebuild/agent-bridge/client.mjs';
 import {caller, callerBase} from '../../rebuild/agent-bridge/questions/cli.mjs';
+import {privatePath} from '../../rebuild/agent-bridge/questions/private-path.mjs';
 
 const workspace = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const requireValue = (value, code) => { if (!value) throw Error(code); };
@@ -33,16 +34,15 @@ async function main() {
   requireValue(probe.status === 0 && probe.stdout.trim() === 'True', 'CALLER_PYTHON_UNSUPPORTED');
 
   const privateRoot = path.join(workspace, 'rebuild/agent-bridge/private');
-  const run = path.join(privateRoot, 'cloud-' + runId);
-  requireValue(!fs.lstatSync(run).isSymbolicLink() && fs.realpathSync(run) === run, 'CALLER_PREPARATION_PATH_INVALID');
-  const bundle = readPrivateJson(path.join(run, 'bundle.json'));
+  const run = privatePath(privateRoot, path.join(privateRoot, 'cloud-' + runId), {directory:true, code:'CALLER_PREPARATION_PATH_INVALID'});
+  const bundle = readPrivateJson(privatePath(privateRoot, path.join(run, 'bundle.json'), {code:'CALLER_PREPARATION_PATH_INVALID'}));
   requireValue(bundle.run_id === runId && bundle.agent.owner_id === 'synthetic-cloud-' + runId &&
     bundle.phone.owner_id === bundle.agent.owner_id && bundle.agent.base_url === 'https://cznbnb.cn/io-api/v1/' &&
     bundle.phone.base_url === bundle.agent.base_url && bundle.agent.producer_id === 'cloud-agent' &&
     bundle.phone.producer_id === 'cloud-phone' && bundle.agent.server_id === bundle.phone.server_id,
     'CALLER_PREPARATION_OWNER_INVALID');
   for (const role of ['agent', 'phone']) {
-    requireValue(fs.realpathSync(bundle[role].credential_file) === path.join(run, role + '.json'), 'CALLER_PREPARATION_CREDENTIAL_PATH_INVALID');
+    requireValue(privatePath(privateRoot, bundle[role].credential_file, {code:'CALLER_PREPARATION_CREDENTIAL_PATH_INVALID'}) === path.join(run, role + '.json'), 'CALLER_PREPARATION_CREDENTIAL_PATH_INVALID');
     requireValue(Date.parse(readPrivateJson(bundle[role].credential_file).expires_at) > Date.now() + 120000, 'CALLER_PREPARATION_EXPIRED');
   }
   // Codex keeps its earlier ids; other agents are named after their runtime.
@@ -50,7 +50,7 @@ async function main() {
   const identity = await new BridgeClient(bridge).identity();
   requireValue(identity.scopes?.includes('tasks:write'), 'CALLER_TASK_PUBLISH_SCOPE_REQUIRED');
   const spec = {bridge, project_id:'rayneo-io-agent', operation_key:runId, python, ...(topic === undefined ? {} : {topic})};
-  const specFile = path.join(run, 'caller-enrollment.json');
+  const specFile = privatePath(privateRoot, path.join(run, 'caller-enrollment.json'), {allowMissing:true, code:'CALLER_PREPARATION_PATH_INVALID'});
   writeOnce(specFile, spec);
   const registration = spawnSync(process.execPath, [path.join(workspace, 'rebuild/agent-bridge/questions/cli.mjs'), 'register', '--config', specFile],
     {cwd:workspace, encoding:'utf8', timeout:45000, maxBuffer:1048576});
@@ -60,18 +60,19 @@ async function main() {
   requireValue(registration.status === 0 && registered.registered && registered.caller_verified && registered.creates_agent_session === false && registered.runtime === runtime,
     /^[A-Z_]{3,80}$/.test(registered.error || '') ? registered.error : 'CALLER_REGISTRATION_FAILED');
 
-  const base = callerBase(current);
-  const active = readPrivateJson(path.join(base, 'active.json'));
+  const base = privatePath(privateRoot, callerBase(current), {directory:true});
+  const active = readPrivateJson(privatePath(privateRoot, path.join(base, 'active.json')));
   requireValue(/^[a-f0-9]{64}$/.test(active.profile), 'CALLER_ACTIVE_CONTEXT_INVALID');
-  const directory = path.join(base, 'registrations', active.profile), context = readPrivateJson(path.join(directory, 'context.json'));
+  const directory = privatePath(privateRoot, path.join(base, 'registrations', active.profile), {directory:true}), context = readPrivateJson(privatePath(privateRoot, path.join(directory, 'context.json')));
   requireValue(context.caller.session_id === session && context.caller.cwd === workspace &&
     context.route.session_id === session && context.task_id === registered.task_id, 'CALLER_ORIGINAL_CONTEXT_MISMATCH');
   const phone = readPrivateJson(bundle.phone.credential_file);
-  writeOnce(path.join(run, 'task-connection.json'), {format:'turboio-task-connection/1',
+  const output = name => privatePath(privateRoot, path.join(run, name), {allowMissing:true, code:'CALLER_PREPARATION_PATH_INVALID'});
+  writeOnce(output('task-connection.json'), {format:'turboio-task-connection/1',
     base_url:bundle.phone.base_url, owner_id:bundle.phone.owner_id, producer_id:bundle.phone.producer_id,
     server_id:bundle.phone.server_id, ...phone, ...context.route});
-  writeOnce(path.join(run, 'active-profile-path.json'), {directory});
-  writeOnce(path.join(run, 'registration-result.json'), registered);
+  writeOnce(output('active-profile-path.json'), {directory});
+  writeOnce(output('registration-result.json'), registered);
   console.log(JSON.stringify({registered:true, caller_verified:true, runtime, creates_agent_session:false,
     task_id:registered.task_id, connection_file:path.join(run, 'task-connection.json')}));
 }

@@ -61,7 +61,7 @@ final class MaterialWorkspace {
   ZoneId zone=ZoneId.systemDefault();LocalDate today=LocalDate.now(zone);String timezone=zone.getId();
   DatePickerDialog picker=new DatePickerDialog(activity,(view,year,month,day)->{
    if(activity.isDestroyed())return;String date=LocalDate.of(year,month+1,day).toString();
-   new AlertDialog.Builder(activity).setTitle("按日期同步智记").setMessage("日期："+date+"\n时区："+timezone+"\n\n将该日可读取的智记正文同步至已配置资料空间：\n"+target.connection.preview()+"\n\n普通录音暂不包含在内。当天未发现智记时，已有资料仍会保留。")
+   AgentUI.alert(activity).setTitle("按日期同步智记").setMessage("日期："+date+"\n时区："+timezone+"\n\n将该日可读取的智记正文同步至已配置资料空间：\n"+target.connection.preview()+"\n\n普通录音暂不包含在内。当天未发现智记时，已有资料仍会保留。")
     .setNegativeButton("取消",null).setPositiveButton("开始同步",(dialog,which)->{
      if(activity.isDestroyed())return;starting.run();runtime.syncDay(date,timezone,(done,code)->{if(!activity.isDestroyed())renderResult(activity,code,refresh);});
     }).show();

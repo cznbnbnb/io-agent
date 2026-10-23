@@ -20,11 +20,12 @@ public final class TaskVoiceBridgeTest {
   public void save(Object next)throws IOException{if(failSaved&&"SAVED".equals(WireJson.map(next).get("phase"))){failSaved=false;throw new IOException("SYNTHETIC_DRAFT_SAVE_INTERRUPTED");}value=WireJson.copy(next);}
  }
  static final class MemoryServer implements TaskApi.Transport {
-  final TaskConnection connection;Map<String,Object> request,parent,committed,ack;boolean offline,loseResponse;int calls,posts,lookups,cursor;
+  final TaskConnection connection;Map<String,Object> request,parent,committed,ack;boolean offline,unreachable,loseResponse;int calls,posts,lookups,cursor;
   MemoryServer(TaskConnection c){connection=c;request=request(c);parent=task(c);}
   TaskApi.Response response(int status,Object value){return new TaskApi.Response(status,WireJson.bytes(value),0);}
   public TaskApi.Response exchange(String path,byte[] payload)throws IOException{
    calls++;if(offline)throw new IOException("SYNTHETIC_OFFLINE");
+   if(unreachable)throw new java.net.ConnectException("synthetic: network unreachable");
    if(path.equals("/identity")){Map<String,Object> input=WireJson.map(WireJson.read(connection.encode()));return response(200,WireJson.object("schema_version","1.0","owner_id",input.get("owner_id"),"producer_id",input.get("producer_id"),"server_id",input.get("server_id"),"expires_at",input.get("expires_at"),"scopes",TaskConnection.SCOPES));}
    if(path.equals("/requests/bridge-request"))return response(200,request);
    if(path.equals("/tasks/bridge-task"))return response(200,parent);
@@ -69,6 +70,12 @@ public final class TaskVoiceBridgeTest {
  static void boundaries(File root)throws Exception{
   try(Env e=new Env(root,"paused")){VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());e.hub.apply(e.hub.profiles().enabled(e.first().binding(),false,NOW));rejects(()->e.prepare(draft));yes(draft.phase().equals("IDLE")&&e.server().calls==0);e.hub.apply(e.hub.profiles().enabled(e.first().binding(),true,NOW));e.prepare(draft);review(draft);e.hub.apply(e.hub.profiles().enabled(e.first().binding(),false,NOW));int calls=e.server().calls;rejects(()->e.hub.answerVoice(e.first().binding(),draft,NOW));yes(draft.phase().equals("REVIEW")&&e.server().calls==calls&&e.hub.view(e.first().binding()).pending.isEmpty());}
   try(Env e=new Env(root,"offline")){VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());e.server().offline=true;rejects(()->e.prepare(draft));yes(draft.phase().equals("IDLE"));e.server().offline=false;e.prepare(draft);review(draft);e.server().offline=true;rejects(()->e.hub.answerVoice(e.first().binding(),draft,NOW));yes(draft.phase().equals("REVIEW")&&draft.answerText().equals(TEXT)&&e.hub.view(e.first().binding()).pending.isEmpty());e.server().offline=false;e.hub.answerVoice(e.first().binding(),draft,NOW);yes(draft.phase().equals("SAVED")&&e.server().posts==0);}
+  // R2 2026-10-23: with the server unreachable (not refusing), dictation uses the last observed copy and the
+  // answer is only saved for the pump to verify; nothing is posted and a never-seen question still fails.
+  try(Env e=new Env(root,"unreachable")){VoiceAnswerSession cold=new VoiceAnswerSession(new Memory());e.server().unreachable=true;rejects(()->e.prepare(cold));yes(cold.phase().equals("IDLE"));
+   e.server().unreachable=false;e.hub.detail(e.first().binding(),"request","bridge-request",NOW);e.server().unreachable=true;
+   VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());e.prepare(draft);review(draft);e.hub.answerVoice(e.first().binding(),draft,NOW);
+   yes(draft.phase().equals("SAVED")&&e.server().posts==0&&e.hub.view(e.first().binding()).pending.size()==1);}
   for(String changed:Arrays.asList("revision","route","parent_closed","request_closed","fingerprint"))try(Env e=new Env(root,"changed-"+changed)){
    VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());e.prepare(draft);review(draft);Map<String,Object> request=e.server().request;
    if(changed.equals("revision")){Map<String,Object> body=copy(TaskWire.body(request));body.put("revision",2);e.server().request=item("request",body,4);}

@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "date": "2026-10-23T08:07:52.185Z",
+  "date": "2026-10-23T09:57:57.370Z",
   "host_resolver": "passed",
   "upstream_237_files": "passed",
   "local_launcher_manifest": "passed",
@@ -60,7 +60,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
+      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
@@ -88,7 +88,7 @@
     },
     {
       "path": "build/host-tests/ProductInfo.java",
-      "sha256": "d6d76fa2dd078efb9cb6497ca500fefcb8681fa79bf81db5abdeedc5032a6ab9"
+      "sha256": "f868cc4f59f981493a64df4f80beb2f0ebeaf4ed6ae70ced38f4482f2a4ecab0"
     },
     {
       "path": "../../tools/android/host-policy-fixtures/com/turboio/addon/Host107Recording.java",

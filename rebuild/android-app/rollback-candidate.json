@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "product": "iO Agent Android",
+  "version": "0.5.3-dev53",
+  "version_code": 10475,
+  "revision": "io-agent-android-107-agent-workspace-ui-2",
+  "host_version": "1.0.7",
+  "host_code": 230,
+  "signed": "2026-10-23T10:25:03.816Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev53.apk",
+  "bytes": 429687065,
+  "sha256": "1bbb0acf7c3471573e74027313e427725051699021aa29e491208487d2f76eec",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "signature_v2": true,
+  "signature_v3": true,
+  "native_library_zip_page_alignment": 16384,
+  "general_zip_alignment": 4,
+  "audit": {
+    "original_entries_preserved": 4004,
+    "replaced": [
+      "AndroidManifest.xml",
+      "classes2.dex",
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "added_dex": "classes5.dex",
+    "public_assets": 39,
+    "original_resources_and_native_libraries_preserved": false,
+    "original_resources_preserved": true,
+    "all_other_original_native_libraries_preserved": true,
+    "native_source_route": {
+      "member": "lib/arm64-v8a/libapp.so",
+      "input_sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c",
+      "output_sha256": "48ffd34352bf23eca928ad9c2f576347c4965a5af5ca05a35c1f1ed2ffc9fd50",
+      "bytes": 46465968,
+      "only_two_serialized_urls_changed": true,
+      "all_slots_in_readonly_nonexecuting_segments": true,
+      "instructions_changed": false
+    },
+    "source_dex_count": 4,
+    "device_installed": true
+  },
+  "dex_audit": {
+    "schema": 1,
+    "host_dex_integrity": "passed",
+    "host_classes_retained": 10944,
+    "original_members_retained": 97781,
+    "explicit_wrappers": 7,
+    "runtime_tested": false
+  },
+  "installed": true,
+  "phone_disconnected_by_user": false,
+  "one_minute_card_passed": false,
+  "release_gate_passed": false,
+  "phone_install_evidence": "phone-workspace-ui-dev53-install-2026-10-23.json"
+}

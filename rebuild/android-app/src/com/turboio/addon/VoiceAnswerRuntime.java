@@ -72,7 +72,7 @@ final class VoiceAnswerRuntime {
  private void publish(Snapshot next){publish(null,next);}
  private void publish(Attempt owner,Snapshot next){main.post(()->{if(owner!=null&&!owns(owner))return;value=next;observers.entrySet().removeIf(e->e.getValue().get()==null||e.getValue().get().isDestroyed());for(Observer observer:new ArrayList<>(observers.keySet()))try{if(observers.containsKey(observer))observer.changed(next);}catch(RuntimeException ignored){}Observer h=headless;if(h!=null)try{h.changed(next);}catch(RuntimeException ignored){}});}
  private void finish(long operation,Result result,String error){main.post(()->{if(operation>0){if(operation!=actionId||!action)return;action=false;}if(result!=null)result.done(value,error==null?"":error);});}
- private long begin(Result result){mainThread();if(action){if(result!=null)result.done(value,"VOICE_BUSY");return 0;}action=true;return ++actionId;}
+ private long begin(Result result){mainThread();if(action){android.util.Log.i("TurboIOVoice","runtime busy: earlier operation still open");if(result!=null)result.done(value,"VOICE_BUSY");return 0;}action=true;return ++actionId;}
  private static String error(Throwable e){String code=e.getMessage();return code!=null&&code.matches("[A-Z][A-Z0-9_]{1,63}")?code:"VOICE_RUNTIME_FAILED";}
  private void work(Attempt owner,Work work,Result result,long operation){io.execute(()->{String failure="";try{TaskWire.require(owner==active,"VOICE_TARGET_CHANGED");work.run();}catch(Exception e){failure=error(e);owner.note=failure;}refresh(owner,null);finish(operation,result,failure);});}
  private boolean handoff(Attempt a){return attended()&&Host107Login.loggedIn()&&AgentCardRuntime.voiceHandoffReady(a.binding,a.request)&&HeadGestureRuntime.voiceHandoffReady();}
@@ -140,7 +140,7 @@ final class VoiceAnswerRuntime {
    if(needs)TaskAttention.hold("voice",VoiceAnswerSession.CAPTURE_SECONDS*1000L+20000);else if(!"PREPARED".equals(phase))TaskAttention.release("voice");
    if("PREPARED".equals(phase)&&!a.starting){
     publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,false,canSave,need,isClean));
-    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);io.execute(()->{boolean verified=readiness(link.peer);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
+    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);if(!ready)android.util.Log.i("TurboIOVoice","handoff blocked attended="+attended()+" login="+Host107Login.loggedIn()+" card="+AgentCardRuntime.handoffBlockers(a.binding,a.request));io.execute(()->{boolean verified=readiness(link.peer);android.util.Log.i("TurboIOVoice","prepared check verified="+verified+" ready="+ready+" blocked="+blocked+" clean="+isClean+" owns="+owns(a)+" starting="+a.starting+" action="+action);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
    }else publish(a,new Snapshot(p,n,text,a.binding,a.request,false,canSave,need,isClean));
   }catch(Exception invalid){a.note=error(invalid);publish(a,new Snapshot("BLOCKED",a.note,"",a.binding,a.request,false,false,true,false));}
  }
@@ -352,6 +352,19 @@ final class VoiceAnswerRuntime {
   if(!owns(a)||!a.recovery||a.recoveryFence!=fence)return;
   try{TaskWire.require((a.engine==null||a.releasedEngine==a.engine)&&(a.decoder==null||a.releasedDecoder==a.decoder)&&(a.archive==null||a.recoveryArchiveClosed),"VOICE_RECOVERY_REQUIRED");a.physicallyReleased=a.recording!=null&&a.recording.release();if(!a.physicallyReleased){if(retry<3){main.postDelayed(()->releaseRecovery(a,fence,retry+1),100);return;}throw new IOException("VOICE_RECOVERY_REQUIRED");}a.recovering=false;a.note="VOICE_INTERRUPTED";refreshLater(a);}
   catch(Exception failure){recoveryFailure(a,error(failure));}
+ }
+ /** 2026-10-23 R2: a process killed during a task dictation left the glasses recording, and nothing
+  * recovered it until someone opened a voice page. Called at App start: once the store is loaded and the
+  * glasses are linked, an interrupted capture is closed through the same retryCleanup a page would use;
+  * recovered gets the original question so the glasses can offer it again. */
+ void recoverInterrupted(java.util.function.BiConsumer<String,String> recovered){recoverInterrupted(recovered,0);}
+ private void recoverInterrupted(java.util.function.BiConsumer<String,String> recovered,int tries){
+  mainThread();if(tries>60)return;
+  if(!loaded){main.postDelayed(()->recoverInterrupted(recovered,tries+1),1000);return;}
+  Attempt a=active;if(blocked||a==null||!a.recovery||!a.draft.needsStop())return;
+  if(Host107Ota.link().peer==null||a.recovering){main.postDelayed(()->recoverInterrupted(recovered,tries+1),2000);return;}
+  String binding=a.binding,request=a.request;
+  retryCleanup((snapshot,error)->{if(error.isEmpty())recovered.accept(binding,request);else main.postDelayed(()->recoverInterrupted(recovered,tries+5),5000);});
  }
  void retryCleanup(Result result){
   long operation=begin(result);if(operation==0)return;Attempt a=active;if(a==null||blocked){finish(operation,result,"VOICE_RECOVERY_REQUIRED");return;}

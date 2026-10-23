@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T10:42:59.581Z",
+  "scope": "Native Android Agent workspace migration and real phone UI/export checks; not full R2/R3/R4 acceptance",
+  "branch": "codex/agent-workspace-ui",
+  "integrated_android_commit": "00e112c",
+  "installed": {
+    "schema": 1,
+    "at": "2026-10-23T10:34:41.792Z",
+    "candidate": "0.5.3-dev54",
+    "version_code": 10476,
+    "sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb",
+    "installed": true,
+    "product_data_cleared": false,
+    "installed_hash_verified": true,
+    "normal_launch_requested": true
+  },
+  "rollback": {
+    "version": "0.5.3-dev53",
+    "sha256": "1bbb0acf7c3471573e74027313e427725051699021aa29e491208487d2f76eec"
+  },
+  "install_history": [
+    {
+      "schema": 1,
+      "at": "2026-10-23T10:16:53.157Z",
+      "candidate": "0.5.3-dev52",
+      "version_code": 10474,
+      "sha256": "56cb87916d856410fa57b3bd977ee7b7264b9a073a0d29bd7e97c4731072381a",
+      "installed": true,
+      "product_data_cleared": false,
+      "installed_hash_verified": true,
+      "normal_launch_requested": true
+    },
+    {
+      "schema": 1,
+      "at": "2026-10-23T10:29:33.214Z",
+      "candidate": "0.5.3-dev53",
+      "version_code": 10475,
+      "sha256": "1bbb0acf7c3471573e74027313e427725051699021aa29e491208487d2f76eec",
+      "installed": true,
+      "product_data_cleared": false,
+      "installed_hash_verified": true,
+      "normal_launch_requested": true
+    },
+    {
+      "schema": 1,
+      "at": "2026-10-23T10:34:41.792Z",
+      "candidate": "0.5.3-dev54",
+      "version_code": 10476,
+      "sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb",
+      "installed": true,
+      "product_data_cleared": false,
+      "installed_hash_verified": true,
+      "normal_launch_requested": true
+    }
+  ],
+  "build": {
+    "java_sources": 187,
+    "javac_and_d8": "passed",
+    "compiled_source_hashes_match": true,
+    "host_hook_dex": "reused with source verification",
+    "apk_signature_v2": true,
+    "apk_signature_v3": true,
+    "source_and_private_data_audit": "passed",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad"
+  },
+  "verification": {
+    "previous_core_checks": {
+      "evidence": "agent-workspace-ui-checks-2026-10-23.json",
+      "assertions": 265,
+      "scope": "Prior source-level UI helpers/runtime checks, no device conclusions"
+    },
+    "integrated_regression": {
+      "agent_card": 790,
+      "task_voice_bridge": 248,
+      "task_presentation": 28,
+      "scope": "JVM with synthetic transports/device callbacks"
+    },
+    "cli_shared_private_root": {
+      "node_tests": 2,
+      "python_caller_tests": 11,
+      "scope": "Local temporary roots and original-caller guards; no production credentials"
+    },
+    "optional_context_voice_fixture": {
+      "status": "blocked_before_network",
+      "checks": 0,
+      "reason": "Older fixture runner rejects intentionally shared private root symlink; not counted as passing"
+    },
+    "final_package_check": {
+      "at": "2026-10-23T10:41:32.945Z",
+      "current": "0.5.3-dev54",
+      "current_sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb",
+      "rollback": "0.5.3-dev53",
+      "rollback_sha256": "1bbb0acf7c3471573e74027313e427725051699021aa29e491208487d2f76eec",
+      "installed_hash_verified": true,
+      "current_pid_fatal_exception": false
+    }
+  },
+  "phone": {
+    "package": "com.rayneo.venus.pub",
+    "entry": "Original floating entry to native task/material/settings pages",
+    "host_launch_and_login_preserved": true,
+    "task_filter_list_bounds": {
+      "active": [
+        65,
+        1155,
+        1215,
+        1961
+      ],
+      "completed": [
+        65,
+        1155,
+        1215,
+        1961
+      ],
+      "height_dp": 248
+    },
+    "calendar_record_dots": [
+      "2026-10-10",
+      "2026-10-11"
+    ],
+    "material_records_visible": 3,
+    "connection_import": "System file picker; isolated current Codex registration",
+    "connection_pause_resume": "Verified on current Codex registration through connection detail",
+    "original_default_preserved": "io-claude-code",
+    "default_vs_this_task": "Changing new-task target did not replace default",
+    "stale_registration_cleanup": "Removed one expired nondefault Codex registration to free a slot; original task/mailbox files retained by UI removal path",
+    "input_style": "dev54 explicit dark input and selection theme, visually checked after dev53 host white/orange theme defect",
+    "draft": "Own short synthetic draft survived update; cleared and verified empty without submitting",
+    "exit": "Minimize returned to original App with floating entry present",
+    "new_audio_capture_started": false,
+    "voice_answer_submitted": false,
+    "formal_material_credentials_renewed": false,
+    "formal_material_uploaded": false,
+    "sync_toggle_tested": false,
+    "sync_toggle_reason": "Formal credentials expired; kept configuration unchanged"
+  },
+  "exports": {
+    "destination": "Phone Download directory through Android system document picker",
+    "txt": {
+      "saved": true,
+      "bytes": 16198,
+      "utf8_clean": true,
+      "displayed_full_text_codepoints": 1985,
+      "displayed_full_text_in_file": true
+    },
+    "markdown": {
+      "saved": true,
+      "bytes": 16200,
+      "utf8_clean": true
+    },
+    "docx": {
+      "saved": true,
+      "bytes": 6621,
+      "zip_crc_valid": true,
+      "document_xml_valid": true,
+      "text_nodes": 654,
+      "every_nonempty_displayed_main_text_line_present": true
+    },
+    "cancel": {
+      "txt_picker_cancelled": true,
+      "file_created": false
+    },
+    "process_recreation": {
+      "attempted": true,
+      "method": "am kill while system picker foreground",
+      "process_actually_killed": false,
+      "passed": false
+    },
+    "private_evidence": "Raw UI dumps, screenshots and exported user content retained only in ignored private storage; not embedded here"
+  },
+  "cli": {
+    "run_id": "caller600-20261023-codex",
+    "current_real_conversation_verified": true,
+    "created_replacement_agent_session": false,
+    "expires_at": "2026-10-23T11:18:17.871Z",
+    "retained_for_continuing_development": true,
+    "permanent_connection": false,
+    "pending_questions": 0,
+    "phone_import_copy_removed": true,
+    "blocker_notice": {
+      "notification_key": "codex-ui-backend-boundary-20261023",
+      "server_stored": true,
+      "requires_answer": false,
+      "glasses_display_confirmed": false
+    }
+  },
+  "collaboration": {
+    "claude_runtime_files_match_commit": "00e112c",
+    "files": [
+      "AgentCardRuntime.java",
+      "NewsTele.java",
+      "TaskHub.java",
+      "VoiceAnswerRuntime.java",
+      "VoiceAnswerWorkspace.java"
+    ],
+    "claude_checkout_modified": false,
+    "claude_history_rewritten": false,
+    "device_lock_released": true,
+    "newer_non_android_commit_observed": "9c3da9b",
+    "newer_commit_included_in_apk": false
+  },
+  "pending": {
+    "backend": [
+      "Confirmed original-host pause / append instruction / resume",
+      "Automatic material synchronization",
+      "Remote original audio fixed 72-hour retention and export",
+      "CLI default target flag and glasses proactive default invocation"
+    ],
+    "device": [
+      "Real Activity/process recreation during export",
+      "Account switch isolation on device",
+      "Credential renewal versus stale sync toggle",
+      "Exit/reopen during pending submission",
+      "Full material-based delegation round trip",
+      "New UI real wearer approval"
+    ],
+    "claude_r2_source_review_only": [
+      {
+        "file": "VoiceAnswerRuntime.java",
+        "risk": "recoverInterrupted marks cleanup complete before asynchronous stop/release acknowledgement; review retry ownership",
+        "device_reproduced": false
+      },
+      {
+        "file": "AgentCardRuntime.java",
+        "risk": "Expired orphan prompter DID may be ignored on restart rather than closed",
+        "device_reproduced": false
+      }
+    ],
+    "stage_complete": false
+  },
+  "retention": {
+    "at": "2026-10-23T10:41:43.132Z",
+    "removed": [
+      {
+        "file": "iO-Agent-Android-0.5.3-dev50.apk",
+        "bytes": 429633817,
+        "sha256": "ec82c4e82f91d4b101e44df5d8b2ae3926dacf0352816065a23320993b324261"
+      },
+      {
+        "file": "iO-Agent-Android-0.5.3-dev51.apk",
+        "bytes": 429637913,
+        "sha256": "d7cd8fecc4cd7962e87f28044b6b629dffa69064dea68c9615cd0066a7d692fa"
+      },
+      {
+        "file": "iO-Agent-Android-0.5.3-dev52.apk",
+        "bytes": 429687065,
+        "sha256": "56cb87916d856410fa57b3bd977ee7b7264b9a073a0d29bd7e97c4731072381a"
+      }
+    ],
+    "kept": [
+      "iO-Agent-Android-0.5.3-dev54.apk",
+      "iO-Agent-Android-0.5.3-dev53.apk"
+    ],
+    "bytes_reclaimed": 1288958795,
+    "user_data_deleted": false,
+    "private_material_deleted": false
+  }
+}
