@@ -55,4 +55,5 @@ final class TaskSettings {
  void save(TaskConnection connection,boolean enabled)throws Exception{synchronized(LOCK){write(loadAll().upsert(connection,enabled,System.currentTimeMillis()));}}
  void select(String binding)throws Exception{synchronized(LOCK){write(loadAll().select(binding));}}
  void pause(String binding)throws Exception{synchronized(LOCK){write(loadAll().enabled(binding,false,System.currentTimeMillis()));}}
+ void remove(String binding)throws Exception{synchronized(LOCK){write(loadAll().remove(binding,System.currentTimeMillis()));}}
 }

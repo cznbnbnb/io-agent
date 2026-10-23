@@ -128,6 +128,19 @@ class HermesACPTransport:
             raise ACPTransportError('ACP_LOAD_FAILED') from None
         self._loaded.add(session_id)
 
+    async def set_mode(self, session_id, mode_id):
+        # Hermes normalizes unknown ids to its ask-first default, so a missing
+        # response is the only failure signal worth checking here.
+        if session_id not in self._loaded:
+            raise ACPTransportError('ACP_SESSION_NOT_LOADED')
+        try:
+            response = await asyncio.wait_for(self._connection.set_session_mode(
+                mode_id=mode_id, session_id=session_id), self.timeout)
+        except Exception:
+            raise ACPTransportError('ACP_MODE_FAILED') from None
+        if response is None:
+            raise ACPTransportError('ACP_MODE_FAILED')
+
     async def prompt(self, session_id, project_id, text):
         self.preflight(session_id, project_id)
         if self._connection is None or session_id not in self._loaded:

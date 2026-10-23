@@ -4,6 +4,7 @@ import {HOST,verifyHost} from '../../rebuild/android-app/host-107.mjs';
 import {verifySnapshot} from './verify-source.mjs';
 import {verifyVoice} from './verify-voice.mjs';
 import {PRODUCT,productInfoSource,OFFICIAL_SOURCE_ROUTING} from './profile.mjs';
+import {PYTHON} from './host-tools.mjs';
 const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=path.join(workspace,'rebuild/android-app'),build=path.join(root,'build'),sdk=path.join(root,'.tools/sdk');
 const source=path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),host=path.join(build,'host-107');
@@ -62,7 +63,7 @@ try{
  if(mode!=='compile'&&mode!=='smali'&&mode!=='addon'){
   const unsigned=path.join(build,PRODUCT.apk_stem+'-unsigned.apk');
   if(fs.existsSync(unsigned))throw new Error('Unsigned output exists; inspect before replacing');
-  run('python',['-S','-X','utf8',path.join(root,'assemble.py'),source,path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),unsigned]);
+  run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),source,path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),unsigned]);
   result.unsigned={path:path.relative(root,unsigned),bytes:fs.statSync(unsigned).size,sha256:hash(unsigned)};
  }
  result.phase='complete';result.finished=new Date().toISOString();write(path.join(root,'build-status.json'),result);

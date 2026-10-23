@@ -7,6 +7,7 @@ final class MaterialWorkspace {
   case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
   case "syncing":return "正在读取智记并同步…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
   case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
+  case "MATERIAL_EVENT_TOO_LARGE":return "部分智记正文超过单条 256KiB 上限，暂未上传；其他资料已处理";
   case "LIFELOG_CALENDAR_MONTH_INVALID":return "月份无效，请重新选择";
   case "LIFELOG_CALENDAR_TIMEZONE_UNSUPPORTED":return "当前月份发现仅支持北京时间";
   case "MATERIAL_MONTH_SELECTION_STALE":return "账号、连接或同步状态已变化，请重新查找日期";
@@ -37,7 +38,7 @@ final class MaterialWorkspace {
   case "MATERIAL_STORE_FULL":case "LIFELOG_IMPORT_FULL":case "LIFELOG_REVISION_FULL":return "本机同步记录已满，资料保留，需整理后继续";
   case "LIFELOG_IMPORT_SCAN_INCOMPLETE":case "OFFICIAL_CACHE_CHANGED":return "资料正在变化，本次未导入，请稍后重试";
   case "blocked":return "有资料需要核对，未记为同步成功";case "MATERIAL_IMPORT_UNAVAILABLE":return "未找到资料登记文件";
-  default:return "同步暂未完成，请检查网络或连接配置后重试";
+  default:return "同步暂未完成，请检查网络或连接配置后重试（"+code+"）";
  }}
  static void show(Activity activity){EditorialUI.Screen screen=new EditorialUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
   MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(EditorialUI.text(activity,label(error.isEmpty()?state.note:error),20,EditorialUI.INK));
@@ -45,6 +46,7 @@ final class MaterialWorkspace {
    if(state.config!=null)body.addView(EditorialUI.text(activity,state.config.connection.preview(),13,EditorialUI.MUTED));
    MaterialSyncSession.Status s=state.status;body.addView(EditorialUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,EditorialUI.INK));
    if(s.days>0)body.addView(EditorialUI.text(activity,"本次读取 "+s.days+" 天 · 发现智记正文 "+s.discovered+" 份\n未同步普通录音 "+s.recordings+" 条 · 其他类型 "+s.otherEntries+" 条\n发现数量不代表服务器已保存数量。",14,EditorialUI.MUTED));
+   if(s.tooLarge>0)body.addView(EditorialUI.text(activity,"超出单条上限 "+s.tooLarge+" 份：未上传、未截断，原文仍在原厂智记",14,EditorialUI.MUTED));
    if(s.conflicts+s.unowned+s.invalid>0)body.addView(EditorialUI.text(activity,"正文冲突 "+s.conflicts+" · 归属待核对 "+s.unowned+" · 无效响应 "+s.invalid,14,EditorialUI.MUTED));
    EditorialUI.button(activity,body,"资料连接设置",false,()->configure(activity,runtime,state.config,refresh[0]));
    if(state.config!=null&&state.config.enabled){EditorialUI.button(activity,body,"同步一次",true,()->{body.addView(EditorialUI.text(activity,"正在同步，可随时暂停。",14,EditorialUI.MUTED));runtime.sync((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);});});EditorialUI.button(activity,body,"按日期同步",false,()->selectDay(activity,runtime,state.config,()->body.addView(EditorialUI.text(activity,"正在按日期同步…",14,EditorialUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));EditorialUI.button(activity,body,"按月份查找智记",false,()->MaterialMonthWorkspace.show(activity,runtime,state.config,()->!closed[0],()->body.addView(EditorialUI.text(activity,"正在读取所选智记…",14,EditorialUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));EditorialUI.button(activity,body,"暂停同步",false,()->runtime.pause((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);}));}

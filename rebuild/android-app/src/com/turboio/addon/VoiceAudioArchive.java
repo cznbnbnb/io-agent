@@ -36,7 +36,7 @@ final class VoiceAudioArchive implements AutoCloseable {
  synchronized boolean matches(String owner,int expectedBusiness){return !closed&&!sealed&&!freezing&&!failed&&token.equals(owner)&&business==expectedBusiness;}
  synchronized void incomplete(){failed=true;}
  synchronized void recordingComplete(String owner,int opusBytes,int packets)throws IOException{
-  if(!matches(owner,14)||packets<=0||packets>1600||opusBytes!=packets*240||pcmBytes!=packets*640L||frames!=decodedFrames)throw new IOException("VOICE_RECORDING_INCOMPLETE");recordingComplete=true;
+  if(!matches(owner,14)||packets<=0||packets>RecordingVoiceSource.MAX_PACKETS||opusBytes!=packets*240||pcmBytes!=packets*640L||frames!=decodedFrames)throw new IOException("VOICE_RECORDING_INCOMPLETE");recordingComplete=true;
  }
  private void decoded(byte[] bytes,boolean recording)throws IOException{
   if(closed||sealed||freezing)throw new IOException("VOICE_AUDIO_CLOSED");

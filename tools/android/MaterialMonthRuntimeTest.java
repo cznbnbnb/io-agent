@@ -82,7 +82,7 @@ final class MaterialHttp implements MaterialApi.Transport{static int created;Mat
 final class MaterialApi{interface Transport{Response exchange(String path,byte[] body)throws IOException;void cancel();}static final class Response{}final Transport http;MaterialApi(MaterialConnection connection,Transport http){this.http=http;}void preflight(long now,boolean versions)throws IOException{http.exchange("/identity",null);}}
 final class MaterialSyncSession{
  interface Guard{void check()throws IOException;}interface AccountSource{OfficialAccountBinding current()throws Exception;}interface DiscoverySource extends AccountSource{OfficialLifelogDiscovery.Snapshot discover()throws Exception;}interface FreshSource extends AccountSource{OfficialLifelogBatch read()throws Exception;OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception;}
- static final class Status{int added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries;String note="ready";}
+ static final class Status{int added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";}
  static int started,completed;static String kind;static void reset(){started=completed=0;kind="";}final AccountSource source;final Guard guard;
  MaterialSyncSession(File dir,MaterialConfig cfg,AccountSource source,Guard guard,MaterialHttp http){started++;this.source=source;this.guard=guard;}
  static Status status(File dir,MaterialConfig config){return new Status();}

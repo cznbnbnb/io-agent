@@ -45,6 +45,15 @@
 
 账本已接入 MCP 工具和实验执行适配器；未做数据归档、容量管理、跨 OS 账户权限和断电磁盘验证。独占 home 的实际双进程及 owner 硬退出验证见 managed runtime 记录；事务 claim 本身仍不能代替所有权。
 
+### macOS / POSIX 进程托管的限制
+
+Mac 上用 `PosixProcessJob`（配合 `session_exec.py` 让 ACP 子进程成为会话首进程）代替 Windows Job。成员按“同一会话 + 仍挂在其父进程链上”认定，见过的成员一直记到确认退出为止；工具自己调用 `setsid` 时，只要父进程还在也仍被跟踪。它比 Job 弱：
+- owner 被强制杀掉（例如 `kill -9`）时，没有内核机制替它结束整棵进程树；
+- 关闭前脱离会话、并且父进程已退出的孤儿进程可能逃出跟踪；
+- 不限制资源，也不隔离文件系统或网络。工作区权限（`io-workspace-cli-v1`）的边界靠 ACP 的 `accept_edits` 和许可拒绝，不靠进程托管。
+
+因此 Mac 适合开发和验收，不应作为强隔离的生产执行环境；需要硬保证时仍以 Windows Job 为准。
+
 ## 持久提问与 MCP 工具
 
 `question_tools.py` 使用本机安装的 MCP 2.x low-level SDK，经 stdio 只暴露 `ask_user` / `wait_answer`。它不是 skill、模型运行器、常驻网络连接程序或完整执行适配器。

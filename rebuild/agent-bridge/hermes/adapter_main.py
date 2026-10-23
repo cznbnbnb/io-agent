@@ -16,7 +16,7 @@ from runtime_environment import managed_environment, require_enrollment_ready
 class NativeRunner:
     def __init__(self, config, operation, child_entry=None):
         from acp_transport import HermesACPTransport
-        from process_job import WindowsProcessJob
+        from process_job import contained_command, host_process_job
         self.operation = operation
         source = json.loads(operation['source'])
         self.route = source['body']['route']
@@ -33,17 +33,20 @@ class NativeRunner:
                 output.write(encode(value))
                 output.flush()
                 os.fsync(output.fileno())
-        self.transport = HermesACPTransport(command=[sys.executable, '-I', '-S', '-B', str(child_entry or Path(__file__).with_name('native_entry.py'))],
+        self.transport = HermesACPTransport(command=contained_command([sys.executable, '-I', '-S', '-B', str(child_entry or Path(__file__).with_name('native_entry.py'))]),
             environment=managed_environment(os.environ, config['home'], self.runtime_file),
-            home=config['home'], sessions=config['sessions'], process_job=WindowsProcessJob(), timeout=30)
+            home=config['home'], sessions=config['sessions'], process_job=host_process_job(), timeout=30)
         self.loaded = False
         self.close_task = None
 
     async def prepare(self):
-        from restricted_profile import read_policy, CLI_POLICY
-        if read_policy(self.config['home'])==CLI_POLICY:
+        from restricted_profile import read_policy, CLI_POLICIES, WORKSPACE_POLICY
+        policy=read_policy(self.config['home'])
+        if policy in CLI_POLICIES:
             await self.transport.start()
             await self.transport.strict_load(self.route['session_id'],self.route['project_id'])
+            if policy==WORKSPACE_POLICY:
+                await self.transport.set_mode(self.route['session_id'],'accept_edits')
             self.loaded=True
             return
         from acp.schema import McpServerStdio, EnvVariable

@@ -6,6 +6,12 @@ public final class LifelogRevisionJournalTest {
  static void reject(String code,Work work)throws Exception{checks++;try{work.run();}catch(IllegalArgumentException|IOException e){if(code.equals(e.getMessage()))return;throw e;}throw new AssertionError("Expected "+code);}
  static List<OfficialLifelogSnapshot.Source> sources(Map<String,Object> f){return Arrays.asList(OfficialLifelogSnapshotTest.read(f));}
  static byte[] bytes(Object value){return WireJson.bytes(value);}
+ /** Same fixture under another source id, with synthetic clips well past the 256KiB event limit. */
+ static Map<String,Object> oversized(String sourceId){
+  Map<String,Object> f=WireJson.map(WireJson.read(new String(bytes(OfficialLifelogSnapshotTest.fixture()),java.nio.charset.StandardCharsets.UTF_8).replace(OfficialLifelogSnapshotTest.SOURCE,sourceId).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+  List<Object> clips=new ArrayList<>();String text=String.join("",Collections.nCopies(300,"合成超长正文。"));for(int i=0;i<32;i++)clips.add(OfficialLifelogSnapshotTest.clip("clip-big-"+i,i*200,i*200+100,text));
+  OfficialLifelogSnapshotTest.source(f).put("clips",clips);return f;
+ }
  public static void main(String[] args)throws Exception{
   File root=new File(args[0]);long now=System.currentTimeMillis();MaterialConnection c=LifelogImportJournalTest.connection(now);OfficialAccountBinding account=LifelogImportJournalTest.account(42),other=LifelogImportJournalTest.account(43);AtomicReference<OfficialAccountBinding> current=new AtomicReference<>(account);LifelogRevisionJournal.Guard guard=current::get;
   MaterialSyncSessionTest.MemoryServer server=new MaterialSyncSessionTest.MemoryServer(c);MaterialApi api=new MaterialApi(c,server);Map<String,Object> original=OfficialLifelogSnapshotTest.fixture(),renamed=OfficialLifelogSnapshotTest.fixture();LifelogRevisionMapperTest.rename(renamed,"合成修订标签");String initialPayload;
@@ -39,6 +45,19 @@ public final class LifelogRevisionJournalTest {
   // a conflicting row. Files here are isolated synthetic fixtures only.
   File state=new File(root,"lifelog-revisions/"+c.binding()+"/"+account.binding+"/state.json");byte[] saved=Files.readAllBytes(state.toPath());Files.write(new File(state.getPath()+".partial").toPath(),new byte[]{123});reject("LIFELOG_REVISION_UNCERTAIN",()->{try(LifelogRevisionJournal ignored=new LifelogRevisionJournal(root,c,account.binding)) {}});yes(Arrays.equals(saved,Files.readAllBytes(state.toPath())));Files.delete(new File(state.getPath()+".partial").toPath());
   try(LifelogRevisionJournal empty=new LifelogRevisionJournal(root,c,other.binding);MaterialOutbox q=new MaterialOutbox(new File(root,"other"),c)){current.set(other);yes(empty.replay(guard,q)==0&&q.all().isEmpty());}
+  // An oversized source is reported and skipped; the rest of the batch stages.
+  // Nothing is truncated or split, and a stored revision is never displaced.
+  File big=new File(root,"oversized");current.set(account);String bigSource="fedcba9876543210fedcba9876543210";
+  try(LifelogRevisionJournal j=new LifelogRevisionJournal(big,c,account.binding);MaterialOutbox q=new MaterialOutbox(big,c)){
+   OfficialLifelogSnapshot.Source normal=OfficialLifelogSnapshotTest.read(original),huge=OfficialLifelogSnapshotTest.read(oversized(bigSource));String hugeId=huge.materialId(account.binding);
+   Set<String> skipped=new TreeSet<>();yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now,skipped)==1);yes(skipped.equals(Collections.singleton(hugeId)));
+   yes(j.replay(guard,q)==1&&q.all().size()==1&&normal.materialId(account.binding).equals(WireJson.map(q.all().get(0)).get("material_id")));
+   skipped.clear();yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now+1,skipped)==0&&skipped.size()==1&&q.all().size()==1);
+   MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(c);yes(new MaterialApi(c,bigServer).pump(q,now+2));yes(bigServer.posts==1);
+   Map<String,Object> grown=oversized(OfficialLifelogSnapshotTest.SOURCE);skipped.clear();
+   yes(j.stageFresh(sources(grown),guard,q,now+3,skipped)==0&&skipped.size()==1&&q.all().size()==1&&"server_stored".equals(WireJson.map(q.all().get(0)).get("state")));
+   yes(j.stageFresh(sources(grown),guard,q,now+4)==0&&j.replay(guard,q)==1);
+  }
   System.out.println("Lifelog revision journal: "+checks+" assertions passed");
  }
 }

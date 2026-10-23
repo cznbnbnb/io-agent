@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T09:20:00Z",
+  "product": "0.5.3-dev9 /10431",
+  "host": "macOS (Apple Silicon)",
+  "run_id": "phone309-20261022-a (synthetic owner synthetic-cloud-phone309-20261022-a, cznbnb.cn)",
+  "hermes": {
+    "source_commit": "08165d58931841cee713468ae89032af7c57060a",
+    "source": "project-local pinned clone .runtime/hermes-agent (uv .venv, Python 3.14.3, extras acp+mcp); user ~/.hermes untouched",
+    "model": "kimi-k3 / custom:token-share",
+    "tool_profile": "io-question-cli-v1 (io_ask_user, io_wait_answer, io_question_status only)"
+  },
+  "fixes_exercised": {
+    "posix_process_job": "adapter starts Hermes via session_exec.py (setsid); shutdown froze and killed the session tree; native_turns.process_closed=1 for both operations",
+    "deadline_hint": "first io_ask_user rejected RUNTIME_DEADLINE_INVALID with now_utc and valid_expires_at; the model's next call inside that window succeeded",
+    "phone_profile_removal": "dev9 移除已到期会话 freed 3 of 16 slots so the phone309 connection could be imported"
+  },
+  "loop": {
+    "task_delegated_from_phone": true,
+    "question": "眼镜语音测试：请用中文回复两行：1) 要写入的文件名 2) 要写入的一行文字内容",
+    "answer_input_source": "voice",
+    "answer_text": "文件名叫眼镜测试。\n内容是。\n语音回答通过。",
+    "answer_verified_by_user_before_save": true,
+    "answer_consumed_once": true,
+    "server_receipts": ["agent_received", "task_resumed"],
+    "model_restated_answer": "文件名 眼镜测试 / 内容 语音回答通过。",
+    "io_wait_answer_host_timeout": "first wait hit the Hermes 420 s tool timeout before the user answered; the model checked status and waited again"
+  },
+  "not_achieved": {
+    "file_written": false,
+    "why": "the question-only profile deliberately exposes no file or terminal tools (restricted_profile.py: production tool enrollment is a separate decision). The test prompt asked for a file, so Hermes could only report the answer.",
+    "final_state": "execution_unknown",
+    "why_unknown": "after receiving the answer the model opened a stray question '（内部探测，请忽略）' and ended its turn; the scheduler withdrew it and conservatively recorded unanswered_question_at_native_completion, so no result message reached the phone"
+  },
+  "cleanup": {
+    "bridge_stopped": "SIGINT, exit 0",
+    "synthetic_tasks_closed": "phone308 x2 and phone309 open task -> cancelled (execution_unknown goes straight to cancelled)",
+    "credentials_revoked": ["phone308-20261022-a", "phone309-20261022-a"],
+    "revocation_verified": "agent and phone identity both 401 AUTH_REQUIRED for each run",
+    "test_driver_uninstalled": "com.turboio.androidtests, device sha256 19f75c73… matched local build before uninstall",
+    "import_file": "already consumed by the app; nothing to remove"
+  },
+  "source_sha256": {
+    "rebuild/agent-bridge/hermes/process_job.py": "e5bdea875b2079ac4a884364bde9c1d87723309bb5b4efcc497e928477e22a77",
+    "rebuild/agent-bridge/hermes/session_exec.py": "60154c72624918ed5d1d818eb389b46f2077731ea766b3570f11a6d9e803aba4",
+    "rebuild/agent-bridge/hermes/adapter_main.py": "65de31882a6107e0a9950b597a60644f7042c9ab48f68f1e2f0dd9f3a7dc7beb",
+    "rebuild/agent-bridge/hermes/cli_tools.py": "b56c7ff4fecbef906ae9767b42275f8bf8e990b3af065c105acf6564f8dd9032"
+  }
+}

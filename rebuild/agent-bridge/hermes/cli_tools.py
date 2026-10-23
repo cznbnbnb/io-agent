@@ -9,15 +9,15 @@ from pathlib import Path
 import subprocess
 import sys
 import time
-from runtime_journal import encode, identifier, timestamp, RuntimeJournalError
+from runtime_journal import deadline_window, encode, identifier, timestamp, RuntimeJournalError
 
 TOOLSET = 'turboio-questions-cli'
 SCHEMAS = {
  'io_ask_user': {'name':'io_ask_user','description':'Ask the user for this original task. Keep question_key and expires_at stable on retries. Then wait for its actual answer.',
   'parameters':{'type':'object','additionalProperties':False,'required':['question_key','question','mode','options','expires_at'],
-   'properties':{'question_key':{'type':'string','maxLength':128},'question':{'type':'string','maxLength':4096},
+   'properties':{'question_key':{'type':'string','maxLength':128},'question':{'type':'string','maxLength':4096,'description':'Shown on the wearer\'s glasses. Only a one-line free_text question of 36 characters or fewer is a glasses card; every choice and any longer question goes to the glasses prompter, headed by agent, project and session, with every option numbered, and the wearer answers by voice, e.g. "选二" plus any conditions. The result\'s glasses_display says which. Ask one thing at a time.'},
     'mode':{'enum':['choice','free_text']},'options':{'type':'array','maxItems':4,'items':{'type':'object','additionalProperties':False,'required':['option_id','label'],
-      'properties':{'option_id':{'type':'string'},'label':{'type':'string'}}}},'expires_at':{'type':'string','description':'UTC ISO timestamp ending Z within the next hour.'}}}},
+      'properties':{'option_id':{'type':'string'},'label':{'type':'string'}}}},'expires_at':{'type':'string','description':'UTC ISO timestamp ending Z within the next hour. A rejected value returns now_utc and the valid range; choose one inside it.'}}}},
  'io_wait_answer': {'name':'io_wait_answer','description':'Remain waiting for the actual persisted answer in this original task. The host repeats bounded CLI polls internally; wait_seconds is a poll interval, not a question deadline. operation_closed forbids continuing; expiry is not a rejection.',
   'parameters':{'type':'object','additionalProperties':False,'required':['request_id'],
    'properties':{'request_id':{'type':'string'},'wait_seconds':{'type':'number','minimum':0,'maximum':30}}}},
@@ -49,9 +49,11 @@ def invoke(action, arguments, config, *, python=None):
                 raise ValueError()
             if proc.returncode==0 and 'error' in result:
                 raise ValueError()
+            if action=='ask' and result=={'error':'RUNTIME_DEADLINE_INVALID'}:
+                return encode(deadline_window(time.time()))
             if action!='wait' or proc.returncode!=0:
                 return encode(result)
-            if set(result)!={'request_id','runtime_request_id','state','expires_at','deadline_elapsed','answer'} or result['request_id']!=arguments.get('request_id') or type(result['deadline_elapsed']) is not bool:
+            if set(result)!={'request_id','runtime_request_id','state','expires_at','deadline_elapsed','answer','glasses_display'} or result['request_id']!=arguments.get('request_id') or type(result['deadline_elapsed']) is not bool or result['glasses_display'] not in {'card','prompter'}:
                 raise ValueError()
             identifier(result['runtime_request_id'])
             expiry=timestamp(result['expires_at'])

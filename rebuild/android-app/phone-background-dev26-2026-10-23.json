@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "run_id": "caller308-20261022-a",
+  "caller": {
+    "runtime": "claude-code",
+    "source": "CLAUDE_CODE_SESSION_ID",
+    "registered_by": "tools/android/prepare-current-caller.mjs",
+    "route": {
+      "computer_id": "io-mac-computer",
+      "agent_id": "io-claude-code",
+      "project_id": "rayneo-io-agent"
+    },
+    "creates_agent_session": false
+  },
+  "builds": {
+    "dev22": {
+      "code": 10444,
+      "fix": "every choice goes to the prompter (user: two-option paged cards hide the other option and the asker, and paging ends on the phone); the manuscript header names agent, project and the session's first 8 characters",
+      "result": "the pending question was re-offered to the prompter automatically after install; the lens showed 未知错误"
+    },
+    "dev23": {
+      "code": 10445,
+      "fix": "type9 (glasses audio uplink) no longer treated as stop",
+      "result": "resend worked while the phone was awake; wearer exit opened dictation, which was cut at 30 s mid-sentence and stayed INCOMPLETE (no confirm card, not saved)"
+    },
+    "dev24": {
+      "code": 10446,
+      "fix": "a stop at the capture time limit keeps the words recognised at the cutoff and goes to REVIEW; manuscript states the limit"
+    },
+    "dev25": {
+      "code": 10447,
+      "fix": "dictation limit 60 s (user request); synthetic capture experiments keep the AGENTS.md 30 s rule"
+    },
+    "dev26": {
+      "code": 10448,
+      "sha256": "b39590a286a275c47cb70a2bce81d8ff4423b351e25c0a5d53912327d3a1c895",
+      "fix": "an agent question on the prompter is not stopped when the App leaves the foreground (upstream MusicPlayer.background called NewsTele.stop); the phone's own exit button calls control(6)",
+      "verified": "screen turned off 4 s after ready; trace 'background stop ignored phase=ready', session stayed until the question expired",
+      "rollback": "dev25"
+    }
+  },
+  "root_cause": "dev22 未知错误 and the dev25 close 3 s after ready share one path: App to background (install relaunch / screen off) -> MusicPlayer.background -> NewsTele.stop -> type6 during prepare/ready. The type9 change is correct per the firmware table but was not the cause.",
+  "questions": [
+    {
+      "key": "next-work-1",
+      "mode": "choice",
+      "options": 2,
+      "first_route": "card (dev21 rule)",
+      "then": "prompter (dev22)",
+      "outcome": "user reply cut at 30 s, draft INCOMPLETE on the phone, never submitted; the user's partial words were read from the phone screen: picks 1 tentatively but doubts the auto-exit feature because they exit before playback starts; a second point about the header was cut off",
+      "server_state": "expired without answer"
+    },
+    {
+      "key": "prompter-header-1",
+      "mode": "choice",
+      "options": 3,
+      "route": "prompter",
+      "outcome": "no exit or answer before expiry; glasses sent no position frames this time, so whether the lens was scrolling is unverified",
+      "server_state": "expired"
+    }
+  ],
+  "cli": {
+    "wait_seconds_max": 600,
+    "fix": "bridge deadline = wait limit + 10 s; two earlier waits ended NETWORK_UNAVAILABLE because the final poll had ~0 ms left; after the fix two waits ended cleanly"
+  },
+  "cleanup": {
+    "task": "cancelled (rev 6)",
+    "phone_session": "paused",
+    "credentials": "revoked",
+    "agent_identity": "AUTH_REQUIRED 401",
+    "phone_identity": "AUTH_REQUIRED 401"
+  },
+  "open": [
+    "dictation after wearer exit still needs the phone awake with the App in front; otherwise the phone only asks the wearer to open it",
+    "no answer from this Claude Code session was consumed end-to-end yet",
+    "the header wording the user wants is still unknown"
+  ]
+}

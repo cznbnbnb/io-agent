@@ -7,6 +7,8 @@ import ctypes
 import asyncio
 from ctypes import wintypes
 import os
+from pathlib import Path
+import signal
 import time
 import subprocess
 
@@ -110,3 +112,122 @@ class WindowsProcessJob:
             time.sleep(0.02)
         self.kernel.CloseHandle(self.handle)
         self.handle = None
+
+
+class PosixProcessJob:
+    """POSIX stand-in for the Windows job: the ACP leader runs as a session leader
+    (see session_exec.py) and membership is its session plus every process still
+    linked to it by parentage, so tools that call setsid stay tracked while their
+    parent lives. Every member ever seen is remembered until confirmed gone.
+
+    Weaker than a job object: nothing kills the tree if this owner is hard-killed,
+    and a process orphaned outside the session before shutdown can escape."""
+    def __init__(self):
+        if os.name == 'nt':
+            raise ProcessJobError('RUNTIME_JOB_UNSUPPORTED')
+        self.leader = None
+        self.known = set()
+        self.closed = False
+
+    @staticmethod
+    def _table():
+        try:
+            out = subprocess.run(['ps', '-A', '-o', 'pid=,ppid=,stat='], capture_output=True, check=True,
+                                 text=True, timeout=10).stdout
+        except Exception:
+            raise ProcessJobError('RUNTIME_JOB_QUERY_FAILED') from None
+        live = {}
+        for line in out.splitlines():
+            parts = line.split()
+            if len(parts) >= 3 and parts[0].isdigit() and parts[1].isdigit() and not parts[2].startswith('Z'):
+                live[int(parts[0])] = int(parts[1])
+        return live
+
+    def _members(self):
+        live = self._table()
+        members = {pid for pid in self.known if pid in live}
+        for pid in live:
+            try:
+                if os.getsid(pid) == self.leader:
+                    members.add(pid)
+            except OSError:
+                pass
+        grew = True
+        while grew:
+            grew = False
+            for pid, parent in live.items():
+                if parent in members and pid not in members:
+                    members.add(pid)
+                    grew = True
+        members.discard(os.getpid())
+        self.known |= members
+        return members
+
+    def attach(self, process):
+        """Accept a subprocess handle, never an arbitrary PID from model input."""
+        if self.closed or self.leader is not None:
+            raise ProcessJobError('RUNTIME_JOB_CLOSED')
+        child = process
+        if isinstance(process, asyncio.subprocess.Process):
+            child = process._transport.get_extra_info('subprocess')
+        if not isinstance(child, subprocess.Popen) or child.pid == os.getpid():
+            raise ProcessJobError('RUNTIME_JOB_PROCESS_INVALID')
+        # session_exec.py calls setsid before exec; wait for it rather than adopt a
+        # process that still shares this owner's session.
+        until = time.monotonic() + 2
+        while True:
+            if child.poll() is not None:
+                raise ProcessJobError('RUNTIME_JOB_PROCESS_UNAVAILABLE')
+            try:
+                if os.getsid(child.pid) == child.pid:
+                    break
+            except OSError:
+                raise ProcessJobError('RUNTIME_JOB_PROCESS_UNAVAILABLE') from None
+            if time.monotonic() >= until:
+                raise ProcessJobError('RUNTIME_JOB_PROCESS_UNAVAILABLE')
+            time.sleep(0.01)
+        self.leader = child.pid
+        self.known.add(child.pid)
+
+    def active_count(self):
+        if self.closed:
+            raise ProcessJobError('RUNTIME_JOB_CLOSED')
+        return len(self._members()) if self.leader is not None else 0
+
+    def shutdown(self, timeout=5):
+        """Do not release ownership based on a kill request alone."""
+        if self.closed:
+            return
+        if type(timeout) not in {int, float} or not 0 < timeout <= 30:
+            raise ProcessJobError('RUNTIME_JOB_TIMEOUT_INVALID')
+        if self.leader is not None:
+            # Freeze first so nothing forks or re-parents away during collection.
+            for _ in range(3):
+                for pid in self._members():
+                    try:
+                        os.kill(pid, signal.SIGSTOP)
+                    except OSError:
+                        pass
+            for pid in self._members():
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+            until = time.monotonic() + timeout
+            while self._members():
+                if time.monotonic() >= until:
+                    # Keep ownership; do not pretend children exited.
+                    raise ProcessJobError('RUNTIME_JOB_DESCENDANTS_ALIVE')
+                time.sleep(0.02)
+        self.closed = True
+
+
+def host_process_job():
+    return WindowsProcessJob() if os.name == 'nt' else PosixProcessJob()
+
+
+def contained_command(command):
+    """Prefix needed so the POSIX job can adopt the child as a session leader."""
+    if os.name == 'nt':
+        return list(command)
+    return [command[0], '-I', '-S', '-B', str(Path(__file__).with_name('session_exec.py'))] + list(command)

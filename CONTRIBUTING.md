@@ -2,7 +2,7 @@
 
 先阅读 `AGENTS.md`、`docs/product/PRD.md`、`docs/product/DEVELOPMENT-PLAN.md` 和 `docs/product/COLLABORATION-HANDOFF.md`。
 
-1. 从远程 `main` 新建自己的 `codex/<主题>` 分支，每批先写明目标、修改文件和验收出口。另一位 AI 可使用自己的分支前缀；不要直接并发修改同一工作目录或同一文件。
+1. 按 `AGENTS.md`「Claude / Codex 并行协作」：从远程 `main` 新建 `claude/<主题>` 或 `codex/<主题>` 分支，用 `tools/collab/worktree.sh` 建自己的工作目录；碰设备前拿 `tools/collab/device-lock.mjs` 设备锁；测试身份和题号按约定分段。每批先写明目标、修改文件和验收出口；不要并发修改同一工作目录或同一文件。
 2. 建议当前主代理负责设备、签名、OTA 和集成；协作 AI 优先承担服务、纯业务核心、定向测试及代码审查。涉及共享协议先核对 `docs/contracts/`，保持原任务、原问题、版本和路由绑定。
 3. 每个 PR 说明最终行为、受影响测试、尚未验收项。代码、替身测试、真机、镜片和服务器回读分别记录，不相互替代。
 4. 默认只运行受影响测试。设备、采音、安装与公网脚本需按具体授权及前置执行，不因仓库可访问就获得真实账号或部署权限。

@@ -22,7 +22,7 @@ final class VoiceCaptureCutoff implements VoiceAnswerSession.Cutoff,AutoCloseabl
  }
  synchronized boolean arm(String token,String peerHash,long generation,long deadline){
   long now=clock.getAsLong();
-  TaskWire.require(token!=null&&token.matches("[a-f0-9]{32}")&&peerHash!=null&&peerHash.matches("[a-f0-9]{64}")&&generation>0&&now>=0&&deadline>now&&deadline-now<=30000,"VOICE_CUTOFF_INVALID");
+  TaskWire.require(token!=null&&token.matches("[a-f0-9]{32}")&&peerHash!=null&&peerHash.matches("[a-f0-9]{64}")&&generation>0&&now>=0&&deadline>now&&deadline-now<=VoiceAnswerSession.CAPTURE_SECONDS*1000L,"VOICE_CUTOFF_INVALID");
   if(closed||active!=null)return false;
   Lease lease=new Lease(token,peerHash,generation,deadline);active=lease;
   try{lease.scheduled=timer.schedule(()->fire(lease),deadline-now,TimeUnit.MILLISECONDS);return true;}

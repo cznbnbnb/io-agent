@@ -26,10 +26,12 @@ public final class EmulatorInput extends Instrumentation {
    String text=new String(Base64.decode(encoded,Base64.NO_WRAP),StandardCharsets.UTF_8);
    UiAutomation ui=getUiAutomation();ui.waitForIdle(200,3000);
    List<AccessibilityNodeInfo> found=new ArrayList<>();fields(ui.getRootInActiveWindow(),found);
+   // Optional hint selects one field on multi-field pages; the target must still be unique.
+   String hint=arguments.getString("hint");if(hint!=null)found.removeIf(n->n.getHintText()==null||!n.getHintText().toString().contains(hint));
    if(found.size()!=1)throw new IllegalStateException("Expected exactly one editable product field");
    Bundle value=new Bundle();value.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,text);
    if(!found.get(0).performAction(AccessibilityNodeInfo.ACTION_SET_TEXT,value))throw new IllegalStateException("Text action rejected");
-   found.clear();fields(ui.getRootInActiveWindow(),found);
+   found.clear();fields(ui.getRootInActiveWindow(),found);if(hint!=null)found.removeIf(n->n.getHintText()==null||!n.getHintText().toString().contains(hint));
    if(found.size()!=1||!text.contentEquals(found.get(0).getText()))throw new IllegalStateException("Full text was not preserved");
    result.putBoolean("full_text_verified",true);result.putInt("utf8_bytes",text.getBytes(StandardCharsets.UTF_8).length);finish(Activity.RESULT_OK,result);
   }catch(Exception failure){result.putString("failure",failure.getClass().getSimpleName());finish(Activity.RESULT_CANCELED,result);}

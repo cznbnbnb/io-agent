@@ -134,6 +134,13 @@ public final class MaterialDiscoverySyncTest {
   yes(legacyPayloads.equals(payloads(legacyRoot,config)));
   yes(sync(legacyRoot,config,changed(),legacyServer).stored==2&&legacyServer.posts==2);
   yes(payloads(legacyRoot,config).get(0).equals(legacyPayloads.get(0)));
+  // An oversized day is reported, never posted or truncated, and the session
+  // still completes; a later normal-size revision of the same source proceeds.
+  File bigRoot=new File(root,"oversized");Source big=new Source();OfficialLifelogSnapshotTest.source(big.detail).put("clips",OfficialLifelogSnapshotTest.source(LifelogRevisionJournalTest.oversized(OfficialLifelogSnapshotTest.SOURCE)).get("clips"));
+  MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(connection);MaterialSyncSession.Status skipped=sync(bigRoot,config,big,bigServer);
+  yes(skipped.tooLarge==1&&skipped.discovered==1&&skipped.added==0&&skipped.stored==0&&skipped.queued==0&&bigServer.posts==0);
+  yes("MATERIAL_EVENT_TOO_LARGE".equals(skipped.note)&&payloads(bigRoot,config).isEmpty());
+  MaterialSyncSession.Status resumed=sync(bigRoot,config,new Source(),bigServer);yes(resumed.tooLarge==0&&resumed.stored==1&&bigServer.posts==1&&"server_stored".equals(resumed.note));
   System.out.println("Material discovery session: "+checks+" assertions passed");
  }
 }

@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T06:58:01.295108+00:00",
+  "client_date": "2026-10-22",
+  "installed": "0.5.3-dev37",
+  "rollback": "0.5.3-dev36",
+  "user_report_dev36": "看到提词器，长按退出后没有进入录音",
+  "user_report_dev37": "还是没进入录音",
+  "user_exit_page_confirmation": "时间主界面",
+  "dev36_observation": {
+    "wearer_exit_event": true,
+    "preflight_failure": "VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED",
+    "false_release_followup": "VOICE_RECOVERY_REQUIRED",
+    "capture_started": false
+  },
+  "dev37_observation": {
+    "wearer_exit_event": true,
+    "preflight_failure": "VOICE_PREFLIGHT_TIMEOUT",
+    "prepared_release_clean": true,
+    "capture_started": false
+  },
+  "checks": {
+    "jvm_recording_adapter_assertions": 478,
+    "covers": [
+      "busy then idle without bypass",
+      "original 8 second deadline",
+      "invalid version refusal",
+      "idempotent releasePrepared"
+    ],
+    "device_audio_success": false
+  },
+  "read_only_device_diagnostics": {
+    "fota_os_version": "Strix OS 1.0.5.5",
+    "ota_validation_state": "idle",
+    "ota_validation_confirmed": true,
+    "supported_package_types": [
+      "files",
+      "zip"
+    ],
+    "ota_idle_query_result": false,
+    "launcher_status_and_settings_received": true,
+    "observer_and_lane_restored": true,
+    "driver_uninstalled": true,
+    "audio_or_ota_started": false
+  },
+  "conclusion": "Duplicate unarmed cleanup is fixed; the long-press-to-record regression is NOT fixed. Need a recording-specific availability and stop proof, since the current FOTA idle predicate also checks top app/life-log/assistant conditions. Exact current blocking condition is not yet identified.",
+  "next": "Trace current recording status inquiry and launch-conflict policy; prepare developer read-only checks before another wearer recording test.",
+  "original_audio_and_drafts_retained": true
+}

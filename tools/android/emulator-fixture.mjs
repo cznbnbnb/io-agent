@@ -1,9 +1,10 @@
 // Test environment only. Never changes the APK's TLS policy or a physical device.
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import {exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app');
 const runtime=JSON.parse(fs.readFileSync(path.join(root,'.private/emulator-runtime.json'),'utf8').replace(/^\uFEFF/,''));
 if(runtime.serial!=='emulator-5582'||runtime.api!==36)throw new Error('This fixture only supports the project Android16 emulator');
-const adb=path.join(root,'.tools/sdk/platform-tools/adb.exe'),env={...process.env,ANDROID_USER_HOME:path.join(root,'.private/android-user')};
+const adb=path.join(root,'.tools/sdk/platform-tools',exe('adb')),env={...process.env,ANDROID_USER_HOME:path.join(root,'.private/android-user')};
 function run(args){const r=spawnSync(adb,['-s',runtime.serial,...args],{env,encoding:'utf8',timeout:30000,maxBuffer:1024**2});if(r.error)throw r.error;if(r.status!==0)throw new Error('Emulator fixture ADB step failed: '+args.slice(0,2).join(' '));return r.stdout.trim();}
 const certFile=path.join(root,'.private/fixture-tls/server.pem'),pem=fs.readFileSync(certFile),cert=new crypto.X509Certificate(pem);
 if(!cert.ca||cert.checkIP('127.0.0.1')!=='127.0.0.1'||cert.subject!==cert.issuer||Date.parse(cert.validFrom)>Date.now()||Date.parse(cert.validTo)<=Date.now())throw new Error('Only the current short-lived local fixture CA is allowed');

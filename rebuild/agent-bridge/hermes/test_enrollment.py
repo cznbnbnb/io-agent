@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from enroll_home import limited_provider, enroll
-from restricted_profile import NAMES, POLICY, read_policy, enforce_question_tools
+from restricted_profile import NAMES, POLICY, CLI_POLICY, WORKSPACE_POLICY, read_policy, enforce_question_tools
 from runtime_journal import RuntimeJournalError
 
 
@@ -80,6 +80,45 @@ class EnrollmentTests(unittest.TestCase):
             else:agent.enabled_toolsets.append('terminal')
             with patch.dict(sys.modules,{'model_tools':module}):
                 with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_UNEXPECTED_TOOLS'):enforce_question_tools(agent)
+
+    def workspace_agent(self,policy=WORKSPACE_POLICY):
+        names=policy['tools']
+        toolsets=['turboio-questions-cli']+(['file','terminal'] if policy==WORKSPACE_POLICY else [])
+        return types.SimpleNamespace(tools=[{'function':{'name':name}} for name in names],valid_tool_names=set(names),
+                                     enabled_toolsets=toolsets,disabled_toolsets=[])
+
+    def test_workspace_profile_allows_exactly_file_terminal_and_question_tools(self):
+        agent=self.workspace_agent();raw=list(agent.tools)
+        module=types.SimpleNamespace(get_tool_definitions=lambda **kwargs:raw)
+        with patch.dict(sys.modules,{'model_tools':module}):enforce_question_tools(agent,WORKSPACE_POLICY)
+        for extra in ['browser_navigate','computer_use','memory','delegate_task']:
+            module.get_tool_definitions=lambda **kwargs:raw+[{'function':{'name':extra}}]
+            with patch.dict(sys.modules,{'model_tools':module}):
+                with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_UNEXPECTED_TOOLS'):enforce_question_tools(agent,WORKSPACE_POLICY)
+        agent=self.workspace_agent();agent.enabled_toolsets.append('browser')
+        module.get_tool_definitions=lambda **kwargs:raw
+        with patch.dict(sys.modules,{'model_tools':module}):
+            with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_UNEXPECTED_TOOLS'):enforce_question_tools(agent,WORKSPACE_POLICY)
+
+    def test_question_profile_cannot_borrow_workspace_tools(self):
+        wide=self.workspace_agent();narrow=self.workspace_agent(CLI_POLICY)
+        module=types.SimpleNamespace(get_tool_definitions=lambda **kwargs:wide.tools)
+        with patch.dict(sys.modules,{'model_tools':module}):
+            with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_UNEXPECTED_TOOLS'):enforce_question_tools(narrow,CLI_POLICY)
+            with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_UNEXPECTED_TOOLS'):enforce_question_tools(wide,CLI_POLICY)
+
+    def test_workspace_policy_file_accepted_and_unknown_enrollment_profile_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            file=Path(temp)/'.turboio-tool-policy.json';file.write_text(json.dumps(WORKSPACE_POLICY))
+            self.assertEqual(read_policy(temp),WORKSPACE_POLICY)
+            file.write_text(json.dumps({**WORKSPACE_POLICY,'tools':WORKSPACE_POLICY['tools']+['browser_navigate']}))
+            with self.assertRaisesRegex(RuntimeJournalError,'RUNTIME_TOOL_POLICY_INVALID'):read_policy(temp)
+            home=Path(temp)/'new-home'
+            spec={'home':str(home),'cwd':temp,'source':temp,'site_packages':temp,'provider_config':str(file),
+                  'provider_name':'selected','model':'test','project_id':'p','profile':'io-full-access',
+                  'binding':{name:'synthetic' for name in ['server_id','owner_id','producer_id','computer_id','agent_id']}}
+            with self.assertRaisesRegex(RuntimeJournalError,'ENROLL_PROFILE_INVALID'):enroll(spec)
+            self.assertFalse(home.exists())
 
 
 if __name__=='__main__':unittest.main()

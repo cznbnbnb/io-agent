@@ -36,11 +36,13 @@ public final class Host107Abi {
     if(kind.equals("RECORDING_SERVICE")||kind.equals("VOICE_ASSISTANT")||kind.equals("AI_SUBTITLE")||kind.equals("TELEPROMPTER")){
      Object bytes=NavReflect.field(message,"e");if(!(bytes instanceof byte[]))return false;
      byte[] frozen=((byte[])bytes).clone();java.lang.reflect.Field payload=message.getClass().getDeclaredField("e");payload.setAccessible(true);payload.set(message,frozen);
+     if(kind.equals("RECORDING_SERVICE"))RecordingTrace.frame("tx",14,frozen);
      if(!Host107Recording.allowQueue(message,kind,destination,frozen))return false;
     }
     if(kind.equals("LAUNCHER")||kind.equals("NOTIFICATION")){
      Object bytes=NavReflect.field(message,"e");if(!(bytes instanceof byte[]))return false;
      byte[] frozen=((byte[])bytes).clone();java.lang.reflect.Field payload=message.getClass().getDeclaredField("e");payload.setAccessible(true);payload.set(message,frozen);
+     if(kind.equals("LAUNCHER"))LifelogTrace.frame("tx",frozen);
      return kind.equals("LAUNCHER")?HeadGestureGate.allow(message,destination,frozen):SuggestionGate.allow(message,destination,frozen);
     }
     return true;
@@ -48,6 +50,7 @@ public final class Host107Abi {
    Object bytes=NavReflect.field(message,"e");if(!(bytes instanceof byte[])||((byte[])bytes).length>65536)return false;
    // Detach vendor-owned buffers before policy approval; the SDK reads this very field.
    byte[] frozen=((byte[])bytes).clone();java.lang.reflect.Field payload=message.getClass().getDeclaredField("e");payload.setAccessible(true);payload.set(message,frozen);
+   RecordingTrace.frame("tx",9,frozen);
    return FirmwareQueue.allow(kind,message,peer instanceof String?(String)peer:null,frozen);
   }catch(Exception error){return false;}
  }

@@ -28,12 +28,14 @@ final class VoiceAnswerRuntime {
  private final Set<Activity> visible=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
  private final List<Attempt> retained=new ArrayList<>(); // IO lane; journals stay owned until process exit.
  private volatile Attempt active;private volatile boolean blocked,loaded;
+ // Glasses-started dictation that may continue with the screen off / App in background (TaskAttention).
+ private volatile Object backgroundOwner;private volatile Observer headless;
  private boolean action;private long actionId;
  private volatile Snapshot value=new Snapshot("IDLE","","","","",false,false,false,true);
  private interface Work {void run()throws Exception;}
  private static final class Attempt {
   final String id;final VoiceAnswerJournal journal;final VoiceAnswerSession draft;
-  volatile String binding="",request="",peer="",token="",note="";volatile long generation,captureOperation;
+  volatile String binding="",request="",peer="",token="",note="",traced="";volatile long generation,captureOperation;
   volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
@@ -44,14 +46,22 @@ final class VoiceAnswerRuntime {
   Attempt(String id,VoiceAnswerJournal journal){this.id=id;this.journal=journal;draft=new VoiceAnswerSession(journal);}
  }
  static synchronized VoiceAnswerRuntime get(Activity activity){
-  if(instance==null)instance=new VoiceAnswerRuntime(activity);instance.visible.add(activity);return instance;
+  if(instance==null)instance=new VoiceAnswerRuntime((Application)activity.getApplicationContext(),TaskRuntime.get(activity));instance.visible.add(activity);return instance;
  }
- private VoiceAnswerRuntime(Activity activity){
-  files=activity.getApplicationContext().getFilesDir();tasks=TaskRuntime.get(activity);
-  ((Application)activity.getApplicationContext()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
+ /** No-page access for a glasses-started dictation with the App in the background. */
+ static synchronized VoiceAnswerRuntime get(Application app,TaskRuntime tasks){if(instance==null)instance=new VoiceAnswerRuntime(app,tasks);return instance;}
+ private boolean background(){return backgroundOwner!=null&&TaskAttention.background();}
+ private boolean attended(){return !visible.isEmpty()||background();}
+ /** owner keeps its capture running when no page is visible; clearing is per owner. */
+ void keepInBackground(Object owner,boolean on){mainThread();if(on)backgroundOwner=owner;else if(backgroundOwner==owner){backgroundOwner=null;if(visible.isEmpty())stop(true,null);}}
+ void observeHeadless(Observer observer){mainThread();headless=observer;observer.changed(value);}
+ void unobserveHeadless(Observer observer){mainThread();if(headless==observer)headless=null;}
+ private VoiceAnswerRuntime(Application application,TaskRuntime tasks){
+  files=application.getFilesDir();this.tasks=tasks;
+  application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){visible.add(a);}
-   public void onActivityPaused(Activity a){visible.remove(a);if(visible.isEmpty())stop(true,null);}
-   public void onActivityDestroyed(Activity a){visible.remove(a);observers.entrySet().removeIf(e->e.getValue().get()==null||e.getValue().get()==a);if(visible.isEmpty())stop(true,null);}
+   public void onActivityPaused(Activity a){visible.remove(a);if(!attended())stop(true,null);}
+   public void onActivityDestroyed(Activity a){visible.remove(a);observers.entrySet().removeIf(e->e.getValue().get()==null||e.getValue().get()==a);if(!attended())stop(true,null);}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityStopped(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });
   io.execute(()->{try{scan();}catch(Exception invalid){blocked=true;}finally{loaded=true;if(active!=null)refresh(active,null);else publish(new Snapshot(blocked?"BLOCKED":"IDLE",blocked?"VOICE_RECOVERY_REQUIRED":"","","","",false,false,blocked,!blocked));}});
@@ -60,12 +70,12 @@ final class VoiceAnswerRuntime {
  void observe(Activity activity,Observer observer){mainThread();observers.put(observer,new WeakReference<>(activity));observer.changed(value);}
  void unobserve(Observer observer){mainThread();observers.remove(observer);}
  private void publish(Snapshot next){publish(null,next);}
- private void publish(Attempt owner,Snapshot next){main.post(()->{if(owner!=null&&!owns(owner))return;value=next;observers.entrySet().removeIf(e->e.getValue().get()==null||e.getValue().get().isDestroyed());for(Observer observer:new ArrayList<>(observers.keySet()))try{if(observers.containsKey(observer))observer.changed(next);}catch(RuntimeException ignored){}});}
+ private void publish(Attempt owner,Snapshot next){main.post(()->{if(owner!=null&&!owns(owner))return;value=next;observers.entrySet().removeIf(e->e.getValue().get()==null||e.getValue().get().isDestroyed());for(Observer observer:new ArrayList<>(observers.keySet()))try{if(observers.containsKey(observer))observer.changed(next);}catch(RuntimeException ignored){}Observer h=headless;if(h!=null)try{h.changed(next);}catch(RuntimeException ignored){}});}
  private void finish(long operation,Result result,String error){main.post(()->{if(operation>0){if(operation!=actionId||!action)return;action=false;}if(result!=null)result.done(value,error==null?"":error);});}
  private long begin(Result result){mainThread();if(action){if(result!=null)result.done(value,"VOICE_BUSY");return 0;}action=true;return ++actionId;}
  private static String error(Throwable e){String code=e.getMessage();return code!=null&&code.matches("[A-Z][A-Z0-9_]{1,63}")?code:"VOICE_RUNTIME_FAILED";}
  private void work(Attempt owner,Work work,Result result,long operation){io.execute(()->{String failure="";try{TaskWire.require(owner==active,"VOICE_TARGET_CHANGED");work.run();}catch(Exception e){failure=error(e);owner.note=failure;}refresh(owner,null);finish(operation,result,failure);});}
- private boolean handoff(Attempt a){return !visible.isEmpty()&&Host107Login.loggedIn()&&AgentCardRuntime.voiceHandoffReady(a.binding,a.request)&&HeadGestureRuntime.voiceHandoffReady();}
+ private boolean handoff(Attempt a){return attended()&&Host107Login.loggedIn()&&AgentCardRuntime.voiceHandoffReady(a.binding,a.request)&&HeadGestureRuntime.voiceHandoffReady();}
  private boolean owns(Attempt a){return active==a;}
  private static String id(){return UUID.randomUUID().toString().replace("-","");}
  private File safe(String relative)throws IOException{
@@ -122,11 +132,15 @@ final class VoiceAnswerRuntime {
    boolean review="REVIEW".equals(phase);a.manifestComplete=review&&manifest(a);
    VoiceAnswerCoordinator.State latest=a.coordinator==null?null:a.coordinator.snapshot();
    boolean save=clean&&a.draft.healthy()&&(TaskWire.set("SUBMITTING","SAVED").contains(phase)||(review&&a.manifestComplete&&(latest==null||latest.answerReady)));
-   String note=a.note;if(needs&&a.recovery)note="VOICE_RECOVERY_REQUIRED";
+   String note=a.note;if(needs&&a.recovery)note="VOICE_RECOVERY_REQUIRED";else if(review&&a.draft.timeLimited())note="VOICE_TIME_LIMIT";
    final String text=a.draft.answerText(),p=phase,n=note;final boolean canSave=save,isClean=clean,need=needs||(!a.physicallyReleased&&!a.starting);
+   // Timing trace for the dictation-to-confirm delay (2026-10-23); states only, never the transcript.
+   String trace="phase="+p+" note="+n+" save="+canSave+" clean="+isClean+" needs="+needs+" manifest="+a.manifestComplete+" ready="+(latest!=null&&latest.answerReady)+" released="+(latest!=null&&latest.released);if(!trace.equals(a.traced)){a.traced=trace;android.util.Log.i("TurboIOVoice","voice "+trace);}
+   // The wearer sees the glasses recording view while capture runs; ordinary notifications wait (TaskAttention).
+   if(needs)TaskAttention.hold("voice",VoiceAnswerSession.CAPTURE_SECONDS*1000L+20000);else if(!"PREPARED".equals(phase))TaskAttention.release("voice");
    if("PREPARED".equals(phase)&&!a.starting){
     publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,false,canSave,need,isClean));
-    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);io.execute(()->{boolean verified=readiness(link.peer);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&!visible.isEmpty()&&!observers.isEmpty())refreshLater(a);},500);});});
+    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);io.execute(()->{boolean verified=readiness(link.peer);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
    }else publish(a,new Snapshot(p,n,text,a.binding,a.request,false,canSave,need,isClean));
   }catch(Exception invalid){a.note=error(invalid);publish(a,new Snapshot("BLOCKED",a.note,"",a.binding,a.request,false,false,true,false));}
  }
@@ -207,7 +221,7 @@ final class VoiceAnswerRuntime {
    TaskWire.require(owns(a)&&a.starting&&!a.abort&&readiness(a.peer),"VOICE_SOURCE_VERIFICATION_REQUIRED");
    a.decoder=new Host107VoiceDecoder();safe("voice-audio/"+a.token);a.archive=new VoiceAudioArchive(files,a.token,14);
    processRecord(a);TaskWire.require(!a.abort,"VOICE_START_NOT_READY");
-   long now=SystemClock.elapsedRealtime();TaskWire.require(a.cutoff.arm(a.token,FixedPeerHash.of(a.peer),a.generation,now+30000)&&a.draft.arm(a.peer,a.generation,now,30,a.cutoff),"VOICE_START_NOT_READY");
+   long now=SystemClock.elapsedRealtime();TaskWire.require(a.cutoff.arm(a.token,FixedPeerHash.of(a.peer),a.generation,now+VoiceAnswerSession.CAPTURE_SECONDS*1000L)&&a.draft.arm(a.peer,a.generation,now,VoiceAnswerSession.CAPTURE_SECONDS,a.cutoff),"VOICE_START_NOT_READY");
    RecordingVoiceSource source=new RecordingVoiceSource(a.token,a.peer,a.generation,a.archive,a.decoder::decode);
    final Host107Recording captureOwner=a.recording;
    VoiceAnswerCoordinator c=new VoiceAnswerCoordinator(a.draft,a.peer,a.generation,source,a.archive,device(a),SystemClock::elapsedRealtime,state->{
@@ -274,6 +288,18 @@ final class VoiceAnswerRuntime {
    // PREPARED is kept intact so leaving the page preserves the unstarted draft.
    if(!a.draft.needsStop()&&a.recording!=null&&!a.physicallyReleased&&"PREPARED".equals(a.draft.phase()))main.post(()->releaseUnarmed(a,0,null,"",0));
   }catch(Exception e){failure=error(e);}refresh(a,null);final String code=failure;main.post(()->{if(result!=null)result.done(value,code);});});
+ }
+ /** Re-dictate: retire this question's unsaved REVIEW draft as CANCELLED (text,
+  * audio and journal stay on the device) and prepare a fresh attempt for the
+  * same original question. Nothing is submitted; a capture in progress is not affected. */
+ void redo(String binding,String requestId,long revision,String fingerprint,Result result){
+  long operation=begin(result);if(operation==0)return;Attempt a=active;
+  if(a==null||!binding.equals(a.binding)||!requestId.equals(a.request)){finish(operation,result,"VOICE_TARGET_CHANGED");return;}
+  io.execute(()->{try{
+   TaskWire.require(owns(a)&&a.physicallyReleased&&a.draft.healthy()&&!a.draft.needsStop()&&"REVIEW".equals(a.draft.phase())&&a.draft.cancelDraft(SystemClock.elapsedRealtime()),"VOICE_ANSWER_NOT_READY");
+   a.note="";
+  }catch(Exception e){a.note=error(e);refresh(a,null);finish(operation,result,a.note);return;}
+  finish(operation,null,"");main.post(()->prepare(binding,requestId,revision,fingerprint,result));});
  }
  void edit(String text,Result result){long operation=begin(result);if(operation==0)return;Attempt a=active;if(a==null){finish(operation,result,"VOICE_ANSWER_NOT_READY");return;}work(a,()->{TaskWire.require(a.physicallyReleased&&a.draft.edit(text),"VOICE_ANSWER_NOT_READY");},result,operation);}
  void save(Result result){

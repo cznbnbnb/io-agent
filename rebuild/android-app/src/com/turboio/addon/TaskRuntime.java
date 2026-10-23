@@ -30,11 +30,14 @@ final class TaskRuntime {
   app=activity.getApplicationContext();settings=new TaskSettings(app);foreground.add(activity);
   ((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityStarted(Activity a){foreground.add(a);visible=true;schedule();}
-   public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!visible){cancelAll();main.removeCallbacks(tick);}}
+   public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!running()){cancelAll();main.removeCallbacks(tick);}}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}public void onActivityDestroyed(Activity a){foreground.remove(a);observers.values().removeIf(owner->owner==a);}
   });
  }
  static synchronized TaskRuntime get(Activity activity){if(instance==null)instance=new TaskRuntime(activity);else instance.foreground.add(activity);instance.visible=true;return instance;}
+ /** On screen, or background answering allowed (TaskAttention): the mailbox keeps exchanging so a
+  * question reaches the glasses and a glasses answer is submitted with the screen off. */
+ private boolean running(){return visible||TaskAttention.background();}
  boolean active(Activity activity){return foreground.contains(activity)&&!activity.isFinishing()&&!activity.isDestroyed();}
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
@@ -44,7 +47,7 @@ final class TaskRuntime {
  private void load()throws Exception{
   if(initialized)return;TaskProfiles profiles=settings.loadAll();final long boundGeneration=generation;enabled.clear();for(TaskProfiles.Profile p:profiles.profiles)if(p.enabled)enabled.add(p.binding);
   hub=new TaskHub(app.getFilesDir(),profiles,c->{final String binding=c.binding();final TaskHttp http=new TaskHttp(c);transports.put(binding,http);return new TaskApi.Transport(){
-   public TaskApi.Response exchange(String path,byte[] body)throws java.io.IOException{if(boundGeneration!=generation||!visible||!enabled.contains(binding)||!Host107Login.loggedIn())throw new java.io.IOException("TASK_PAUSED");return http.exchange(path,body);}
+   public TaskApi.Response exchange(String path,byte[] body)throws java.io.IOException{if(boundGeneration!=generation||!running()||!enabled.contains(binding)||!Host107Login.loggedIn())throw new java.io.IOException("TASK_PAUSED");return http.exchange(path,body);}
    public void cancel(){http.cancel();}
   };});
   note=profiles.profiles.isEmpty()?"unconfigured":"contexts_ready";initialized=true;
@@ -59,8 +62,12 @@ final class TaskRuntime {
   enabled.remove(binding);TaskHttp t=transports.get(binding);if(t!=null)t.cancel();
   work(()->{try{settings.pause(binding);hub.apply(settings.loadAll());note="contexts_ready";}catch(Exception failure){if(hub!=null){TaskHub.View v=hub.view(binding);if(v.profile.enabled)enabled.add(binding);}throw failure;}},result);
  }
- void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"TASK_PAUSED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
- private void bound(String binding){TaskWire.require(Host107Login.loggedIn()&&enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
+ /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
+  * hub, whose channel set must match the profiles; mailbox files stay on disk. */
+ void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
+ // An expired stock access token is not a paused connection; the stock App refreshes it on its next request.
+ void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
+ private void bound(String binding){TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
  void detail(String binding,String kind,String id,Result result){work(()->{bound(binding);hub.detail(binding,kind,id,System.currentTimeMillis());},result);}
  void delegate(String binding,String operation,String command,Result result){work(()->{bound(binding);hub.delegate(binding,operation,command,System.currentTimeMillis());},result);schedule();}
  void answer(String binding,String operation,String request,long revision,Object option,String text,Result result){work(()->{bound(binding);hub.answer(binding,operation,request,revision,option,text,System.currentTimeMillis());},result);schedule();}
@@ -68,7 +75,7 @@ final class TaskRuntime {
  void prepareVoice(String binding,String requestId,long revision,String fingerprint,VoiceAnswerSession draft,Result result){work(()->{bound(binding);hub.prepareVoice(binding,requestId,revision,fingerprint,draft,System.currentTimeMillis());},result);}
  void answerVoice(String binding,VoiceAnswerSession draft,Result result){work(()->{bound(binding);boolean fresh=draft.phase().equals("REVIEW");if(fresh)VoiceAnswerEvidence.verify(app.getFilesDir(),draft);hub.answerVoice(binding,draft,System.currentTimeMillis());if(fresh)schedule();},result);}
  private final Runnable tick=()->{
-  if(!visible||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&visible&&Host107Login.loggedIn())hub.pump(System.currentTimeMillis());}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(visible){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner==generation?3000:500);}});}});
+  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn())hub.pump(System.currentTimeMillis());}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
- private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(visible)main.postDelayed(tick,500);}});}
+ private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }

@@ -17,7 +17,7 @@ import uuid
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from managed_home import private_json, ManagedHomeLease
 from pinned_runtime import verify_source
-from restricted_profile import CLI_POLICY as POLICY
+from restricted_profile import CLI_POLICIES
 from runtime_journal import RuntimeJournalError, encode
 from runtime_environment import managed_environment
 from urllib.parse import urlsplit
@@ -90,8 +90,13 @@ def write_new(file, value):
 def enroll(spec):
     fields = {'home', 'binding', 'project_id', 'cwd', 'source', 'site_packages',
               'provider_config', 'provider_name', 'model'}
-    if not isinstance(spec, dict) or set(spec) != fields:
+    if not isinstance(spec, dict) or set(spec) - {'profile'} != fields:
         raise RuntimeJournalError('ENROLL_SPEC_INVALID')
+    # The question-only profile stays the default; wider tools must be named.
+    profiles = {item['profile']: item for item in CLI_POLICIES}
+    policy = profiles.get(spec.get('profile', 'io-question-cli-v1'))
+    if policy is None:
+        raise RuntimeJournalError('ENROLL_PROFILE_INVALID')
     for name in ['home', 'cwd', 'source', 'site_packages', 'provider_config']:
         if not isinstance(spec[name], str) or not Path(spec[name]).is_absolute():
             raise RuntimeJournalError('ENROLL_PATH_INVALID')
@@ -134,7 +139,7 @@ def enroll(spec):
     # Exclusive creation makes a failed enrollment visibly incomplete. Preserve
     # it for inspection rather than deleting private state or retrying in place.
     write_new(home / 'config.yaml', provider)  # JSON is a YAML subset.
-    write_new(home / '.turboio-tool-policy.json', POLICY)
+    write_new(home / '.turboio-tool-policy.json', policy)
     os.environ['HERMES_HOME'] = str(home)
     from hermes_state import SessionDB
     db = SessionDB(home / 'state.db')
@@ -159,9 +164,9 @@ def enroll(spec):
                                        home=home, sessions=sessions)
         transport.preflight(session_id, spec['project_id'])
     write_new(home / '.turboio-enrollment-ready.json', {'schema':1, 'session_id':session_id,
-        'profile': POLICY['profile'], 'source_config_modified':False,
+        'profile': policy['profile'], 'source_config_modified':False,
         'model_called':False, 'task_dispatched':False})
-    return {'status':'enrolled', 'session_id':session_id, 'profile':POLICY['profile'],
+    return {'status':'enrolled', 'session_id':session_id, 'profile':policy['profile'],
             'model_called':False, 'source_config_modified':False}
 
 
