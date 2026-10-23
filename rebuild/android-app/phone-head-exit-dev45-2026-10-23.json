@@ -20,10 +20,6 @@
     "other_event_kinds": 0,
     "other_businesses": 0
   },
-  "open_questions_to_wearer": [
-    "did the recording end by a press or by itself after shaking",
-    "did prompter text scroll when shaking/nodding (would explain the pageOffset frames)"
-  ],
   "limits": [
     "recording audio did not pass this event path either, so a signal on another SDK path would still be unseen",
     "LAUNCHER type76 content not inspected"
@@ -36,5 +32,9 @@
     "revoked": true,
     "verified_401": true
   },
-  "status": "no head-gesture signal identified yet; not implemented"
+  "status": "deferred_firmware: on stock Strix OS 1.0.5.5 no head-gesture signal reaches the phone during the task prompter or task recording; user 2026-10-23: record it, solve via firmware later, move on to R2",
+  "wearer_answers": {
+    "recording_end": "wearer ended it by hand, not by shaking",
+    "prompter_scroll": "text did not scroll when shaking or nodding"
+  }
 }

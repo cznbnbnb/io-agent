@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "71678097a1910dd64f11644b7f2e640083d7a43637f510276bdffbe865552ca6"
+      "sha256": "5ae08d283134e1a0406472f6fb168759448c986a9bc13f28dcf0b377203273b0"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "2141e7fee3a2ba186b970183854829696c7f038148d61f92b4802cdcd0848faa"
+      "sha256": "1db63e0ed68ed1c8cb57c7fcd5373c52da7ea098b4c2495c0fa0f538be4cbedf"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -618,7 +618,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
+      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
@@ -662,7 +662,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "3a154059c5c287aa38eef9897d6602d66dfa42b5c53eb3c2674ff73f74fb0e74"
+      "sha256": "a538e38482932a6e2e84818e23701c8b2ff798b9141385be6c44fe274f02a291"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
@@ -670,7 +670,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerWorkspace.java",
-      "sha256": "105d6386dc3b586499b423711945f9dc9b8a00e14282e232ae123bf0164c83c2"
+      "sha256": "c291454d52e88d2e06b296da260e131a0ae5e9797f6a9aa4edcb7a5716122f1c"
     },
     {
       "path": "src/com/turboio/addon/VoiceAudioArchive.java",
@@ -706,11 +706,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "06911195cb23a041e04acb8e7ee367a4629b1be9194b408535a425a7bd7c7cb3"
+      "sha256": "708719d5f8c1d01041b6d0ae9922c509a61fd5be869a0a32c5f4ba540c557477"
     }
   ],
-  "product_sha256": "bd1923774855e9d59c50c138e02c8cf2e727261e8db66abe04fa08d614ba3246",
-  "addon_sha256": "a1e7e11feee887f7ecb29a51b34ea643d58d26a4a00cc11cff14e37aabcbc50c",
+  "product_sha256": "a23a2d1330fdb74b0527cc3b24eb2c6545d5c592db52e85052fcc904bb101e1e",
+  "addon_sha256": "41cdb29efb7b47089dc02264238f7cfbf7ee86db9cb9af9abede348662c66b5e",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

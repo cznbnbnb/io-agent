@@ -113,7 +113,7 @@ final class VoiceAnswerWorkspace {
   void open(){if(fromGlasses){glassesPage=new java.lang.ref.WeakReference<>(this);AgentCardRuntime.enterPhone(binding,requestId);runtime.keepInBackground(this,true);}application.registerActivityLifecycleCallbacks(lifecycle);busy=true;runtime.observe(activity,observer);runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
   boolean owned(){return latest!=null&&binding.equals(latest.binding)&&requestId.equals(latest.requestId);}
   void detach(){if(closed)return;closed=true;if(fromGlasses){AgentCardRuntime.leavePhone(binding,requestId);runtime.keepInBackground(this,false);}runtime.unobserve(observer);application.unregisterActivityLifecycleCallbacks(lifecycle);}
-  void completed(VoiceAnswerRuntime.Snapshot value,String code){activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;busy=false;if(code!=null&&!code.isEmpty()){exitPending=false;glassesSave=false;}render(value,code);if(glassesSave&&"SAVED".equals(value.phase)&&!closed){glassesSave=false;leave();return;}if(exitPending&&!closed){if(owned()&&value.needsStop&&!exitStopRequested){exitStopRequested=true;begin();runtime.stop(true,this::completed);}else if(!owned())leave();}});}
+  void completed(VoiceAnswerRuntime.Snapshot value,String code){activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;busy=false;if(fromGlasses)android.util.Log.i("TurboIOVoice","page step done code="+code+" phase="+(value==null?null:value.phase)+" canStart="+(value!=null&&value.canStart)+" auto="+autoStart);if(code!=null&&!code.isEmpty()){exitPending=false;glassesSave=false;}render(value,code);if(glassesSave&&"SAVED".equals(value.phase)&&!closed){glassesSave=false;leave();return;}if(exitPending&&!closed){if(owned()&&value.needsStop&&!exitStopRequested){exitStopRequested=true;begin();runtime.stop(true,this::completed);}else if(!owned())leave();}});}
   void render(VoiceAnswerRuntime.Snapshot value,String code){
    if(closed||activity.isDestroyed()||value==null)return;latest=value;if(code!=null&&!code.isEmpty())error=code;
    boolean same=owned();if(!same){status.setText(error.isEmpty()?"正在核对原问题…":label(error));text.setEnabled(false);actions.removeAllViews();EditorialUI.button(activity,actions,"返回原问题",false,this::exit);return;}
@@ -126,7 +126,10 @@ final class VoiceAnswerWorkspace {
    if(!dirty&&!text.getText().toString().equals(value.text==null?"":value.text)){programmatic=true;text.setText(value.text==null?"":value.text);programmatic=false;}
    text.setEnabled(!busy&&value.canSave&&"REVIEW".equals(value.phase));actions.removeAllViews();
    // Only a fresh PREPARED draft may auto-start; a retained review/saved draft, an error or a stale page never records.
-   if(autoStart&&(!TaskWire.set("IDLE","PREPARED").contains(value.phase)||!error.isEmpty()||SystemClock.elapsedRealtime()>=autoUntil))autoStart=false;
+   // 2026-10-23 R2: while this page's own prepare runs, the runtime may still show the same question's
+   // interrupted attempt (CANCELLED after a restart recovery); that must not switch auto-start off.
+   if(autoStart&&!busy&&(!TaskWire.set("IDLE","PREPARED").contains(value.phase)||!error.isEmpty()||SystemClock.elapsedRealtime()>=autoUntil)){autoStart=false;android.util.Log.i("TurboIOVoice","page auto-start off phase="+value.phase+" error="+error+" late="+(SystemClock.elapsedRealtime()>=autoUntil));}
+   if(fromGlasses&&autoStart&&"PREPARED".equals(value.phase))android.util.Log.i("TurboIOVoice","page prepared canStart="+value.canStart+" busy="+busy+" note="+value.note);
    if(autoStart&&value.canStart&&!busy){autoStart=false;begin();runtime.start(this::completed);return;}
    if(value.canStart)button("开始用眼镜口述",true,()->{begin();runtime.start(this::completed);});
    if(value.needsStop){button("结束口述并检查全文",true,()->{begin();runtime.stop(false,this::completed);});button("停止本次口述并保留草稿",false,()->{begin();runtime.stop(true,this::completed);});if(!"CAPTURING".equals(value.phase))button("重试停止核对",false,()->{begin();runtime.retryCleanup(this::completed);});}

@@ -40,7 +40,16 @@ final class TaskHub implements AutoCloseable {
  private Map<String,Object> voiceRequest(Channel c,String id,long revision,String fingerprint,long now)throws IOException{
   TaskWire.id(id);TaskWire.positive(revision);TaskWire.require(fingerprint!=null&&fingerprint.matches("[a-f0-9]{64}"),"VOICE_REQUEST_CHANGED");
   // refresh(request) also refreshes its original parent into this same mailbox.
-  Map<String,Object> fresh=c.api.refresh(c.mailbox,"request",id,now);
+  Map<String,Object> fresh;
+  try{fresh=c.api.refresh(c.mailbox,"request",id,now);}
+  catch(IOException failure){
+   // 2026-10-23 R2 (user: dictation with Wi-Fi off did not start): only an unreachable server falls back
+   // to the last observed copy. The voice answer is still saved as awaiting_refresh, so the pump checks
+   // the original question with the server before anything is sent; server refusals are not bypassed.
+   if(!offline(failure))throw failure;
+   Map<String,Object> cached=c.mailbox.cached("request",id);TaskWire.require(cached!=null,"TASK_UNAVAILABLE");fresh=TaskWire.object(cached.get("item"));
+   TaskWire.require(TaskWire.canAnswer(fresh,voiceParent(c,fresh),now),"TASK_REQUEST_CLOSED");
+  }
   TaskWire.require(TaskWire.same(TaskWire.body(fresh).get("route"),c.profile.connection.route()),"TASK_ROUTE_MISMATCH");
   TaskWire.require(TaskWire.positive(fresh.get("revision"))==revision&&fingerprint.equals(TaskWire.requestFingerprint(fresh)),"VOICE_REQUEST_CHANGED");
   Map<String,Object> cached=c.mailbox.cached("request",id);TaskWire.require(cached!=null,"TASK_REFRESH_REQUIRED");Map<String,Object> request=TaskWire.object(cached.get("item"));
@@ -48,6 +57,7 @@ final class TaskHub implements AutoCloseable {
   TaskWire.require(TaskWire.positive(request.get("revision"))==revision&&fingerprint.equals(TaskWire.requestFingerprint(request)),"VOICE_REQUEST_CHANGED");
   return request;
  }
+ static boolean offline(IOException e){return e instanceof java.net.UnknownHostException||e instanceof java.net.ConnectException||e instanceof java.net.NoRouteToHostException||e instanceof java.net.SocketTimeoutException;}
  private Map<String,Object> voiceParent(Channel c,Map<String,Object> request){
   Map<String,Object> cached=c.mailbox.cached("task",(String)TaskWire.body(request).get("task_id"));TaskWire.require(cached!=null,"TASK_REFRESH_REQUIRED");Map<String,Object> parent=TaskWire.object(cached.get("item"));
   TaskWire.require(TaskWire.same(TaskWire.body(parent).get("route"),c.profile.connection.route()),"TASK_ROUTE_MISMATCH");return parent;

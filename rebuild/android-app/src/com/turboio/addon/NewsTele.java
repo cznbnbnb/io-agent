@@ -12,6 +12,19 @@ final class NewsTele {
  private static PrompterFile.Outbound file;
  // Runs once when the wearer long-presses out of this manuscript (not on phone stop or failure).
  private static Runnable onExit;private static boolean taskOwned;
+ // 2026-10-23 R2 (App killed while an agent question was on the prompter): the glasses kept showing
+ // the old manuscript and the new process ignored its frames, so the long-press exit opened nothing.
+ // The question owner keeps the DID durably; a same-DID control frame while idle re-adopts the session.
+ static final class Adoption{final Runnable exited;final long remaining;Adoption(Runnable exited,long remaining){this.exited=exited;this.remaining=remaining;}}
+ static volatile java.util.function.Function<String,Adoption> orphans;
+ static String did(){return did;}
+ private static void adopt(String d,byte[] b){java.util.function.Function<String,Adoption> lookup=orphans;if(lookup==null||d.isEmpty()||!d.equals(NativeTransfer.connected()))return;
+  try{NavCore.Envelope e=NavCore.decode(b);if(e==null||e.type<3||e.type>8)return;String owner=new JSONObject(e.json).optString("did");if(owner.isEmpty())return;
+   Adoption a=lookup.apply(owner);if(a==null||a.remaining<=0||!NativeTransfer.acquireMessages(owner))return;
+   did=owner;peer=d;phase="playing";waiting=0;text=new byte[0];fileStarted=businessReady=true;file=null;onExit=a.exited;taskOwned=true;note="已接回重启前的任务提词器";
+   BackgroundWork.acquire("新闻",16);NativeTransfer.MAIN.postDelayed(questionTimeout,a.remaining);TaskAttention.hold("prompter",a.remaining+20000);PrompterSharePort.trace("prompter adopted type="+e.type);
+  }catch(Exception unreadable){}
+ }
  // 2026-10-23 (user): an agent question must not stay on the lens indefinitely; after 3 min the phone
  // exits the prompter. No dictation opens then; the question stays answerable on the phone.
  static final long QUESTION_SHOW_MS=180000;
@@ -59,7 +72,7 @@ final class NewsTele {
  // inbound table has no 9 branch. 2026-10-23 dev22: treating it as "stop" sent type6 during prepare
  // and the lens showed 未知错误. Counted only, so the trace shows when the glasses opened the mic.
  private static int audio;
- static void receive(String d,byte[] b){if(!active()||!peer.equals(d))return;try{NavCore.Envelope e=NavCore.decode(b);if(e==null)return;if(e.type==9){audio++;return;}
+ static void receive(String d,byte[] b){if(!active())adopt(d,b);if(!active()||!peer.equals(d))return;try{NavCore.Envelope e=NavCore.decode(b);if(e==null)return;if(e.type==9){audio++;return;}
   // Probe (2026-10-23, user wants a double head shake to exit the task prompter): any frame type the
   // prompter does not handle is logged for agent-question sessions only.
   if(onExit!=null&&!(e.type>=2&&e.type<=8||e.type==10))PrompterSharePort.trace("prompter probe type="+e.type+" json="+e.json.length());JSONObject j=new JSONObject(e.json);if(!did.equals(j.optString("did")))return;int action=j.optInt("action"),code=j.optInt("code",-1);PrompterSharePort.trace("prompter rx type="+e.type+" action="+action+" code="+code+" phase="+phase);

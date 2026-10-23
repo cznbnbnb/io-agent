@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T08:08:04.162Z",
+  "at": "2026-10-23T09:58:35.540Z",
   "assertions": 1960,
   "kind": "JVM real atomic voice journals and answer mailbox; reflection-based official ASR boundary with ABI doubles",
   "abi": {
@@ -275,7 +275,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
+      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
@@ -343,7 +343,7 @@
     },
     {
       "path": "../../tools/android/TaskVoiceBridgeTest.java",
-      "sha256": "984d080dd5ab1e3a619f1165a43cae85842221d6260e9bb1a00f2dcdb47878cd"
+      "sha256": "27c74d4d40df7a2290b82c854c284f6dbe3f4299868a94f46dbee36ddb0aaf18"
     },
     {
       "path": "../../tools/android/VoiceAnswerTest.java",
