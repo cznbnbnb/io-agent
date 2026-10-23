@@ -96,6 +96,20 @@ final class AgentCardRuntime {
    try{AgentCardRequest r=AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis());if(offered.contains(r.owner))continue;nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}
    catch(RuntimeException notDisplayable){if("TASK_GLASS_PROMPTER".equals(notDisplayable.getMessage())&&!offered.contains(prompterKey(c.binding,item))){nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}/* Otherwise the full question stays in the phone inbox. */}
   }
+  maybeNotice();
+ }
+ private void maybeNotice(){
+  if(TaskAttention.active()||NewsTele.active()||NativeTransfer.busy())return;
+  for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled)for(Object raw:c.objects){
+   Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"message".equals(item.get("kind")))continue;
+   try{TaskNotice notice=TaskNotice.prepare(c.profile.connection,item,c.item("task",(String)TaskWire.body(item).get("task_id")),System.currentTimeMillis());
+    if(offered.contains(notice.key)||offered.size()>=200)continue;
+    nextAuto=now()+10000;if(!NewsTele.notice(notice.text,notice.expires-System.currentTimeMillis()))return;
+    Set<String> next=new HashSet<>(offered);next.add(notice.key);
+    if(!prefs.edit().putStringSet("offered",next).commit()){NewsTele.control(6);message="通知显示记录未保存，内容保留在手机";return;}
+    offered.clear();offered.addAll(next);message="任务提醒已提交到眼镜；长按退出，无需回答";return;
+   }catch(RuntimeException closedOrUnrelated){/* Expired/closed/other progress stays in the phone history. */}
+  }
  }
  private static String prompterKey(String binding,Map<String,Object> request){return TaskWire.hash(WireJson.bytes(WireJson.object("prompter",binding,"request",TaskWire.requestFingerprint(request))));}
  static final int PROMPTER_SPEED=120;

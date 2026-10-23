@@ -41,7 +41,7 @@ final class Host107Recording {
  private final AtomicBoolean faultDelivered=new AtomicBoolean();private final AtomicInteger posting=new AtomicInteger();
  private final AtomicLong events=new AtomicLong();
  private volatile String faultCode="";private volatile boolean closed;
- private boolean begun;private volatile boolean startAttempted,stopRequested,stopAccepted;
+ private boolean begun,preparedReleased,idleRetryPending;private volatile boolean startAttempted,stopRequested,stopAccepted;
  private long idleSent,idleUntil,idleFence,checkSent,checkUntil,checkFence,readyUntil;private boolean checkedVersion,checkedIdle;
  private Host107Recording(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
   this.draft=draft;this.cutoff=cutoff;this.receiver=receiver;token=draft.token();this.peer=peer;peerHash=FixedPeerHash.of(peer);this.generation=generation;this.recoveryOnly=recoveryOnly;lease="agent-voice-"+token;
@@ -90,7 +90,7 @@ final class Host107Recording {
   main();if(recoveryOnly||!current()||faultPosted.get()||begun||cutoff.pending()||!draft.phase().equals("PREPARED")||!sameLink()||checkSent!=0)throw new IllegalStateException("VOICE_PREFLIGHT_NOT_READY");
   readyUntil=0;checkedVersion=checkedIdle=false;checkSent=SystemClock.elapsedRealtime();checkUntil=checkSent+8000;checkFence=events.get();
   for(int type:new int[]{1,11})send(9,type,null,(ok,at)->{if(!ok){checkUntil=readyUntil=0;fault("VOICE_PREFLIGHT_SUBMISSION_FAILED");}});
-  long requested=checkSent;MAIN.postDelayed(()->{if(current()&&checkSent==requested&&checkUntil!=0){checkUntil=0;fault("VOICE_PREFLIGHT_TIMEOUT");}},8000);
+  long until=checkUntil;MAIN.postDelayed(()->{if(current()&&checkUntil==until){checkUntil=0;fault("VOICE_PREFLIGHT_TIMEOUT");}},8000);
  }
  void begin(){
   main();deadline=TaskWire.nonnegative(WireJson.map(draft.snapshot()).get("deadline"));
@@ -223,16 +223,29 @@ final class Host107Recording {
   }catch(RuntimeException invalid){if(recording)owner.fault("VOICE_RECORDING_ENVELOPE_INVALID");return false;}
  }
  private void preflight(int type,Map<String,Object> body,long received,long event){
-  main();if(!current()||!sameLink()||faultPosted.get()||checkUntil==0||event<=checkFence||received<checkSent||received>=checkUntil)return;
+  main();if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||event<=checkFence||received<checkSent||received>=checkUntil)return;
   boolean valid=type==1?"Strix OS 1.0.5.5".equals(body.get("OsVersion"))&&"idle".equals(body.get("OtaValidationState"))&&Boolean.TRUE.equals(body.get("OtaValidationConfirmed"))&&body.get("PackageTypes") instanceof List&&((List<?>)body.get("PackageTypes")).contains("files"):Boolean.TRUE.equals(body.get("Result"));
-  if(!valid){checkUntil=readyUntil=0;dispatch(()->receiver.ready(false,received));fault("VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED");return;}
+  // The prompter can ACK exit before its audio/display owners are idle. Keep the
+  // original 8 s deadline and query again; never turn busy into capture permission.
+  if(type==11&&Boolean.FALSE.equals(body.get("Result"))){
+   checkedIdle=false;
+   if(!idleRetryPending){idleRetryPending=true;MAIN.postDelayed(()->{
+    idleRetryPending=false;
+    if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||SystemClock.elapsedRealtime()>=checkUntil)return;
+    checkFence=events.get();checkSent=SystemClock.elapsedRealtime();
+    send(9,11,null,(ok,at)->{if(!ok){checkUntil=readyUntil=0;fault("VOICE_PREFLIGHT_SUBMISSION_FAILED");}});
+   },500);}
+   return;
+  }
+  if(!valid){checkUntil=readyUntil=0;fault(type==1?"VOICE_PREFLIGHT_VERSION_INVALID":"VOICE_PREFLIGHT_IDLE_INVALID");return;}
   if(type==1)checkedVersion=true;else checkedIdle=true;
   if(checkedVersion&&checkedIdle){readyUntil=checkUntil;checkUntil=0;dispatch(()->receiver.ready(true,received));}
  }
  /** Only an unarmed preparation can be abandoned without physical stop evidence. */
  boolean releasePrepared(){
-  main();if(!current()||begun||startAttempted||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED")||posting.get()!=0||incoming.getActiveCount()!=0||!incoming.getQueue().isEmpty())return false;
-  cutoff.close();dispose();return true;
+  main();if(preparedReleased)return true;
+  if(!current()||begun||startAttempted||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED")||posting.get()!=0||incoming.getActiveCount()!=0||!incoming.getQueue().isEmpty())return false;
+  cutoff.close();preparedReleased=true;dispose();return true;
  }
  private void dispose(){closed=true;active=null;incoming.shutdown();NativeTransfer.releaseMessages(lease);}
  boolean release(){

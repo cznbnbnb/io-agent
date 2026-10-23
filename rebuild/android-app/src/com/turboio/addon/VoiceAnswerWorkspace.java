@@ -14,7 +14,7 @@ final class VoiceAnswerWorkspace {
   case "VOICE_REQUEST_CLOSED":case "TASK_REQUEST_CLOSED":case "REQUEST_CLOSED":case "REQUEST_NOT_FOUND":case "TASK_NOT_FOUND":return "原问题已结束或暂不可回答，草稿保留";
   case "VOICE_TARGET_CHANGED":case "TASK_TARGET_CHANGED":case "TASK_ROUTE_MISMATCH":return "当前语音草稿与原任务不一致，请返回原问题查看";
   case "VOICE_DRAFT_NOT_READY":case "VOICE_ANSWER_NOT_READY":case "VOICE_BUSY":case "VOICE_CAPTURE_BUSY":case "STORE_IN_USE":return "已有语音流程尚未结束，请先处理已有草稿或停止核对";
-  case "VOICE_START_NOT_READY":case "VOICE_PREFLIGHT_NOT_READY":case "VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED":return "眼镜尚未满足采音条件，请保持连接并等待其他功能结束";
+  case "VOICE_START_NOT_READY":case "VOICE_PREFLIGHT_NOT_READY":case "VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED":case "VOICE_PREFLIGHT_IDLE_INVALID":case "VOICE_PREFLIGHT_VERSION_INVALID":return "眼镜尚未满足采音条件，请保持连接并等待其他功能结束";
   case "VOICE_PREFLIGHT_TIMEOUT":case "VOICE_PREFLIGHT_SUBMISSION_FAILED":case "VOICE_CONNECTION_CHANGED":return "眼镜连接或状态核对未完成，草稿保留";
   case "VOICE_STOP_QUERY_NOT_READY":case "VOICE_STOP_QUERY_FAILED":case "VOICE_STOP_QUERY_TIMEOUT":case "VOICE_STOP_SUBMISSION_UNCONFIRMED":case "VOICE_STOP_DISPATCH_FAILED":case "VOICE_STOP_OBLIGATION_INVALID":return "尚未确认采音停止，请保持眼镜连接并重试停止核对";
   case "VOICE_INTERRUPTED":return "语音流程曾中断，需要先完成停止核对";

@@ -1,8 +1,12 @@
 {
   "schema": 1,
-  "at": "2026-10-23T05:43:46.146Z",
-  "assertions": 783,
+  "at": "2026-10-23T06:52:50.494Z",
+  "assertions": 790,
   "sources": [
+    {
+      "path": "src/com/turboio/addon/TaskNotice.java",
+      "sha256": "417b3d59a317f0708237b53518e7f431bb1690f412185680ef05f61ef48eca31"
+    },
     {
       "path": "src/com/turboio/addon/AgentCardRequest.java",
       "sha256": "ccd520fe3c32333d93a1f77c58d4116ec0f5652569aee32e548d8c77595804f7"
@@ -69,7 +73,7 @@
     },
     {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "49117ac14a9a7e837086e7f35b86bc248bb80923e056a11f1955d0f75559fe8b"
+      "sha256": "89e524037da812db0ced44300d8ed153b80a874e96c6b9f3694a025984db0bcb"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",

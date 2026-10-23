@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "1e707a01c3cc01d7923242d300bd15ae571e42e943d748131d05042d514c093e"
+      "sha256": "71678097a1910dd64f11644b7f2e640083d7a43637f510276bdffbe865552ca6"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "27820694715461ace52f9bbb063936e5b21c03812bc83fc458b2cd166b48bbe1"
+      "sha256": "9ecec7d8b12b0f2dd1ecbbc655be98a863cc2295595c97cc6c074d2bf27fe168"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -422,7 +422,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Recording.java",
-      "sha256": "0e6608d2991baf6e184219d86c7ca740ff6d87663715da641934606cf0340e37"
+      "sha256": "abbd73c684f26c59afa495a20b467914c5a6d186526408729bc50fb45e6bc008"
     },
     {
       "path": "src/com/turboio/addon/Host107Suggestion.java",
@@ -609,6 +609,10 @@
       "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
     },
     {
+      "path": "src/com/turboio/addon/TaskNotice.java",
+      "sha256": "417b3d59a317f0708237b53518e7f431bb1690f412185680ef05f61ef48eca31"
+    },
+    {
       "path": "src/com/turboio/addon/TaskProfiles.java",
       "sha256": "c2ff8a5e548f36e96b2d089618e25ace35337a0746ac43388ea0e3d5fada3bfe"
     },
@@ -650,7 +654,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerWorkspace.java",
-      "sha256": "ff8c713ad864ec308ad460044bb36f3c0c2033c92640c6a7b0db18ed5406b668"
+      "sha256": "b5f95f86fcfce548cc2b643cf217ed60b79618e50f669f88b55b52c2a469a340"
     },
     {
       "path": "src/com/turboio/addon/VoiceAudioArchive.java",
@@ -686,11 +690,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "a127346a26055312ba6b0ab1ad0ed1f5ef55218dc6bad178737e0a22cfb59500"
+      "sha256": "80d4d10b305fd4ade15757056c08bbf887f890f6f4f705fedd7539a41411715c"
     }
   ],
-  "product_sha256": "91a2b6f3626d46c4e30be8ae8437332d69a7ec64a61addf7230e8f70b9f8e904",
-  "addon_sha256": "86efc901b1b3708ccdb0172325ed91d67995b9aac85cba870de695794f7159f2",
+  "product_sha256": "418d6c093492644fa6b8e12067a697e6d11389348364f5b8b3a39d04518e4634",
+  "addon_sha256": "29ea57c19f0751327001486c27dc409b960cc38eebf737715f1a70ef50f70e7c",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

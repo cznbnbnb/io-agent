@@ -21,6 +21,13 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  assert.equal(store.queueGet(phone.token,'task',registered.value.task_id).body.command,topic??'Continue the already-running registered Codex task.');
  const other=await run({runtime:runtime==='codex'?'claude-code':'codex',session},'status',{request_id:'req-x'});assert.equal(other.code,2);
  const registeredAgain=await run(caller,'register',undefined,['--config',enrollment]);assert.equal(registeredAgain.code,0,JSON.stringify(registeredAgain));assert.equal(registeredAgain.value.task_id,registered.value.task_id);
+ const notice={notification_key:'blocked-readiness',text:'录音前空闲检查失败，正在核对固件判据；无需回答。',expires_at:new Date(Date.now()+300000).toISOString()};
+ const notified=await run(caller,'notify',notice);assert.equal(notified.code,0,JSON.stringify(notified));assert.equal(notified.value.requires_answer,false);assert.equal(notified.value.glasses_display_confirmed,false);
+ const noticeAgain=await run(caller,'notify',notice);assert.equal(noticeAgain.value.message_id,notified.value.message_id);
+ const noticeObject=store.queueGet(phone.token,'message',notified.value.message_id);assert.equal(noticeObject.body.text,notice.text);assert.equal(noticeObject.body.request_id,null);assert.equal(noticeObject.body.route.session_id,session);assert.equal(noticeObject.body.task_id,registered.value.task_id);
+ assert.equal((await run(caller,'notify',{...notice,text:'changed'})).value.error,'CALLER_NOTIFICATION_CONFLICT');
+ assert.equal((await run(caller,'notify',{...notice,route:{session_id:'elsewhere'}})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
+ assert.equal((await run(caller,'notify',{...notice,notification_key:'expired',expires_at:'2000-01-01T00:00:00Z'})).value.error,'RUNTIME_DEADLINE_INVALID');
  const args={question_key:'one',question:'Preserve the full additional conditions?',mode:'free_text',options:[],expires_at:new Date(Date.now()+300000).toISOString()};
  const asked=await run(caller,'ask',args);assert.equal(asked.code,0,JSON.stringify(asked));assert.equal(asked.value.server_stored,true);
  const again=await run(caller,'ask',args);assert.equal(again.code,0,JSON.stringify(again));assert.equal(again.value.request_id,asked.value.request_id);
@@ -38,6 +45,7 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  const intake=await run(caller,'register',undefined,['--config',enrollment]);assert.equal(intake.code,0,JSON.stringify(intake));
  for(const state of ['cancel_requested','cancelled']){const current=store.queueGet(phone.token,'task',registered.value.task_id);store.queueSubmit(agent.token,{schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),kind:'task',producer_id:'caller-agent',created_at:new Date().toISOString(),expires_at:args.expires_at,body:{...current.body,revision:current.revision+1,state}},'task');}
  const closed=await run(caller,'wait',{request_id:secondRequest.object_id,wait_seconds:0});assert.equal(closed.code,0,JSON.stringify(closed));assert.equal(closed.value.state,'operation_closed');
+ assert.equal((await run(caller,'notify',{...notice,notification_key:'closed-task'})).value.error,'CALLER_TASK_CLOSED');
  const closedTask=store.queueGet(phone.token,'task',registered.value.task_id);assert.equal(closedTask.receipts.filter(r=>r.stage==='task_resumed').length,1);
  await new Promise(r=>server.close(r));fs.writeFileSync(credential,JSON.stringify({...agent,expires_at:'2000-01-01T00:00:00.000Z'}));
  const active=JSON.parse(fs.readFileSync(path.join(directory,'active.json'),'utf8')),registeredDirectory=path.join(directory,'registrations',active.profile);
@@ -45,6 +53,9 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  const status=await run(caller,'status',{request_id:request.object_id});assert.equal(status.code,0,JSON.stringify(status));assert.equal(status.value.network_checked,false);assert.equal(status.value.answer.body.text,full);assert.deepEqual(fs.readFileSync(journal),before[0]);assert.deepEqual(fs.readFileSync(state),before[1]);
  const offlineWait=await run(caller,'wait',{request_id:request.object_id,wait_seconds:0});assert.equal(offlineWait.code,0,JSON.stringify(offlineWait));assert.equal(offlineWait.value.answer.body.text,full);assert.equal(offlineWait.value.already_delivered,true);
  const notResumed=await run(caller,'wait',{request_id:secondRequest.object_id,wait_seconds:0});assert.equal(notResumed.code,2);assert.equal(notResumed.value.state,'awaiting_parent_check');assert.equal(notResumed.value.answer.body.text,full);
+ const offlineNotice={...notice,notification_key:'offline-notice',expires_at:new Date(Date.now()+300000).toISOString()};
+ const offlineNotified=await run(caller,'notify',offlineNotice);assert.equal(offlineNotified.code,2);assert.equal(offlineNotified.value.locally_stored,true);assert.match(offlineNotified.value.message_id,/^notice-/);
+ const offlineNotifyRetry=await run(caller,'notify',offlineNotice);assert.equal(offlineNotifyRetry.value.message_id,offlineNotified.value.message_id);
  const offlineArgs={...args,question_key:'offline-new',expires_at:new Date(Date.now()+300000).toISOString()};
  const offlineAsk=await run(caller,'ask',offlineArgs);assert.equal(offlineAsk.code,2);assert.equal(offlineAsk.value.locally_stored,true);assert.match(offlineAsk.value.request_id,/^req-/);
  const retryOffline=await run(caller,'ask',offlineArgs);assert.equal(retryOffline.value.request_id,offlineAsk.value.request_id);

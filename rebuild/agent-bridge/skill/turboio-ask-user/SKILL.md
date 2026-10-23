@@ -22,3 +22,7 @@ CLI的离线ask返回错误时，`locally_stored=true`和`request_id`表明原�
 `ask`参数为 `question_key / question / mode / options / expires_at`；`wait`为`request_id`及可选`wait_seconds`（CLI 0–600，默认30）；`status`只接受`request_id`。问题消失不作拒绝，普通录音不作指令。用户暂停联合验收时，不继续发送合成镜片测试；真实任务提问仍遵循用户当前授权和暂停范围。
 
 已有 CLI 宿主可执行 `<准备好的 Python> -I -S -B <repo>/rebuild/agent-bridge/hermes/question_cli.py ask|wait|status`，参数 JSON 走 stdin，结果 JSON 为 UTF-8。宿主须预先设置本次操作专属 `TURBOIO_QUESTION_CONFIG`；模型不得自行寻找、更换或写入此配置。通常直接调用上述固定工具，无需开放通用终端权限。
+
+## 无需回答的任务阻塞通知（用户2026-10-22授权）
+
+当前项目遇到实际阻塞时可调用同一固定入口 `cli.mjs notify`，参数 `notification_key / text / expires_at`。通知内容说明具体卡点和下一步，最多1800字；期限为未来一小时内 UTC `Z` 时间。同一未解决阻塞不重复通知，重试必须保持原键、正文与期限。它只发当前原任务的通知，不创建问题；眼镜提词器长按或超时退出均不开始口述。需要选择时继续使用 `ask`。服务器保存不等于眼镜显示，以设备回报/用户观察另行核对；接入失败时在当前聊天明确说明。

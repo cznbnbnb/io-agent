@@ -59,7 +59,18 @@ public final class AgentCardTest {
    else throw new IOException("TASK_QUERY_INVALID");return new TaskApi.Response(200,WireJson.bytes(value),0);
   }
  }
+
+ static void notices()throws Exception{
+  TaskConnection c=connection("codex");Map<String,Object> parent=task(c),notice=item("message",WireJson.object("message_id","notice-"+String.join("",Collections.nCopies(64,"a")),"revision",1,"task_id","same-task-id","route",c.route(),"request_id",null,"channel","progress","text","等待查明录音占用，无需回答"),3);notice.put("state","recorded");
+  TaskNotice prepared=TaskNotice.prepare(c,notice,parent,NOW);yes(prepared.text.contains("无需回答")&&prepared.text.contains("长按退出"));yes(prepared.key.equals(TaskNotice.prepare(c,notice,parent,NOW).key));
+  rejects(()->TaskNotice.prepare(connection("claude"),notice,parent,NOW));
+  rejects(()->TaskNotice.prepare(c,notice,parent,NOW+3600000));
+  Map<String,Object> closed=WireJson.map(WireJson.copy(parent));closed.put("state","completed");TaskWire.body(closed).put("state","completed");rejects(()->TaskNotice.prepare(c,notice,closed,NOW));
+  Map<String,Object> other=WireJson.map(WireJson.copy(notice));TaskWire.body(other).put("request_id","some-question");final Map<String,Object> question=other;rejects(()->TaskNotice.prepare(c,question,parent,NOW));
+  other=WireJson.map(WireJson.copy(notice));TaskWire.body(other).put("channel","result");final Map<String,Object> result=other;rejects(()->TaskNotice.prepare(c,result,parent,NOW));
+ }
  public static void main(String[] args)throws Exception{
+  notices();
   TaskConnection c=connection("codex"),h=connection("hermes");AgentCardRequest r=frozen(c,4);yes(!r.owner.equals(frozen(h,4).owner));yes(r.fingerprint.equals(AgentCardRequest.restore(r.json()).fingerprint));
   for(int i=0;i<4;i++){AgentCardRequest.Copy copy=r.copy(i);yes(copy.content.contains("["+(i+1)+"/4]")&&copy.content.contains(r.answerText(i))&&copy.content.length()<=48);}
   Map<String,Object> changed=WireJson.map(WireJson.copy(request(c,4)));TaskWire.body(changed).put("question","新的问题");yes(!r.matches(changed,task(c),NOW));changed.put("revision",2);TaskWire.body(changed).put("revision",2);yes(!r.matches(changed,task(c),NOW));

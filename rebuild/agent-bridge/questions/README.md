@@ -1,6 +1,6 @@
 # 当前调用方的原任务问答
 
-`cli.mjs ask|wait|status`复用现有HTTPS队列、bridge、运行锁、耐久outbox和QuestionTools。当前Agent用实际执行环境中的对话标识登记，问题与答案固定绑定原任务、项目、会话和问题版本；不调用Agent启动/恢复命令，也不创建替代模型会话。
+`cli.mjs ask|wait|status|notify`复用现有HTTPS队列、bridge、运行锁、耐久outbox和QuestionTools。当前Agent用实际执行环境中的对话标识登记，问题与答案固定绑定原任务、项目、会话和问题版本；不调用Agent启动/恢复命令，也不创建替代模型会话。
 
 ## 调用方识别
 
@@ -49,3 +49,9 @@ JSON参数走stdin，UTF-8 JSON结果走stdout。配套说明已安装为`turboi
 本批通过9项Python检查和一个实际CLI/真实本地服务器/bridge集成场景，含重复、离线、只读、关闭父任务和待答禁止换登记。当前Codex也已亲自完成公网→真实红米正常答案页→同一CLI原调用的合成两行文字回传；输入由代理完成，不当作真人决策或眼镜效果。[证据](../../android-app/current-codex-text-2026-10-20.json)。
 
 全局skill仅安装本项目调用说明，按[官方技能说明](https://learn.chatgpt.com/docs/build-skills)组织。没有修改Codex启动配置、hook或MCP。正式长期凭据/续期、手机多路上下文、眼镜原请求卡、完整口述及后台日常仍待后续。任务镜像记录最近的接收/继续事实，不提供Codex进程存活监控或强停能力，也不因工具结束虚报任务完成。
+
+## 当前对话的阻塞通知
+
+`notify` 使用同一真实调用方登记与原任务，只创建 `progress` 消息，不创建问题或等待答案。参数 JSON 为 `notification_key`、`text`（最多1800字）、`expires_at`（未来一小时内 UTC `Z` 时间）。同一通知重试须保持全部参数；同一键更改内容会拒绝。先耐久保存事件再发送，重试沿用事件和幂等键。
+
+安装支持通知的手机版本后，通知在眼镜空闲时走提词器，最长3分钟；长按退出及超时均不开始口述。过期、任务已结束或其他对话的消息不显示。普通问答/录音进行中，通知等待，不覆盖当前交互。`server_stored` 只证明服务器保存；`glasses_display_confirmed=false` 不冒充镜片到达，需另核对设备回报或本人观察。网络失败保留 `message_id` 和本机事件，按原参数重试。
