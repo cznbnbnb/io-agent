@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "builds": {
+    "dev14": {"version": "0.5.3-dev14", "code": 10436, "change": "HarmonyOS business17 pull transfer ported (file UUID = DID)", "result": "file info delivered; glasses ACK and chunk requests never reached the app; lens showed an unknown error; user long-pressed out (type6 action1 code3 about 30 s later)"},
+    "dev15": {"version": "0.5.3-dev15", "code": 10437, "change": "SHARE-ability observer attached to the live channel (host routes inbound FILE_TRANSFER only to SHARE observers, never to the RELAY messageReceived bridge)", "result": "ACK (file type2) and chunk request (file type3) received, but dropped: SHARE frames carry the 17-char MAC while the session holds the 32-hex canonical id"},
+    "dev16": {"version": "0.5.3-dev16", "code": 10438, "sha256": "9dd7f6389987fa36484aa94a5da3a7716b3e3e87c0e00ada59d92a25ae6fed93", "change": "MAC canonicalised through Y3.D.a before matching the session peer"}
+  },
+  "dev16_sequence": [
+    "20/2 prepare -> 20/2 action2 code1",
+    "17 file info (117 B) -> 17 ACK -> 17 chunk request -> 17 chunk (378 B, whole manuscript) -> 17 result state0",
+    "20/2 action2 code7 (business ready)",
+    "20/3 start sent automatically within milliseconds of code7",
+    "no 20/3 reply; phone timed out after 10 s"
+  ],
+  "lens_observation_by_user": "the prompter text appeared briefly, then the glasses rebooted",
+  "phone_cleanup": "user reported the reboot in chat; the news page reset was confirmed (已由用户确认镜片退出); no stop, retry or further packets sent",
+  "difference_from_verified_harmony_124": "124 started only on a manual tap after both readiness signals, then confirmed running with a type10 state query; dev16 starts automatically and sends no type10 query",
+  "not_proven": "the automatic start timing is a candidate cause only; earlier 118-122 reboots were never traced to one root cause",
+  "manuscript": "synthetic long question, 4 options, no task executed"
+}

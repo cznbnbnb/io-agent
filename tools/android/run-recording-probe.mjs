@@ -7,10 +7,11 @@ import crypto from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {safeRecordingStatus,recordingRequest} from './recording-watchdog.mjs';
+import {exe} from './host-tools.mjs';
 
 const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=path.join(workspace,'rebuild/android-app'),privateRoot=path.join(root,'.private');
-const adb=path.join(root,'.tools/sdk/platform-tools/adb.exe'),buildTools=path.join(root,'.tools/sdk/build-tools/36.0.0');
+const adb=path.join(root,'.tools/sdk/platform-tools',exe('adb')),buildTools=path.join(root,'.tools/sdk/build-tools/36.0.0');
 const pkg='com.rayneo.venus.pub',driver='com.turboio.androidtests',component=driver+'/'+driver+'.RecordingProbe';
 const ownLabel='iO Agent UI test driver',external='/sdcard/Android/data/'+pkg+'/files/';
 const expected={version:'0.5.3-dev1',code:10423,signer:'174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad'};
@@ -61,7 +62,7 @@ async function verifyCandidate(){
  const candidate=await json(path.join(root,'candidate.json'));check(candidate.schema===1&&candidate.version===expected.version&&candidate.version_code===expected.code&&candidate.signer_sha256===expected.signer&&candidate.signature_v2===true&&candidate.signature_v3===true,'CANDIDATE_IDENTITY_MISMATCH');
  const apk=await contained(path.resolve(root,candidate.apk||''),path.join(root,'artifacts'));
  check(/^[a-f0-9]{64}$/.test(candidate.sha256)&&await fileHash(apk)===candidate.sha256&&(await fs.stat(apk)).size===candidate.bytes,'CANDIDATE_HASH_MISMATCH');candidateHash=candidate.sha256;
- const aapt=path.join(buildTools,'aapt2.exe');
+ const aapt=path.join(buildTools,exe('aapt2'));
  const badging=await command(aapt,['dump','badging',apk],{timeout:30000});check(!badging.failed&&badging.status===0&&new RegExp("^package: name='"+pkg.replaceAll('.','\\.')+"' versionCode='10423' versionName='0\\.5\\.3-dev1'",'m').test(badging.out),'CANDIDATE_PACKAGE_MISMATCH');
  const version=await phone(['shell','dumpsys','package',pkg]);check(/versionCode=10423\b/.test(version)&&/versionName=0\.5\.3-dev1(?:\r?\n|\s|$)/.test(version),'CANDIDATE_NOT_INSTALLED');
  check(await installedHash(pkg)===candidateHash,'CANDIDATE_DEVICE_HASH_MISMATCH');

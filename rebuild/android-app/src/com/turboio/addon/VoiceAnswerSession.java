@@ -17,6 +17,9 @@ final class VoiceAnswerSession {
   private final VoiceAnswerSession owner;private final long issued,generation;private final String token,peer;
   private StopProbe(VoiceAnswerSession s,long now){owner=s;issued=now;generation=s.number("generation");token=s.token();peer=s.string("peer");}
  }
+ // 2026-10-23 (user): 30 s was too short for a prompter answer with conditions; 60 s, and a stop at
+ // the limit still goes to review. The 30 s rule for synthetic capture experiments (AGENTS.md) is separate.
+ static final int CAPTURE_SECONDS=60;
  private static final Set<String> PHASES=TaskWire.set("IDLE","PREPARED","CAPTURING","STOPPING","RECOVERY","REVIEW","INCOMPLETE","CANCELLED","SUBMITTING","SAVED");
  private final Store store;private Map<String,Object> state;private boolean healthy=true;private StopProbe probe;
  private volatile CapturePermit permit=new CapturePermit(empty(),false);private volatile boolean openingRevoked=true;
@@ -72,7 +75,7 @@ final class VoiceAnswerSession {
   Map<String,Object> next=empty();next.put("phase","PREPARED");next.put("token",UUID.randomUUID().toString().replace("-",""));next.put("target",WireJson.object("binding",connection.binding(),"fingerprint",TaskWire.requestFingerprint(request),"request",WireJson.copy(request)));save(next);return true;
  }
  synchronized boolean arm(String peer,long generation,long now,int seconds,Cutoff cutoff)throws Exception{
-  if(!healthy||!phase().equals("PREPARED"))return false;TaskWire.require(peer!=null&&!peer.isEmpty()&&generation>0&&now>0&&seconds>=3&&seconds<=30,"VOICE_CAPTURE_INVALID");String hash=FixedPeerHash.of(peer);long deadline=Math.addExact(now,seconds*1000L);
+  if(!healthy||!phase().equals("PREPARED"))return false;TaskWire.require(peer!=null&&!peer.isEmpty()&&generation>0&&now>0&&seconds>=3&&seconds<=CAPTURE_SECONDS,"VOICE_CAPTURE_INVALID");String hash=FixedPeerHash.of(peer);long deadline=Math.addExact(now,seconds*1000L);
   if(cutoff==null||!cutoff.armed(token(),hash,generation,deadline))return false;
   Map<String,Object> next=copy();next.put("phase","CAPTURING");next.put("peer",hash);next.put("generation",generation);next.put("deadline",deadline);next.put("needs_stop",true);openingRevoked=false;save(next);return true;
  }
@@ -147,11 +150,25 @@ final class VoiceAnswerSession {
   if(check==null||check!=probe||check.owner!=this||!owned(check.token,peer,generation)||!check.peer.equals(string("peer"))||check.generation!=generation||now<check.issued||now-check.issued>8000)return false;probe=null;
   Map<String,Object> next=copy();next.put("device_stopped",micIdle);save(next);return micIdle;
  }
+ /** True when the capture was ended by its own time limit, not by the wearer or an error. */
+ synchronized boolean timeLimited(){return healthy&&number("deadline")>0&&number("stop_at")==number("deadline");}
  synchronized boolean finish()throws Exception{
   if(!healthy||!needsStop()||!flag("engine_end")||!flag("engine_stopped")||!flag("device_stopped"))return false;
-  Map<String,Object> next=copy();next.put("needs_stop",false);next.put("phase",flag("cancelled")?"CANCELLED":string("error").isEmpty()&&allFinal(state)&&!transcript().trim().isEmpty()?"REVIEW":"INCOMPLETE");save(next);return true;
+  Map<String,Object> next=copy();next.put("needs_stop",false);
+  // 2026-10-23 (user): "已说内容照常进入确认流程". A stop that leaves the last sentence unfinalised
+  // (the time limit, or the engine ending ~0.1 s after a stop, seen with a 40 s answer) keeps the words
+  // recognised at that moment and goes to REVIEW, where the wearer still confirms or edits before
+  // anything is saved. Errors, uncertain sentence boundaries (both set error) and a cancel still end
+  // INCOMPLETE or CANCELLED.
+  if(!flag("cancelled")&&string("error").isEmpty()&&!transcript().trim().isEmpty()){
+   List<Object> segments=WireJson.list(next.get("segments"));
+   for(int i=0;i<segments.size();i++){Map<String,Object> segment=WireJson.map(segments.get(i));if(!Boolean.TRUE.equals(segment.get("final"))){segment.put("final",true);segment.put("revision",TaskWire.positive(segment.get("revision"))+1);}}
+  }
+next.put("phase",flag("cancelled")?"CANCELLED":string("error").isEmpty()&&allFinal(next)&&!transcript().trim().isEmpty()?"REVIEW":"INCOMPLETE");save(next);return true;
  }
- synchronized void tick(String peer,long generation,long now)throws Exception{if(needsStop()&&(now>=number("deadline")||!owned(token(),peer,generation)))stop(token(),now,false);}
+ // A stop forced by the time limit is stamped with the deadline itself, so finish() can tell it apart
+ // from a wearer stop, a lost link or a restart cleanup (resumeCleanup stamps its own time).
+ synchronized void tick(String peer,long generation,long now)throws Exception{if(!needsStop())return;boolean owner=owned(token(),peer,generation);if(owner&&now>=number("deadline"))stop(token(),number("deadline"),false);else if(!owner)stop(token(),now,false);}
  synchronized boolean edit(String completeText)throws Exception{
   if(!healthy||!phase().equals("REVIEW"))return false;TaskWire.require(!TaskWire.text(completeText,65536,false).trim().isEmpty(),"VOICE_TEXT_EMPTY");Map<String,Object> next=copy();next.put("edited",completeText);save(next);return true;
  }
@@ -165,7 +182,10 @@ final class VoiceAnswerSession {
  synchronized Map<String,Object> saveAnswer(TaskMailbox mailbox,Map<String,Object> fresh,Map<String,Object> parent,long wall)throws Exception{
   TaskWire.require(healthy&&TaskWire.set("REVIEW","SUBMITTING","SAVED").contains(phase()),"VOICE_ANSWER_NOT_READY");Map<String,Object> t=target(WireJson.map(state.get("target"))),original=WireJson.map(t.get("request"));TaskWire.require(mailbox.binding.equals(t.get("binding")),"VOICE_TARGET_CHANGED");
   if(phase().equals("REVIEW")){TaskWire.require(TaskWire.canAnswer(fresh,parent,wall)&&t.get("fingerprint").equals(TaskWire.requestFingerprint(fresh)),"VOICE_REQUEST_CHANGED");Map<String,Object> next=copy();next.put("phase","SUBMITTING");next.put("frozen_text",answerText());save(next);}
-  Map<String,Object> result=mailbox.draftAnswer(operation(),(String)original.get("object_id"),TaskWire.positive(original.get("revision")),null,(String)state.get("frozen_text"),"voice",(String)t.get("fingerprint"),wall);
+  String frozen=(String)state.get("frozen_text");Object option=null;Map<String,Object> body=TaskWire.body(original);
+  // A dictated choice carries the option it names; derived from the frozen text, so replays agree.
+  if("choice".equals(body.get("mode"))){List<Object> options=WireJson.list(body.get("options"));int i=VoiceOption.index(frozen,options.size());if(i>=0)option=WireJson.map(options.get(i)).get("option_id");}
+  Map<String,Object> result=mailbox.draftAnswer(operation(),(String)original.get("object_id"),TaskWire.positive(original.get("revision")),option,frozen,"voice",(String)t.get("fingerprint"),wall);
   Map<String,Object> next=copy();next.put("phase","SAVED");save(next);return result;
  }
 }

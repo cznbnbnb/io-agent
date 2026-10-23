@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "build": {"version": "0.5.3-dev17", "code": 10439, "sha256": "ca72e9486018ffb1d81f2cb82410fceeebc0766e615ce76ae18e60bf90c6a596", "rollback": "0.5.3-dev16"},
+  "change": "sending only transfers the manuscript; playback has a separate start button; a phone-initiated start must be confirmed by a type10 state1 reply; stops in the first 3.5 s of starting are deferred",
+  "manuscript": "synthetic long question with 4 options (UTF-8 bytes sent in one 378-byte chunk message), speed 120; no task executed",
+  "sequence_20:51:25_to_20:52:30": [
+    "20/2 prepare -> action2 code1",
+    "17 info -> ACK -> one chunk request -> chunk -> result state0 (received through the SHARE observer, MAC canonicalised)",
+    "20/2 action2 code7; phone stopped at ready and showed the start button",
+    "the start button was NOT tapped: the glasses sent 20/3 action1 by themselves and the phone acknowledged it",
+    "34 type8 position reports, 3 glasses pauses (type4 action1), 1 resume (type5 action1), 3 type10 action2 state messages, all acknowledged without phone-initiated control",
+    "20/6 action1 after the user long-pressed; phone replied action2 code1 and cleared the session"
+  ],
+  "phone_initiated_controls": 0,
+  "user_lens_observation": "the full question and all 4 options were readable; long press returned to the time screen; no reboot",
+  "interpretation": "the glasses start playback themselves once the file and business are both ready; in dev16 the phone sent its own start at the same moment and the glasses rebooted. A duplicate start is the leading candidate cause, not a proven root cause.",
+  "not_verified": "repeated runs, manuscripts longer than one chunk, the phone start button, starting voice capture after exit"
+}

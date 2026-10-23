@@ -10,7 +10,7 @@ import time
 import unittest
 from types import SimpleNamespace
 
-from process_job import WindowsProcessJob, ProcessJobError
+from process_job import WindowsProcessJob, PosixProcessJob, ProcessJobError, contained_command
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows containment only')
@@ -88,6 +88,78 @@ class ProcessJobTests(unittest.TestCase):
                 owner.stdin.close()
                 for handle in handles:
                     kernel.CloseHandle(handle)
+
+
+
+@unittest.skipIf(os.name == 'nt', 'POSIX containment only')
+class PosixProcessJobTests(unittest.TestCase):
+    SLEEP = "import time; time.sleep(60)"
+    # Spawns a grandchild in its own session (as Hermes tools do), reports its PID, then waits.
+    ESCAPE = ("import subprocess,sys,time; g=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)'],"
+              "start_new_session=True); print(g.pid, flush=True); time.sleep(60)")
+
+    def spawn(self, code, contained=True):
+        command = [sys.executable, '-I', '-S', '-B', '-c', code]
+        child = subprocess.Popen(contained_command(command) if contained else command, stdin=subprocess.DEVNULL,
+                                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        def cleanup():
+            if child.poll() is None:
+                child.kill()
+            child.wait(timeout=10)
+            child.stdout.close()
+        self.addCleanup(cleanup)
+        return child
+
+    @staticmethod
+    def alive(pid):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return False
+        state = subprocess.run(['ps', '-o', 'stat=', '-p', str(pid)], capture_output=True, text=True).stdout.strip()
+        return bool(state) and not state.startswith('Z')
+
+    def test_contained_command_wraps_with_session_launcher(self):
+        command = contained_command([sys.executable, '-c', 'pass'])
+        self.assertEqual(command[0], sys.executable)
+        self.assertTrue(command[4].endswith('session_exec.py'))
+        self.assertEqual(command[5:], [sys.executable, '-c', 'pass'])
+
+    def test_shutdown_confirms_zero_members_and_closes(self):
+        job = PosixProcessJob()
+        child = self.spawn(self.SLEEP)
+        job.attach(child)
+        self.assertEqual(os.getsid(child.pid), child.pid)
+        self.assertGreaterEqual(job.active_count(), 1)
+        job.shutdown()
+        self.assertEqual(child.wait(timeout=10), -9)
+        self.assertTrue(job.closed)
+        job.shutdown()
+        with self.assertRaises(ProcessJobError) as error:
+            job.attach(child)
+        self.assertEqual(error.exception.code, 'RUNTIME_JOB_CLOSED')
+
+    def test_descendant_that_calls_setsid_is_still_killed(self):
+        job = PosixProcessJob()
+        child = self.spawn(self.ESCAPE)
+        job.attach(child)
+        grandchild = int(child.stdout.readline())
+        self.assertNotEqual(os.getsid(grandchild), child.pid)
+        self.assertGreaterEqual(job.active_count(), 2)
+        job.shutdown()
+        child.wait(timeout=10)
+        deadline = time.monotonic() + 5
+        while self.alive(grandchild) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertFalse(self.alive(grandchild))
+
+    def test_child_outside_its_own_session_is_refused(self):
+        job = PosixProcessJob()
+        child = self.spawn(self.SLEEP, contained=False)
+        with self.assertRaises(ProcessJobError) as error:
+            job.attach(child)
+        self.assertEqual(error.exception.code, 'RUNTIME_JOB_PROCESS_UNAVAILABLE')
+        job.shutdown()
 
 
 if __name__ == '__main__':

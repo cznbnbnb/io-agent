@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T10:30:00Z",
+  "product": "0.5.3-dev11 /10433 (rollback dev10 /10432)",
+  "run_id": "phone311-20261022-a (synthetic owner, cznbnb.cn; route io-test-mac / io-test-hermes)",
+  "hermes": {"source_commit": "08165d58931841cee713468ae89032af7c57060a", "model": "kimi-k3", "tool_profile": "io-workspace-cli-v1 (question tools + read_file/write_file/patch/search_files/terminal/process_manage; ACP accept_edits inside the run workspace)"},
+  "task_from_phone": "眼镜语音测试：请用提问工具分两次用中文问我，每次只问一件事，问题尽量简短：先问要写入的文件名，再问要写入的一行文字。拿到回答后，在你的工作目录里创建这个文件，写入完全相同的文字，最后用中文告诉我文件名和内容。",
+  "questions": [
+    {"question": "要写入的文件名是什么？", "mode": "free_text", "first_ask_accepted": true, "answer_text": "呃，加入的文件名我想一想。\n就叫做录音。\n测试吧。", "input_source": "voice", "consumed": true,
+     "path": "dev10 glasses question card -> ＋ -> phone voice page auto-started capture -> REVIEW; after dev11 install the card was re-offered, ＋ reopened the retained draft and the dev11 confirm card showed the text; user reported seeing the text on the lenses and the answer was saved and consumed"},
+    {"question": "要写入的一行文字是什么？", "mode": "free_text", "answer_text": "第一行文字就写。\n呃，尝试一下直接用眼镜和Agent进行交互。", "input_source": "voice", "consumed": true, "path": "dev11 question card -> dictation -> confirm card"}
+  ],
+  "file_written": {"path": "workspace/录音测试.txt", "content_equals_second_answer": true, "sha256": "fc25a20311cfaef7c8b737e34b93b608ea61fed69b5e03d2158709a154ed491d", "tool": "write_file"},
+  "result_text": "文件名：录音测试.txt / 内容：第一行文字就写。呃，尝试一下直接用眼镜和Agent进行交互。",
+  "server_task": {"state": "completed", "receipts": ["agent_received", "task_resumed", "task_completed"]},
+  "operation": "completed (native_result_and_confirmed_process_exit)",
+  "observations": [
+    "Hermes kept both questions short after the 36-character tool hint; no deadline rejection this run",
+    "Hermes turned the spoken 录音。测试吧 into 录音测试.txt; filler words are kept verbatim in the written content",
+    "Dictation end is still triggered on the phone or by the 30 s cap; ending from the glasses is not implemented",
+    "Whether the user pressed ＋ on the confirm card or saved on the phone for each answer was not separately logged"
+  ],
+  "cleanup": {"bridge_stopped": "SIGINT", "credentials_revoked": "phone311-20261022-a, agent+phone 401 AUTH_REQUIRED", "test_driver_uninstalled": "sha256 19f75c73… matched before uninstall", "port_forwards": "none", "earlier_runs": "phone310 task cancelled and revoked (401) when the test was paused"}
+}

@@ -1,4 +1,4 @@
-"""Bridge adapter for an existing Codex caller. No prompt dispatch or session creation."""
+"""Bridge adapter for an existing agent caller (Codex, Claude Code, ...). No prompt dispatch or session creation."""
 import hashlib
 import json
 from pathlib import Path
@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from context import load_context, require
+from context import load_context, registered_command, require
 from runtime_journal import RuntimeJournalError, encode
 
 
@@ -25,7 +25,7 @@ class ExistingCaller:
         require(item.get('kind') == 'task' and item.get('object_id') == c['task_id'] and item.get('body', {}).get('route') == c['route'], 'CALLER_OPERATION_MISMATCH')
         source = json.loads(self.journal._source(item))
         body = source['body']
-        require(body.get('allow_create_session') is False and body.get('command') == 'Continue the already-running registered Codex task.', 'CALLER_COMMAND_MISMATCH')
+        require(body.get('allow_create_session') is False and body.get('command') == registered_command(self.config), 'CALLER_COMMAND_MISMATCH')
         existing = self.journal.operation_for_task(c['task_id'])
         if existing:
             require(existing['operation_id'] == c['operation_id'], 'CALLER_OPERATION_MISMATCH')
@@ -35,14 +35,14 @@ class ExistingCaller:
                 self.journal.claim(c['operation_id'])
                 self.running(existing)
             if body.get('state') == 'cancel_requested':
-                # This records a cancellation request only; it cannot stop Codex execution.
+                # This records a cancellation request only; it cannot stop the agent.
                 self.journal.request_cancel(existing['operation_id'])
             return []
         require(source['revision'] == 1 and body['state'] == 'queued' and delivery_id == 'item:task:' + c['task_id'] + ':1', 'CALLER_ORIGINAL_TASK_REQUIRED')
         receipt = {'action': 'receipt', 'stage': 'agent_received', 'subject_kind': 'task', 'subject_id': c['task_id'], 'subject_revision': 1}
         event = {'event_id': stable('rt-', [c['operation_id'], 'admitted']), 'delivery_id': delivery_id,
                  'actions': [{'action': 'task_state', 'state': 'agent_received'}, receipt]}
-        # Admission proof and claim are durable; subsequent process restarts never run Codex.
+        # Admission proof and claim are durable; subsequent process restarts never run the agent.
         self.journal.admit(c['operation_id'], delivery_id, source, {'text': body['command']}, event)
         self.journal.claim(c['operation_id'])
         self.running(self.journal.operation(c['operation_id']))

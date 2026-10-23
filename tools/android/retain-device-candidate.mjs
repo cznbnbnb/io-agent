@@ -1,5 +1,6 @@
 // Retain the verified native-device candidate and the last phone-installed APK.
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
+import {exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app'),artifacts=path.join(root,'artifacts');
 const read=name=>JSON.parse(fs.readFileSync(path.join(root,name),'utf8').replace(/^\uFEFF/,''));
 const fixed60=process.argv.includes('--fixed60'),recovery=process.argv.includes('--recovery'),login=process.argv.includes('--login');
@@ -12,7 +13,7 @@ else if(fixed60){if(evidence.verification_kind!=='fixed60_sdk_ui_vm'||Object.val
 else if(evidence.verification_kind!=='connection_sdk_vm'||!evidence.probes.core.checks.disable_releases_owned_baseline||!evidence.probes.restoration.checks.handoff_restores_exact_original_callbacks)throw new Error('SDK scope not established');
 if(fs.existsSync(path.join(root,'build/build.lock')))throw new Error('Build owns the stage');
 const runtime=read('.private/emulator-runtime.json');if(runtime.serial!=='emulator-5582')throw new Error('Only the dedicated Android16 emulator is allowed');
-function adb(args){const r=spawnSync(path.join(root,'.tools/sdk/platform-tools/adb.exe'),['-s','emulator-5582',...args],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});if(r.error||r.status!==0)throw new Error('Emulator retention read failed');return r.stdout.trim();}
+function adb(args){const r=spawnSync(path.join(root,'.tools/sdk/platform-tools',exe('adb')),['-s','emulator-5582',...args],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});if(r.error||r.status!==0)throw new Error('Emulator retention read failed');return r.stdout.trim();}
 const packagePath=adb(['shell','pm','path','com.rayneo.venus.pub']).split(/\r?\n/)[0];if(!/^package:\/data\/app\/[^\s]+\/base\.apk$/.test(packagePath))throw new Error('Unexpected emulator APK path');
 const installed=adb(['shell','sha256sum',packagePath.slice(8)]).split(' ')[0];if(installed!==current.sha256)throw new Error('VM does not run the verified candidate');
 async function hash(file){const digest=crypto.createHash('sha256');for await(const chunk of fs.createReadStream(file))digest.update(chunk);return digest.digest('hex');}

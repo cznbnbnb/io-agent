@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from restricted_profile import CLI_POLICY
+from restricted_profile import CLI_POLICY, WORKSPACE_POLICY
 from runtime_environment import managed_environment, require_enrollment_ready
 from runtime_journal import RuntimeJournalError
 
@@ -48,6 +48,22 @@ class RuntimeEnvironmentTests(unittest.TestCase):
             file.write_text(json.dumps(ready))
             with self.assertRaisesRegex(RuntimeJournalError, 'RUNTIME_ENROLLMENT_NOT_READY'):
                 require_enrollment_ready(home, sessions | {'another-session': {}})
+
+    def test_ready_marker_must_name_the_enrolled_profile(self):
+        with tempfile.TemporaryDirectory() as temp:
+            home = Path(temp)
+            (home / '.turboio-tool-policy.json').write_text(json.dumps(WORKSPACE_POLICY))
+            sessions = {'expected-session': {'project_id': 'test', 'cwd': temp}}
+            ready = {'schema': 1, 'session_id': 'expected-session',
+                     'profile': WORKSPACE_POLICY['profile'], 'source_config_modified': False,
+                     'model_called': False, 'task_dispatched': False}
+            file = home / '.turboio-enrollment-ready.json'
+            file.write_text(json.dumps(ready))
+            require_enrollment_ready(home, sessions)
+            # A question-only enrollment cannot be widened by swapping the policy file.
+            file.write_text(json.dumps(ready | {'profile': CLI_POLICY['profile']}))
+            with self.assertRaisesRegex(RuntimeJournalError, 'RUNTIME_ENROLLMENT_NOT_READY'):
+                require_enrollment_ready(home, sessions)
 
     def test_legacy_profile_does_not_acquire_implicit_cli_registration(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -10,8 +10,8 @@ final class MaterialSyncSession {
  interface DiscoverySource extends AccountSource {OfficialLifelogDiscovery.Snapshot discover()throws Exception;}
  interface Guard {void check()throws IOException;}
  static final class Status {
-  int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries;String note="ready";
-  Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"note",note);}
+  int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";
+  Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"too_large",tooLarge,"note",note);}
  }
  private final File files;private final MaterialConfig config;private final AccountSource source;private final Guard guard;private final MaterialApi api;
  MaterialSyncSession(File files,MaterialConfig config,Source source,Guard guard,MaterialApi.Transport transport){this(files,config,(AccountSource)source,guard,transport);}
@@ -79,21 +79,22 @@ final class MaterialSyncSession {
    for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);String eventId=(String)row.get("event_id");if(freshIds.contains(row.get("material_id"))&&outbox.needsTextRevisionRepair(eventId)){
     MaterialWire.require(repairBudget++<16,"MATERIAL_TEXT_REVISION_REPAIR_REQUIRED");admit();api.reconcileOnly(outbox,eventId,System.currentTimeMillis());MaterialWire.require(!outbox.needsTextRevisionRepair(eventId),"MATERIAL_TEXT_REVISION_REPAIR_REQUIRED");
    }}
-   try{status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis());}
+   Set<String> oversized=new TreeSet<>();
+   try{status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized);}
    catch(IllegalArgumentException pending){
     if(!"LIFELOG_PENDING_REVISION_CHANGED".equals(pending.getMessage()))throw pending;
     Set<String> currentIds=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)currentIds.add(value.materialId(config.account));int budget=0;
     for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(currentIds.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state"))&&budget++<16){admit();api.reconcileOnly(outbox,(String)row.get("event_id"),System.currentTimeMillis());}}
     // A confirmed stored predecessor permits the next revision. Unknown or
     // absent predecessors still stop here; no stale POST is used to satisfy CAS.
-    status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis());
+    status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized);
    }
    revisions.replay(this::admit,outbox);
    Set<String> allowed=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)allowed.add(value.materialId(config.account));
    if(!allowed.isEmpty()){
     admit();api.preflight(System.currentTimeMillis(),true);outbox.resumeBlocked();for(int i=0;i<16;i++){admit();if(!api.pump(outbox,System.currentTimeMillis(),allowed))break;}
    }
-   count(status,outbox);status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
+   count(status,outbox);status.tooLarge=oversized.size();status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
   }return status;
  }
 }

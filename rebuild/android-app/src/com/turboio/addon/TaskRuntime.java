@@ -59,8 +59,12 @@ final class TaskRuntime {
   enabled.remove(binding);TaskHttp t=transports.get(binding);if(t!=null)t.cancel();
   work(()->{try{settings.pause(binding);hub.apply(settings.loadAll());note="contexts_ready";}catch(Exception failure){if(hub!=null){TaskHub.View v=hub.view(binding);if(v.profile.enabled)enabled.add(binding);}throw failure;}},result);
  }
- void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"TASK_PAUSED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
- private void bound(String binding){TaskWire.require(Host107Login.loggedIn()&&enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
+ /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
+  * hub, whose channel set must match the profiles; mailbox files stay on disk. */
+ void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
+ // An expired stock access token is not a paused connection; the stock App refreshes it on its next request.
+ void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
+ private void bound(String binding){TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
  void detail(String binding,String kind,String id,Result result){work(()->{bound(binding);hub.detail(binding,kind,id,System.currentTimeMillis());},result);}
  void delegate(String binding,String operation,String command,Result result){work(()->{bound(binding);hub.delegate(binding,operation,command,System.currentTimeMillis());},result);schedule();}
  void answer(String binding,String operation,String request,long revision,Object option,String text,Result result){work(()->{bound(binding);hub.answer(binding,operation,request,revision,option,text,System.currentTimeMillis());},result);schedule();}

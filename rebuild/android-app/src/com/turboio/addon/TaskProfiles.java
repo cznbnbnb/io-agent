@@ -38,6 +38,12 @@ final class TaskProfiles {
   for(Profile p:profiles){if(p.binding.equals(next.binding)){rows.add(next);replaced=true;}else rows.add(p);}if(!replaced)rows.add(next);return new TaskProfiles(next.binding,rows);
  }
  TaskProfiles select(String binding){get(binding);return new TaskProfiles(binding,profiles);}
+ /** Frees a slot held by an expired registration. The current default target is
+  * never removed, and its mailbox files are left on disk for the same binding. */
+ TaskProfiles remove(String binding,long now){
+  Profile prior=get(binding);TaskWire.require(!binding.equals(selected),"TASK_TARGET_SELECTED");TaskWire.require(prior.connection.expiresAt<=now,"TASK_PROFILE_ACTIVE");
+  List<Profile> rows=new ArrayList<>();for(Profile p:profiles)if(!p.binding.equals(binding))rows.add(p);return new TaskProfiles(selected,rows);
+ }
  TaskProfiles enabled(String binding,boolean enabled,long now){
   Profile prior=get(binding);TaskWire.require(!enabled||prior.connection.expiresAt>now,"TASK_IMPORT_EXPIRED");List<Profile> rows=new ArrayList<>();for(Profile p:profiles)rows.add(p.binding.equals(binding)?new Profile(p.connection,enabled):p);return new TaskProfiles(selected,rows);
  }

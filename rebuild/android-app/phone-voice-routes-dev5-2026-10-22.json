@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T06:10:00Z",
+  "product": "0.5.3-dev5 /10427",
+  "host": "macOS arm64 (first Mac voice run)",
+  "rig": {
+    "source_generator": "tools/android/make-voice-source.mjs (say -v Tingting, 16 kHz mono)",
+    "source_v1": {
+      "text": "先预览。不要修改文件，保留全部资料。请在星期五继续，附加条件也要完整保留。",
+      "result": "ASR heard 先预览 as 千玉懒; retired"
+    },
+    "source_v2": {
+      "text": "只做预览。不要修改文件，保留全部资料。请在星期五继续，附加条件也要完整保留。",
+      "wav_sha256": "5cfd5193aafb3d7e7c7fd9daa5aaace0b2d409a0f3fb4b6ddf065e20e405bfce",
+      "pcm_sha256": "79bed387c318ddfcda69bdac6030adc60c57bf780771a07df54b0d7b6e088c72",
+      "duration_seconds": 8.8101875
+    },
+    "player": "tools/android/wav-player.mjs (afplay; READY/PLAY/DONE protocol)",
+    "trailing_silence_before_stop_ms": 2000,
+    "mac_output_volume_applescript": 36,
+    "placement": "User confirmed in chat: glasses beside Mac speaker, nobody talking, volume ~50; recorded per guard session"
+  },
+  "credentials": {
+    "issuer": "tools/phase1/cloud-test-credentials.py over system ssh ubuntu@43.142.59.131 (Mac key added by user)",
+    "runs": [
+      "voice303-20261022-a",
+      "voice304-20261022-a"
+    ],
+    "ttl_ms": 3600000,
+    "revoked_and_401_verified": {
+      "voice303-20261022-a": {
+        "phone": 401,
+        "agent": 401,
+        "operations": 401
+      },
+      "voice304-20261022-a": {
+        "phone": 401,
+        "agent": 401,
+        "operations": 401
+      }
+    }
+  },
+  "setup_fix": "Task revision 1 requires tasks:write (phone role); context-cloud-check now creates it with the phone credential, agent advances it",
+  "attempts": [
+    {
+      "run": "voice303",
+      "route": "hermes",
+      "source": "v1",
+      "result": "INCOMPLETE",
+      "cause": "stop issued when afplay returned; last segment not final",
+      "safe_stop": true,
+      "answer_saved": false
+    },
+    {
+      "run": "voice303",
+      "route": "hermes",
+      "source": "v1",
+      "result": "capture complete but 预览 missing (千玉懒)",
+      "safe_stop": true,
+      "answer_saved": false,
+      "note": "REVIEW draft cannot be discarded in UI; question abandoned"
+    },
+    {
+      "run": "voice303",
+      "route": "hermes",
+      "source": "v2",
+      "result": "probe refused existing REVIEW draft (NORMAL_VOICE_DRAFT_NOT_PREPARED)",
+      "recording_started": false,
+      "cleanup": "no active audio input observed; manual hash-checked cleanup"
+    },
+    {
+      "run": "voice303",
+      "route": "qa",
+      "source": "v2",
+      "result": "PASSED",
+      "segments": 5,
+      "all_final": true,
+      "four_conditions": true,
+      "route_match": true,
+      "safe_stop": true,
+      "answer_saved": true,
+      "server_verify": "matched, voice input source, transcript hash",
+      "transcript_sha256": "9e5d36bfe827ab8b0634ff56d8c5c4231e0757003826c2d5eebd38c1349f60ba"
+    },
+    {
+      "run": "voice304",
+      "route": "hermes",
+      "source": "v2",
+      "result": "INCOMPLETE",
+      "cause": "extra trailing segment (嗯) not final at stop",
+      "safe_stop": true,
+      "answer_saved": false,
+      "note": "INCOMPLETE draft is discarded; same question retried"
+    },
+    {
+      "run": "voice304",
+      "route": "hermes",
+      "source": "v2",
+      "result": "PASSED",
+      "segments": 5,
+      "all_final": true,
+      "four_conditions": true,
+      "route_match": true,
+      "safe_stop": true,
+      "answer_saved": true,
+      "server_verify": "matched, voice input source, transcript hash",
+      "transcript_sha256": "4a7726d8b86dadafbb33b8e578647a652912ce144680c5dfd0dd30054a54a2fc"
+    }
+  ],
+  "routes_with_physical_voice_evidence": {
+    "codex": "2026-10-22 Windows (0.5.3-dev1)",
+    "qa": "2026-10-22 Mac (dev5)",
+    "hermes": "2026-10-22 Mac (dev5)"
+  },
+  "asr_quality": {
+    "passing_transcripts": "制作预览。不要修改文件。保留全部资料。请在星期五/待星期五继续。不加条件也要完整保留。",
+    "errors": [
+      "只做→制作",
+      "请在→请待 (qa)",
+      "附加条件→不加条件 (meaning inverted)"
+    ],
+    "note": "Keyword checks pass; Mac TTS through speaker into glasses mic is not human speech; user review/correction step matters"
+  },
+  "product_gaps": [
+    "A dictation draft that reached REVIEW cannot be discarded or redone for the same question",
+    "Normal flow saves only all-final transcripts (by design); a trailing noise segment makes the attempt INCOMPLETE"
+  ],
+  "real_codex_or_hermes_runtime_executed": false,
+  "cleanup": {
+    "synthetic_tasks_closed": 6,
+    "credentials_revoked": 6,
+    "driver_removed": true,
+    "forwards_removed": true,
+    "leases_released": true,
+    "phone_test_connections": "shown as 连接凭据已到期 after revocation; other sessions paused",
+    "audio_journal_retained_on_phone": true
+  },
+  "sources_sha256": {
+    "tools/android/run-normal-voice-guard.mjs": "873caf2c36e7a558a95ed69045523f2d8ee79772159509148b2dfdab5ffd2a4c",
+    "tools/android/wav-player.mjs": "2962f2313fb4560bde91dce53dbd8c32e7a8e7db6727892002111288b94f4b7d",
+    "tools/android/make-voice-source.mjs": "f4bdb60355ea37b2e07e996052cfa87c8dfb1886ab601604251e601682ae8a17",
+    "tools/android/NormalVoiceGuardProbe.java": "220b3a0a69b6b3888e89cd6c021760704620ba2c7d27914e386ad1aff13b1f62",
+    "tools/android/context-cloud-check.mjs": "b6e9a3a535237440a06302086a2ce0349813586be4147fd66dffccb1ff9753c5",
+    "tools/phase1/deploy-server-release.py": "6824e42bbb93eac9b5a441de326ba6bebd2075300ab8884fb3edd5c8a50a3b50"
+  },
+  "glasses_lens_observed": false
+}

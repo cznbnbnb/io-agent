@@ -36,6 +36,9 @@ final class AgentCardRuntime {
   });main.post(poll);tasks.read(null);
  }
  static void init(Activity host){main();if(instance==null)try{instance=new AgentCardRuntime(host);}catch(IOException unavailable){/* No durable state means phone answers only. */}}
+ // Opt-in (2026-10-23, user): nod/shake answers only the final confirm card of a dictated answer.
+ static boolean nodConfirm(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("nod_confirm",false);}
+ static void nodConfirm(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("nod_confirm",value).commit())r.message="设置未能保存";r.refresh();}
  static boolean enabled(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("enabled",true);}
  static void enabled(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("enabled",value).commit()){r.message="设置未能保存";return;}if(!value)r.withdraw("已关闭眼镜提醒，原问题留在手机");r.refresh();}
  static void accept(TaskRuntime.Snapshot value){main();AgentCardRuntime r=instance;if(r!=null){r.snapshot=value;r.pump();}}
@@ -49,6 +52,10 @@ final class AgentCardRuntime {
   main();AgentCardRuntime r=instance;
   return r!=null&&r.phoneFocus.contains(focusKey(binding,request))&&!r.fetching&&!r.checkingShow&&!r.answerBusy&&!r.pumping&&r.preflight==null&&!r.localLease&&r.queued.get()==0&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&(!r.session.cardMayExist()||r.session.closure()!=null)&&HeadGestureRuntime.voiceHandoffReady();
  }
+ /** Shows a finished glasses-started dictation for confirmation; failure leaves saving on the phone. */
+ static boolean offerConfirm(Activity host,String binding,String request,long revision,String text){main();AgentCardRuntime r=instance;if(r==null)return false;r.activity=new WeakReference<>(host);return r.offer(binding,request,revision,true,text);}
+ /** Why the last glasses offer did not go ahead, for the page that asked. */
+ static String lastMessage(){AgentCardRuntime r=instance;return r==null?"眼镜任务卡暂不可用":r.message;}
  static void offer(Activity host,String binding,String request,long revision){main();AgentCardRuntime r=instance;if(r==null){TaskWorkspace.notice(host,"眼镜任务卡暂不可用，请在手机回答");return;}r.activity=new WeakReference<>(host);r.offer(binding,request,revision,false);}
  private boolean visible(){return !foreground.isEmpty();}
  private boolean usable(){return visible()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending();}
@@ -60,24 +67,59 @@ final class AgentCardRuntime {
   }return false;
  }
  private void notice(String text,boolean automatic){message=text;if(!automatic){Activity host=activity.get();if(host!=null&&!host.isFinishing()&&!host.isDestroyed())TaskWorkspace.notice(host,text);}refresh();}
- private void offer(String binding,String request,long revision,boolean automatic){
-  if(fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||!usable()){notice("眼镜正有操作或恢复待完成，问题保留在手机",automatic);nextAuto=now()+10000;return;}
+ private void offer(String binding,String request,long revision,boolean automatic){offer(binding,request,revision,automatic,null);}
+ /** False when the offer was refused before any work started; the reason is in message. */
+ private boolean offer(String binding,String request,long revision,boolean automatic,String confirm){
+  if(!Host107Login.loggedIn()){notice(TaskWorkspace.label("OFFICIAL_LOGIN_REQUIRED"),automatic);nextAuto=now()+10000;return false;}
+  if(fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||!usable()){notice("眼镜正有操作或恢复待完成，问题保留在手机",automatic);nextAuto=now()+10000;return false;}
   fetching=true;tasks.detail(binding,"request",request,(state,error)->{
    fetching=false;snapshot=state;if(!error.isEmpty()){notice(TaskWorkspace.label(error),automatic);nextAuto=now()+10000;return;}
    try{if(!usable()||!session.canPrepare()||HeadGestureRuntime.pending())throw new IllegalArgumentException("TASK_GLASS_BUSY");TaskHub.View source=state.context(binding);TaskWire.require(source!=null&&source.profile.enabled,"TASK_PAUSED");Map<String,Object> fresh=source.item("request",request);TaskWire.require(fresh!=null&&TaskWire.positive(fresh.get("revision"))==revision,"TASK_REQUEST_CHANGED");
-    TaskWire.require(!hasAnswer(source,request,revision,null),"TASK_ANSWER_ALREADY_SAVED");AgentCardRequest frozen=AgentCardRequest.prepare(source.profile.connection,fresh,source.item("task",(String)TaskWire.body(fresh).get("task_id")),System.currentTimeMillis());
+    TaskWire.require(!hasAnswer(source,request,revision,null),"TASK_ANSWER_ALREADY_SAVED");Map<String,Object> parent=source.item("task",(String)TaskWire.body(fresh).get("task_id"));
+    if(confirm==null&&"prompter".equals(AgentCardRequest.route(TaskWire.body(fresh)))){if(!prompt(source,fresh,parent,automatic))notice(message,automatic);return;}
+    AgentCardRequest frozen=confirm!=null?AgentCardRequest.prepareConfirm(source.profile.connection,fresh,parent,System.currentTimeMillis(),confirm):AgentCardRequest.prepare(source.profile.connection,fresh,parent,System.currentTimeMillis());
     Fixed60Session.Link link=Host107Ota.link();TaskWire.require(link.peer!=null&&!link.peer.isEmpty()&&NativeTransfer.acquireMessages(lease),"TASK_GLASS_BUSY");localLease=true;
     if(!session.prepare(frozen,link.peer,link.generation))throw new IllegalArgumentException("TASK_CARD_STORE_INVALID");
     TaskWire.require(offered.size()<200||offered.contains(frozen.owner),"TASK_GLASS_HISTORY_FULL");Set<String> next=new HashSet<>(offered);next.add(frozen.owner);TaskWire.require(prefs.edit().putStringSet("offered",next).commit(),"TASK_CONFIG_SAVE_FAILED");offered.clear();offered.addAll(next);
     preflight=new MinuteCardSession(new MinuteCardSession.Store(){public Object read(){return null;}public void save(Object value){throw new IllegalStateException();}});TaskWire.require(preflight.inspect(link.peer,link.generation,now(),false),"TASK_GLASS_BUSY");message="正在核对原眼镜状态";headStarted=restoreStarted=false;lastCleanupOwner="";checkingShow=false;pump();
    }catch(Exception bad){session.cancelUnshown();releaseLocal();notice(TaskWorkspace.label(TaskApi.safeError(bad)),automatic);nextAuto=now()+10000;}
   });
+  return true;
  }
  private void maybeAuto(){
   if(!enabled()||!usable()||fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||snapshot==null||now()<nextAuto)return;
   for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled)for(Object raw:c.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"request".equals(item.get("kind")))continue;Map<String,Object> b=TaskWire.body(item);String id=(String)item.get("object_id");long revision=TaskWire.positive(item.get("revision"));if(phoneFocus.contains(focusKey(c.binding,id))||hasAnswer(c,id,revision,null))continue;
-   try{AgentCardRequest r=AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis());if(offered.contains(r.owner))continue;nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}catch(RuntimeException notDisplayable){/* Full question stays in the phone inbox. */}
+   try{AgentCardRequest r=AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis());if(offered.contains(r.owner))continue;nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}
+   catch(RuntimeException notDisplayable){if("TASK_GLASS_PROMPTER".equals(notDisplayable.getMessage())&&!offered.contains(prompterKey(c.binding,item))){nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}/* Otherwise the full question stays in the phone inbox. */}
   }
+ }
+ private static String prompterKey(String binding,Map<String,Object> request){return TaskWire.hash(WireJson.bytes(WireJson.object("prompter",binding,"request",TaskWire.requestFingerprint(request))));}
+ static final int PROMPTER_SPEED=120;
+ /** Long question on the prompter; the wearer's long-press exit opens this question's dictation. */
+ private boolean prompt(TaskHub.View source,Map<String,Object> request,Map<String,Object> parent,boolean automatic){
+  try{TaskWire.require(TaskWire.canAnswer(request,parent,System.currentTimeMillis()),"TASK_REQUEST_CLOSED");}catch(RuntimeException closed){message=TaskWorkspace.label("TASK_REQUEST_CLOSED");return false;}
+  if(NewsTele.active()||NativeTransfer.fileBusy()||session.pending()||preflight!=null||HeadGestureRuntime.pending()){message="眼镜正有操作，长问题保留在手机";nextAuto=now()+10000;return false;}
+  String key=prompterKey(source.binding,request);if(automatic&&offered.contains(key))return false;
+  if(offered.size()>=200&&!offered.contains(key)){message=TaskWorkspace.label("TASK_GLASS_HISTORY_FULL");return false;}
+  String binding=source.binding,id=(String)request.get("object_id"),fingerprint=TaskWire.requestFingerprint(request);long revision=TaskWire.positive(request.get("revision"));
+  // Only a started manuscript counts as offered; a refused start (e.g. glasses still connecting) is retried.
+  if(!NewsTele.start(AgentCardRequest.manuscript(TaskWire.body(request),TaskWire.body(parent)),PROMPTER_SPEED,()->openPrompterVoice(binding,id,revision,fingerprint))){message="提词器暂不可用："+NewsTele.status()+"；稍后自动重试，长问题保留在手机";nextAuto=now()+10000;refresh();return false;}
+  Set<String> next=new HashSet<>(offered);next.add(key);if(prefs.edit().putStringSet("offered",next).commit()){offered.clear();offered.addAll(next);}
+  message="长问题已发到眼镜提词器；看完长按退出后口述";refresh();return true;
+ }
+ private void openPrompterVoice(String binding,String id,long revision,String fingerprint){
+  Activity host=activity.get();
+  if(!visible()||host==null||host.isFinishing()||host.isDestroyed()){message="已退出提词器，请在手机打开原问题口述";refresh();return;}
+  message="已退出提词器，正在打开原问题语音回答";refresh();VoiceAnswerWorkspace.show(host,binding,id,revision,fingerprint,()->tasks.read(null),true);
+ }
+ private void openVoice(AgentCardRequest voice){
+  Activity host=activity.get();
+  if(!visible()||host==null||host.isFinishing()||host.isDestroyed()){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
+  message="已在眼镜选择口述，正在打开原问题语音回答";refresh();
+  VoiceAnswerWorkspace.show(host,voice.binding,voice.requestId,voice.revision,voice.fingerprint,()->tasks.read(null),true);
+ }
+ private void confirmVoice(AgentCardRequest voice){
+  message=VoiceAnswerWorkspace.confirmFromGlasses(voice.binding,voice.requestId,voice.confirm)?"已在眼镜确认，正在保存并提交原文":"手机上的口述已变化或暂不能保存，请在手机核对后保存";refresh();
  }
  private void releaseLocal(){if(localLease){NativeTransfer.releaseMessages(lease);localLease=false;}}
  private void withdraw(String reason){
@@ -93,14 +135,14 @@ final class AgentCardRuntime {
   if(checkingShow||!current()||!HeadGestureRuntime.ready(session.owner()))return;checkingShow=true;String owner=session.owner();AgentCardRequest frozen=session.request();
   tasks.detail(frozen.binding,"request",frozen.requestId,(state,error)->{checkingShow=false;snapshot=state;if(!owner.equals(session.owner()))return;
    if(!error.isEmpty()||!usable()||!current()||!HeadGestureRuntime.ready(owner)){withdraw("原问题或连接尚未就绪，请在手机回答");return;}
-   Fixed60Session.Link link=Host107Ota.link();if(!session.bindGuard(HeadGestureRuntime.token(owner))||!HeadGestureRuntime.cardMayShow(owner)||!session.show(link.peer,link.generation,now(),System.currentTimeMillis(),true)){withdraw("卡片保护未能完成，请在手机回答");return;}message="已提交眼镜卡片；仅明确按键选择才保存答案";pump();
+   Fixed60Session.Link link=Host107Ota.link();if(!session.bindGuard(HeadGestureRuntime.token(owner))||!HeadGestureRuntime.cardMayShow(owner)||!session.show(link.peer,link.generation,now(),System.currentTimeMillis(),true)){withdraw("卡片保护未能完成，请在手机回答");return;}message=HeadGestureRuntime.keepsGestures()?"已提交确认卡；点头提交，摇头留手机，也可按键":"已提交眼镜卡片；仅明确按键选择才保存答案";pump();
   });
  }
  private void pump(){
   main();if(pumping)return;pumping=true;
   try{Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
    if(preflight!=null){preflight.tick(link.peer,link.generation,now(),visible());if(preflight.phase().equals("READY")&&!preflight.working()){
-     preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump));if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
+     preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump),nodConfirm()&&session.request()!=null&&session.request().confirm!=null);if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
     }else if(!preflight.working()){message="眼镜状态检查未通过，请在手机回答";preflight=null;releaseLocal();session.cancelUnshown();}
     else{MinuteCardSession.Emission e=preflight.next(now());MinuteCardSession bound=preflight;if(e!=null)Host107Suggestion.send(link,e,ok->{if(preflight==bound){bound.result(e.ticket,ok,now());pump();}});}
    }
@@ -116,6 +158,7 @@ final class AgentCardRuntime {
    }
    AgentCardSession.Emission e=session.next(link.peer,link.generation,now(),head);if(e!=null)Host107Suggestion.sendCard(link,session,e,ok->{session.result(e.ticket,ok,now());pump();});
    if(!session.pending()&&preflight==null){releaseLocal();if(HeadGestureRuntime.pending()&&!restoreStarted){CardInputClosure proof=session.closure();restoreStarted=proof!=null?HeadGestureRuntime.finishClosed(session.owner(),proof):HeadGestureRuntime.finish(session.owner(),false);}
+    if(!HeadGestureRuntime.pending()){AgentCardRequest voice=session.takeVoiceHandoff(now());if(voice!=null)main.post(()->{if(voice.confirm!=null)confirmVoice(voice);else openVoice(voice);});}
     if(!HeadGestureRuntime.pending()&&!session.answerFailure().isEmpty()&&TaskWire.set("TASK_ANSWER_ALREADY_SAVED","TASK_REQUEST_CLOSED","REQUEST_CLOSED","TASK_REQUEST_CHANGED","EXPIRED").contains(session.answerFailure()))session.keepUnsentDraft();
    }
    maybeAuto();refresh();
@@ -134,10 +177,15 @@ final class AgentCardRuntime {
   r.main.post(()->{try{Fixed60Session.Link fresh=Host107Ota.link();if(taskEvent)r.session.receive(peer,gen,bytes,now(),System.currentTimeMillis(),r.usable()&&r.current()&&HeadGestureRuntime.permission(r.session.owner(),peer,gen));else if(r.preflight!=null)r.preflight.receive(peer,gen,9,bytes,now());r.pump();}finally{r.queued.decrementAndGet();}});return ours;
  }
  private String text(){return message+"\n"+(HeadGestureRuntime.pending()?"待办交互设置正在保护或恢复":"待办交互设置没有待恢复记录")+(session.cardMayExist()?"\n镜片实际退场尚未另行核对":"")+(!session.answerFailure().isEmpty()?"\n"+TaskWorkspace.label(session.answerFailure()):"");}
- private void refresh(){String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;try{File dir=app.getExternalFilesDir(null);if(dir!=null){try(FileOutputStream stream=new FileOutputStream(new File(dir,"io-agent-card-status.json"))){stream.write(state.getBytes(java.nio.charset.StandardCharsets.UTF_8));}lastExport=state;}}catch(IOException ignored){}
+ private void refresh(){String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;
+  // 2026-10-23: the wearer saw the confirm card about a minute after dictation ended; each status change
+  // is logged with its time so the slow step can be found (no question or answer text is logged).
+  android.util.Log.i("TurboIOCard","card phase="+session.phase()+" pending="+session.pending()+" head="+HeadGestureRuntime.pending()+" preflight="+(preflight==null?"":preflight.phase())+" fetching="+fetching+" show="+checkingShow+" busy="+answerBusy+" msg="+message);
+  try{File dir=app.getExternalFilesDir(null);if(dir!=null){try(FileOutputStream stream=new FileOutputStream(new File(dir,"io-agent-card-status.json"))){stream.write(state.getBytes(java.nio.charset.StandardCharsets.UTF_8));}lastExport=state;}}catch(IOException ignored){}
  }
  static void show(Activity host){init(host);AgentCardRuntime r=instance;if(r==null){TaskWorkspace.notice(host,"眼镜交互记录暂不可用，请在手机回答");return;}EditorialUI.Screen screen=new EditorialUI.Screen(host,"眼镜任务卡");TextView status=EditorialUI.text(host,r.text(),15,EditorialUI.INK);screen.body.addView(status);r.views.add(status);
   CheckBox automatic=new CheckBox(host);automatic.setText("新问题自动显示到眼镜");automatic.setTextColor(EditorialUI.INK);automatic.setChecked(enabled());automatic.setOnCheckedChangeListener((button,value)->enabled(value));screen.body.addView(automatic);
+  CheckBox nod=new CheckBox(host);nod.setText("口述确认卡允许点头提交、摇头留手机（需原厂待办头势已开启；其他卡仍只认按键）");nod.setTextColor(EditorialUI.INK);nod.setChecked(nodConfirm());nod.setOnCheckedChangeListener((button,value)->nodConfirm(value));screen.body.addView(nod);
   EditorialUI.button(host,screen.body,"停止本次眼镜显示",false,()->r.withdraw("已停止本卡输入，原问题继续等待"));
   EditorialUI.button(host,screen.body,"重试清理与设置恢复",false,()->{r.lastCleanupOwner="";r.restoreStarted=false;r.withdraw("正在重试卡片清理与设置恢复");});
   EditorialUI.button(host,screen.body,"重试保存上次选择",false,()->{if(r.session.retryAnswer())r.pump();else TaskWorkspace.notice(host,"当前没有可重试的选择");});

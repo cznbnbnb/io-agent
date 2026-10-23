@@ -8,14 +8,15 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {BridgeClient} from '../../rebuild/agent-bridge/client.mjs';
 import {recordingRequest,safeRecordingStatus} from './recording-watchdog.mjs';
+import {WINDOWS,exe} from './host-tools.mjs';
 
 const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),root=path.join(workspace,'rebuild/android-app'),privateRoot=path.join(root,'.private');
-const adb=path.join(root,'.tools/sdk/platform-tools/adb.exe'),buildTools=path.join(root,'.tools/sdk/build-tools/36.0.0');
+const adb=path.join(root,'.tools/sdk/platform-tools',exe('adb')),buildTools=path.join(root,'.tools/sdk/build-tools/36.0.0');
 const pkg='com.rayneo.venus.pub',driver='com.turboio.androidtests',component=driver+'/'+driver+'.NormalVoiceGuardProbe',label='iO Agent UI test driver';
-const expected={version:'0.5.3-dev1',code:10423,signer:'174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad'};
+const expected={version:'0.5.3-dev5',code:10427,signer:'174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad'};
 const external='/sdcard/Android/data/'+pkg+'/files/connection-import/task-connection.json';
 const targetFile=path.join(privateRoot,'phone-login-install-2026-10-20/verified-target.json'),leaseFile=path.join(privateRoot,'normal-voice-runner.lock');
-const sourceFiles=['tools/android/run-normal-voice-guard.mjs','tools/android/NormalVoiceGuardProbe.java','tools/android/recording-watchdog.mjs','rebuild/agent-bridge/client.mjs','rebuild/android-app/src/com/turboio/addon/TaskConnection.java','rebuild/android-app/src/com/turboio/addon/TaskWire.java','rebuild/android-app/src/com/turboio/addon/WireJson.java'];
+const sourceFiles=['tools/android/run-normal-voice-guard.mjs','tools/android/NormalVoiceGuardProbe.java','tools/android/recording-watchdog.mjs','tools/android/wav-player.mjs','rebuild/agent-bridge/client.mjs','rebuild/android-app/src/com/turboio/addon/TaskConnection.java','rebuild/android-app/src/com/turboio/addon/TaskWire.java','rebuild/android-app/src/com/turboio/addon/WireJson.java'];
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const check=(ok,code)=>{if(!ok)throw Error(code);};
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
@@ -49,9 +50,9 @@ async function verifyBuild(){
  const candidate=json(path.join(root,'candidate.json'));check(candidate.schema===1&&candidate.version===expected.version&&candidate.version_code===expected.code&&candidate.signer_sha256===expected.signer&&candidate.signature_v2===true&&candidate.signature_v3===true,'CANDIDATE_IDENTITY_MISMATCH');
  const apk=inside(path.resolve(root,candidate.apk||''),path.join(root,'artifacts')),driverApk=inside(path.join(root,'build/emulator-input/emulator-input.apk'),path.join(root,'build'));
  check(fs.statSync(apk).size===candidate.bytes&&await fileHash(apk)===candidate.sha256,'CANDIDATE_HASH_MISMATCH');check(fs.statSync(driverApk).size>0&&fs.statSync(driverApk).size<16777216,'DRIVER_FILE_INVALID');
- const aapt=path.join(buildTools,'aapt2.exe');for(const [file,pattern]of [[apk,/^package: name='com\.rayneo\.venus\.pub' versionCode='10423' versionName='0\.5\.3-dev1'/m],[driverApk,/^package: name='com\.turboio\.androidtests' versionCode='1' versionName='1'/m]]){const r=await command(aapt,['dump','badging',file]);check(!r.failed&&r.code===0&&pattern.test(r.out),'CANDIDATE_PACKAGE_MISMATCH');const sign=await command('java',['-Duser.language=en','-Duser.country=US','-jar',path.join(buildTools,'lib/apksigner.jar'),'verify','--min-sdk-version','24','--verbose','--print-certs',file],{timeout:30000});const digests=[...sign.out.matchAll(/Signer #\d+ certificate SHA-256 digest: ([a-f0-9]{64})/gi)].map(m=>m[1].toLowerCase());check(!sign.failed&&sign.code===0&&/Verified using v2 scheme.*true/.test(sign.out)&&digests.length===1&&digests[0]===expected.signer,'DRIVER_SIGNATURE_UNCONFIRMED');}
+ const aapt=path.join(buildTools,exe('aapt2'));for(const [file,pattern]of [[apk,new RegExp("^package: name='com\\.rayneo\\.venus\\.pub' versionCode='"+expected.code+"' versionName='"+expected.version.replaceAll('.','\\.')+"'",'m')],[driverApk,/^package: name='com\.turboio\.androidtests' versionCode='1' versionName='1'/m]]){const r=await command(aapt,['dump','badging',file]);check(!r.failed&&r.code===0&&pattern.test(r.out),'CANDIDATE_PACKAGE_MISMATCH');const sign=await command('java',['-Duser.language=en','-Duser.country=US','-jar',path.join(buildTools,'lib/apksigner.jar'),'verify','--min-sdk-version','24','--verbose','--print-certs',file],{timeout:30000});const digests=[...sign.out.matchAll(/Signer #\d+ certificate SHA-256 digest: ([a-f0-9]{64})/gi)].map(m=>m[1].toLowerCase());check(!sign.failed&&sign.code===0&&/Verified using v2 scheme.*true/.test(sign.out)&&digests.length===1&&digests[0]===expected.signer,'DRIVER_SIGNATURE_UNCONFIRMED');}
  const manifest=await command(aapt,['dump','xmltree',driverApk,'--file','AndroidManifest.xml']);check(!manifest.failed&&manifest.code===0&&manifest.out.split(/\r?\n/).filter(l=>/android:label\(0x01010001\)="iO Agent UI test driver"/.test(l)).length===1,'DRIVER_LABEL_MISMATCH');const entries=manifest.out.split(/\bE: instrumentation \(line=\d+\)/).slice(1).filter(e=>e.includes('="'+driver+'.NormalVoiceGuardProbe"'));check(entries.length===1&&entries[0].includes('android:targetPackage(0x01010021)="'+pkg+'"'),'DRIVER_INSTRUMENTATION_MISMATCH');
- const version=await phone(['shell','dumpsys','package',pkg]);check(/versionCode=10423\b/.test(version)&&/versionName=0\.5\.3-dev1(?:\r?\n|\s|$)/.test(version),'CANDIDATE_NOT_INSTALLED');check(await installedHash(pkg)===candidate.sha256,'CANDIDATE_DEVICE_HASH_MISMATCH');return {apk:driverApk,production_sha256:candidate.sha256,driver_sha256:await fileHash(driverApk)};
+ const version=await phone(['shell','dumpsys','package',pkg]);check(new RegExp('versionCode='+expected.code+'\\b').test(version)&&new RegExp('versionName='+expected.version.replaceAll('.','\\.')+'(?:\\r?\\n|\\s|$)').test(version),'CANDIDATE_NOT_INSTALLED');check(await installedHash(pkg)===candidate.sha256,'CANDIDATE_DEVICE_HASH_MISMATCH');return {apk:driverApk,production_sha256:candidate.sha256,driver_sha256:await fileHash(driverApk)};
 }
 const nodes=xml=>[...xml.matchAll(/<node\b[^>]+/g)].map(m=>Object.fromEntries([...m[0].matchAll(/([\w-]+)="([^"]*)"/g)].map(a=>[a[1],a[2]])));
 async function installDriver(apk){
@@ -81,13 +82,16 @@ export function completedCapture(s){return s?.armed===true&&s.answer_ready===tru
 // Actual orchestration is exported for offline fake-port tests. Production ports
 // below do the file/phone work. No model turn or TTS runs inside this sequence.
 export async function driveNormalVoiceCapture(p){
- let latest=null,played=false,done=false,error='',deadline=0,lastStop=-Infinity;
+ // Trailing silence after playback lets the recognizer finalize its last
+ // segment before stop; afplay returns exactly at the end of the audio.
+ let latest=null,played=false,done=false,doneAt=0,stopped=false,error='',deadline=0,lastStop=-Infinity;
  const stop=async()=>{lastStop=p.now();try{await p.stop();}catch{}};
  try{
   await p.preload();deadline=p.now()+47000;await p.arm();
   latest=await p.status();check(startAdmission(latest,true),'NORMAL_GUARD_START_NOT_READY');await p.click();
   while(p.now()<deadline){
-   if(played&&!done&&await p.done()){done=true;await stop();}
+   if(played&&!done&&await p.done()){done=true;doneAt=p.now();}
+   if(done&&!stopped&&p.now()-doneAt>=2000){stopped=true;await stop();}
    latest=await p.status();if(p.safe(latest))break;
    check(latest.error==='','NORMAL_GUARD_PHONE_FAILED');check(p.guardAlive(),'NORMAL_GUARD_WATCHDOG_EXITED');
    check(!p.playerFailed(),'NORMAL_GUARD_PLAYBACK_FAILED');
@@ -145,8 +149,8 @@ async function prepare(options){
  return {prepared:true,session:controlFile,bound:latest.bound===true,status:latest,capture_implemented:true,instrumentation_retained:true};
 }
 function sourceEvidence(){
- const record=json(path.join(root,'asr-synthetic-source-2026-10-21.json')),directory=path.join(privateRoot,'phone-r4-source-2026-10-21');
- const wavPath=inside(path.join(directory,'official-asr-synthetic-direct.wav'),privateRoot),pcmPath=inside(path.join(directory,'official-asr-synthetic.pcm'),privateRoot),wav=bytes(wavPath,2097152),pcm=bytes(pcmPath,480000);
+ const record=json(path.join(root,'asr-synthetic-source-2026-10-22.json')),directory=path.join(privateRoot,'voice-source-2026-10-22');
+ const wavPath=inside(path.join(directory,'synthetic.wav'),privateRoot),pcmPath=inside(path.join(directory,'synthetic.pcm'),privateRoot),wav=bytes(wavPath,2097152),pcm=bytes(pcmPath,480000);
  check(record.schema===1&&record.rate===16000&&record.channels===1&&record.bits===16&&record.pcm_bytes===pcm.length&&pcm.length%2===0&&hash(pcm)===record.pcm_sha256&&hash(wav)===record.wav_sha256,'NORMAL_GUARD_SOURCE_HASH_MISMATCH');
  check(wav.length>=44&&wav.toString('ascii',0,4)==='RIFF'&&wav.toString('ascii',8,12)==='WAVE'&&wav.readUInt32LE(4)+8===wav.length,'NORMAL_GUARD_WAV_INVALID');
  let format=null,data=null,offset=12;while(offset+8<=wav.length){const kind=wav.toString('ascii',offset,offset+4),length=wav.readUInt32LE(offset+4);check(offset+8+length<=wav.length,'NORMAL_GUARD_WAV_INVALID');if(kind==='fmt '){check(!format&&length>=16,'NORMAL_GUARD_WAV_INVALID');format=wav.subarray(offset+8,offset+8+length);}if(kind==='data'){check(!data,'NORMAL_GUARD_WAV_INVALID');data=wav.subarray(offset+8,offset+8+length);}offset+=8+length+(length%2);}
@@ -177,7 +181,7 @@ async function capture(placementPath){
     const quote=v=>"'"+v.replaceAll("'","''")+"'";
     const script=`$ErrorActionPreference='Stop'; try { $ioNormalVoicePlayer=New-Object System.Media.SoundPlayer(${quote(source.wavPath)}); $ioNormalVoicePlayer.Load(); [IO.File]::WriteAllText(${quote(readyFile)},'READY'); $ioNormalVoiceUntil=[DateTime]::UtcNow.AddSeconds(60); while(-not [IO.File]::Exists(${quote(playFile)})){if([DateTime]::UtcNow -gt $ioNormalVoiceUntil){exit 3}; Start-Sleep -Milliseconds 50}; $ioNormalVoicePlayer.PlaySync(); [IO.File]::WriteAllText(${quote(doneFile)},'DONE'); $ioNormalVoicePlayer.Dispose(); exit 0 } catch { exit 2 }`;
     // PowerShell must not use detached:true: that mode can silently skip Load.
-    player=background('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{detached:false});await player.ready;
+    player=WINDOWS?background('powershell.exe',['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{detached:false}):background(process.execPath,[path.join(workspace,'tools/android/wav-player.mjs'),source.wavPath,readyFile,playFile,doneFile],{detached:false});await player.ready;
     const until=Date.now()+8000;while(Date.now()<until){if(fs.existsSync(readyFile)&&bytes(readyFile,16).toString()==='READY'){control.playback_preloaded=true;control.playback_pid=player.state.pid;persist();return;}check(!player.state.exited,'NORMAL_GUARD_PLAYBACK_PRELOAD_FAILED');await pause(100);}throw Error('NORMAL_GUARD_PLAYBACK_PRELOAD_UNCONFIRMED');
    },
    async arm(){

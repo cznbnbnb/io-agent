@@ -180,8 +180,12 @@ final class Host107Recording {
   });}catch(RejectedExecutionException full){fault("VOICE_RECORDING_BACKPRESSURE");}
  }
  /** Only called from an already verified stock/owned plugin event path. */
+ // Probe (2026-10-23, user wants a double head shake to stop task dictation): each event kind seen
+ // during a task capture is logged once by name only, to find a head-gesture signal if one exists.
+ private static final Set<String> probed=Collections.synchronizedSet(new HashSet<>());
  static boolean observe(String kind,Map<?,?> data){
   Host107Recording owner=active;if(owner==null||data==null||kind==null)return false;
+  if(probed.size()<64&&probed.add(kind))System.out.println("TurboIOVoice capture probe kind="+kind+" keys="+data.keySet());// logcat tag System.out; this class also builds in JVM tests
   if(Arrays.asList("bleStateChanged","brStateChanged","bondStateChanged").contains(kind)){
    MAIN.post(()->{if(owner.current()&&!owner.sameLink())owner.fault("VOICE_CONNECTION_CHANGED");});return false;
   }

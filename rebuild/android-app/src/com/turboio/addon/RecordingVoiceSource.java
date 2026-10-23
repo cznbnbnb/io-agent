@@ -10,7 +10,17 @@ import java.util.*;
  * never certifies physical microphone shutdown. */
 final class RecordingVoiceSource {
  interface Decoder {byte[] decode(byte[] packet)throws Exception;}
- static final int PACKET_BYTES=240,PCM_BYTES=640,MAX_BYTES=384000;
+ // One 240-byte packet per 20 ms. Sized from the capture limit plus 4 s of tail (2026-10-23: the
+ // 60 s limit kept a 32 s buffer and a 35 s answer failed with VOICE_RECORDING_RANGE_INVALID).
+ static final int PACKET_BYTES=240,PCM_BYTES=640,MAX_PACKETS=(VoiceAnswerSession.CAPTURE_SECONDS+4)*50,MAX_BYTES=MAX_PACKETS*PACKET_BYTES;
+ /** The recording service sends stereo Opus: left is the wearer's bone-conduction
+  * microphone, right the environment microphone (2026-10-22 device measurement:
+  * speaker playback and a bystander appear only on the right). Dictation keeps
+  * the left channel so other people's speech never becomes the wearer's answer. */
+ static byte[] wearerChannel(byte[] stereo){
+  TaskWire.require(stereo!=null&&stereo.length>0&&stereo.length%4==0,"VOICE_PCM_INVALID");
+  byte[] left=new byte[stereo.length/2];for(int i=0,o=0;i<stereo.length;i+=4,o+=2){left[o]=stereo[i];left[o+1]=stereo[i+1];}return left;
+ }
  private final String token,peerHash;private final long generation;
  private final VoiceAudioArchive archive;private final Decoder decoder;
  private final byte[] source=new byte[MAX_BYTES];private final BitSet present=new BitSet(MAX_BYTES);

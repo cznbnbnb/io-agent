@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T05:00:00Z",
+  "product": "0.5.3-dev5 /10427",
+  "rollback": "0.5.3-dev4 /10426",
+  "apk_sha256": "8184a6f28c3c418ecf39d99fc2dd17bf13696cb3683f406e4a8d88cb9ba35fe9",
+  "change": "An event over the 256KiB wire limit is left unstaged and reported (MATERIAL_EVENT_TOO_LARGE, too_large count); other sources in the batch still stage and send. No truncation or split; stored revisions untouched.",
+  "approval": "Same chat approval as dev4 run: 2026-10 select-day sync to turboio-user before 14:10 CST credential expiry, retention and duplicate checks, one repeat",
+  "jvm": {
+    "lifelog_revision_journal_assertions": {
+      "before": 34,
+      "after": 42
+    },
+    "material_discovery_session_assertions": {
+      "before": 43,
+      "after": 46
+    },
+    "material_fresh_session_assertions": 22,
+    "lifelog_refresh_assertions": 21,
+    "material_month_runtime_checks": 113,
+    "lifelog_calendar_http_checks": 64,
+    "lifelog_month_discovery_checks": 112,
+    "lifelog_source_default_suites_passed": 5
+  },
+  "before_ui_counts": {
+    "stored": 6,
+    "queued": 0,
+    "blocked": 0,
+    "reconcile": 0,
+    "expired": 0
+  },
+  "three_day_sync": {
+    "days": [
+      "2026-10-01",
+      "2026-10-10",
+      "2026-10-11"
+    ],
+    "note": "MATERIAL_EVENT_TOO_LARGE",
+    "days_read": 3,
+    "lifelogs_discovered": 4,
+    "other_entries": 1,
+    "too_large": 1,
+    "ui_counts_after": {
+      "stored": 6,
+      "queued": 0,
+      "blocked": 0,
+      "reconcile": 0,
+      "expired": 0
+    }
+  },
+  "three_day_repeat": {
+    "note": "MATERIAL_EVENT_TOO_LARGE",
+    "days_read": 3,
+    "lifelogs_discovered": 4,
+    "too_large": 1,
+    "ui_counts_after": {
+      "stored": 6,
+      "queued": 0,
+      "blocked": 0,
+      "reconcile": 0,
+      "expired": 0
+    }
+  },
+  "batch_no_longer_aborted": true,
+  "oversized_uploaded": false,
+  "truncated_or_split": false,
+  "existing_material_retained": true,
+  "duplicate_versions_created": false,
+  "server_readback_with_pc_query": false,
+  "server_readback_note": "No pc-query credential on this Mac; counts are the phone ledger of server receipts",
+  "oversized_upload_requires": "Contract-level chunking design (material-v1.2 forbids truncation or synthetic split)",
+  "source_sha256": {
+    "LifelogRevisionJournal.java": "b6195c3f71457022b0d6a75ae0ed84fe7c206acd9af4caec5c1f5f626ae01e27",
+    "MaterialSyncSession.java": "c3ecf30d6b5a08343fd3c80c66cec6e866c3e3aa9b0e750bb7ba93d77b646da2",
+    "MaterialRuntime.java": "b93ded44ee0ff609d078b90a6223703e88d11559e6edc51c031a6e461deb0e09",
+    "MaterialWorkspace.java": "e3505d277e851a2ab72aff488de73de91234e757e4291dfc0857f2ead95edefd"
+  },
+  "no_new_capture": true,
+  "glasses_or_lens_observed": false
+}

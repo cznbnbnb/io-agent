@@ -36,7 +36,11 @@ final class LifelogRevisionJournal implements AutoCloseable {
  /** Only fresh successful authenticated full responses belong here. Missing
   * records are retained. A changed pending revision needs outcome reconciliation
   * (and, if absent, deliberate supersession), never an automatic stale upload. */
- synchronized int stageFresh(List<OfficialLifelogSnapshot.Source> sources,Guard guard,MaterialOutbox outbox,long now)throws Exception{
+ synchronized int stageFresh(List<OfficialLifelogSnapshot.Source> sources,Guard guard,MaterialOutbox outbox,long now)throws Exception{return stageFresh(sources,guard,outbox,now,new TreeSet<>());}
+ /** A revision whose event exceeds the 256KiB wire limit is left unstaged and
+  * its material id added to oversized: never truncated or split, earlier
+  * revisions stay as they are, and the other sources still stage. */
+ synchronized int stageFresh(List<OfficialLifelogSnapshot.Source> sources,Guard guard,MaterialOutbox outbox,long now,Set<String> oversized)throws Exception{
   admit(guard);MaterialWire.require(now>=0&&connection.expiresAt>now&&connection.binding().equals(outbox.binding()),"MATERIAL_IMPORT_EXPIRED");MaterialWire.require(sources!=null&&sources.size()<=256,"LIFELOG_REVISION_FULL");
   Map<String,OfficialLifelogSnapshot.Source> selected=new TreeMap<>();for(OfficialLifelogSnapshot.Source source:sources){String id=source.materialId(account);OfficialLifelogSnapshot.Source prior=selected.put(id,source);MaterialWire.require(prior==null||Arrays.equals(prior.original(),source.original()),"LIFELOG_FRESH_SOURCE_CONFLICT");}
   Map<String,Map<String,Object>> latest=new HashMap<>();Set<String> queuedPayloads=new HashSet<>();
@@ -53,7 +57,7 @@ final class LifelogRevisionJournal implements AutoCloseable {
     MaterialWire.require("server_stored".equals(prior.get("state")),"LIFELOG_PENDING_REVISION_CHANGED");MaterialWire.ack(WireJson.map(prior.get("ack")),WireJson.map(WireJson.read(((String)prior.get("payload")).getBytes(StandardCharsets.UTF_8))));
    }
    String eventId="lifelog-refresh-"+TaskWire.hash(WireJson.bytes(WireJson.object("connection",connection.binding(),"material",id,"revision",revision,"body",TaskWire.hash(WireJson.bytes(mapped)))));
-   Map<String,Object> event=WireJson.object("schema_version","1.2","event_id",eventId,"idempotency_key",eventId,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(now),"expires_at",connection.expires,"body",mapped);byte[] payload=WireJson.bytes(event);MaterialWire.event(payload,connection.producer);byte[] original=source.original();
+   Map<String,Object> event=WireJson.object("schema_version","1.2","event_id",eventId,"idempotency_key",eventId,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(now),"expires_at",connection.expires,"body",mapped);byte[] payload=WireJson.bytes(event);if(payload.length>262144){oversized.add(id);continue;}MaterialWire.event(payload,connection.producer);byte[] original=source.original();
    next.add(WireJson.object("original",new String(original,StandardCharsets.UTF_8),"original_sha256",TaskWire.hash(original),"event",new String(payload,StandardCharsets.UTF_8)));added++;
   }
   if(added>0){validate(next);admit(guard);document.save(WireJson.object("schema",1,"account",account,"connection",connection.binding(),"records",next));records=next;}return added;

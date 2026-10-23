@@ -38,9 +38,11 @@ final class HeadGestureRuntime {
   main.post(poll);
  }
  static void init(Activity activity){main();if(instance==null)try{instance=new HeadGestureRuntime(activity);}catch(IOException unavailable){/* No guard instance means no actionable task card. */}}
- static boolean begin(String owner,Listener callback){
+ static boolean begin(String owner,Listener callback){return begin(owner,callback,false);}
+ /** keepGestures: hold the wearer's current nod/shake setting instead of turning it off (confirm cards only). */
+ static boolean begin(String owner,Listener callback,boolean keepGestures){
   main();HeadGestureRuntime r=instance;if(r==null||!r.session.healthy()||r.session.pending()||r.session.working()||!r.claim())return false;
-  Fixed60Session.Link link=Host107Ota.link();if(!r.session.acquire(owner,link.peer,link.generation,now())){r.releaseLease();return false;}
+  Fixed60Session.Link link=Host107Ota.link();if(!r.session.acquire(owner,link.peer,link.generation,now(),keepGestures)){r.releaseLease();return false;}
   r.listener=callback;r.notified="";r.pump();return true;
  }
  static boolean ready(String owner){main();HeadGestureRuntime r=instance;if(r==null||!r.claimed||!r.claim())return false;Fixed60Session.Link link=Host107Ota.link();return r.session.ready(owner,link.peer,link.generation,now());}
@@ -53,6 +55,7 @@ final class HeadGestureRuntime {
   main();HeadGestureRuntime r=instance;if(r==null||!r.claimRestore())return false;if(r.session.owner().equals(owner)&&r.session.restoring())return true;Fixed60Session.Link link=Host107Ota.link();boolean accepted=r.session.release(owner,link.peer,link.generation,now(),cardExitConfirmed);r.pump();return accepted;
  }
  static String status(){HeadGestureRuntime r=instance;return r==null?"头势保护暂不可用":r.session.status();}
+ static boolean keepsGestures(){HeadGestureRuntime r=instance;return r!=null&&r.session.keepsGestures();}
  static boolean pending(){HeadGestureRuntime r=instance;return r!=null&&r.session.pending();}
  /** Quiescence only; never claims a lease or changes restoration state. */
  static boolean voiceHandoffReady(){main();HeadGestureRuntime r=instance;return r!=null&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&!r.session.cardPending()&&!r.claimed&&r.queued.get()==0;}

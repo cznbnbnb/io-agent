@@ -5,6 +5,7 @@ execute again merely because the process died or a network response was lost.
 """
 from contextlib import contextmanager
 import json
+import unicodedata
 import os
 import re
 from pathlib import Path
@@ -15,6 +16,36 @@ import hashlib
 import math
 from datetime import datetime, timezone
 
+
+
+# Mirrors AgentCardRequest.route on the phone (Java string length = UTF-16 units). Only a short
+# free-text question that fits one 48-unit card is shown as a glasses card; every choice and any
+# longer question goes to the glasses prompter with every option numbered, answered by voice.
+CARD_LIMIT = 48
+VOICE_SUFFIX = '；＋口述回答，删除留手机'
+
+
+def _units(text):
+    return len(text.encode('utf-16-le')) // 2
+
+
+def _clean(text):
+    return bool(text.strip()) and not any(unicodedata.category(c) == 'Cc' for c in text)
+
+
+
+def deadline_window(now=None):
+    """The model cannot read the host clock; a rejected expires_at returns the window to retry inside."""
+    now = int(datetime.now(timezone.utc).timestamp() if now is None else now)
+    iso = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    return {'error': 'RUNTIME_DEADLINE_INVALID', 'now_utc': iso(now), 'valid_expires_at': [iso(now + 60), iso(now + 3540)]}
+
+def glasses_display(question, mode, options):
+    labels = [option['label'] for option in options]
+    if not _clean(question) or not all(_clean(label) for label in labels):
+        return 'prompter'
+    # Every choice goes to the prompter (paged option cards hid the other option and the asker).
+    return 'card' if mode == 'free_text' and _units(question + VOICE_SUFFIX) <= CARD_LIMIT else 'prompter'
 
 class RuntimeJournalError(RuntimeError):
     def __init__(self, code):
@@ -478,7 +509,8 @@ class RuntimeJournal:
             return {'request_id': request_id, 'runtime_request_id': spec['runtime_request_id'],
                     'state': row['state'] if operation['state'] == 'claimed' else 'operation_closed',
                     'expires_at': spec['expires_at'], 'deadline_elapsed': now >= timestamp(spec['expires_at']),
-                    'answer': json.loads(row['answer']) if row['answer'] else None}
+                    'answer': json.loads(row['answer']) if row['answer'] else None,
+                    'glasses_display': glasses_display(spec['question'], spec['mode'], spec['options'])}
 
     def record_answer(self, operation_id, request, answer):
         """Adapter-only: caller must supply authenticated server queue objects."""

@@ -8,10 +8,12 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import re
 import runpy
 import shlex
+import subprocess
 import sys
 
 sys.path.append('C:/Users/LENOVO/AppData/Local/Programs/Python/Python310/Lib/site-packages')
@@ -27,7 +29,49 @@ class Quiet(io.StringIO):
         pass
 
 
+class _Stream:
+    def __init__(self, process, pipe):
+        self.channel, self._pipe = self, pipe
+        self._process = process
+
+    def write(self, text):
+        self._pipe.write(text.encode('utf-8') if isinstance(text, str) else text)
+
+    def flush(self):
+        self._pipe.flush()
+
+    def shutdown_write(self):
+        self._pipe.close()
+
+    def read(self, limit):
+        return self._pipe.read(limit)
+
+    def recv_exit_status(self):
+        return self._process.wait()
+
+
+class SshConnection:
+    """System ssh with the paramiko calls used here; host key must already be known."""
+    def __init__(self):
+        self._processes = []
+
+    def exec_command(self, command, timeout=60):
+        process = subprocess.Popen(['ssh', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes', '-o', 'ConnectTimeout=' + str(min(timeout, 30)),
+                                    'ubuntu@43.142.59.131', command], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self._processes.append(process)
+        return _Stream(process, process.stdin), _Stream(process, process.stdout), _Stream(process, process.stderr)
+
+    def close(self):
+        for process in self._processes:
+            if process.poll() is None:
+                process.kill()
+
+
 def connect():
+    # The Windows deployment helper holds the paramiko profile; other hosts use
+    # the operator's ssh key for ubuntu@43.142.59.131 (passwordless sudo).
+    if os.name != 'nt':
+        return SshConnection()
     with contextlib.redirect_stdout(Quiet()), contextlib.redirect_stderr(Quiet()):
         helper = runpy.run_path('D:/Project/Kimi_Agent_手持娱乐值网站/app/.deploy/ssh.py', run_name='io_full_release')
         profiles = [p for p in helper['PROFILES'].values() if p.get('host') == '43.142.59.131']

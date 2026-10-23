@@ -1,5 +1,6 @@
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';
-const root=path.resolve('rebuild/android-app'),dir=path.join(root,'.private/https-fixture'),adb=path.join(root,'.tools/sdk/platform-tools/adb.exe');
+import {exe} from './host-tools.mjs';
+const root=path.resolve('rebuild/android-app'),dir=path.join(root,'.private/https-fixture'),adb=path.join(root,'.tools/sdk/platform-tools',exe('adb'));
 const environment=JSON.parse(fs.readFileSync(path.join(root,'.private/emulator-runtime.json'),'utf8').replace(/^\uFEFF/,''));if(environment.serial!=='emulator-5582')throw new Error('Only the dedicated Android16 VM is allowed');
 function run(cmd,args){const r=spawnSync(cmd,args,{encoding:'utf8',timeout:30000,maxBuffer:2*1024**2});if(r.error||r.status!==0)throw new Error('Offline UI test step failed: '+cmd);return r.stdout;}
 const device=args=>run(adb,['-s','emulator-5582',...args]),ui=(...args)=>run(process.execPath,['tools/android/emulator-ui.mjs',...args]);

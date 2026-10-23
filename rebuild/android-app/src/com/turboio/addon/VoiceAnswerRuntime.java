@@ -33,7 +33,7 @@ final class VoiceAnswerRuntime {
  private interface Work {void run()throws Exception;}
  private static final class Attempt {
   final String id;final VoiceAnswerJournal journal;final VoiceAnswerSession draft;
-  volatile String binding="",request="",peer="",token="",note="";volatile long generation,captureOperation;
+  volatile String binding="",request="",peer="",token="",note="",traced="";volatile long generation,captureOperation;
   volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
@@ -122,8 +122,10 @@ final class VoiceAnswerRuntime {
    boolean review="REVIEW".equals(phase);a.manifestComplete=review&&manifest(a);
    VoiceAnswerCoordinator.State latest=a.coordinator==null?null:a.coordinator.snapshot();
    boolean save=clean&&a.draft.healthy()&&(TaskWire.set("SUBMITTING","SAVED").contains(phase)||(review&&a.manifestComplete&&(latest==null||latest.answerReady)));
-   String note=a.note;if(needs&&a.recovery)note="VOICE_RECOVERY_REQUIRED";
+   String note=a.note;if(needs&&a.recovery)note="VOICE_RECOVERY_REQUIRED";else if(review&&a.draft.timeLimited())note="VOICE_TIME_LIMIT";
    final String text=a.draft.answerText(),p=phase,n=note;final boolean canSave=save,isClean=clean,need=needs||(!a.physicallyReleased&&!a.starting);
+   // Timing trace for the dictation-to-confirm delay (2026-10-23); states only, never the transcript.
+   String trace="phase="+p+" note="+n+" save="+canSave+" clean="+isClean+" needs="+needs+" manifest="+a.manifestComplete+" ready="+(latest!=null&&latest.answerReady)+" released="+(latest!=null&&latest.released);if(!trace.equals(a.traced)){a.traced=trace;android.util.Log.i("TurboIOVoice","voice "+trace);}
    if("PREPARED".equals(phase)&&!a.starting){
     publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,false,canSave,need,isClean));
     main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);io.execute(()->{boolean verified=readiness(link.peer);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&!visible.isEmpty()&&!observers.isEmpty())refreshLater(a);},500);});});
@@ -207,7 +209,7 @@ final class VoiceAnswerRuntime {
    TaskWire.require(owns(a)&&a.starting&&!a.abort&&readiness(a.peer),"VOICE_SOURCE_VERIFICATION_REQUIRED");
    a.decoder=new Host107VoiceDecoder();safe("voice-audio/"+a.token);a.archive=new VoiceAudioArchive(files,a.token,14);
    processRecord(a);TaskWire.require(!a.abort,"VOICE_START_NOT_READY");
-   long now=SystemClock.elapsedRealtime();TaskWire.require(a.cutoff.arm(a.token,FixedPeerHash.of(a.peer),a.generation,now+30000)&&a.draft.arm(a.peer,a.generation,now,30,a.cutoff),"VOICE_START_NOT_READY");
+   long now=SystemClock.elapsedRealtime();TaskWire.require(a.cutoff.arm(a.token,FixedPeerHash.of(a.peer),a.generation,now+VoiceAnswerSession.CAPTURE_SECONDS*1000L)&&a.draft.arm(a.peer,a.generation,now,VoiceAnswerSession.CAPTURE_SECONDS,a.cutoff),"VOICE_START_NOT_READY");
    RecordingVoiceSource source=new RecordingVoiceSource(a.token,a.peer,a.generation,a.archive,a.decoder::decode);
    final Host107Recording captureOwner=a.recording;
    VoiceAnswerCoordinator c=new VoiceAnswerCoordinator(a.draft,a.peer,a.generation,source,a.archive,device(a),SystemClock::elapsedRealtime,state->{
@@ -274,6 +276,18 @@ final class VoiceAnswerRuntime {
    // PREPARED is kept intact so leaving the page preserves the unstarted draft.
    if(!a.draft.needsStop()&&a.recording!=null&&!a.physicallyReleased&&"PREPARED".equals(a.draft.phase()))main.post(()->releaseUnarmed(a,0,null,"",0));
   }catch(Exception e){failure=error(e);}refresh(a,null);final String code=failure;main.post(()->{if(result!=null)result.done(value,code);});});
+ }
+ /** Re-dictate: retire this question's unsaved REVIEW draft as CANCELLED (text,
+  * audio and journal stay on the device) and prepare a fresh attempt for the
+  * same original question. Nothing is submitted; a capture in progress is not affected. */
+ void redo(String binding,String requestId,long revision,String fingerprint,Result result){
+  long operation=begin(result);if(operation==0)return;Attempt a=active;
+  if(a==null||!binding.equals(a.binding)||!requestId.equals(a.request)){finish(operation,result,"VOICE_TARGET_CHANGED");return;}
+  io.execute(()->{try{
+   TaskWire.require(owns(a)&&a.physicallyReleased&&a.draft.healthy()&&!a.draft.needsStop()&&"REVIEW".equals(a.draft.phase())&&a.draft.cancelDraft(SystemClock.elapsedRealtime()),"VOICE_ANSWER_NOT_READY");
+   a.note="";
+  }catch(Exception e){a.note=error(e);refresh(a,null);finish(operation,result,a.note);return;}
+  finish(operation,null,"");main.post(()->prepare(binding,requestId,revision,fingerprint,result));});
  }
  void edit(String text,Result result){long operation=begin(result);if(operation==0)return;Attempt a=active;if(a==null){finish(operation,result,"VOICE_ANSWER_NOT_READY");return;}work(a,()->{TaskWire.require(a.physicallyReleased&&a.draft.edit(text),"VOICE_ANSWER_NOT_READY");},result,operation);}
  void save(Result result){

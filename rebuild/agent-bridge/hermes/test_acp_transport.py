@@ -210,6 +210,24 @@ class TransportRPCGuards(TransportFixture, unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ACPTransportError, '^ACP_PROMPT_INVALID$'):
             await self.transport.prompt('registered', 'project-a', '/reset')
 
+    async def test_mode_switch_requires_loaded_session_and_confirmed_response(self):
+        class Connection:
+            def __init__(self, response):
+                self.response, self.calls = response, []
+            async def set_session_mode(self, **kwargs):
+                self.calls.append(kwargs)
+                return self.response
+        self.transport._connection = Connection(object())
+        with self.assertRaisesRegex(ACPTransportError, '^ACP_SESSION_NOT_LOADED$'):
+            await self.transport.set_mode('registered', 'accept_edits')
+        self.assertEqual(self.transport._connection.calls, [])
+        self.transport._loaded.add('registered')
+        await self.transport.set_mode('registered', 'accept_edits')
+        self.assertEqual(self.transport._connection.calls, [{'mode_id': 'accept_edits', 'session_id': 'registered'}])
+        self.transport._connection = Connection(None)
+        with self.assertRaisesRegex(ACPTransportError, '^ACP_MODE_FAILED$'):
+            await self.transport.set_mode('registered', 'accept_edits')
+
     async def test_cancel_request_is_not_reported_as_cancelled(self):
         class Connection:
             async def cancel(self, session_id):

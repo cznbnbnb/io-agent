@@ -1,9 +1,10 @@
 // Only this task's Android16 VM. Temporary picker inputs; no app-private data or device commands.
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import {exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app'),privateDir=path.join(root,'.private'),ledger=path.join(privateDir,'fixed60-ui-delivery.json');
 const runtime=JSON.parse(fs.readFileSync(path.join(privateDir,'emulator-runtime.json'),'utf8').replace(/^\uFEFF/,''));if(runtime.serial!=='emulator-5582')throw Error('Only Android16 emulator allowed');
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
-function adb(args,absent=false){const r=spawnSync(path.join(root,'.tools/sdk/platform-tools/adb.exe'),['-s','emulator-5582',...args],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});if(r.error)throw r.error;if(absent&&r.status===1)return null;if(r.status!==0)throw Error('VM fixture file operation failed');return r.stdout.trim();}
+function adb(args,absent=false){const r=spawnSync(path.join(root,'.tools/sdk/platform-tools',exe('adb')),['-s','emulator-5582',...args],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});if(r.error)throw r.error;if(absent&&r.status===1)return null;if(r.status!==0)throw Error('VM fixture file operation failed');return r.stdout.trim();}
 function save(r){fs.writeFileSync(ledger,JSON.stringify(r,null,2)+'\n');}
 const action=process.argv[2];
 if(action==='deliver'){

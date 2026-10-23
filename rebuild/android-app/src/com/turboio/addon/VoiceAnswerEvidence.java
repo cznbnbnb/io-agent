@@ -35,7 +35,7 @@ final class VoiceAnswerEvidence {
    require(frames>0&&frames==TaskWire.positive(record.get("frames"))&&frames==TaskWire.positive(record.get("decoded_frames")),"VOICE_ARCHIVE_FRAME_MISMATCH");
    // Recording completion covers 240-byte Opus packets, each decoded to 640
    // PCM bytes. RNLink envelope counts are deliberately not codec packet counts.
-   require(pcm.length>0&&pcm.length%640==0&&pcm.length/640<=1600,"VOICE_ARCHIVE_PCM_INVALID");
+   require(pcm.length>0&&pcm.length%640==0&&pcm.length/640<=RecordingVoiceSource.MAX_PACKETS,"VOICE_ARCHIVE_PCM_INVALID");
    long nonzero=0,peak=0;for(int i=0;i<pcm.length;i+=2){int sample=(short)((pcm[i]&255)|(pcm[i+1]<<8));if(sample!=0)nonzero++;peak=Math.max(peak,Math.abs(sample));}
    require(pcm.length/2==TaskWire.positive(record.get("samples"))&&nonzero>0&&nonzero==TaskWire.positive(record.get("nonzero_samples"))&&peak==TaskWire.positive(record.get("peak")),"VOICE_ARCHIVE_PCM_MISMATCH");
    noPartial(directory);checked(root,base,true);checked(root,directory,true);

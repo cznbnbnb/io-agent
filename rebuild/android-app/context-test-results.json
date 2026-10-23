@@ -1,44 +1,44 @@
 {
   "schema": 1,
-  "date": "2026-10-20T09:05:58.108Z",
+  "date": "2026-10-22T13:09:44.457Z",
   "kind": "JVM real durable stores/protocol fixtures and isolated synthetic transports; no physical-device or real Agent acceptance",
-  "checks": "Task contexts: 41 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
+  "checks": "Task contexts: 47 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
   "sources": [
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
       "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
     },
     {
-      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "path": "src/com/turboio/addon/WireJson.java",
       "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskWire.java",
-      "sha256": "62030761fcf36d873a24a9b96ce31c0bab38ec46e40807b2ecfa528f46491592"
+      "path": "src/com/turboio/addon/TaskWire.java",
+      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskConnection.java",
+      "path": "src/com/turboio/addon/TaskConnection.java",
       "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskProfiles.java",
-      "sha256": "6630cd70c8c03660d707e10ebd787ae891edbe52a9f5af94e7601829b9ee7a74"
+      "path": "src/com/turboio/addon/TaskProfiles.java",
+      "sha256": "c2ff8a5e548f36e96b2d089618e25ace35337a0746ac43388ea0e3d5fada3bfe"
     },
     {
-      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
-      "sha256": "ffdcb28f61cc7cee71d9d0932ff0d2f776247de782ecf21cb3448a9305f4e6ca"
+      "path": "src/com/turboio/addon/AtomicDocument.java",
+      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskMailbox.java",
-      "sha256": "1de5cd4895f407a4f53833f7bc2ea1d4486457991aafdfeb9ae336c81cfa8419"
+      "path": "src/com/turboio/addon/TaskMailbox.java",
+      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskApi.java",
+      "path": "src/com/turboio/addon/TaskApi.java",
       "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskHub.java",
-      "sha256": "33414d6cfe3c4927737ce3e12374558edb4490f59636c0d959669e479aecef14"
+      "path": "src/com/turboio/addon/TaskHub.java",
+      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
     }
   ]
 }

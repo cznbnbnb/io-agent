@@ -5,7 +5,7 @@ import java.util.*;
 /** Request-owned suggestion lifecycle. Durable semantic choice precedes mailbox and native ACK. */
 final class AgentCardSession {
  interface Store {Object read()throws Exception;void save(Object value)throws Exception;}
- static final long SDK_MS=8000,CARD_MS=120000,ANIMATION_MS=2500;
+ static final long SDK_MS=8000,CARD_MS=120000,ANIMATION_MS=2500,VOICE_HANDOFF_MS=30000;
  static final class Emission {
   final long ticket;final String purpose,uid;final int type;final byte[] bytes;
   Emission(long ticket,String purpose,String uid,int type,Object body){this.ticket=ticket;this.purpose=purpose;this.uid=uid;this.type=type;bytes=OtaFrame.encode(type,body,null);}
@@ -19,6 +19,8 @@ final class AgentCardSession {
  private boolean healthy=true,pending,cardMayExist,answerSaved,choiceSeen,showSubmitted,inputRetired,cleanupSubmitted;
  private int index,selected=-1,cleanupIndex;private long generation,serial,flightUntil,deadline,after,answerAt;
  private Emission queued,flight;
+ // In memory only: after a restart the question simply stays on the phone.
+ private String voiceOwner="";private long voiceUntil;
  AgentCardSession(Store store){
   this.store=store;
   try{Object raw=store.read();if(raw!=null){Map<String,Object> j=WireJson.map(raw);BoundedJson.keys(j,"schema","pending","request","peerHash","guardToken","uids","index","selected","answerSaved","answerFailure","cardMayExist","choiceSeen","answerAt","inputRetired","cleanupSubmitted","drafts");
@@ -54,7 +56,7 @@ final class AgentCardSession {
  synchronized boolean working(){return flight!=null||queued!=null||TaskWire.set("SHOWING","ACTIVE","SAVING_ANSWER","ACK_WAIT","NEXT_READY").contains(phase);}
  synchronized boolean prepare(AgentCardRequest next,String target,long gen){
   if(!healthy||pending||working()||request!=null&&selected>=0&&!answerSaved||target==null||target.isEmpty()||target.length()>256)return false;
-  request=next;peer=target;peerHash=FixedPeerHash.of(target);generation=gen;index=0;selected=-1;choiceSeen=answerSaved=cardMayExist=showSubmitted=inputRetired=cleanupSubmitted=false;answerAt=0;answerFailure=guardToken="";uids.clear();newUid();pending=true;phase="PREPARING";note="原问题已冻结，等待设备和头势保护";return save();
+  request=next;peer=target;peerHash=FixedPeerHash.of(target);generation=gen;index=0;voiceOwner="";selected=-1;choiceSeen=answerSaved=cardMayExist=showSubmitted=inputRetired=cleanupSubmitted=false;answerAt=0;answerFailure=guardToken="";uids.clear();newUid();pending=true;phase="PREPARING";note="原问题已冻结，等待设备和头势保护";return save();
  }
  synchronized boolean bindGuard(String token){if(!healthy||!pending||!phase.equals("PREPARING")||token==null||!token.matches("[a-f0-9]{32}")||!guardToken.isEmpty()&&!guardToken.equals(token))return false;guardToken=token;return save();}
  private void newUid(){uid="ioa-"+UUID.randomUUID().toString().replace("-","");uids.add(uid);}
@@ -90,9 +92,14 @@ final class AgentCardSession {
    // A received action may beat the show SDK callback. It invalidates that callback and freezes
    // the UID before any IO owner can persist/send an answer or acknowledge this operation.
    queued=flight=null;choiceSeen=true;
-   if(command==1){selected=index;answerAt=wallNow;phase="SAVING_ANSWER";note="语义选择已保存，等待原问题答案队列";save();}
+   if(command==1&&request.handoff){voiceOwner=request.owner;voiceUntil=now+VOICE_HANDOFF_MS;phase="STEP_SAVED";note=request.confirm!=null?"已在眼镜确认口述内容；交由手机保存原文":"已在眼镜选择口述回答；不生成答案";if(save())queueAck();}
+   else if(command==1){selected=index;answerAt=wallNow;phase="SAVING_ANSWER";note="语义选择已保存，等待原问题答案队列";save();}
    else{phase="STEP_SAVED";note="仅保存下一项/留手机的操作";if(save())queueAck();}
   }catch(RuntimeException malformed){/* Wrong UID, late/duplicate and malformed input are never an answer. */}
+ }
+ /** Once the card has fully retired, hands the accepted free-text question (or confirmed draft) to the phone exactly once. */
+ synchronized AgentCardRequest takeVoiceHandoff(long now){
+  if(voiceOwner.isEmpty()||pending||request==null)return null;boolean live=voiceOwner.equals(request.owner)&&now<voiceUntil;voiceOwner="";return live?request:null;
  }
  synchronized Answer pendingAnswer(){return healthy&&selected>=0&&!answerSaved&&answerFailure.isEmpty()&&TaskWire.set("SAVING_ANSWER","RECOVERY_PENDING","CLOSED","RETIRED").contains(phase)?new Answer(request,selected):null;}
  synchronized void answerStored(String operation,boolean stored,String error){

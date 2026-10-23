@@ -1,6 +1,8 @@
 # iO Agent Android：登录入口、电脑任务与固件状态候选
 
-**2026-10-22当前版本为0.5.3-dev2 /10424。** 月份发现已装机，三个日期、空选禁用、取消及资料保持通过；选日完整同步仍待验。正常口述已通过一条codex合成路由，R2/R3/R4为80%/60%/50%。先看[仓库首页](../../README.md)及[协作交接](../../docs/product/COLLABORATION-HANDOFF.md)；以下逐批记录保留历史，不能把旧版本路径当当前安装包。
+**2026-10-22当前装机0.5.3-dev9 /10431（回退dev8）。** dev9新增“移除已到期会话”：只能移除已过期且非当前委托的会话，本机队列和答案记录保留，用于解决16个会话位用满后无法导入新连接的问题；dev8只把左声道（佩戴者）送去识别。Hermes原任务口述见[证据](./phone-hermes-original-task-2026-10-22.json)。
+
+以下为dev2时的记录：**2026-10-22当前版本为0.5.3-dev2 /10424。** 月份发现已装机，三个日期、空选禁用、取消及资料保持通过；选日完整同步仍待验。正常口述已通过一条codex合成路由，R2/R3/R4为80%/60%/50%。先看[仓库首页](../../README.md)及[协作交接](../../docs/product/COLLABORATION-HANDOFF.md)；以下逐批记录保留历史，不能把旧版本路径当当前安装包。
 
 **2026-10-21当前装机0.5.2-dev2 /10418，回退0.5.2-dev1。** 已加入过期资料事件续传修复：更换同身份有效凭据后先核对旧事件，明确未入库才重新发送，原文和修订不变。升级保留正式连接及3条真实智记（559句）；账本schema1→2、重启及正常重复同步通过，电脑全文哈希/服务器提交序号仍与升级前一致。旧版读取器已用真机隔离文件验证拒读schema2但不覆盖，恢复新版可继续；回退旧APK时资料同步暂不可用，不能清数据或卸载解决。仅留当前/回退两包及一份源码暂存，回收约434MB。[交付证据](./material-renewal-delivery-2026-10-21.json)。下一步是权威来源刷新、修订/删除及原音/后台；已通过一分钟卡和其他人工项不重测。
 
@@ -79,6 +81,8 @@ node tools/android/test-official-gate.mjs
 node tools/android/build.mjs
 node tools/android/sign.mjs
 ```
+
+macOS同样使用上述命令：`bootstrap.mjs`按系统选择同版本platform-tools/build-tools官方包（摘要取自Google SDK仓库清单）并保留可执行权限；Python调用`python3`，工具路径由`tools/android/host-tools.mjs`处理。2026-10-22在macOS arm64（Temurin 17.0.20.1、Python 3.9.6、Node 24）上，五项离线测试的检查数与Windows提交结果一致。正常口述验证在macOS上改用`make-voice-source.mjs`（系统`say`婷婷合成8–9秒四条件声源及哈希记录）和`wav-player.mjs`（`afplay`，沿用READY/PLAY/DONE协议）；`run-recording-probe.mjs`的声源播放仍只支持Windows PowerShell。合成测试凭据经SSH签发，macOS尚无服务器连接配置。`.private/signing`缺失时`sign.mjs`停止，不再自动生成新密钥；新密钥无法覆盖已装App，只能显式使用`--new-key`。
 
 首次缺少宿主暂存时自动使用apktool `d --no-res`解码至`build/host-107`，输入只能为已核验的私有原厂APK。构建入口先核对来源/ABI、8GiB可用空间及独占锁；签名步骤遇到同名签名候选停止，不自动覆盖或清理历史。日常仅改Java可用`--addon-only`；仅汇编挂接可用`--smali-only`；`--assemble-only`复用当前编译结果。签名阶段再次核对编译输入、实际DEX、资源、签名与对齐，清理只涉及两个已知生成文件。Python使用`-S -X utf8`以避开本机GBK站点配置与源码编码冲突。`--https`需先启动隔离的本地合成测试服务器和Bridge，使用独立短期TLS测试证书；测试凭据/证书不进入APK。
 

@@ -17,15 +17,17 @@ final class MaterialMonthWorkspace {
   }).create();picker.setOnCancelListener(dialog->runtime.cancelPending());picker.show();
  }
  private static void selectDays(Activity activity,MaterialRuntime runtime,MaterialConfig target,MaterialRuntime.MonthSelection found,BooleanSupplier available,Runnable starting,Runnable refresh){
-  if(found.source.dates.isEmpty()){new AlertDialog.Builder(activity).setTitle(found.source.month+" 智记日期").setMessage("本月暂未发现有智记的日期。已有资料保留。").setPositiveButton("返回",(dialog,which)->refresh.run()).show();return;}
+  if(found.source.dates.isEmpty()){new AlertDialog.Builder(activity).setTitle(found.source.month+" 智记日期").setMessage("本月暂未发现有智记的日期。已有资料保留。").setPositiveButton("返回",(dialog,which)->refresh.run()).setOnCancelListener(dialog->refresh.run()).show();return;}
   String[] dates=found.source.dates.toArray(new String[0]);boolean[] selected=new boolean[dates.length];final AlertDialog[] holder={null};
+  // Cancel has no runtime callback, so re-render to clear the "reading" line added when discovery started.
+  Runnable cancel=()->{runtime.cancelPending();refresh.run();};
   TextView title=EditorialUI.text(activity,found.source.month+" · 北京时间\n选择 1–7 天同步正文至：\n"+target.connection.preview(),16,EditorialUI.INK);
   AlertDialog dialog=new AlertDialog.Builder(activity).setCustomTitle(title).setMultiChoiceItems(dates,selected,(choice,index,checked)->{
    int count=0;for(boolean item:selected)if(item)count++;if(count>7){selected[index]=false;((AlertDialog)choice).getListView().setItemChecked(index,false);EditorialUI.notice(activity,"每批最多同步 7 天，请分批选择。");count--;}
    if(holder[0]!=null)holder[0].getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(count>0);
-  }).setNegativeButton("取消",(choice,which)->runtime.cancelPending()).setPositiveButton("同步选中日期",(choice,which)->{
+  }).setNegativeButton("取消",(choice,which)->cancel.run()).setPositiveButton("同步选中日期",(choice,which)->{
    if(activity.isDestroyed()||!available.getAsBoolean())return;List<String> chosen=new ArrayList<>();for(int i=0;i<dates.length;i++)if(selected[i])chosen.add(dates[i]);
    starting.run();runtime.syncMonthDays(found,chosen,(done,error)->{if(!activity.isDestroyed()&&available.getAsBoolean()){if(!error.isEmpty())EditorialUI.notice(activity,MaterialWorkspace.label(error));refresh.run();}});
-  }).create();holder[0]=dialog;dialog.setOnCancelListener(choice->runtime.cancelPending());dialog.setOnShowListener(choice->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false));dialog.show();
+  }).create();holder[0]=dialog;dialog.setOnCancelListener(choice->cancel.run());dialog.setOnShowListener(choice->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false));dialog.show();
  }
 }
