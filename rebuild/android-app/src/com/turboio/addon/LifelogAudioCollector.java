@@ -1,0 +1,44 @@
+package com.turboio.addon;
+import java.io.*;import java.nio.charset.StandardCharsets;import java.util.*;import java.util.concurrent.*;
+
+/** A passive bounded writer. Open on an IO thread before attaching a native
+ * observer. offer() only validates/copies memory, and QUEUED is not a storage ACK.
+ * No microphone, SDK start/stop, decoding, network or source-proof calls. */
+final class LifelogAudioCollector {
+ enum Offer {QUEUED,IGNORED,STOPPED,REJECTED}
+ interface Admission {boolean current(String peer,long generation);}
+ interface Sink extends AutoCloseable {long next()throws IOException;void append(long seq,String kind,String message,byte[] raw,long at,long elapsed)throws IOException;void end(String reason)throws IOException;void close()throws IOException;}
+ interface Health extends AutoCloseable {void start(Map<String,Object> context)throws IOException;void finish(Map<String,Object> status)throws IOException;Map<String,Object> snapshot();void close()throws IOException;}
+ static final class Limits {final int batches,bytes;Limits(int batches,int bytes){if(batches<1||batches>128||bytes<1024||bytes>4194304)throw new IllegalArgumentException("AUDIO_COLLECTOR_LIMITS");this.batches=batches;this.bytes=bytes;}static Limits standard(){return new Limits(64,2097152);}}
+ private static final class Event {final long seq,at,elapsed;final String kind,message;final byte[] raw;final int charge;Event(long seq,String kind,String message,byte[] raw,long at,long elapsed,int charge){this.seq=seq;this.kind=kind;this.message=message;this.raw=raw.clone();this.at=at;this.elapsed=elapsed;this.charge=charge;}}
+ private final String peer;private final long generation;private final Sink sink;private final Health health;private final Admission gate;private final Limits limits;private final Thread worker;private final ArrayDeque<Event> queue=new ArrayDeque<>();private final CompletableFuture<Map<String,Object>> stopped=new CompletableFuture<>();
+ private boolean accepting=true,done;private long next,accepted,saved,rejected,unconfirmed,lastSaved;private int outstanding,charged;private String error="",healthError="",endReason="capture_stopped";private boolean healthSaved;
+ static LifelogAudioCollector open(File files,String account,String peer,long generation,String clock,LifelogAudioManager.Limits storage,Limits memory,Admission gate,LifelogAudioArchive.Guard guard)throws IOException{
+  LifelogAudioManager manager=new LifelogAudioManager(files,account,peer,generation,clock,storage,guard);LifelogAudioHealth health=null;try{health=new LifelogAudioHealth(files,account);final LifelogAudioManager m=manager;Sink sink=new Sink(){public long next()throws IOException{return ((Number)m.snapshot().get("next_sequence")).longValue();}public void append(long n,String k,String message,byte[] raw,long at,long elapsed)throws IOException{m.append(n,k,message,raw,at,elapsed);}public void end(String reason)throws IOException{m.end(reason);}public void close()throws IOException{m.close();}};return new LifelogAudioCollector(WireJson.object("account",account,"peer",peer,"generation",generation,"clock_epoch",clock),sink,health,memory,gate);}catch(IOException|RuntimeException e){if(health!=null)try{health.close();}catch(IOException ignored){}try{manager.close();}catch(IOException ignored){}throw e;}
+ }
+ LifelogAudioCollector(Map<String,Object> context,Sink sink,Health health,Limits limits,Admission gate)throws IOException{
+  Object p=context.get("peer"),g=context.get("generation");if(!context.keySet().equals(new HashSet<>(Arrays.asList("account","peer","generation","clock_epoch")))||!(context.get("account") instanceof String)||!((String)context.get("account")).matches("[a-f0-9]{64}")||!(context.get("clock_epoch") instanceof String)||!((String)context.get("clock_epoch")).matches("[a-f0-9]{32}")||!(p instanceof String)||!((String)p).matches("[a-f0-9]{64}")||!(g instanceof Long)||((Long)g)<=0||sink==null||health==null||limits==null||gate==null)throw new IOException("AUDIO_COLLECTOR_CONTEXT");peer=(String)p;generation=(Long)g;this.sink=sink;this.health=health;this.limits=limits;this.gate=gate;next=sink.next();if(next<1)throw new IOException("AUDIO_COLLECTOR_SEQUENCE");lastSaved=next-1;health.start(context);worker=new Thread(this::run,"iO-lifelog-original-writer");worker.setDaemon(true);worker.start();
+ }
+ private static String safe(Throwable e,String fallback){String s=e.getMessage();return s!=null&&s.matches("[A-Z_]{3,90}")?s:fallback;}
+ private boolean current(){try{return gate.current(peer,generation);}catch(RuntimeException e){return false;}}
+ Offer offer(String sourcePeer,long epoch,String kind,String message,byte[] raw,long at,long elapsed){
+  if(!peer.equals(sourcePeer)||epoch!=generation)return Offer.IGNORED;
+  synchronized(this){if(!accepting)return Offer.STOPPED;if(!current()){fault("AUDIO_COLLECTOR_CONTEXT_CHANGED",true);return Offer.REJECTED;}if(raw==null||raw.length>LifelogAudioArchive.MAX_PAYLOAD||message==null||message.length()>LifelogAudioArchive.MAX_MESSAGE||message.getBytes(StandardCharsets.UTF_8).length>LifelogAudioArchive.MAX_MESSAGE||!message.equals(new String(message.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8))||!Arrays.asList("A3","A4","A5","link_lost").contains(kind)||at<=0||elapsed<0){fault("AUDIO_COLLECTOR_INPUT_INVALID",true);return Offer.REJECTED;}
+   int bytes=raw.length+message.length()*4+256;if(outstanding>=limits.batches||charged+bytes>limits.bytes){fault("AUDIO_COLLECTOR_QUEUE_FULL",true);return Offer.REJECTED;}queue.add(new Event(next++,kind,message,raw,at,elapsed,bytes));accepted++;outstanding++;charged+=bytes;notifyAll();return Offer.QUEUED;}
+ }
+ private void fault(String code,boolean rejectedBatch){if(error.isEmpty())error=code;if(rejectedBatch)rejected++;accepting=false;notifyAll();}
+ private void abandon(Throwable e){synchronized(this){fault(safe(e,"AUDIO_COLLECTOR_WRITE_FAILED"),false);unconfirmed+=outstanding;queue.clear();outstanding=0;charged=0;}}
+ private void run(){boolean writable=true;try{while(true){Event event;synchronized(this){while(queue.isEmpty()&&accepting)wait();if(queue.isEmpty())break;event=queue.remove();}
+    try{if(!current())throw new IOException("AUDIO_COLLECTOR_CONTEXT_CHANGED");sink.append(event.seq,event.kind,event.message,event.raw,event.at,event.elapsed);synchronized(this){saved++;lastSaved=event.seq;outstanding--;charged-=event.charge;}}
+    catch(IOException|RuntimeException e){writable=false;abandon(e);break;}
+   }
+  }catch(InterruptedException e){Thread.currentThread().interrupt();writable=false;abandon(new IOException("AUDIO_COLLECTOR_INTERRUPTED"));}catch(Throwable e){writable=false;abandon(e);}
+  finally{if(writable)try{sink.end(endReason);}catch(IOException|RuntimeException e){synchronized(this){fault(safe(e,"AUDIO_COLLECTOR_END_FAILED"),false);}}try{sink.close();}catch(IOException|RuntimeException e){synchronized(this){fault(safe(e,"AUDIO_COLLECTOR_CLOSE_FAILED"),false);}}
+   synchronized(this){accepting=false;}try{Map<String,Object> terminal;synchronized(this){terminal=status(true);}health.finish(terminal);synchronized(this){healthSaved=true;}}catch(IOException|RuntimeException e){synchronized(this){healthError=safe(e,"AUDIO_COLLECTOR_HEALTH_FAILED");}}finally{try{health.close();}catch(IOException|RuntimeException e){synchronized(this){healthError=safe(e,"AUDIO_COLLECTOR_HEALTH_CLOSE_FAILED");}}}synchronized(this){done=true;}stopped.complete(snapshot());}
+ }
+ private Map<String,Object> status(boolean terminal){return WireJson.object("phase",terminal?(error.isEmpty()&&healthError.isEmpty()?"STOPPED":"FAILED"):accepting?"RUNNING":"DRAINING","queued_batches",outstanding,"queued_bytes",charged,"accepted_batches",accepted,"saved_batches",saved,"last_saved_sequence",lastSaved,"rejected_batches",rejected,"unconfirmed_batches",unconfirmed,"error",error,"health_error",healthError,"health_saved",healthSaved,"recording_complete",false,"source_link_verified",false);}
+ synchronized Map<String,Object> snapshot(){return status(done);}
+ /** Metadata-only copy; the UI caller must still verify the selected account. */
+ Map<String,Object> healthSnapshot(){Map<String,Object> value=health.snapshot();return value==null?WireJson.object("available",false):WireJson.map(WireJson.copy(value));}
+ synchronized CompletableFuture<Map<String,Object>> stop(String reason){if(!Arrays.asList("capture_stopped","source_ended","disconnected","process_interrupted").contains(reason))throw new IllegalArgumentException("AUDIO_COLLECTOR_STOP_REASON");if(accepting){accepting=false;endReason=reason;notifyAll();}return stopped;}
+}

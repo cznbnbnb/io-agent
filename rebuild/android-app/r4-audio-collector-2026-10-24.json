@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T13:49:49.828054+00:00",
+  "status": "bounded_collector_and_health_verified_not_audio_delivery",
+  "scope": "Synthetic bytes, Mac and Android filesystems; no native inbound hook or real audio capture/read/upload",
+  "collector_jvm": {
+    "schema": 1,
+    "at": "2026-10-24T13:40:49.797Z",
+    "passed": true,
+    "checks": 48,
+    "separate_process_unfinished_marker_recovery": true,
+    "scope": "Synthetic bytes; real filesystem, bounded worker/queue and independent JVM halt; no native hook, actual audio or source/codec claims",
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/LifelogAudioCollector.java",
+        "sha256": "10810676ae0695e124cd140b1baca042d521ca6940306f488e27c553d201a6d6"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioHealth.java",
+        "sha256": "e897361a86bbfe7ee8ddeb83d698545261fac713c644be875c74fadc9b9f985b"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioManager.java",
+        "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+        "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/AtomicDocument.java",
+        "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioCollectorTest.java",
+        "sha256": "b1f1bcc1bce038c89bbccde8c90294067c96d80eb5ccff91e5eafa43b5275cde"
+      },
+      {
+        "path": "../../tools/android/test-lifelog-audio-collector.mjs",
+        "sha256": "ab35f14103d1f55057858d38598a8930af3678c541adebdcfa3a76ce92439d8e"
+      }
+    ],
+    "temporary_fixture_removed": true
+  },
+  "archive_jvm": {
+    "schema": 1,
+    "at": "2026-10-24T13:38:10.145Z",
+    "passed": true,
+    "checks": 93,
+    "real_process_halt_after_raw_fsync_exit": 17,
+    "separate_jvm_recovery_verified": true,
+    "scope": "Synthetic bytes and real filesystem/child JVM; no device, codec, capture, source linkage or server verification",
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+        "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/AtomicDocument.java",
+        "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioArchiveTest.java",
+        "sha256": "414830746723e69fc570bce4481c4c0509ea51538b425cf98911dfea73a645a5"
+      },
+      {
+        "path": "../../tools/android/test-lifelog-audio-archive.mjs",
+        "sha256": "a525bb0aa2fccaf6bcbb7da9e949d1817a53643110088cd14bd34d68071dd1a4"
+      }
+    ],
+    "temporary_fixture_removed": true
+  },
+  "manager_jvm": {
+    "schema": 1,
+    "at": "2026-10-24T13:38:12.286Z",
+    "passed": true,
+    "checks": 69,
+    "separate_process_crashes_after_raw_fsync": true,
+    "separate_process_crashes_before_index_receipt": true,
+    "separate_process_crashes_after_allocation_intent": true,
+    "scope": "Synthetic bytes and real filesystem only; no collector, codec, source association or server verification",
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/LifelogAudioManager.java",
+        "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+        "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/AtomicDocument.java",
+        "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioManagerTest.java",
+        "sha256": "c47d03015aed026ade7e7316fab45332d8f41ba96b125d0ded5f29d40234c960"
+      },
+      {
+        "path": "../../tools/android/test-lifelog-audio-manager.mjs",
+        "sha256": "9ad6f052fc1eaae1bb0dd472da0207d54ec5150fd81c0eaffa0437f907c71f8d"
+      }
+    ],
+    "temporary_fixture_removed": true
+  },
+  "native": {
+    "checks": 93,
+    "collector_checks": 48,
+    "manager_checks": 69,
+    "passed": true,
+    "probe_id": "810cfd81759e44b99a6b191f7e55a318",
+    "server_or_source_association_verified": false,
+    "synthetic_fixture_removed": true,
+    "synthetic_only": true,
+    "target_audio_read_or_capture": false,
+    "at": "2026-10-24T13:49:49.828054+00:00"
+  },
+  "driver_sha256": "914ddf50be332193ff4902128e856f80eb2438d69c4ce787cc9882fc0613b52f",
+  "probe_source_sha256": "4d0f07018617eca4ec79ed2ebddbbea74b65db29bb8b1761fe26bad0154c0bf7",
+  "initial_install_failure": "INSTALL_FAILED_USER_RESTRICTED: Install canceled by user; no attribution to human action; retry after HOME and collapsing overlays succeeded",
+  "not_verified": [
+    "Native inbound hook and authenticated account/session origin",
+    "Actual codec, container, channels and recording completeness",
+    "taskId to official conversation sourceId proof",
+    "72-hour remote audio persistence/expiry and phone export",
+    "Authoritative deletion"
+  ],
+  "device": {
+    "product_unchanged": "dev76 /10498",
+    "driver_uninstalled": true,
+    "synthetic_fixtures_removed": true,
+    "app_pid": "29796",
+    "normal_app_restored_then_backgrounded": true
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-collector-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T14:20:09.393Z",
+    "requires_answer": false,
+    "message_id": "notice-14ffa4c6b087c0af5d9f3bc1d4a5117871552548622343225e5007872742cf7f",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_released": true
+}
