@@ -1,0 +1,74 @@
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';
+import assert from 'node:assert/strict';import {spawn,spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import {MaterialStore} from '../../rebuild/material-server/store.mjs';import {listen} from '../../rebuild/material-server/http.mjs';import {canonical,sha} from '../../rebuild/material-server/json.mjs';
+
+assert(/^v22\./.test(process.version),'Use pinned Node 22');
+const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),root=path.join(workspace,'rebuild/android-app');
+const work=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'io-audio-client-')));fs.chmodSync(work,0o700);const classes=path.join(work,'classes');fs.mkdirSync(classes);
+const names=['AudioConnection','AudioUploadWire','AudioHttp','AudioUploadOutbox','MaterialConnection','MaterialWire','MaterialApi','MaterialTransfer','MaterialOutbox','AtomicDocument','WireJson','TaskWire','TaskConnection'];
+const sources=names.map(n=>path.join(root,'src/com/turboio/addon',n+'.java')).concat(path.join(root,'upstream/android-addon/src/com/turboio/addon/BoundedJson.java'),...['AudioUploadHttpTest','AudioUploadOutboxTest'].map(n=>path.join(workspace,'tools/android',n+'.java')));
+const evidenceSources=[...sources,fileURLToPath(import.meta.url)],sourceBefore=Object.fromEntries(evidenceSources.map(p=>[p,sha(fs.readFileSync(p))]));
+let now=Date.now(),store,server,report;const credentials=[];const observed=[];let revokeNextPart=false;
+try{
+ const compiled=spawnSync('javac',['-encoding','UTF-8','-d',classes,...sources],{encoding:'utf8',timeout:60000});assert.equal(compiled.status,0,compiled.stderr);
+ const androidClasses=path.join(work,'android-classes'),dex=path.join(work,'dex');fs.mkdirSync(androidClasses);fs.mkdirSync(dex);const sdk=path.join(root,'.tools/sdk'),androidJar=path.join(sdk,'platforms/android-36/android.jar');
+ // Match the product's Java 8/classpath compilation for unchanged dependencies
+ // (android.jar omits LambdaMetafactory's compiler bootstrap declaration).
+ const android=spawnSync('javac',['-encoding','UTF-8','-source','8','-target','8','-cp',androidJar,'-d',androidClasses,...sources.filter(p=>!p.includes('/tools/android/'))],{encoding:'utf8',timeout:60000});assert.equal(android.status,0,android.stderr);
+ // Type-check the four new production sources against Android's boot API too.
+ const strict=spawnSync('javac',['-encoding','UTF-8','-source','8','-target','8','-bootclasspath',androidJar,'-cp',androidClasses,'-d',androidClasses,...sources.slice(0,4)],{encoding:'utf8',timeout:60000});assert.equal(strict.status,0,strict.stderr);
+ const jar=spawnSync('jar',['cf',path.join(work,'audio-client.jar'),'-C',androidClasses,'.'],{encoding:'utf8',timeout:30000});assert.equal(jar.status,0,jar.stderr);
+ const dalvik=spawnSync('java',['-cp',path.join(sdk,'build-tools/36.0.0/lib/d8.jar'),'com.android.tools.r8.D8','--lib',androidJar,'--min-api','29','--output',dex,path.join(work,'audio-client.jar')],{encoding:'utf8',timeout:60000});assert.equal(dalvik.status,0,dalvik.stderr);
+ store=new MaterialStore(path.join(work,'synthetic.sqlite'),{clock:()=>now});
+ const mint=scopes=>{const c=store.mint({owner:'synthetic-audio-client',producer:'synthetic-audio-phone',scopes,ttlMs:86400000});credentials.push(c.token_id);return c;};
+ const text=mint(['materials:write']),audio=mint(['audio:write','audio:read']);
+ const event=structuredClone(JSON.parse(fs.readFileSync(path.join(workspace,'docs/contracts/material-v1.2.json'))).events.find(e=>e.body.revision===1&&e.body.operation==='upsert'));
+ Object.assign(event,{event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),producer_id:'synthetic-audio-phone',created_at:new Date(now).toISOString(),expires_at:new Date(now+3600000).toISOString()});
+ // Includes actual short controls and a literal backslash-u: body digest must
+ // agree with the server canonicalizer, not a text replacement approximation.
+ event.body.full_text.text+='\b\f literal \\u0008 \\u000c';store.submit(text.token,event);
+ const material=event.body.material_id;
+ server=await listen(store);const endpoint=`http://127.0.0.1:${server.address().port}/v1`;
+ server.on('request',req=>{observed.push({method:req.method,path:req.url});if(revokeNextPart&&req.method==='POST'&&req.url.includes('/parts/')){revokeNextPart=false;store.revoke(current.token_id);}});
+ const serverId=store.identity(audio.token).server_id;
+ const connection=c=>({format:'turboio-audio-sync/1',base_url:'https://synthetic.invalid/io-api/v1',owner_id:'synthetic-audio-client',producer_id:'synthetic-audio-phone',server_id:serverId,...c});
+ const plans={};let marker=0;for(const [name,size] of [['primary',262267],['auth',131103],['pause',131105],['bad',131107],['corrupt',131109],['copy',262277],['ready',262279],['revoked',131111]]){
+  const data=Buffer.alloc(size);for(let i=0;i<size;i++)data[i]=(i*31+marker*17)%256;marker++;
+  plans[name]={data:data.toString('base64'),manifest:{material_id:material,material_revision:1,kind:'raw',media_type:'application/vnd.turboio.lifelog-archive',bytes:data.length,sha256:sha(data),capture:{first_received_at:new Date(now-2000).toISOString(),last_received_at:new Date(now).toISOString(),recording_complete:false}}};
+ }
+ plans.auth.manifest.capture.recording_complete=true; // Producer declaration never becomes server verification.
+ const fixtureFile=path.join(work,'fixture.json');let current=audio;
+ const fixture=()=>({now,endpoint,connection:connection(current),text_connection:connection(text),body_sha256:sha(canonical(event.body)),material_body:event.body,plans,...(fs.existsSync(path.join(work,'primary/result.json'))?{stored_job:readResult('primary').rows[0]}:{})});
+ const saveFixture=()=>fs.writeFileSync(fixtureFile,JSON.stringify(fixture()),{mode:0o600});saveFixture();
+ const folder=name=>{const f=path.join(work,name);fs.mkdirSync(f,{recursive:true});return f;};
+ const readResult=name=>JSON.parse(fs.readFileSync(path.join(work,name,'result.json')));
+ const run=async(mode,name,expected=0)=>{
+  saveFixture();const dir=folder(name);return await new Promise((resolve,reject)=>{
+   const child=spawn('java',['-cp',classes,'com.turboio.addon.AudioUploadHttpTest',dir,fixtureFile,mode,name],{cwd:workspace});let output='';
+   const timer=setTimeout(()=>{child.kill();reject(Error('AUDIO_CLIENT_TEST_TIMEOUT'));},45000);
+   child.stdout.on('data',b=>{output+=b;});child.stderr.on('data',b=>{output+=b;});child.on('error',reject);child.on('exit',code=>{clearTimeout(timer);if(code!==expected)reject(Error(`Audio client ${mode} failed (${code}): ${output}`));else{if(code===0)process.stdout.write(output);resolve(output);}});
+  });
+ };
+ const parts=()=>observed.filter(r=>r.method==='POST'&&r.path.includes('/audio-uploads/')&&r.path.includes('/parts/')).length;
+ await run('part-crash','primary',77);assert.equal(store.audio.db.prepare('SELECT COUNT(*) n FROM audio_parts').get().n,1);
+ now+=5000;await run('finalize-crash','primary',78);const fixed=store.audio.db.prepare('SELECT * FROM audio_objects').get();assert.equal(fixed.state,'stored');assert.equal(fixed.expires-fixed.stored_at,259200000);assert.equal(parts(),3);
+ now+=60000;await run('recover','primary');assert.equal(parts(),3);const done=readResult('primary').rows[0];assert.equal(done.state,'stored');assert.equal(done.receipt.stored_at,new Date(fixed.stored_at).toISOString());
+ const payload=Buffer.concat(Array.from({length:3},(_,i)=>Buffer.from(store.audio.content(audio.token,done.object_id,i).data,'base64')));assert.deepEqual(payload,Buffer.from(plans.primary.data,'base64'));
+ // Reappearing owned cache after a committed ACK models interrupted cleanup;
+ // the next independent process may remove it, never the source snapshot.
+ const staged=path.join(work,'primary/lifelog-audio-uploads/payloads',done.id+'.bin');fs.writeFileSync(staged,payload);await run('repeat','primary');assert(!fs.existsSync(staged));assert.equal(store.audio.db.prepare('SELECT expires FROM audio_objects WHERE object_id=?').get(done.object_id).expires,fixed.expires);
+ const postsBefore=observed.filter(r=>r.method==='POST').length;await run('scope-block','auth');assert.equal(observed.filter(r=>r.method==='POST').length,postsBefore);await run('scope-resume','auth');assert.equal(readResult('auth').rows[0].state,'stored');assert.equal(readResult('auth').rows[0].receipt.capture.recording_complete,true);assert.equal(readResult('auth').rows[0].receipt.recording_completeness_verified,false);
+ await run('pause-part','pause');assert.equal(readResult('pause').rows[0].state,'sending');await run('pause-recover','pause');assert.equal(readResult('pause').rows[0].state,'stored');
+ await run('bad-ack','bad');assert.equal(readResult('bad').rows[0].receipt,null);assert.equal(readResult('bad').rows[0].state,'blocked');await run('retry-receipt','bad');assert.equal(readResult('bad').rows[0].state,'stored');
+ await run('corrupt-stage','corrupt');const corrupted=readResult('corrupt').rows[0],badPath=path.join(work,'corrupt/lifelog-audio-uploads/payloads',corrupted.id+'.bin');const badBytes=fs.readFileSync(badPath);badBytes[0]^=255;fs.writeFileSync(badPath,badBytes);const beforeCorrupt=parts();await run('corrupt-send','corrupt');assert.equal(parts(),beforeCorrupt);
+ for(const [name,mode,code] of [['copy','copy-crash',79],['ready','ready-crash',80]]){const before=observed.filter(r=>r.method==='POST').length;await run(mode,name,code);assert.equal(observed.filter(r=>r.method==='POST').length,before);const local=JSON.parse(fs.readFileSync(path.join(work,name,'lifelog-audio-uploads/state.json')));assert.equal(local.rows[0].state,'preparing');await run('copy-recover',name);const job=readResult(name).rows[0];assert.equal(job.state,'stored');const got=Buffer.concat(Array.from({length:3},(_,i)=>Buffer.from(store.audio.content(audio.token,job.object_id,i).data,'base64')));assert.deepEqual(got,Buffer.from(plans[name].data,'base64'));}
+ revokeNextPart=true;await run('auth-mid-request','revoked');assert.equal(readResult('revoked').rows[0].error,'AUDIO_AUTH_REQUIRED');current=mint(['audio:write','audio:read']);await run('scope-resume','revoked');assert.equal(readResult('revoked').rows[0].state,'stored');
+ saveFixture();const unit=await new Promise((resolve,reject)=>{const child=spawn('java',['-cp',classes,'com.turboio.addon.AudioUploadOutboxTest',folder('unit'),fixtureFile]);let text='';const timer=setTimeout(()=>{child.kill();reject(Error('AUDIO_UNIT_TIMEOUT'));},45000);child.stdout.on('data',b=>text+=b);child.stderr.on('data',b=>text+=b);child.on('error',reject);child.on('exit',code=>{clearTimeout(timer);code===0?resolve(text):reject(Error(text));});});process.stdout.write(unit);
+ now=fixed.expires;current=mint(['audio:write','audio:read']);await run('expired','primary');assert.equal(readResult('primary').rows[0].state,'expired');assert.throws(()=>store.audio.content(current.token,done.object_id,0),e=>e.code==='AUDIO_EXPIRED');assert.equal(store.audio.db.prepare('SELECT expires FROM audio_objects WHERE object_id=?').get(done.object_id).expires,fixed.expires);
+ assert.deepEqual(Object.fromEntries(evidenceSources.map(p=>[p,sha(fs.readFileSync(p))])),sourceBefore,'Source changed during verification');
+ report={schema:1,at:new Date().toISOString(),node:process.version,passed:true,unit_assertions:Number(/outbox: (\d+)/.exec(unit)[1]),scope:'Production Java audio connection/wire/outbox over isolated HTTP/SQLite; opaque synthetic payload bytes, not codec, official source or phone-runtime proof.',new_sources_android_36_bootclasspath_compile:4,product_style_java_8_compile:true,android_d8_min_api:29,part_response_process_halt_recovered:true,finalize_response_process_halt_recovered:true,partial_copy_process_halt_recovered:true,renamed_copy_process_halt_recovered:true,exact_full_byte_download:true,missing_parts_only_after_restart:true,three_day_receipt_never_renewed:true,text_only_identity_denied_before_audio_post:true,pause_after_commit_reconciled:true,bad_receipt_retained_payload:true,corrupt_payload_not_transmitted:true,owned_cleanup_recovery_preserves_source:true,canonical_body_control_escapes_agree:true,mid_request_credential_revocation_renewal:true,producer_completeness_claim_not_verified:true,explicit_bad_receipt_retry_reconciles:true,phone_accessed:false,public_service_accessed:false,product_runtime_wired:false,sources:evidenceSources.map(p=>({path:path.relative(root,p),sha256:sourceBefore[p]}))};
+}finally{
+ if(store){for(const id of credentials)store.revoke(id);for(const id of credentials)assert.equal(store.db.prepare('SELECT revoked FROM credentials WHERE token_id=?').get(id).revoked,1);}
+ if(server)await new Promise(resolve=>server.close(resolve));store?.close();fs.rmSync(work,{recursive:true,force:true});
+}
+report.temporary_fixture_removed=!fs.existsSync(work);report.fixture_credentials_revoked=credentials.length;fs.mkdirSync(path.join(root,'build'),{recursive:true});fs.writeFileSync(path.join(root,'build/audio-upload-tests.json'),JSON.stringify(report,null,2)+'\n');console.log('Audio client isolated HTTP/SQLite and independent JVM recovery: passed');
