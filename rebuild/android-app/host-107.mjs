@@ -25,6 +25,7 @@ export function verifyHost(root){
  check('Lg7/o;',['.method public final x()Ljava/util/HashMap;']);
  check('Lcom/rayneo/rayneo_venus_sdk_plugin/f;',['.field public final A:Lcom/rayneo/rayneo_venus_sdk_plugin/j;']);
  const listener=check(HOST.listener,['.method public final onAsrResult(Ljava/lang/String;ZLjava/lang/String;)V','.method public final onNlpResult(Lcom/rayneo/airuntime/controller/NlpResult;)V','.method public final onResponseComplete()V']);
+ const audio=check('Lcom/rayneo/rayneo_venus_sdk_plugin/e;',['.method public final c(Ljava/lang/String;[B)V']);
  const activity=check('Lcom/rayneo/venus/MainActivity;',['.method public final onPostResume()V']);
  const event=check(HOST.event,['.method public final z(Ljava/lang/String;Ljava/util/Map;)V']);
  const manager=check(HOST.manager,['.field public static volatile h:LY3/u;','.method public static g()Ljava/util/List;','.method public final t(LY3/S;Lkotlin/jvm/functions/Function2;)V','.method public final u(Ljava/io/File;Ljava/lang/String;Lk4/q;Ljava/lang/String;)Ljava/lang/String;']);
@@ -45,6 +46,6 @@ export function verifyHost(root){
  check('Lm8/E1;',['.method public constructor <init>()V']);
  check('Lj4/F;',['.field public static final enum i:Lj4/F;','.field public static final enum h:Lj4/F;']);
  check('Lm8/F1;',['.field public static final enum b:Lm8/F1;']);
- for(const f of [listener,activity,event,queue,manager])if(!path.relative(root,f).startsWith('smali_classes2'+path.sep))throw new Error('Unexpected hook DEX: '+f);
- return {listener,activity,event,manager,queue,proofs};
+ for(const f of [listener,activity,event,queue,manager,audio])if(!path.relative(root,f).startsWith('smali_classes2'+path.sep))throw new Error('Unexpected hook DEX: '+f);
+ return {listener,activity,event,manager,queue,audio,proofs};
 }

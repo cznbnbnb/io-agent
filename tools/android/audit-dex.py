@@ -1,4 +1,4 @@
-"""Verify rebuilt host DEX retains every defined class/member and only seven hooks.
+"""Verify rebuilt host DEX retains every defined class/member and only nine hooks.
 This is structural evidence; it does not prove device/runtime compatibility.
 """
 import hashlib,json,pathlib,struct,sys,zipfile,zlib
@@ -43,7 +43,7 @@ def audit(apk):
     with zipfile.ZipFile(ROOT/'.private/hosts/RayNeo-1.0.7-230-original.apk') as source,zipfile.ZipFile(apk) as after:
         original=symbols(source.read('classes2.dex'));rebuilt=symbols(after.read('classes2.dex'))
     if original.keys()!=rebuilt.keys():raise ValueError('Host class set changed')
-    hooks={'Lq8/c$c;':{'onAsrResult','onNlpResult','onResponseComplete'},'Lcom/rayneo/venus/MainActivity;':{'onPostResume'},'Lcom/rayneo/venus/VenusApplication;':{'onCreate'},'Lcom/rayneo/rayneo_venus_sdk_plugin/j;':{'z'},'LY3/V;':{'o'},'LY3/u;':{'u'}}
+    hooks={'Lcom/rayneo/rayneo_venus_sdk_plugin/e;':{'c'},'Lq8/c$c;':{'onAsrResult','onNlpResult','onResponseComplete'},'Lcom/rayneo/venus/MainActivity;':{'onPostResume'},'Lcom/rayneo/venus/VenusApplication;':{'onCreate'},'Lcom/rayneo/rayneo_venus_sdk_plugin/j;':{'z'},'LY3/V;':{'o'},'LY3/u;':{'u'}}
     renamed=0;member_count=0
     for owner,definition in original.items():
         expected=dict(definition['members'])
@@ -56,7 +56,7 @@ def audit(apk):
         actual=rebuilt[owner]
         if actual['members']!=expected or actual['access']!=definition['access'] or actual['super']!=definition['super']:raise ValueError('Unexpected class/member change: '+owner)
         member_count+=len(definition['members'])
-    if renamed!=8:raise ValueError('Unexpected hook count')
+    if renamed!=9:raise ValueError('Unexpected hook count')
     return {'schema':1,'host_dex_integrity':'passed','host_classes_retained':len(original),'original_members_retained':member_count,'explicit_wrappers':renamed,'runtime_tested':False}
 if __name__=='__main__':
     report=audit(sys.argv[1]);(ROOT/'dex-audit.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8');print(json.dumps(report))

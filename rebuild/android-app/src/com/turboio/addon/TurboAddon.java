@@ -62,6 +62,7 @@ public final class TurboAddon {
         NativeTransfer.init(app);FocusController.init(app);AppController.init(app);CardTransport.init();NativeNavigation.init(app);
         TaskRuntime.get(host).read(null);
         MaterialRuntime.get(host);
+        LifelogAudioObservationRuntime.boot(host);
         Host107Connection.attach(host);
         Fixed60Runtime.get(host);
         Fixed60OfficialPreparation.init(host);
@@ -83,6 +84,7 @@ public final class TurboAddon {
                 BackgroundWork.init(application); BackgroundWork.register("新闻", NewsTele::stop); NativeTransfer.init(application); CardTransport.init();
                 Host107Login.warm(application);
                 MaterialRuntime.boot(application);
+                LifelogAudioObservationRuntime.boot(application);
                 Host107Connection.boot(application);
                 HeadGestureRuntime.boot(application);
                 AgentCardRuntime.boot(application);

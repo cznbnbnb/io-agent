@@ -1,3 +1,13 @@
+## [codex] 2026-10-24 dev78 被动观察已收到真实 A3，原音来源继续核对
+
+手机 dev78 /10500 已差异安装，完整 SHA 与签名包匹配；稳定回退 dev76。原厂 AssistantMsg 增加只读旁路，原方法完整保留且调用一次；最多 32 批/2 MiB、每包 64 KiB，后台仅保存有界元数据，不新开录音、播放或上传原音。前台及熄屏后台同一进程 4078 正常，观测累计 110 批 A3；最近一批 24 帧/5760 字节，首字节见 58/5b。队列 dropped=0 只表示观察队列，不能证明传输全程无丢失；taskId 尚未匹配当前智记缓存，编码和来源未认定。
+
+dev77 的观察器初始化失败保留为失败证据：Android files 根目录存在平台路径别名。dev78 规范化受信根目录并保留子路径链接检查，真机保存/回读/fsync 通过。JVM 元数据 130、路径 8；安卓同模型 130、原厂 protobuf 对照 100 组/500 项、真实 files 存储 3 项通过。当前 207 份源码与签名来源一致，原始 DEX 10944 类/97781 成员保留。
+
+无线 adb push 超时后改用 512 KiB shell 分块，每块与累计前缀核对 SHA，再原地重建完整签名 APK；dev78 只传 1.46 MB 差异。远端临时包/补丁/驱动及失败 dev77 本地包已清理，只保留 dev78 与稳定 dev76。设备锁仍由 Codex 持有，继续下一项只读排查。未签发测试身份，共用配对保留；阶段 checkpoint 已入库，未声称镜片确认。Claude 仍 96b1dbb 且停手，未动其目录。
+
+**下一项**：核对 A3 taskId → 原厂 onAlwaysOnResponse 的 taskId/roundId → 智记 sourceId/clipId，以及真实帧编码。原音三天远程保存、手机导出、权威删除仍未交付；正式凭据仅文字。R3 100%，R4 约 70%不变。[本批证据](../../rebuild/android-app/r4-passive-observer-dev78-2026-10-24.json)。
+
 ## [codex] 2026-10-24 R4 原厂会话链路与账号缓存核对完成，原音来源仍未证明
 
 固定 1.0.7 smali：A4 文件直接追加收到的字节并 flush，不补容器；ID 解析顺序为显式 taskId→当前 z→最近 B→生成值。配置规范化把 taskId 同时写入 dialogId，缺省正采样率补 16000，空 channelRole 补 guest=0；正常默认 Opus/mock 可 PCM，不冒充当前音频已验证。原厂 onAlwaysOnResponse 转发 taskId 与独立 roundId/finished/text；onCachedAudioReady 只给 taskId/filePath/sizeBytes，没有直接证明官方 conversation sourceId。
