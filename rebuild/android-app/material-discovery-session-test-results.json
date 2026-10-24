@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-24T10:04:58.520Z",
-  "output": "Material discovery session: 49 assertions passed",
+  "at": "2026-10-24T11:44:44.017Z",
+  "output": "Material discovery session: 60 assertions passed",
   "scope": "Synthetic date discovery through durable material revisions and server; failures, disappearance, account fencing and lost acknowledgements",
   "sources": [
     {
@@ -17,11 +17,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
+      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -41,7 +41,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogRefresh.java",
-      "sha256": "7e397d24394e839d546139f30ab8e6d6fbf4e59b94a29da3b4c9396aae0087d8"
+      "sha256": "950325ef8df0c992afbaa81e974b4169e63bdeb0aa1a28ba04ccc07728fef3ce"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -49,15 +49,23 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88"
+      "sha256": "cc745bccaaeff524acd040b3781aa84a042113b475389c76863dd16571efa1fa"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
       "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
     },
     {
+      "path": "src/com/turboio/addon/MaterialStorage.java",
+      "sha256": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialSettingsState.java",
+      "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+    },
+    {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "4452cf1d6e8b35c263edf74b947fc83bc338a6f3cde91e3dcce05412f878e36c"
+      "sha256": "0669ea88ca073d8d72bc6057e5f3c7e884ed8ec7ee7d40940066e82efc6ae033"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -73,7 +81,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
@@ -121,7 +129,7 @@
     },
     {
       "path": "../../tools/android/OfficialLifelogDiscoveryTest.java",
-      "sha256": "1862fff0f09eadecf4457703253b4d3ca29f061c543f821a0281f70fc792faf2"
+      "sha256": "161955fb6b4f06925cfaa6ff9131782a407af66d68273d396d07b0c2e6b82c1d"
     },
     {
       "path": "../../tools/android/OfficialLifelogSnapshotTest.java",
@@ -137,7 +145,7 @@
     },
     {
       "path": "../../tools/android/OfficialLifelogRefreshTest.java",
-      "sha256": "cee6a0e53ffdce887c228f3bb2ae266f24b18026a2b58e2f99eeccb1dd9fdad5"
+      "sha256": "463fa80942d908c3e51b50a3fbf514a6bd6d1885ee9132b4ca47bbfdebbc1f4b"
     },
     {
       "path": "../../tools/android/MaterialFreshSyncTest.java",
@@ -145,7 +153,7 @@
     },
     {
       "path": "../../tools/android/MaterialDiscoverySyncTest.java",
-      "sha256": "628ecbfa367a8e1d75b197b24af4364ff642e69fc8fe83aaaf71bd811094ef36"
+      "sha256": "e1df1d8297d803a5c9cff050511e3a67d833a6455f4b37252788fd470803b6ab"
     },
     {
       "path": "../../tools/android/OfficialHiveCacheTest.java",
@@ -157,11 +165,15 @@
     },
     {
       "path": "../../tools/android/MaterialSyncSessionTest.java",
-      "sha256": "edbb9fed8f277ab80f07ad600d20eabf891cf4602f79f3f7982f3331a09d51ec"
+      "sha256": "4bb0cb47027aaed4ff8d49685ff6b681cb0cb2f17f92c4012469c9ad182154bd"
     },
     {
       "path": "../../tools/android/MaterialHistoryTest.java",
       "sha256": "23e450223cd1c0ff2b7851f4594187ba22d81fec3ff6012332b417e6342253e1"
+    },
+    {
+      "path": "../../tools/android/MaterialStorageTest.java",
+      "sha256": "92e0d1718f3d06239849b73ef889df6fe6c052b471c417ec5abac07accf306b8"
     }
   ]
 }

@@ -12,6 +12,17 @@ public final class OfficialLifelogDiscoveryTest {
   public byte[] list(OfficialLifelogInventory.Request request)throws Exception{lists++;if(failList)throw new IOException("SYNTHETIC_OFFLINE");Map<String,Object> response=WireJson.map(WireJson.copy(listing));OfficialLifelogInventoryTest.data(response).put("date",request.date);if(changedAfterFull&&fulls>0)OfficialLifelogInventoryTest.data(response).put("events",new ArrayList<>());if(titleOnly&&fulls>0)WireJson.map(WireJson.list(OfficialLifelogInventoryTest.data(response).get("events")).get(0)).put("title","合成新标题");if(conflictingSecond&&lists==2)WireJson.map(WireJson.list(WireJson.map(WireJson.list(OfficialLifelogInventoryTest.data(response).get("events")).get(0)).get("transcriptionInfos")).get(0)).put("sourceId","changed");return WireJson.bytes(response);}
   public byte[] full(String id)throws Exception{fulls++;if(failFull)throw new IOException("SYNTHETIC_FULL_UNAVAILABLE");return WireJson.bytes(detail);}
  }
+ static OfficialLifelogSnapshot.Source piecesSource(Map<String,Object> f){return OfficialLifelogSnapshot.read((String)OfficialLifelogSnapshotTest.event(f).get("id"),WireJson.bytes(f)).get(0);}
+ static class Segments extends Wire {
+  final Map<String,Map<String,Object>> details=new TreeMap<>();
+  Segments(){segment("fragment-z",0,"first");segment("fragment-a",40000,"third");segment("fragment-m",20000,"middle");}
+  void segment(String event,long offset,String prefix){Map<String,Object> f=OfficialLifelogSnapshotTest.fixture(),data=OfficialLifelogSnapshotTest.event(f),source=OfficialLifelogSnapshotTest.source(f);data.put("id",event);
+   for(String key:new String[]{"startTime","endTime"}){String v=Long.toString(Long.parseLong((String)source.get(key))+offset);source.put(key,v);WireJson.map(WireJson.list(data.get("originalList")).get(0)).put(key,v);}
+   for(Object v:WireJson.list(source.get("clips"))){Map<String,Object> clip=WireJson.map(v);clip.put("clipId",prefix+"-"+clip.get("clipId"));for(String key:new String[]{"startTime","endTime"})clip.put(key,Long.toString(Long.parseLong((String)clip.get(key))+offset));}details.put(event,f);
+   List<Object> rows=new ArrayList<>();for(String id:details.keySet()){Map<String,Object> row=OfficialLifelogInventoryTest.event(id,"event");row.put("transcriptionInfos",Arrays.asList(WireJson.object("sourceType","CONVERSATION","sourceId",OfficialLifelogSnapshotTest.SOURCE)));rows.add(row);}OfficialLifelogInventoryTest.data(listing).put("events",rows);
+  }
+  @Override public byte[] full(String id){fulls++;return WireJson.bytes(details.get(id));}
+ }
  static OfficialLifelogDiscovery.Snapshot read(Wire w)throws Exception{return OfficialLifelogDiscovery.read(ACCOUNT.binding,Collections.singletonList(DAY),w,w);}
  public static void main(String[] args)throws Exception{
   Wire ok=new Wire();OfficialLifelogDiscovery.Snapshot snapshot=read(ok);yes(snapshot.sources.size()==1&&snapshot.sources.get(0).clips.size()==3);yes(snapshot.requests==3&&ok.lists==2&&ok.fulls==1);yes(snapshot.recordingEntries==1&&snapshot.otherEntries==0);yes(snapshot.account.equals(ACCOUNT.binding));
@@ -30,6 +41,15 @@ public final class OfficialLifelogDiscoveryTest {
   Wire noZone=new Wire();reject("LIFELOG_DISCOVERY_DAYS_INVALID",()->OfficialLifelogDiscovery.read(ACCOUNT.binding,Arrays.asList(OfficialLifelogInventory.Request.cached("https://xr-api-p.rayneo.cn/lifelog/api/v1/events?date=2026-10-21")),noZone,noZone));
   Wire tooMany=new Wire();List<OfficialLifelogInventory.Request> days=new ArrayList<>();for(int i=10;i<18;i++)days.add(OfficialLifelogInventory.Request.day("2026-10-"+i,"Asia/Shanghai"));reject("LIFELOG_DISCOVERY_BUDGET",()->OfficialLifelogDiscovery.read(ACCOUNT.binding,days,tooMany,tooMany));yes(tooMany.lists==0);
   Wire interrupted=new Wire();Thread.currentThread().interrupt();try{reject("MATERIAL_PAUSED",()->read(interrupted));}finally{Thread.interrupted();}yes(interrupted.lists==0);
+  Segments fragments=new Segments();OfficialLifelogSnapshot.Source joined=read(fragments).sources.get(0);yes(joined.clips.size()==9&&joined.start==OfficialLifelogSnapshotTest.START&&joined.end==OfficialLifelogSnapshotTest.START+50000);yes(joined.clips.get(0).id.startsWith("first-")&&joined.clips.get(3).id.startsWith("middle-")&&joined.clips.get(6).id.startsWith("third-"));
+  yes(joined.materialId(ACCOUNT.binding).equals(piecesSource(fragments.details.get("fragment-a")).materialId(ACCOUNT.binding)));
+  List<OfficialLifelogSnapshot.Source> pieces=new ArrayList<>();for(Map<String,Object> f:fragments.details.values())pieces.add(OfficialLifelogSnapshot.read((String)OfficialLifelogSnapshotTest.event(f).get("id"),WireJson.bytes(f)).get(0));Collections.reverse(pieces);pieces.add(pieces.get(0));yes(Arrays.equals(joined.original(),OfficialLifelogSnapshot.fragments(pieces).original()));
+  Segments overlap=new Segments();overlap.segment("fragment-overlap",1000,"overlap");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->read(overlap));
+  Segments repeatedId=new Segments();repeatedId.segment("fragment-repeat",60000,"first");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->read(repeatedId));
+  Segments differentTitle=new Segments();OfficialLifelogSnapshotTest.source(differentTitle.details.get("fragment-m")).put("title","different");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->read(differentTitle));
+  Segments differentMetadata=new Segments();OfficialLifelogSnapshotTest.source(differentMetadata.details.get("fragment-a")).put("unmapped","different");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->read(differentMetadata));
+  Segments sameRangeConflict=new Segments();sameRangeConflict.segment("fragment-conflict",0,"first");OfficialLifelogSnapshotTest.firstClip(sameRangeConflict.details.get("fragment-conflict")).put("content","changed");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->read(sameRangeConflict));
+  Segments exactRepeat=new Segments();exactRepeat.segment("fragment-copy",0,"first");yes(Arrays.equals(joined.original(),read(exactRepeat).sources.get(0).original()));
   System.out.println("Official lifelog discovery: "+checks+" assertions passed");
  }
 }

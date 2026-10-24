@@ -21,14 +21,14 @@ final class OfficialLifelogDiscovery {
   for(OfficialLifelogInventory.Request day:days){admit(account,login,deadline);byte[] raw=transport.list(day);requests++;bytes=budget(raw,bytes);admit(account,login,deadline);OfficialLifelogInventory.Page page=OfficialLifelogInventory.read(day,raw);pages.add(page);recordings+=page.recordingEntries;other+=page.otherEntries;
    for(Map.Entry<String,Set<String>> event:page.events.entrySet()){Set<String> prior=events.put(event.getKey(),event.getValue());require(prior==null||prior.equals(event.getValue()),"LIFELOG_INVENTORY_CHANGED");}require(events.size()<=16,"LIFELOG_DISCOVERY_BUDGET");
   }
-  Map<String,OfficialLifelogSnapshot.Source> found=new TreeMap<>();
+  Map<String,List<OfficialLifelogSnapshot.Source>> found=new TreeMap<>();
   for(Map.Entry<String,Set<String>> event:events.entrySet()){admit(account,login,deadline);byte[] raw=transport.full(event.getKey());requests++;bytes=budget(raw,bytes);admit(account,login,deadline);List<OfficialLifelogSnapshot.Source> sources=OfficialLifelogSnapshot.read(event.getKey(),OfficialLifelogJson.read(raw).canonical);Set<String> actual=new TreeSet<>();
-   for(OfficialLifelogSnapshot.Source source:sources){String key=source.sourceType+"/"+source.sourceId;actual.add(key);OfficialLifelogSnapshot.Source old=found.put(key,source);require(old==null||Arrays.equals(old.original(),source.original()),"LIFELOG_FRESH_SOURCE_CONFLICT");require(found.size()<=256,"LIFELOG_DISCOVERY_BUDGET");}
+   for(OfficialLifelogSnapshot.Source source:sources){String key=source.sourceType+"/"+source.sourceId;actual.add(key);found.computeIfAbsent(key,k->new ArrayList<>()).add(source);require(found.size()<=256,"LIFELOG_DISCOVERY_BUDGET");}
    require(event.getValue().equals(actual),"LIFELOG_INVENTORY_CHANGED");
   }
   // A disappearing/re-grouped aggregate invalidates this batch, but never asks
   // a downstream caller to remove material already retained locally/server-side.
   for(int i=0;i<days.size();i++){admit(account,login,deadline);byte[] raw=transport.list(days.get(i));requests++;bytes=budget(raw,bytes);admit(account,login,deadline);require(pages.get(i).sameMembership(OfficialLifelogInventory.read(days.get(i),raw)),"LIFELOG_INVENTORY_CHANGED");}
-  admit(account,login,deadline);return new Snapshot(account,new ArrayList<>(found.values()),requests,days.size(),recordings,other);
+  List<OfficialLifelogSnapshot.Source> merged=new ArrayList<>();for(List<OfficialLifelogSnapshot.Source> fragments:found.values())merged.add(OfficialLifelogSnapshot.fragments(fragments));admit(account,login,deadline);return new Snapshot(account,merged,requests,days.size(),recordings,other);
  }
 }

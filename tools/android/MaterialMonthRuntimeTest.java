@@ -202,6 +202,19 @@ public final class MaterialMonthRuntimeTest {
    }
    // A killed round has a durable cooldown, but no falsely advanced catch-up date.
    try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){yes(schedule.begin(start+1000,"Asia/Shanghai",false)==null);MaterialAutoSchedule.Plan p=schedule.begin(start+60001,"Asia/Shanghai",false);yes(p!=null);}
+   long retry=start+120002;
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){
+    MaterialAutoSchedule.Plan p=schedule.begin(retry,"Asia/Shanghai",false);yes(p!=null);schedule.finish(p,retry,false);
+    p=schedule.begin(retry+60001,"Asia/Shanghai",false);yes(p!=null);schedule.finish(p,retry+60001,false);yes(schedule.begin(retry+120002,"Asia/Shanghai",false)==null);
+    p=schedule.begin(retry+180002,"Asia/Shanghai",false);String pendingDay=p.days.get(1).date;schedule.finish(p,retry+180002,false,true);
+    yes(schedule.begin(retry+210003,"Asia/Shanghai",true)==null);
+   }
+   // Process restart keeps the healthy minute interval without advancing a
+   // partially uploaded day. A following real failure starts at one minute.
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){
+    MaterialAutoSchedule.Plan p=schedule.begin(retry+240003,"Asia/Shanghai",false);yes(p!=null&&p.days.get(1).date.equals("2026-10-23"));schedule.finish(p,retry+240003,false);
+    yes(schedule.begin(retry+300004,"Asia/Shanghai",false)!=null);
+   }
   }
  }
  public static void main(String[] args)throws Exception{
@@ -292,7 +305,7 @@ final class MaterialHttp implements MaterialApi.Transport{static int created,exc
 final class MaterialApi{interface Transport{Response exchange(String path,byte[] body)throws IOException;void cancel();}static final class Response{}final Transport http;MaterialApi(MaterialConnection connection,Transport http){this.http=http;}void preflight(long now,boolean versions)throws IOException{http.exchange("/identity",null);}}
 final class MaterialSyncSession{
  interface Guard{void check()throws IOException;}interface AccountSource{OfficialAccountBinding current()throws Exception;}interface DiscoverySource extends AccountSource{OfficialLifelogDiscovery.Snapshot discover()throws Exception;}interface FreshSource extends AccountSource{OfficialLifelogBatch read()throws Exception;OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception;}
- static final class Status{boolean selectedComplete=true;int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";}
+ static final class Status{boolean selectedComplete=true,progressed;int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";}
  static int started,completed;static String kind;static void reset(){started=completed=0;kind="";}final AccountSource source;final Guard guard;
  MaterialSyncSession(File dir,MaterialConfig cfg,AccountSource source,Guard guard,MaterialHttp http){started++;this.source=source;this.guard=guard;}
  static Status status(File dir,MaterialConfig config){return new Status();}

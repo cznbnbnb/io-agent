@@ -1,20 +1,20 @@
 {
   "schema": 1,
-  "at": "2026-10-24T10:43:56.658Z",
+  "at": "2026-10-24T11:44:20.627Z",
   "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 386,
+  "checks": 392,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "6066b790fe004a0a19932cf61e11402ad99126a0182822619ab367178086b75e"
+      "sha256": "ded09feda5d6e491e5cecc6f0d65f9e5b3c5f0040b585de78e75137f9edc9884"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
-      "sha256": "53d6eee7c6309c6c3f53f69e687ac08601a9f3eb9b9e1bd1902aaddac1e7a627"
+      "sha256": "536414c7c61531ba892b93b9dacea3b56b7b508d003a50b526f049da649358ae"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
@@ -22,7 +22,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
@@ -70,11 +70,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
+      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -106,7 +106,7 @@
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "a7eecaaea82f4363f5bf79512ff13258de5af80656f4f46bf16e96aa462cc5b7"
+      "sha256": "bc46e840629881a6f793181ccaa30fda267d698c773e1071713d5f3df6734106"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",

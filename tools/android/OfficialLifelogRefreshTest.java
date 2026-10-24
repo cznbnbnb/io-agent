@@ -37,6 +37,11 @@ public final class OfficialLifelogRefreshTest {
   Transport huge=new Transport(old);huge.body=new byte[1048577];reject("LIFELOG_REFRESH_BUDGET",()->OfficialLifelogRefresh.read(observed,owner,huge));
   // Damaged discovery inventory never issues a request using partial evidence.
   Files.write(log,OfficialHiveCacheTest.concat(LifelogImportJournalTest.bytes(LifelogImportJournalTest.log(old)),new byte[]{(byte)255,10}));OfficialLifelogBatch damaged=OfficialLifelogBatch.read(flutter,owner);Transport unused=new Transport(old);reject("LIFELOG_IMPORT_SCAN_INCOMPLETE",()->OfficialLifelogRefresh.read(damaged,owner,unused));yes(unused.calls==0);
+  OfficialLifelogDiscoveryTest.Segments segments=new OfficialLifelogDiscoveryTest.Segments();StringBuilder splitLogs=new StringBuilder();for(Map<String,Object> detail:segments.details.values())splitLogs.append(LifelogImportJournalTest.log(detail).replace("/events/"+OfficialLifelogSnapshotTest.EVENT+"/", "/events/"+OfficialLifelogSnapshotTest.event(detail).get("id")+"/"));Files.write(log,LifelogImportJournalTest.bytes(splitLogs.toString()));
+  OfficialLifelogBatch split=OfficialLifelogBatch.read(flutter,owner);yes(split.conflicts==1&&split.eventReferences.size()==3);
+  OfficialLifelogRefresh.Transport splitTransport=new OfficialLifelogRefresh.Transport(){public byte[] fetch(String id){return WireJson.bytes(segments.details.get(id));}public void cancel(){}};
+  OfficialLifelogRefresh.Fresh combined=OfficialLifelogRefresh.read(split,owner,splitTransport);yes(combined.sources.size()==1&&combined.sources.get(0).clips.size()==9&&combined.requests==3);
+  OfficialLifelogSnapshotTest.source(segments.details.get("fragment-a")).put("title","conflicting metadata");reject("LIFELOG_FRESH_SOURCE_CONFLICT",()->OfficialLifelogRefresh.read(split,owner,splitTransport));
   System.out.println("Official lifelog refresh: "+checks+" assertions passed");
  }
 }

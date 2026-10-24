@@ -22,9 +22,11 @@ final class MaterialAutoSchedule implements AutoCloseable {
   List<OfficialLifelogInventory.Request> days=Arrays.asList(OfficialLifelogInventory.Request.day(today.toString(),zone),OfficialLifelogInventory.Request.day(cursor.toString(),zone));
   Map<String,Object> next=WireJson.map(WireJson.copy(state));next.put("attempt",now);next.put("next",Math.addExact(now,60000));document.save(next);state=next;return new Plan(days,cursor.toString(),zone,now);
  }
- void finish(Plan plan,long now,boolean success)throws IOException{
-  MaterialWire.require(plan!=null&&plan.attempt==MaterialWire.number(state.get("attempt"))&&now>0,"MATERIAL_AUTO_STALE");Map<String,Object> next=WireJson.map(WireJson.copy(state));long failures=success?0:Math.min(5,MaterialWire.number(state.get("failures"))+1);
-  next.put("failures",failures);next.put("next",Math.addExact(now,success?60000:Math.min(900000,60000L<<(failures-1))));
+ void finish(Plan plan,long now,boolean success)throws IOException{finish(plan,now,success,false);}
+ // A bounded batch making durable progress is healthy, but has not finished its day.
+ void finish(Plan plan,long now,boolean success,boolean progressed)throws IOException{
+  MaterialWire.require(plan!=null&&plan.attempt==MaterialWire.number(state.get("attempt"))&&now>0,"MATERIAL_AUTO_STALE");Map<String,Object> next=WireJson.map(WireJson.copy(state));long failures=success||progressed?0:Math.min(5,MaterialWire.number(state.get("failures"))+1);
+  next.put("failures",failures);next.put("next",Math.addExact(now,success||progressed?60000:Math.min(900000,60000L<<(failures-1))));
   if(success){next.put("through",plan.through);next.put("zone",plan.zone);}document.save(next);state=next;
  }
  public void close()throws IOException{document.close();}

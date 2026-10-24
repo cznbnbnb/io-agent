@@ -10,7 +10,7 @@ final class MaterialSyncSession {
  interface DiscoverySource extends AccountSource {OfficialLifelogDiscovery.Snapshot discover()throws Exception;}
  interface Guard {void check()throws IOException;}
  static final class Status {
-  boolean selectedComplete;
+  boolean selectedComplete,progressed;
   int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";
   Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"too_large",tooLarge,"note",note);}
  }
@@ -49,6 +49,7 @@ final class MaterialSyncSession {
  private Status syncFresh()throws Exception{
   admit();Status status=new Status();
   try(MaterialOutbox outbox=new MaterialOutbox(files,config.connection);LifelogImportJournal bootstrap=new LifelogImportJournal(files,config.connection,config.account);LifelogRevisionJournal revisions=new LifelogRevisionJournal(files,config.connection,config.account)){
+   count(status,outbox);int storedBefore=status.stored;
    // Both writer locks remain held throughout discovery, refresh and staging.
    // Replay committed intents before deciding whether this is a new revision.
    revisions.replay(this::admit,outbox);
@@ -98,7 +99,7 @@ final class MaterialSyncSession {
     admit();api.preflight(System.currentTimeMillis(),true);outbox.resumeBlocked();for(int i=0;i<16;i++){admit();if(!api.pump(outbox,System.currentTimeMillis(),allowed))break;}
    }
    status.selectedComplete=oversized.isEmpty();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(allowed.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state")))status.selectedComplete=false;}
-   count(status,outbox);status.tooLarge=oversized.size();status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
+   count(status,outbox);status.progressed=status.stored>storedBefore;status.tooLarge=oversized.size();status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
   }return status;
  }
 }

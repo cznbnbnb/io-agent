@@ -105,7 +105,7 @@ class FormalConnectionTests(unittest.TestCase):
             calls.append(action)
             return execute(action, run) if execute else self.execute(action, run)
         output = io.StringIO()
-        with patch.object(self.module.publisher, 'connect', return_value=connection), patch.object(self.module, 'remote', side_effect=remote), \
+        with patch.object(self.module, 'connect', return_value=connection), patch.object(self.module, 'remote', side_effect=remote), \
              patch.object(self.module, 'protect_directory', side_effect=lambda directory: protected.append(directory)), \
              patch.object(self.module, 'verify_identity', side_effect=self.verified), contextlib.redirect_stdout(output):
             status = self.module.main(['--run-id', 'synthetic-run'] + ([mode] if mode else []))
@@ -119,6 +119,26 @@ class FormalConnectionTests(unittest.TestCase):
         return {'owner_id': self.module.OWNER, 'producer_id': self.module.ROLES[role]['producer_id'], 'server_id': self.module.SERVER,
                 'token_id': value['token_id'], 'expires_at': value['expires_at'], 'scopes': self.module.ROLES[role]['scopes'],
                 'material_schema_versions': ['1.0', '1.1', '1.2'], 'http_status': 200}
+
+    def test_openssh_pins_host_and_captures_output(self):
+        expected = self.execute('inspect')
+        response = type('Response', (), {'returncode': 0, 'stdout': json.dumps(expected).encode(), 'stderr': b'private diagnostic'})()
+        with patch.object(self.module.subprocess, 'run', return_value=response) as run:
+            actual = self.module.remote('openssh', 'inspect', 'synthetic-run')
+        self.assertEqual(actual, expected)
+        argv = run.call_args.args[0]
+        self.assertIn('StrictHostKeyChecking=yes', argv)
+        self.assertIn('BatchMode=yes', argv)
+        self.assertEqual(argv[-1], 'sudo -n /usr/bin/python3 -')
+        self.assertTrue(run.call_args.kwargs['capture_output'])
+        self.assertIn(b"'mode': 'inspect'", run.call_args.kwargs['input'])
+
+    def test_openssh_failure_does_not_print_stderr(self):
+        response = type('Response', (), {'returncode': 1, 'stdout': b'', 'stderr': b'synthetic secret'})()
+        with patch.object(self.module.subprocess, 'run', return_value=response), contextlib.redirect_stdout(io.StringIO()) as output:
+            with self.assertRaisesRegex(ValueError, 'REMOTE_RESULT_NOT_CONFIRMED'):
+                self.module.remote('openssh', 'inspect', 'synthetic-run')
+        self.assertEqual(output.getvalue(), '')
 
     def test_default_inspection_never_mints_reads_bearers_or_creates_private_run(self):
         before = self.db.read_bytes()
@@ -323,7 +343,7 @@ class FormalConnectionTests(unittest.TestCase):
         self.assertEqual(self.mints, [])
 
     def test_invalid_run_is_refused_before_any_connection_or_file_operation(self):
-        with patch.object(self.module.publisher, 'connect', side_effect=AssertionError('must not connect')), contextlib.redirect_stdout(io.StringIO()) as output:
+        with patch.object(self.module, 'connect', side_effect=AssertionError('must not connect')), contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(self.module.main(['--issue', '--run-id', '../synthetic-path']), 1)
         self.assertEqual(json.loads(output.getvalue())['error'], 'RUN_ID_INVALID')
         self.assertEqual(list((self.root / 'rebuild/phase1').iterdir()), [])

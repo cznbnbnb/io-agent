@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import uuid
 from urllib.error import HTTPError
@@ -290,16 +291,30 @@ def run_remote(parameters):
 '''
 
 
+def connect():
+    # macOS uses the already configured OpenSSH identity and pinned known host.
+    # Keep Windows' existing private helper and never request a password in logs.
+    return publisher.connect() if os.name == 'nt' else 'openssh'
+
+
 def remote(connection, mode, run_id):
     require(mode in {'inspect', 'issue', 'recover'} and re.fullmatch(RUN_PATTERN, run_id), 'RUN_ID_INVALID')
     script = REMOTE_SOURCE + '\nprint(json.dumps(run_remote(' + repr({'mode': mode, 'run_id': run_id, 'platform': PLATFORM}) + ')))\n'
-    stdin, stdout, stderr = connection.exec_command('sudo -n /usr/bin/python3 -', timeout=90)
-    stdin.write(script)
-    stdin.flush()
-    stdin.channel.shutdown_write()
-    data = stdout.read(65537)
-    stderr.read(4097)  # Never print remote stderr or a secret-bearing envelope.
-    require(stdout.channel.recv_exit_status() == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
+    if connection == 'openssh':
+        child = subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
+                                '-o', 'ConnectTimeout=10', 'ubuntu@43.142.59.131',
+                                'sudo -n /usr/bin/python3 -'], input=script.encode('utf-8'),
+                               capture_output=True, timeout=90)
+        data = child.stdout
+        require(child.returncode == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
+    else:
+        stdin, stdout, stderr = connection.exec_command('sudo -n /usr/bin/python3 -', timeout=90)
+        stdin.write(script)
+        stdin.flush()
+        stdin.channel.shutdown_write()
+        data = stdout.read(65537)
+        stderr.read(4097)  # Never print remote stderr or a secret-bearing envelope.
+        require(stdout.channel.recv_exit_status() == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
     result = strict_json(data, 'REMOTE_RESULT_NOT_CONFIRMED')
     require(isinstance(result, dict) and result.get('run_id') == run_id and result.get('owner_id') == OWNER and
             result.get('server_id') == SERVER and result.get('roles') == ROLES, 'REMOTE_BINDING_MISMATCH')
@@ -462,7 +477,7 @@ def main(argv=None):
     issue_dispatched = False
     try:
         directory = private_directory(args.run_id, mode) if mode != 'inspect' else None
-        connection = publisher.connect()
+        connection = connect()
         inspected = remote(connection, 'inspect', args.run_id)
         report['inspection'] = public_remote(inspected)
         require(inspected['status'] == 'inspected', inspected.get('error', 'REMOTE_OPERATION_FAILED'))
@@ -500,7 +515,7 @@ def main(argv=None):
         report['error'] = safe_error(error)
         report['status'] = 'issue_observation_unknown' if issue_dispatched else 'partial' if report.get('credentials_received') else 'failed'
     finally:
-        if connection:
+        if connection and connection != 'openssh':
             connection.close()
     try:
         persist_report(report)

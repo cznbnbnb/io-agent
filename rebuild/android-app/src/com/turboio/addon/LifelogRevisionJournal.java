@@ -60,6 +60,7 @@ final class LifelogRevisionJournal implements AutoCloseable {
   List<Object> next=WireJson.list(MaterialWire.copy(records));int added=0;
   for(Map.Entry<String,OfficialLifelogSnapshot.Source> item:selected.entrySet()){
    String id=item.getKey();OfficialLifelogSnapshot.Source source=item.getValue();Map<String,Object> prior=latest.get(id),mapped;long revision=1;boolean replacing=prior!=null&&"cancelled".equals(prior.get("state"));
+   if(prior!=null){Map<String,Object> before=body(prior);MaterialWire.require(source.start<=java.time.Instant.parse((String)before.get("started_at")).toEpochMilli()&&source.end>=java.time.Instant.parse((String)before.get("ended_at")).toEpochMilli(),"LIFELOG_SOURCE_COVERAGE_CHANGED");}
    if(prior==null)mapped=WireJson.map(MaterialWire.read(source.materialBody(account,1)));
    else if(replacing){
     Map<String,Object> before=body(prior);revision=MaterialWire.positive(before.get("revision"));

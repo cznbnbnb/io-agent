@@ -466,7 +466,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88"
+      "sha256": "cc745bccaaeff524acd040b3781aa84a042113b475389c76863dd16571efa1fa"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -486,7 +486,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
-      "sha256": "53d6eee7c6309c6c3f53f69e687ac08601a9f3eb9b9e1bd1902aaddac1e7a627"
+      "sha256": "536414c7c61531ba892b93b9dacea3b56b7b508d003a50b526f049da649358ae"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
@@ -518,7 +518,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
     },
     {
       "path": "src/com/turboio/addon/MaterialMonthWorkspace.java",
@@ -530,7 +530,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "6066b790fe004a0a19932cf61e11402ad99126a0182822619ab367178086b75e"
+      "sha256": "ded09feda5d6e491e5cecc6f0d65f9e5b3c5f0040b585de78e75137f9edc9884"
     },
     {
       "path": "src/com/turboio/addon/MaterialSettings.java",
@@ -546,7 +546,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609"
+      "sha256": "0669ea88ca073d8d72bc6057e5f3c7e884ed8ec7ee7d40940066e82efc6ae033"
     },
     {
       "path": "src/com/turboio/addon/MaterialTaskDraft.java",
@@ -562,7 +562,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "fd4e4ba1a4722b21f18c5483623b2a9309135f147b7268a87d2d3d38a218a8f8"
+      "sha256": "63b3d9807ea546c16b3e76de9d59eb63bd8a36e4773190987f07d9d3485c51c7"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -598,7 +598,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
@@ -618,11 +618,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogRefresh.java",
-      "sha256": "7e397d24394e839d546139f30ab8e6d6fbf4e59b94a29da3b4c9396aae0087d8"
+      "sha256": "950325ef8df0c992afbaa81e974b4169e63bdeb0aa1a28ba04ccc07728fef3ce"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
+      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
     },
     {
       "path": "src/com/turboio/addon/OfficialSdkReceipt.java",
@@ -790,11 +790,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "a0d5b3362c73389f7320156f555d3e992853cff507db1473868d6355cd380dbb"
+      "sha256": "12b98edda22b091387a16d6b98cfd7a018cecc076cbd6abc07befc47d8ba177a"
     }
   ],
-  "product_sha256": "28f73f47d65c6d8192ed28ca4ce0165d57d6012e835f5b5268c9931415480c5c",
-  "addon_sha256": "e618312e78dd253ca95fb66de0432d86dda1d1f435feccbe369680f3744d60a7",
+  "product_sha256": "c1a7e77c321d103e5e4ced0dde597bc662472209c23b2f632723f6628a53afc1",
+  "addon_sha256": "d04f93e6c43d4d1da15b50f5c124721bb9c7882501b9179ac33d91796942414b",
   "host_dex_sha256": "d701e0d0bd2ce0aedbe5461f93c8a210afe6eea41c1b40649ee9c18bb06e60c5",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

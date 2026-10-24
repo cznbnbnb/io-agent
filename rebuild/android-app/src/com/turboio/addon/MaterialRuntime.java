@@ -41,7 +41,7 @@ final class MaterialRuntime {
    try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config)){
     MaterialAutoSchedule.Plan plan=schedule.begin(now,java.time.ZoneId.systemDefault().getId(),networkRecovered);if(plan==null)return;
     long owner;synchronized(guard){if(observed!=generation)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}
-    boolean success=false;try{performSync(owner,null,null,null,null,false,plan.days);success=status.selectedComplete;autoError="";autoTarget=config.fingerprint();}catch(Exception error){note=safe(error);autoError=note;autoTarget=config.fingerprint();}finally{schedule.finish(plan,System.currentTimeMillis(),success);synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}
+    boolean success=false,progressed=false;try{performSync(owner,null,null,null,null,false,plan.days);success=status.selectedComplete;progressed=status.progressed;autoError="";autoTarget=config.fingerprint();}catch(Exception error){note=safe(error);autoError=note;autoTarget=config.fingerprint();}finally{schedule.finish(plan,System.currentTimeMillis(),success,progressed);synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}
    }
   }catch(Exception error){note=safe(error);}
  }

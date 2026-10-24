@@ -22,6 +22,9 @@ public final class MaterialDiscoverySyncTest {
   }
  }
  static final MaterialSyncSession.Guard GUARD=()->{};
+ static final class Fragments extends OfficialLifelogDiscoveryTest.Segments implements MaterialSyncSession.DiscoverySource {
+  public OfficialLifelogDiscovery.Snapshot discover()throws Exception{return OfficialLifelogDiscovery.read(OfficialLifelogDiscoveryTest.ACCOUNT.binding,Collections.singletonList(OfficialLifelogDiscoveryTest.DAY),this,this);}
+ }
  static MaterialSyncSession.Status sync(File root,MaterialConfig config,MaterialSyncSession.AccountSource source,MaterialApi.Transport server)throws Exception{
   return new MaterialSyncSession(root,config,source,GUARD,server).sync();
  }
@@ -47,13 +50,13 @@ public final class MaterialDiscoverySyncTest {
   File firstRoot=new File(root,"no-logs");Source source=new Source();
   MaterialSyncSessionTest.MemoryServer server=new MaterialSyncSessionTest.MemoryServer(connection);
   MaterialSyncSession.Status first=sync(firstRoot,config,source,server);
-  yes(first.added==1&&first.stored==1&&server.posts==1);
+  yes(first.added==1&&first.stored==1&&server.posts==1&&first.progressed);
   yes(first.discovered==1&&first.days==1&&first.recordings==1&&first.otherEntries==0);
   yes(source.lists==2&&source.fulls==1);
   yes(!new File(firstRoot,"app_flutter").exists()&&!new File(firstRoot,"flutter").exists());
   List<String> initial=payloads(firstRoot,config);
   MaterialSyncSession.Status repeat=sync(firstRoot,config,new Source(),server);
-  yes(repeat.added==0&&repeat.stored==1&&server.posts==1);
+  yes(repeat.added==0&&repeat.stored==1&&server.posts==1&&!repeat.progressed);
   yes(initial.equals(payloads(firstRoot,config)));
   MaterialSyncSession.Status revised=sync(firstRoot,config,changed(),server);
   yes(revised.added==1&&revised.stored==2&&server.posts==2);
@@ -144,6 +147,20 @@ public final class MaterialDiscoverySyncTest {
   List<String> retainedBig=payloads(bigRoot,config);yes(retainedBig.size()==1&&retainedBig.get(0).getBytes(StandardCharsets.UTF_8).length>262144&&bigServer.posts==0);
   yes(MaterialSyncSession.status(bigRoot,config).queued==1);
   reject("LIFELOG_PENDING_REVISION_CHANGED",()->sync(bigRoot,config,new Source(),bigServer));yes(retainedBig.equals(payloads(bigRoot,config))&&bigServer.posts==0);
+  File batchedRoot=new File(root,"bounded-backlog");Source many=new Source();List<Object> originals=new ArrayList<>(),contents=new ArrayList<>(),links=new ArrayList<>();
+  for(int i=0;i<20;i++){String id="synthetic-backlog-"+i;Map<String,Object> f=OfficialLifelogSnapshotTest.fixture(),piece=OfficialLifelogSnapshotTest.source(f),original=WireJson.map(WireJson.list(OfficialLifelogSnapshotTest.event(f).get("originalList")).get(0)),link=WireJson.object("sourceType","CONVERSATION","sourceId",id);piece.put("sourceId",id);original.put("id",id);original.put("transcriptionInfos",Arrays.asList(link));contents.add(piece);originals.add(original);links.add(link);}
+  OfficialLifelogSnapshotTest.event(many.detail).put("originalList",originals);OfficialLifelogSnapshotTest.event(many.detail).put("transcriptionContents",contents);WireJson.map(WireJson.list(OfficialLifelogInventoryTest.data(many.listing).get("events")).get(0)).put("transcriptionInfos",links);
+  MaterialSyncSessionTest.MemoryServer batchServer=new MaterialSyncSessionTest.MemoryServer(connection);MaterialSyncSession.Status batch1=sync(batchedRoot,config,many,batchServer);yes(batch1.progressed&&!batch1.selectedComplete&&batch1.stored==16&&batch1.queued==4);
+  MaterialSyncSession.Status batch2=sync(batchedRoot,config,many,batchServer);yes(batch2.progressed&&batch2.selectedComplete&&batch2.stored==20&&batch2.queued==0);yes(!sync(batchedRoot,config,many,batchServer).progressed&&batchServer.posts==20);
+  File fragmentsRoot=new File(root,"fragments");Fragments fragments=new Fragments();MaterialSyncSessionTest.MemoryServer fragmentsServer=new MaterialSyncSessionTest.MemoryServer(connection);
+  yes(sync(fragmentsRoot,config,fragments,fragmentsServer).stored==1&&fragmentsServer.posts==1);
+  List<String> full=payloads(fragmentsRoot,config);yes(WireJson.list(body(full.get(0)).get("utterances")).size()==9);
+  yes(sync(fragmentsRoot,config,new Fragments(),fragmentsServer).added==0&&fragmentsServer.posts==1);
+  Fragments subset=new Fragments();subset.details.clear();subset.segment("fragment-m",20000,"middle");
+  reject("LIFELOG_SOURCE_COVERAGE_CHANGED",()->sync(fragmentsRoot,config,subset,fragmentsServer));yes(full.equals(payloads(fragmentsRoot,config))&&fragmentsServer.posts==1);
+  Fragments changedFragment=new Fragments();OfficialLifelogSnapshotTest.firstClip(changedFragment.details.get("fragment-m")).put("content","updated middle fragment");
+  yes(sync(fragmentsRoot,config,changedFragment,fragmentsServer).added==1&&fragmentsServer.posts==2);List<String> updatedFragments=payloads(fragmentsRoot,config);yes(WireJson.list(body(updatedFragments.get(updatedFragments.size()-1)).get("utterances")).size()==9);
+  yes(sync(fragmentsRoot,config,changedFragment,fragmentsServer).added==0&&fragmentsServer.posts==2);
   System.out.println("Material discovery session: "+checks+" assertions passed");
  }
 }
