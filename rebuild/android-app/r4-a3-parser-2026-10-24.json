@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T12:32:29.382330+00:00",
+  "status": "batch_adapter_verified_not_audio_delivery",
+  "jvm": {
+    "schema": 1,
+    "at": "2026-10-24T12:29:12.438Z",
+    "passed": true,
+    "scope": "Synthetic batch parsing/whole input retention; no stream, codec, source-link or device completeness verification",
+    "checks": 1362,
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/AlwaysOnAudioBatchTest.java",
+        "sha256": "10b2bf6476f108c2a5267230aa7201c45fd11aeaef837e3cc5d402a585eb019b"
+      }
+    ]
+  },
+  "native_comparison": {
+    "audio_capture_or_playback": false,
+    "cases": 87,
+    "checks": 2825,
+    "codec_or_source_association_verified": false,
+    "configuration_unchanged": true,
+    "frames_compared": 331,
+    "passed": true,
+    "probe_id": "2936c682ab214b25a2afeaa0677c43d6",
+    "synthetic_only": true,
+    "at": "2026-10-24T12:30:59.695117+00:00"
+  },
+  "host_static_sources": [
+    {
+      "path": "smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/e.smali",
+      "sha256": "1a8a55b19c8ad28fd4594ff4a61117c7975c1b2a72a9930f4a839877fbd57616"
+    },
+    {
+      "path": "smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/e$a.smali",
+      "sha256": "975b148f7b04fa17ab8db2652699655be464e971628c979b1bfb6ebc9c19fa65"
+    }
+  ],
+  "device": {
+    "product_unchanged": "dev76 /10498",
+    "driver_uninstalled": true,
+    "app_pid": "29764"
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-a3-parser-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T13:02:28.850Z",
+    "requires_answer": false,
+    "message_id": "notice-f710c0e4ce7ee63b3a4f23062cfbd5b070f410d1a3da0d15f8ec4aa8267c2ee4",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "not_verified": [
+    "Audio codec/container/channel/rate",
+    "Cross-batch continuity and recording completion",
+    "Account/device/taskId to conversation source association",
+    "Durable audio archive and 72-hour remote storage/export"
+  ],
+  "driver_sha256": "ddc8e4a3a2aa19579e38c2de6c12ca82845366fea551aa6da7d8f6bbcd56d020",
+  "probe_source_sha256": "f22aa93b9a8981529ea3e436255d22009caad8afcd6fc85526f5f0bf45dc9657",
+  "device_lock_released": true
+}
