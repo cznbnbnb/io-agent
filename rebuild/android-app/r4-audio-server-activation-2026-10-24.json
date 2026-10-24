@@ -1,0 +1,343 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T22:28:52.212725+00:00",
+  "scope": "Audio service and independent expiry activated; production Java TLS checked using synthetic opaque bytes. No user audio grant or phone positive enrollment.",
+  "r3_percent": 100,
+  "r4_estimate_percent": 85,
+  "phone": "dev84 /10506",
+  "rollback_phone": "dev76 /10498",
+  "activation": {
+    "release_id": "r4-audio-aa813663a1ab-f0293ffe22d6",
+    "archive_sha256": "f0293ffe22d6d02aaf12bbf652d703d304ad3b6471d12ca6cd735ed447c18ab6",
+    "source_git_commit": "aa813663a1ab7e0a9c201f58a462b8803cc75b9f",
+    "before_sha256": {
+      "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+      "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+      "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+      "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+      "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+      "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+      "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+      "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+      "rebuild/material-server/audio.mjs": null,
+      "rebuild/material-server/audio-expiry.mjs": null,
+      "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+      "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+      "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+      "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+      "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+      "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+      "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+      "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+      "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+    },
+    "server_id_sha256": "39407d0b5cc92520b46bdb11c18e0588caf658539a2784571625b7672e789b6b",
+    "apply_requested": true,
+    "credentials_minted": false,
+    "audio_uploaded": false,
+    "database_restored": false,
+    "remote": {
+      "schema": 1,
+      "release_id": "r4-audio-aa813663a1ab-f0293ffe22d6",
+      "archive_sha256": "f0293ffe22d6d02aaf12bbf652d703d304ad3b6471d12ca6cd735ed447c18ab6",
+      "phase": "deployed",
+      "pid": 2095087,
+      "process_start": "273346583",
+      "at": 1792880551.7985744,
+      "production_data_restored": false,
+      "credentials_minted": false,
+      "updated_at": 1792880558.6138072,
+      "independent_audio_expiry": {
+        "module_sha256": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+        "module_path": "/opt/turboio/audio-expiry-v1/2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af/audio-expiry.mjs",
+        "unit_sha256": {
+          "turboio-audio-expiry.service": "97de9d944451d2630885388cbf8d203472c899d25d26487711c550eacdf976e2",
+          "turboio-audio-expiry.timer": "122bc5c6b0095f65d900b2e19630bc881e61571de72f9b88c1af0258912ffc42"
+        },
+        "timer_active": true,
+        "survives_http_rollback": true,
+        "audio_bytes_backed_up": false
+      },
+      "after_sha256": {
+        "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+        "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+        "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+        "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+        "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+        "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+        "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+        "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+        "rebuild/material-server/audio.mjs": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b",
+        "rebuild/material-server/audio-expiry.mjs": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+        "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+        "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+        "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+        "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+        "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+        "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec"
+      },
+      "after_contract_sha256": {
+        "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+        "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+        "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+      },
+      "text_database_backup": {
+        "path": "/var/lib/turboio-material/r4-audio-aa813663a1ab-f0293ffe22d6-before-text.sqlite",
+        "bytes": 8462336,
+        "quick_check": "ok",
+        "audio_backed_up": false,
+        "restored": false
+      }
+    },
+    "status": "deployed"
+  },
+  "reinspection": {
+    "release_id": "r4-audio-aa813663a1ab-f0293ffe22d6",
+    "archive_sha256": "f0293ffe22d6d02aaf12bbf652d703d304ad3b6471d12ca6cd735ed447c18ab6",
+    "source_git_commit": "aa813663a1ab7e0a9c201f58a462b8803cc75b9f",
+    "before_sha256": {
+      "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+      "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+      "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+      "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+      "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+      "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+      "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+      "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+      "rebuild/material-server/audio.mjs": null,
+      "rebuild/material-server/audio-expiry.mjs": null,
+      "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+      "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+      "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+      "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+      "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+      "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+      "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+      "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+      "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+    },
+    "server_id_sha256": "39407d0b5cc92520b46bdb11c18e0588caf658539a2784571625b7672e789b6b",
+    "apply_requested": false,
+    "credentials_minted": false,
+    "audio_uploaded": false,
+    "database_restored": false,
+    "remote": {
+      "release_id": "r4-audio-aa813663a1ab-f0293ffe22d6",
+      "mode": "inspect",
+      "status": "deployed",
+      "journal": {
+        "after_contract_sha256": {
+          "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+          "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c",
+          "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760"
+        },
+        "after_sha256": {
+          "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+          "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+          "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+          "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+          "rebuild/material-server/audio-expiry.mjs": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+          "rebuild/material-server/audio.mjs": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b",
+          "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+          "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+          "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+          "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+          "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+          "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+          "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+          "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+          "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+          "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665"
+        },
+        "archive_sha256": "f0293ffe22d6d02aaf12bbf652d703d304ad3b6471d12ca6cd735ed447c18ab6",
+        "at": 1792880551.7985744,
+        "credentials_minted": false,
+        "independent_audio_expiry": {
+          "audio_bytes_backed_up": false,
+          "module_path": "/opt/turboio/audio-expiry-v1/2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af/audio-expiry.mjs",
+          "module_sha256": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+          "survives_http_rollback": true,
+          "timer_active": true,
+          "unit_sha256": {
+            "turboio-audio-expiry.service": "97de9d944451d2630885388cbf8d203472c899d25d26487711c550eacdf976e2",
+            "turboio-audio-expiry.timer": "122bc5c6b0095f65d900b2e19630bc881e61571de72f9b88c1af0258912ffc42"
+          }
+        },
+        "phase": "deployed",
+        "pid": 2095087,
+        "process_start": "273346583",
+        "production_data_restored": false,
+        "release_id": "r4-audio-aa813663a1ab-f0293ffe22d6",
+        "schema": 1,
+        "updated_at": 1792880558.6138072
+      },
+      "owner_alive": false,
+      "directory_sha256": {
+        "current": {
+          "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+          "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+          "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+          "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+          "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+          "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+          "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+          "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+          "rebuild/material-server/audio.mjs": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b",
+          "rebuild/material-server/audio-expiry.mjs": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+          "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+          "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+          "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+          "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+          "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+          "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec"
+        },
+        "stage": null,
+        "backup": {
+          "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+          "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+          "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+          "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+          "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+          "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+          "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+          "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+          "rebuild/material-server/audio.mjs": null,
+          "rebuild/material-server/audio-expiry.mjs": null,
+          "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+          "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+          "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+          "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+          "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+          "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec"
+        },
+        "rejected": null
+      },
+      "contract_sha256": {
+        "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+        "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+        "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+      },
+      "service_state": "active",
+      "audio_db_exists": true,
+      "expiry_unit_files": {
+        "turboio-audio-expiry.service": true,
+        "turboio-audio-expiry.timer": true
+      },
+      "expiry_timer_healthy": true
+    },
+    "status": "deployed"
+  },
+  "public_tls": {
+    "schema": 1,
+    "at": "2026-10-24T22:25:30.906Z",
+    "passed": true,
+    "scope": "Production Java AudioHttp and durable queue over real public TLS; synthetic opaque bytes only, not phone, source-format or Keystore proof.",
+    "run_id": "caller686-audio-20261024-codex",
+    "synthetic_bytes": 262267,
+    "payload_sha256": "b1b3efab48a09d3088c7c783c420d0061b984f6bd53de79faca0e1c534785b2f",
+    "java_checks": 8,
+    "actual_process_halt_after_tls_part_response": 87,
+    "parts_sent_after_resume": 2,
+    "independent_node_exact_byte_readback": true,
+    "fixed_receipt_unchanged_on_repeat": true,
+    "text_only_and_reader_write_denied": true,
+    "recording_completeness_verified": false,
+    "sources": {
+      "rebuild/android-app/src/com/turboio/addon/AudioConnection.java": "01220ecaec22a5659b058d4b4f959076a6539935f24af8669bf7c1bcbab9e842",
+      "rebuild/android-app/src/com/turboio/addon/AudioHttp.java": "39c211174cc77fbb236b9ca4a61ef2552cb7abffd1a3233f299c1a3b459a8447",
+      "rebuild/android-app/src/com/turboio/addon/AudioUploadWire.java": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c",
+      "rebuild/android-app/src/com/turboio/addon/AudioUploadOutbox.java": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17",
+      "rebuild/android-app/src/com/turboio/addon/MaterialConnection.java": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4",
+      "rebuild/android-app/src/com/turboio/addon/MaterialWire.java": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialApi.java": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialOutbox.java": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207",
+      "rebuild/android-app/src/com/turboio/addon/MaterialTransfer.java": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735",
+      "rebuild/android-app/src/com/turboio/addon/AtomicDocument.java": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0",
+      "rebuild/android-app/src/com/turboio/addon/WireJson.java": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735",
+      "rebuild/android-app/src/com/turboio/addon/TaskWire.java": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d",
+      "rebuild/android-app/src/com/turboio/addon/TaskConnection.java": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb",
+      "rebuild/android-app/upstream/android-addon/src/com/turboio/addon/BoundedJson.java": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0",
+      "tools/android/AudioTlsIntegrationTest.java": "dd525391f50ed86173683185165eb1d6d6e46bc083a07dde54f920f086659460"
+    },
+    "receipt": {
+      "bytes": 262267,
+      "capture": {
+        "first_received_at": "2026-10-24T22:25:25.764Z",
+        "last_received_at": "2026-10-24T22:25:27.764Z",
+        "recording_complete": false
+      },
+      "expires_at": "2026-10-27T22:25:30.421Z",
+      "kind": "raw",
+      "material_id": "synthetic-audio-tls-caller686-audio-20261024-codex",
+      "material_revision": 1,
+      "media_type": "application/vnd.turboio.lifelog-archive",
+      "object_id": "a02715a79624e32f0215d5a107068e14a96b87f66482b8682b024f8652c68793",
+      "owner_id": "synthetic-cloud-caller686-audio-20261024-codex",
+      "part_bytes": 131072,
+      "parts": 3,
+      "producer_id": "cloud-phone",
+      "recording_completeness_verified": false,
+      "retention_seconds": 259200,
+      "schema_version": "1.0",
+      "sha256": "b1b3efab48a09d3088c7c783c420d0061b984f6bd53de79faca0e1c534785b2f",
+      "source_body_sha256": "63eef309884eadfe3778bf495f460fc673148ff6d400884e3453bb87ea36d37f",
+      "state": "stored",
+      "storage_verified": true,
+      "stored_at": "2026-10-24T22:25:30.421Z"
+    },
+    "real_user_audio_uploaded": false,
+    "phone_accessed": false,
+    "synthetic_material_tombstoned": true,
+    "temporary_files_removed": true,
+    "synthetic_audio_parts_removed": true,
+    "credentials_revoked": true,
+    "cleanup_first_run_failed": true,
+    "cleanup_failure": "The v1.2 synthetic tombstone fixture retained its speaker dictionary; schema rejected cleanup. Production guards unchanged.",
+    "cleanup_repaired_with_scoped_server_fixture_teardown": true
+  },
+  "synthetic_cleanup": {
+    "synthetic_material_tombstoned": true,
+    "scoped_synthetic_parts_removed": 3,
+    "live_synthetic_credentials": 0,
+    "other_owner_data_touched": false
+  },
+  "revocation": {
+    "roles": [
+      "phone",
+      "reader",
+      "text"
+    ],
+    "public_identity_status": {
+      "phone": 401,
+      "reader": 401,
+      "text": 401
+    },
+    "remote_revoked": true
+  },
+  "progress": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-service-live-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T22:57:55.560Z",
+    "requires_answer": false,
+    "message_id": "notice-2507841c8829cce163a145b6a142b8c07e576f555832b5f7a7cdc7d1c791dd99",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_released": true,
+  "real_user_audio_uploaded": false,
+  "formal_authorization_remains_text_only": true,
+  "failures_retained": [
+    "The first public synthetic cleanup kept a v1.2 speaker dictionary, so the server correctly rejected its tombstone. TLS checks passed; the entire run stayed failed until a scoped teardown repaired the synthetic owner only. Original failed report retained privately; harness fixed and local old/fixed validator regression passed.",
+    "A local pre-apply assertion compared runtime-only hashes to runtime plus contract hashes. Corrected comparison before any apply; no production change from the rejected local assertion."
+  ],
+  "unverified": [
+    "No actual positive phone Keystore/import, configured lifecycle or automatic raw upload.",
+    "No actual remote fallback/export to phone; no authoritative vendor deletion discovery or receipt-bound local GC.",
+    "A4/A5 and unknown raw formats remain unsupported and retained locally.",
+    "No full-day completeness or native-input buffering continuity claim.",
+    "Maximum-capacity expiry throughput not load-tested; earlier missing DevEco transpiler/ArkTS fixture limitations retained."
+  ]
+}
