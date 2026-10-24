@@ -119,7 +119,7 @@ final class AgentCardRuntime {
   for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled)for(Object raw:c.objects){
    Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"message".equals(item.get("kind")))continue;
    try{TaskNotice notice=TaskNotice.prepare(c.profile.connection,item,c.item("task",(String)TaskWire.body(item).get("task_id")),System.currentTimeMillis());
-    if(offered.contains(notice.key)||offered.size()>=200)continue;
+    if(offered.contains(notice.key)||offered.contains(notice.legacy)||offered.size()>=200)continue;
     nextAuto=now()+10000;if(!noticePrompt(notice.text,notice.expires-System.currentTimeMillis(),c.binding))return;
     Set<String> next=new HashSet<>(offered);next.add(notice.key);
     if(!prefs.edit().putStringSet("offered",next).commit()){NewsTele.control(6);message="通知显示记录未保存，内容保留在手机";return;}
@@ -207,13 +207,13 @@ final class AgentCardRuntime {
   return new NewsTele.Adoption(live?()->openPrompterVoice(did):null,live?owner.until-System.currentTimeMillis():0);
  }
  private void openPrompterVoice(String did){
-  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis()))return;
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis())){TaskAttention.release("voice");return;}
   // The exit event may have been queued before a pause, phone answer, revision, or restart.
   tasks.detail(owner.binding,"request",owner.id,(state,error)->{
-   TaskPrompterOwner current=prompter();if(current==null||!did.equals(current.did))return;
+   TaskPrompterOwner current=prompter();if(current==null||!did.equals(current.did)){TaskAttention.release("voice");return;}
    boolean allowed=error.isEmpty()&&prompterAllowed(current,state);snapshot=state;
    prefs.edit().remove("prompter_owner").commit();
-   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){message="已退出提词器，原问题暂不可口述；请在手机查看";refresh();return;}
+   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){TaskAttention.release("voice");message="已退出提词器，原问题暂不可口述；请在手机查看";refresh();return;}
    message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
   });
  }

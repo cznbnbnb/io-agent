@@ -90,7 +90,9 @@ public final class TaskPrompterTest {
   // Normal wearer exit remains exactly once; foreign DID/peer cannot retire the owner.
   did=start();frame("other",did,6,1,1);frame("glasses","other",6,1,1);yes(NewsTele.active());frame("glasses",did,6,1,1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==1&&!NewsTele.active());
   // Folding the temples (code 18) or any other non-long-press exit retires the manuscript without dictation.
-  for(int code:new int[]{18,0,-1}){did=start();frame("glasses",did,6,1,code);Handler.ready();yes(voice==0&&!NewsTele.active());}
+  for(int code:new int[]{18,0,-1}){TaskAttention.held.clear();did=start();frame("glasses",did,6,1,code);Handler.ready();yes(voice==0&&!NewsTele.active()&&!TaskAttention.held.contains("voice"));}
+  // A long-press exit keeps task attention until its dictation opens, so a queued notice cannot take the lens first.
+  TaskAttention.held.clear();did=start();frame("glasses",did,6,1,1);yes(TaskAttention.held.contains("voice")&&voice==0);Handler.ready();yes(voice==1);
   did=start();yes(!NewsTele.cancelTask("other"));yes(stops()==0);yes(NewsTele.cancelTask(did));yes(NewsTele.cancelTask(did));yes(stops()==1);frame("glasses",did,6,2,1);Handler.ready();yes(voice==0&&!NewsTele.active());
   // A scheduled timeout exits without creating an answer or starting voice.
   did=start();set("phase","playing");set("waiting",0);Handler.advance(30000);yes(stops()==1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==0);
@@ -109,6 +111,6 @@ public final class TaskPrompterTest {
 // Synthetic SDK/Android boundaries. Production framing, transfer format and NewsTele are compiled.
 final class NativeTransfer {static String peer="glasses";static final Handler MAIN=new Handler();static String connected(){return peer;}static boolean acquireMessages(String owner){return !peer.isEmpty();}static void releaseMessages(String owner){}static boolean fileBusy(){return false;}}
 final class BackgroundWork {static void acquire(String key,int n){}static void release(String key){}}
-final class TaskAttention {static void hold(String key,long ms){}static void release(String key){}}
+final class TaskAttention {static final Set<String> held=new HashSet<>();static void hold(String key,long ms){held.add(key);}static void release(String key){held.remove(key);}}
 final class PrompterSharePort {static boolean attach(){return true;}static void detach(){}static void trace(String s){}}
 final class NavReflect {interface Callback{void run(String n,Object[] args);}static final List<byte[]> sent=new ArrayList<>();static Object type(String s){return s;}static Object field(Object o,String s){return o;}static Object proxy(String s,Callback c){return c;}static Object make(String s,Object...args){return args[0];}static Object call(Object o,String s,Object...args){if(s.equals("u"))sent.add((byte[])args[0]);return s;}}

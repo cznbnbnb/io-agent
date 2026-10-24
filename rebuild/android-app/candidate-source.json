@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "81c3d4d17067872dc6731fcac7b76bfd8277477f3fe2a9a6af4d3d825d15db23"
+      "sha256": "3ba372eac027ce7b32f415a5b7ba17c5003dc4132f30f15128dac3d954d97e9a"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "5cdf0434a583fa5ba225368092ffa6495067118238ea5a5cfe9cadabec7b7d34"
+      "sha256": "7bb5a44021a9afc3d8f239a2c00062be53c58a0bbb2c04567c83971132444409"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -674,7 +674,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "417b3d59a317f0708237b53518e7f431bb1690f412185680ef05f61ef48eca31"
+      "sha256": "347653c88e174b4132e185d8ace5d2e41cf778ee9c24fcd72fc1c81f80de758f"
     },
     {
       "path": "src/com/turboio/addon/TaskPairing.java",
@@ -770,11 +770,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "cd22ca26533ec1e6f1266b7f36d8938d2a29771f73763d34d4c717432e428a4d"
+      "sha256": "6a88bd9762ef2e45b24c3f03a0e1f61d32adca7d11454f07218fdbccb1d74ce8"
     }
   ],
-  "product_sha256": "6203d97acd725532d5fdc3e112a73da34157778478a22fed670d9eb32937fcbb",
-  "addon_sha256": "0d27793d37b9bcd3e67ceb37b87cc63e5709cf15b211e1f632766f7f05ac81d2",
+  "product_sha256": "ec35660024ef21008c01402f1bb7084cdfe62064e3eb1b4514de1746e61d2ab8",
+  "addon_sha256": "aba8821290b0faedb87e0af9c2f4c1d529753ca9047cf2822fd51f19a8d5d374",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
