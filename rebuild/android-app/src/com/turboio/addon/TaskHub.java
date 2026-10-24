@@ -7,8 +7,8 @@ import java.util.*;
 final class TaskHub implements AutoCloseable {
  interface Factory {TaskApi.Transport create(TaskConnection connection)throws Exception;}
  static final class View {
-  final TaskProfiles.Profile profile;final String binding,note;final List<Object> pending,objects;
-  View(Channel c){profile=c.profile;binding=profile.binding;note=c.note;pending=c.mailbox==null?Collections.emptyList():c.mailbox.pending();List<Object> visible=new ArrayList<>();if(c.mailbox!=null)for(Object raw:c.mailbox.objects())if(TaskWire.same(TaskWire.body(WireJson.map(WireJson.map(raw).get("item"))).get("route"),profile.connection.route()))visible.add(raw);objects=Collections.unmodifiableList(visible);}
+  final TaskProfiles.Profile profile;final boolean inboxCurrent;final String binding,note;final List<Object> pending,objects;
+  View(Channel c){inboxCurrent=c.api!=null&&c.api.inboxCurrent();profile=c.profile;binding=profile.binding;note=c.note;pending=c.mailbox==null?Collections.emptyList():c.mailbox.pending();List<Object> visible=new ArrayList<>();if(c.mailbox!=null)for(Object raw:c.mailbox.objects())if(TaskWire.same(TaskWire.body(WireJson.map(WireJson.map(raw).get("item"))).get("route"),profile.connection.route()))visible.add(raw);objects=Collections.unmodifiableList(visible);}
   Map<String,Object> item(String kind,String id){for(Object raw:objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(kind.equals(item.get("kind"))&&id.equals(item.get("object_id")))return item;}return null;}
  }
  private static final class Channel {

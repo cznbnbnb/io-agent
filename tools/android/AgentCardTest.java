@@ -73,7 +73,7 @@ public final class AgentCardTest {
   other=WireJson.map(WireJson.copy(notice));TaskWire.body(other).put("channel","result");final Map<String,Object> result=other;rejects(()->TaskNotice.prepare(c,result,parent,NOW));
  }
  public static void main(String[] args)throws Exception{
-  notices();
+  notices();TaskNoticeQueueTest.run(new File(args[0]));
   TaskConnection c=connection("codex"),h=connection("hermes");AgentCardRequest r=frozen(c,4);yes(!r.owner.equals(frozen(h,4).owner));yes(r.fingerprint.equals(AgentCardRequest.restore(r.json()).fingerprint));
   for(int i=0;i<4;i++){AgentCardRequest.Copy copy=r.copy(i);yes(copy.content.contains("["+(i+1)+"/4]")&&copy.content.contains(r.answerText(i))&&copy.content.length()<=48);}
   Map<String,Object> changed=WireJson.map(WireJson.copy(request(c,4)));TaskWire.body(changed).put("question","新的问题");yes(!r.matches(changed,task(c),NOW));changed.put("revision",2);TaskWire.body(changed).put("revision",2);yes(!r.matches(changed,task(c),NOW));

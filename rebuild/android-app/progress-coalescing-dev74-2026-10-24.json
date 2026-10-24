@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T11:18:48.232531+00:00",
+  "installed": {
+    "checked_at": "2026-10-24T11:16:37Z",
+    "device_log_since": "10-24 19:16:36",
+    "pid": "17087",
+    "installed_version": "0.5.3-dev74",
+    "version_code": 10496,
+    "sha256": "5b6e9a8264e90b9e7c4cf6ecd846421b74aedf6a49ef272ce07e1b9628af50a1",
+    "baseline_verified": true,
+    "delta": {
+      "baseline_sha256": "47fe7e9843d4a74b465e74e7bc033ec1d124bf5d6b7b255df81bd758c5cdffb5",
+      "candidate_sha256": "5b6e9a8264e90b9e7c4cf6ecd846421b74aedf6a49ef272ce07e1b9628af50a1",
+      "apk_bytes": 429719833,
+      "delta_bytes": 1437284,
+      "commands": 8089,
+      "delta_sha256": "84ecbe06812965562b3e5702187cbe4fe372996e2dba186bba533af16a025830",
+      "reconstruction_hash_verified": true
+    },
+    "first_observation": {
+      "checked_at": "2026-10-24T11:17:56Z",
+      "pid_unchanged": true,
+      "new_notice_claims": 0,
+      "prompter_prepare_responses": 0,
+      "relevant_errors": []
+    },
+    "ui": {
+      "agent_page_opened": true,
+      "pending_questions": 0,
+      "original_task_present": true
+    }
+  },
+  "rollback": "0.5.3-dev73 /10495",
+  "reported_failure": {
+    "before": "dev73",
+    "phone_log_timezone": "Asia/Shanghai",
+    "exit_then_next_prepare": [
+      {
+        "exit": "2026-10-24 19:02:34.999",
+        "prepare": "2026-10-24 19:02:35.307",
+        "gap_ms": 308
+      },
+      {
+        "exit": "2026-10-24 19:03:04.764",
+        "prepare": "2026-10-24 19:03:05.249",
+        "gap_ms": 485
+      }
+    ],
+    "cause": "All unoffered unexpired progress messages were automatically presented one by one; 10-second timer measured from start rather than exit."
+  },
+  "changes": [
+    "Drain incremental inbox pages before selecting progress",
+    "Newest progress per server/owner/route/task, with no fallback to older notices",
+    "Durable sequence watermark plus legacy offered keys saved before SDK attempt",
+    "60-second progress quiet period after exit, persisted through process restart",
+    "Uncertain attempts remain in phone history and are not automatically resent",
+    "Original question/voice/confirmation path remains independent"
+  ],
+  "checks": {
+    "agent_card_and_notice_assertions": 831,
+    "new_notice_assertions": 40,
+    "contexts": 59,
+    "status": 35,
+    "prompter": 150,
+    "compiled_java_sources": 198,
+    "signed_v2_v3": true,
+    "delta_reconstruction_and_installed_full_hash": true
+  },
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/AgentCardRuntime.java",
+      "sha256": "740cd52d64ae82fd7d4db289979344a602945bebb20874f1954782b4b35e7e10"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskNotice.java",
+      "sha256": "b3ed7476fc4bef4f565a0bca58e3ff98569d67c7b7b7b7fdaa7384a25e7fe663"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskNoticeQueue.java",
+      "sha256": "e74ded88705e3ff9873b557d86e84b3a9ae09af6493b6e68cd61108539226f61"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskApi.java",
+      "sha256": "0b67bb401bc3c206b5f73117099e00670779565ff674d7f88b92523d28374904"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskHub.java",
+      "sha256": "4e0fcb365b6e159d3906d0eb98906f9d5696a5c18174c371e27923fcd674141e"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskRuntime.java",
+      "sha256": "01eda8bc2a92350b7f379a8fa850a01c406572cc25a952373ad0195cb392e7a0"
+    }
+  ],
+  "limitations": [
+    "Synthetic queue/inbox tests do not replace lens observation",
+    "No synthetic repeated notices or recording sent to the wearer",
+    "Natural-use lens check tracked as A24-P01"
+  ],
+  "temporary_controls": {
+    "paused_during_investigation": true,
+    "current_task_glasses_progress": true,
+    "server_watch": "armed_at_completion_checkpoint",
+    "synthetic_notices_sent": 0,
+    "normal_completion_checkpoint_key": "codex-progress-coalescing-dev74-20261024"
+  },
+  "normal_completion_notice": {
+    "message_id": "notice-1e2ac6cd15cfacdc741ddd5dcfec2f8b5b46ef4be363d840208b109292bd7bbe",
+    "server_stored": true,
+    "phone_claims": 1,
+    "commit_seq": 92,
+    "phone_claim_at": "2026-10-24 19:19:20.194 Asia/Shanghai",
+    "prepare_ack": "type2/action2/code1 at 19:19:21.082",
+    "file_ready_ack": "type2/action2/code7 at 19:19:21.301",
+    "lens_human_confirmed": false
+  }
+}

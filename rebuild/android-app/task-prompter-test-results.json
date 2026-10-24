@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "at": "2026-10-24T06:09:56.437Z",
+  "at": "2026-10-24T11:13:47.655Z",
   "scope": "Real NewsTele control/receiver/timers, transfer/framing and TaskPrompterOwner; synthetic SDK, Android queue and JSON adapter. No phone, glass observation or recording.",
   "passed": true,
-  "checks": 136,
+  "checks": 150,
   "sources": [
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "9ffac5950224da629c6861ca8b8f2a40b056202897d38830e10bc3238b6d379c"
+      "sha256": "3ba372eac027ce7b32f415a5b7ba17c5003dc4132f30f15128dac3d954d97e9a"
     },
     {
       "path": "src/com/turboio/addon/TaskPrompterNotice.java",
@@ -47,7 +47,7 @@
     },
     {
       "path": "../../tools/android/TaskPrompterTest.java",
-      "sha256": "0e9fe1f7d0b30c40222338390dc8e8b241463dcd13b79e0edf32a255ef2b5433"
+      "sha256": "36c45f1e153996e3511a010be292905c900d957934becb08e2142586cb5034f0"
     },
     {
       "path": "../../tools/android/test-task-prompter.mjs",

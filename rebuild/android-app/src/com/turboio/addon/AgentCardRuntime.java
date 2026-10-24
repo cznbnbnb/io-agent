@@ -18,7 +18,7 @@ final class AgentCardRuntime {
  private final Set<TextView> views=Collections.newSetFromMap(new WeakHashMap<TextView,Boolean>());
  private final Set<String> phoneFocus=new HashSet<>(),offered=new HashSet<>();
  private final String lease="agent-card-preflight-"+UUID.randomUUID();
- private final AtomicDocument document;private final AgentCardSession session;
+ private final AtomicDocument document;private final AgentCardSession session;private final TaskNoticeQueue noticeQueue;
  private TaskRuntime.Snapshot snapshot;private MinuteCardSession preflight;
  private WeakReference<Activity> activity;private volatile long observedGeneration=Long.MIN_VALUE;
  private boolean localLease,fetching,checkingShow,answerBusy,headStarted,restoreStarted,pumping;
@@ -29,8 +29,16 @@ final class AgentCardRuntime {
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Application application,Activity host)throws IOException{
   app=application;activity=new WeakReference<>(host);if(host!=null)foreground.add(host);tasks=host!=null?TaskRuntime.get(host):TaskRuntime.boot(application);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
+  noticeQueue=new TaskNoticeQueue(new TaskNoticeQueue.Store(){
+   public Object read(){String raw=prefs.getString("notice_queue_v1",null);return raw==null?null:WireJson.read(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));}
+   public void save(Object value,String key)throws IOException{
+    Set<String> next=new HashSet<>(offered);if(key!=null){if(next.size()>=200&&!next.contains(key))throw new IOException("TASK_GLASS_HISTORY_FULL");next.add(key);}
+    SharedPreferences.Editor edit=prefs.edit().putString("notice_queue_v1",new String(WireJson.bytes(value),java.nio.charset.StandardCharsets.UTF_8));if(key!=null)edit.putStringSet("offered",next);
+    if(!edit.commit())throw new IOException("TASK_CONFIG_SAVE_FAILED");if(key!=null){offered.clear();offered.addAll(next);}
+   }
+  });
   NewsTele.orphans=this::orphan;
-  NewsTele.closed=did->{retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
+  NewsTele.closed=did->{noticeQueue.closed(System.currentTimeMillis());retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
   VoiceAnswerRuntime.get(app,tasks).recoverInterrupted((binding,request)->{reoffer.add(binding+"\n"+request);message="口述被中断，已结束眼镜录音；这道题会重新发到眼镜";nextAuto=0;refresh();pump();});
   document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-card-v1.json"));session=new AgentCardSession(new AgentCardSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object value)throws Exception{document.save(value);}});
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
@@ -119,16 +127,15 @@ final class AgentCardRuntime {
  }
  private void maybeNotice(){
   if(TaskAttention.active()||NewsTele.active()||NativeTransfer.busy())return;
-  for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled)for(Object raw:c.objects){
-   Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"message".equals(item.get("kind")))continue;
-   try{TaskNotice notice=TaskNotice.prepare(c.profile.connection,item,c.item("task",(String)TaskWire.body(item).get("task_id")),System.currentTimeMillis());
-    if(offered.contains(notice.key)||offered.contains(notice.legacy)||offered.size()>=200)continue;
-    nextAuto=now()+10000;if(!noticePrompt(notice.text,notice.expires-System.currentTimeMillis(),c.binding))return;
-    Set<String> next=new HashSet<>(offered);next.add(notice.key);
-    if(!prefs.edit().putStringSet("offered",next).commit()){NewsTele.control(6);message="通知显示记录未保存，内容保留在手机";return;}
-    offered.clear();offered.addAll(next);message="任务提醒已提交到眼镜；长按退出，无需回答";return;
-   }catch(RuntimeException closedOrUnrelated){/* Expired/closed/other progress stays in the phone history. */}
+  List<TaskNotice> candidates=TaskNoticeQueue.collect(snapshot.contexts);
+  long at=System.currentTimeMillis();TaskNotice notice=noticeQueue.select(candidates,offered,at);
+  if(notice==null||NativeTransfer.connected().isEmpty()||!noticeQueue.claim(notice,at))return;
+  nextAuto=now()+10000;
+  PrompterSharePort.trace("progress notice claimed key="+notice.key+" seq="+notice.sequence);
+  if(!noticePrompt(notice.text,notice.expires-at,notice.binding)){
+   noticeQueue.closed(System.currentTimeMillis());message="通知未确认显示，已保留在手机，不自动重复投送";return;
   }
+  message="最新任务提醒已提交到眼镜；长按退出，无需回答";
  }
  private static String prompterKey(String binding,Map<String,Object> request){return TaskWire.hash(WireJson.bytes(WireJson.object("prompter",binding,"request",TaskWire.requestFingerprint(request))));}
  static final int PROMPTER_SPEED=120;

@@ -1,15 +1,19 @@
 {
   "schema": 1,
-  "at": "2026-10-23T12:58:20.783Z",
-  "assertions": 790,
+  "at": "2026-10-24T11:13:58.991Z",
+  "assertions": 831,
   "sources": [
     {
+      "path": "src/com/turboio/addon/TaskNoticeQueue.java",
+      "sha256": "e74ded88705e3ff9873b557d86e84b3a9ae09af6493b6e68cd61108539226f61"
+    },
+    {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "417b3d59a317f0708237b53518e7f431bb1690f412185680ef05f61ef48eca31"
+      "sha256": "b3ed7476fc4bef4f565a0bca58e3ff98569d67c7b7b7b7fdaa7384a25e7fe663"
     },
     {
       "path": "src/com/turboio/addon/AgentCardRequest.java",
-      "sha256": "ccd520fe3c32333d93a1f77c58d4116ec0f5652569aee32e548d8c77595804f7"
+      "sha256": "916cf6896c9e78b421d32fb5b27c3d29ace16cd3fd7d959813b8610f54a4d6f9"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -37,19 +41,19 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
+      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
+      "sha256": "4e0fcb365b6e159d3906d0eb98906f9d5696a5c18174c371e27923fcd674141e"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+      "sha256": "7b6b8a91400910bdec0bf41385bb82d401bf83f0fa966603206175712d42dff7"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+      "sha256": "0b67bb401bc3c206b5f73117099e00670779565ff674d7f88b92523d28374904"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
@@ -57,7 +61,7 @@
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
@@ -72,8 +76,12 @@
       "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
     },
     {
+      "path": "../../tools/android/TaskNoticeQueueTest.java",
+      "sha256": "f9cfdfeed262294ccb986095ebdd6a977e51ee55bed20920007bcde8e46c5f2c"
+    },
+    {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "89e524037da812db0ced44300d8ed153b80a874e96c6b9f3694a025984db0bcb"
+      "sha256": "f7d40353bbd592f889dc13b99956e79740059bcd91a6a5be5827e55c3e5a9104"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",
