@@ -1,3 +1,15 @@
+## [codex] 2026-10-24 R4 原厂会话链路与账号缓存核对完成，原音来源仍未证明
+
+固定 1.0.7 smali：A4 文件直接追加收到的字节并 flush，不补容器；ID 解析顺序为显式 taskId→当前 z→最近 B→生成值。配置规范化把 taskId 同时写入 dialogId，缺省正采样率补 16000，空 channelRole 补 guest=0；正常默认 Opus/mock 可 PCM，不冒充当前音频已验证。原厂 onAlwaysOnResponse 转发 taskId 与独立 roundId/finished/text；onCachedAudioReady 只给 taskId/filePath/sizeBytes，没有直接证明官方 conversation sourceId。
+
+现有账号缓存 68→69 个来源；正常打开原厂全天智记历史和原始记录，文字可读，但固定官方主机的所查缓存仍无 conversation/query 响应，A4 缓存目录仍不存在。四份文件名匹配的 Opus 仍全属 recording（3 非空、1 空），不能拿来当 conversation 原音。补查原厂当前上下文时诊断进程中 listener_count=0；**Instrumentation 启动独立诊断目标轮次，这不证明正常 App 没在录音**，也不证明原厂服务没有原音。
+
+新增诊断字段形状与 ID 匹配输出，4 项合成隐私/限额断言和真机只读检查通过；诊断没有 HTTP、读取真人音频、采音、播放、改配置/原队列。普通历史 UI 只作读取，不点录音控制。单独生成 OfficialAudioMetadataCache，其他诊断的路径假设不变。一次早期 UI 操作因目标进程回主界面未找到控件而停止，未点击旧坐标；后续按新鲜 UI 完成历史与原始记录读取。[本批脱敏证据](../../rebuild/android-app/r4-audio-session-audit-2026-10-24.json)。
+
+**下一项**：准备正常 App 常驻的有界被动原音观察，保留原厂流程，不自动开启新录音；核对实际原包/配置/账号来源与 taskId、roundId、官方 sourceId。当前无法靠现有缓存完成这项证明，不再重复扫描同一批目录。三天远程保存/导出接口可并行准备，但真人原音接入仍须上述证明，当前正式上传授权仅文字。R3 100%、R4 约 70%保持。
+
+手机仍 dev76 /10498，回退 dev75；无新产品包。驱动卸载、App 正常恢复后台、设备锁释放，未签发测试身份；一条阶段 checkpoint 入库但未声称镜片确认。Claude 仍 96b1dbb，未动其目录；正常提交推送 Codex 分支，不合 main。
+
 ## [codex] 2026-10-24 R4 被动收集器与持久健康记录验证通过，未接原厂入口
 
 新增 LifelogAudioCollector：后台单写入、有界内存（默认 64 批含在写批/2 MiB）、溢出停止接收并排空已接前缀；QUEUED 不当作存储回执，写入异常时区分明确拒绝与保存未确认。LifelogAudioHealth 在接收前持久化未完成标记，跨进程保留中断、拒绝、未确认和历史错误；最终回执/关闭完成前不提前报告停止。账号/设备代际守卫、元数据限额和完整原包 64 KiB 限制保留，A3 分帧器仍 16 KiB。

@@ -14,6 +14,10 @@ const selector='"/lifelog/api/v1/events".equals(u.getRawPath())';
 if(metadataSource.split(selector).length!==2)throw Error('Metadata Hive selector baseline changed');
 metadataSource=metadataSource.replace(selector,'Arrays.asList("/lifelog/api/v1/events","/lifelog/api/v1/calendar","/clsapi/aiTask/selectPage","/clsapi/aiTask/v2/selectPage").contains(u.getRawPath())');
 fs.writeFileSync(metadataCache,metadataSource);voiceSources.push(metadataCache);
+// Audio investigation has its own selector; other metadata probes retain their exact route assumptions.
+const audioMetadataCache=path.join(build,'voice-source/OfficialAudioMetadataCache.java');
+const audioMetadataSource=metadataSource.replaceAll('OfficialMetadataCache','OfficialAudioMetadataCache').replace('"/clsapi/aiTask/v2/selectPage").contains(u.getRawPath())','"/clsapi/aiTask/v2/selectPage","/always-on/message/conversation/query").contains(u.getRawPath())');
+fs.writeFileSync(audioMetadataCache,audioMetadataSource);voiceSources.push(audioMetadataCache);
 const archiveSuite=path.join(build,'voice-source/LifelogAudioArchiveTest.java');fs.writeFileSync(archiveSuite,fs.readFileSync(path.join(workspace,'tools/android/LifelogAudioArchiveTest.java'),'utf8').replace('package com.turboio.addon;','package com.turboio.androidtests.voice;'));voiceSources.push(archiveSuite);
 const managerSuite=path.join(build,'voice-source/LifelogAudioManagerTest.java');fs.writeFileSync(managerSuite,fs.readFileSync(path.join(workspace,'tools/android/LifelogAudioManagerTest.java'),'utf8').replace('package com.turboio.addon;','package com.turboio.androidtests.voice;'));voiceSources.push(managerSuite);
 const collectorSuite=path.join(build,'voice-source/LifelogAudioCollectorTest.java');fs.writeFileSync(collectorSuite,fs.readFileSync(path.join(workspace,'tools/android/LifelogAudioCollectorTest.java'),'utf8').replace('package com.turboio.addon;','package com.turboio.androidtests.voice;'));voiceSources.push(collectorSuite);
