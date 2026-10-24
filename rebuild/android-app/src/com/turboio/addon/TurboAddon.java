@@ -69,6 +69,21 @@ public final class TurboAddon {
         HeadGestureRuntime.init(host);
         AgentCardRuntime.init(host);
     }
+    /** 2026-10-24 (user): after a phone reboot the stock process is started by its companion-device
+     * service and no screen opens, so questions, notices and dictation waited until the App was opened.
+     * VenusApplication.onCreate now boots the task channel without a screen; the full install still runs
+     * when MainActivity resumes. */
+    public static void boot(android.app.Application application) {
+        MAIN.postDelayed(() -> {
+            if (app != null) return;
+            try {
+                BackgroundWork.init(application); BackgroundWork.register("新闻", NewsTele::stop); NativeTransfer.init(application);
+                Host107Login.warm(application);
+                AgentCardRuntime.boot(application);
+                android.util.Log.i("TurboIOCard", "headless task runtime started");
+            } catch (Throwable failure) { android.util.Log.w("TurboIOCard", "headless task runtime unavailable " + failure.getClass().getSimpleName()); }
+        }, 8000);
+    }
     public static void install(Activity host) {
         if (Looper.myLooper() != Looper.getMainLooper()) { MAIN.post(() -> install(host)); return; }
         initialize(host);

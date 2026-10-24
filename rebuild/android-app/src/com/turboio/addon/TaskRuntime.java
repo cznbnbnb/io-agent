@@ -28,15 +28,17 @@ final class TaskRuntime {
  private volatile TaskDevice device;private volatile String pairing="";private long nextDiscovery;private boolean deviceLoaded;
  private TaskHub hub;private String note="paused";private volatile boolean visible=true;
  private boolean initialized,ticking;private volatile long generation;
- private TaskRuntime(Activity activity){
-  app=activity.getApplicationContext();settings=new TaskSettings(app);foreground.add(activity);
+ private TaskRuntime(Context context,Activity activity){
+  app=context.getApplicationContext();settings=new TaskSettings(app);if(activity!=null)foreground.add(activity);else visible=false;
   ((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityStarted(Activity a){foreground.add(a);visible=true;schedule();}
    public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!running()){cancelAll();main.removeCallbacks(tick);}}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}public void onActivityDestroyed(Activity a){foreground.remove(a);observers.values().removeIf(owner->owner==a);}
   });
  }
- static synchronized TaskRuntime get(Activity activity){if(instance==null)instance=new TaskRuntime(activity);else instance.foreground.add(activity);instance.visible=true;return instance;}
+ static synchronized TaskRuntime get(Activity activity){if(instance==null)instance=new TaskRuntime(activity,activity);else instance.foreground.add(activity);instance.visible=true;return instance;}
+ /** No screen yet (TurboAddon.boot): runs only while background answering is allowed. */
+ static synchronized TaskRuntime boot(Context context){if(instance==null)instance=new TaskRuntime(context,null);return instance;}
  /** On screen, or background answering allowed (TaskAttention): the mailbox keeps exchanging so a
   * question reaches the glasses and a glasses answer is submitted with the screen off. */
  private boolean running(){return visible||TaskAttention.background();}

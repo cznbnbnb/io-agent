@@ -27,8 +27,8 @@ final class AgentCardRuntime {
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
- private AgentCardRuntime(Activity host)throws IOException{
-  app=(Application)host.getApplication();activity=new WeakReference<>(host);foreground.add(host);tasks=TaskRuntime.get(host);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
+ private AgentCardRuntime(Application application,Activity host)throws IOException{
+  app=application;activity=new WeakReference<>(host);if(host!=null)foreground.add(host);tasks=host!=null?TaskRuntime.get(host):TaskRuntime.boot(application);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
   NewsTele.orphans=this::orphan;
   NewsTele.closed=did->{retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
   VoiceAnswerRuntime.get(app,tasks).recoverInterrupted((binding,request)->{reoffer.add(binding+"\n"+request);message="口述被中断，已结束眼镜录音；这道题会重新发到眼镜";nextAuto=0;refresh();pump();});
@@ -40,7 +40,10 @@ final class AgentCardRuntime {
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });main.post(poll);tasks.read(null);
  }
- static void init(Activity host){main();if(instance==null)try{instance=new AgentCardRuntime(host);}catch(IOException unavailable){/* No durable state means phone answers only. */}}
+ static void init(Activity host){main();if(instance==null)try{instance=new AgentCardRuntime(host.getApplication(),host);}catch(IOException unavailable){/* No durable state means phone answers only. */}
+  else if(instance.foreground.add(host))instance.activity=new WeakReference<>(host);}
+ /** Started by TurboAddon.boot before any screen; the first resumed screen joins through init. */
+ static void boot(Application application){main();if(instance==null)try{instance=new AgentCardRuntime(application,null);}catch(IOException unavailable){/* Phone answers only. */}}
  // Opt-in (2026-10-23, user): nod/shake answers only the final confirm card of a dictated answer.
  static boolean nodConfirm(){AgentCardRuntime r=instance;return r!=null&&r.prefs.getBoolean("nod_confirm",false);}
  static void nodConfirm(boolean value){main();AgentCardRuntime r=instance;if(r==null)return;if(!r.prefs.edit().putBoolean("nod_confirm",value).commit())r.message="设置未能保存";r.refresh();}

@@ -278,7 +278,7 @@
     },
     {
       "path": "src/com/turboio/addon/TurboAddon.java",
-      "sha256": "367ce988585819cc6fb1fc194b84613c3e42f20370834b4b430786e2eee49f2f"
+      "sha256": "77be9195511ec87145721c8acaa489efddbf80c59273ed6719a5f927322a5c85"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/TurboStyle.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "7bb5a44021a9afc3d8f239a2c00062be53c58a0bbb2c04567c83971132444409"
+      "sha256": "f17c70288424ccdb9044e3dc9dfe7dfbca8076462d62515e5eb757665ac32be0"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -430,7 +430,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Login.java",
-      "sha256": "34e3376068a8cef85e1204bf589279edb29f2889e4bb139a6012e9614cd8ae4b"
+      "sha256": "4926ae06c1be26b81a268c2f477ba13910fc6e2d3f398ab6d79535a71658d0be"
     },
     {
       "path": "src/com/turboio/addon/Host107Ota.java",
@@ -698,7 +698,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "4dbc804512dda998d59ba3d1ed877c900ee80bd7a52b1a83869691e78dff1e2d"
+      "sha256": "6091d1ac1a3e93d7269143e28206a7233ebab8d5683742d9b816ace57fb25d71"
     },
     {
       "path": "src/com/turboio/addon/TaskSettings.java",
@@ -770,12 +770,12 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "6a88bd9762ef2e45b24c3f03a0e1f61d32adca7d11454f07218fdbccb1d74ce8"
+      "sha256": "1474ae889b626f24b8c919a1c32d3d2728fd3aa7d77a871f4cfe7c819739501a"
     }
   ],
-  "product_sha256": "ec35660024ef21008c01402f1bb7084cdfe62064e3eb1b4514de1746e61d2ab8",
-  "addon_sha256": "aba8821290b0faedb87e0af9c2f4c1d529753ca9047cf2822fd51f19a8d5d374",
-  "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
+  "product_sha256": "44d9d033801387530f039a8e217be46f8c28e34633381da972460c2a84b3330e",
+  "addon_sha256": "fa0d2acb234d8a8731768f2cfd5f688d60ba8c036b8a62ab98c69f362a07bc47",
+  "host_dex_sha256": "d701e0d0bd2ce0aedbe5461f93c8a210afe6eea41c1b40649ee9c18bb06e60c5",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
   "native_route_policy_sha256": "009e3f7e31875db76da20b38e6ab9e3690f337d93d52c3174710222541c122ee"
