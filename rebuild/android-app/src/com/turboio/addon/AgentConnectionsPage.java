@@ -44,11 +44,35 @@ final class AgentConnectionsPage {
    screen.scroll.post(()->{if(visible())screen.scroll.scrollTo(0,y);});
   }
   void register(String source){new TaskConnectionUI(activity,()->runtime.reload((state,error)->done(state,error,"连接已保存。")),source).show();}
+  // One-time pairing (2026-10-24): the computer shows a code (device.mjs pair-phone); after that every
+  // agent session that joins appears here by itself, and the credential renews in the background.
+  void pairingCard(){
+   LinearLayout card=AgentUI.card(activity,screen.body);
+   if(snapshot.device.isEmpty()){
+    card.addView(AgentUI.text(activity,"手机配对",17,AgentUI.INK));
+    card.addView(AgentUI.text(activity,"在电脑上运行 device.mjs pair-phone 得到配对码，输入一次即可；之后电脑上的 Agent 会话会自动出现在这里，无需再导入登记文件。",14,AgentUI.MUTED));
+    AgentUI.button(activity,card,"输入配对码",true,this::askCode);
+   }else{
+    card.addView(AgentUI.text(activity,snapshot.device,15,AgentUI.INK));
+    if(!snapshot.pairing.isEmpty())card.addView(AgentUI.text(activity,snapshot.pairing.equals("PAIRING_REVOKED")||snapshot.pairing.equals("PAIRING_EXPIRED")?"配对已失效，请在电脑上生成新的配对码后重新配对":"配对同步暂时失败："+TaskWorkspace.label(snapshot.pairing),14,AgentUI.ACCENT));
+    AgentUI.button(activity,card,"解除配对",false,()->AgentUI.confirm(activity,"解除这台手机的配对？","服务器会作废这台手机的凭据，自动出现的会话连接会暂停；已有任务和回复记录继续保留。",()->{busy=true;runtime.unpairDevice((state,error)->done(state,error,"已解除配对。"));}));
+   }
+   AgentUI.gap(activity,screen.body,12);
+  }
+  void askCode(){
+   android.widget.EditText edit=AgentUI.input(activity);edit.setHint("XXXXX-XXXXX");edit.setSingleLine(true);
+   // Visible-password variation keeps Chinese IMEs in plain ASCII mode (pinyin composition ate the code).
+   edit.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);edit.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.AllCaps(),new android.text.InputFilter.LengthFilter(16)});
+   AgentUI.alert(activity).setTitle("输入配对码").setMessage("配对码 10 分钟内有效，只能用一次。").setView(edit).setNegativeButton("取消",null)
+    .setPositiveButton("配对",(dialog,which)->{String code=edit.getText().toString();try{TaskDevice.code(code);}catch(IllegalArgumentException invalid){feedback="配对码格式不对，应为 10 位字母数字";redraw();return;}
+     busy=true;feedback="正在配对…";redraw();runtime.pair(code,(state,error)->done(state,error,"配对成功。电脑上的 Agent 会话会自动出现在这里。"));}).show();
+  }
   void renderList(){
+   pairingCard();
    screen.body.addView(AgentUI.text(activity,"每条连接都保留自己的任务和回复。暂停连接会暂停手机交换消息，电脑上的任务不会因此暂停。",14,AgentUI.MUTED));
    List<TaskHub.View> expired=new ArrayList<>();int shown=0;long now=System.currentTimeMillis();
    for(TaskHub.View view:snapshot.contexts){if(view.profile.connection.expiresAt<=now)expired.add(view);else{connectionCard(view);shown++;}}
-   if(shown==0)screen.body.addView(AgentUI.text(activity,snapshot.contexts.isEmpty()?"还没有电脑连接。请从电脑提供登记文件。":"暂无有效连接，请重新登记。",16,AgentUI.INK));
+   if(shown==0)screen.body.addView(AgentUI.text(activity,snapshot.contexts.isEmpty()?(snapshot.device.isEmpty()?"还没有电脑连接。请先完成手机配对。":"已配对，等待电脑上的 Agent 会话加入。"):"暂无有效连接。",16,AgentUI.INK));
    if(!expired.isEmpty()){
     AgentUI.gap(activity,screen.body,16);
     AgentUI.button(activity,screen.body,(history?"收起":"查看")+"已到期连接（"+expired.size()+"）",false,()->{history=!history;redraw();});

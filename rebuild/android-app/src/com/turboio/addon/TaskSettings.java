@@ -63,4 +63,27 @@ final class TaskSettings {
  void select(String binding)throws Exception{synchronized(LOCK){write(loadAll().select(binding));}}
  void pause(String binding)throws Exception{synchronized(LOCK){write(loadAll().enabled(binding,false,System.currentTimeMillis()));}}
  void remove(String binding)throws Exception{synchronized(LOCK){write(loadAll().remove(binding,System.currentTimeMillis()));}}
+ // One-time pairing (TaskDevice): the device credential has its own sealed slot; derived session
+ // connections are ordinary profiles and are rewritten together whenever the token renews.
+ private static final String DEVICE="device_sealed_v1";private static final byte[] DEVICE_AAD="io-agent/task-device/1".getBytes(StandardCharsets.UTF_8);
+ TaskDevice loadDevice()throws Exception{synchronized(LOCK){String text=prefs.getString(DEVICE,null);if(text==null)return null;byte[] plain=open(text,DEVICE_AAD,16384);try{return TaskDevice.decode(plain);}finally{Arrays.fill(plain,(byte)0);}}}
+ void saveDevice(TaskDevice device)throws Exception{synchronized(LOCK){byte[] plain=device.encode();try{if(!prefs.edit().putString(DEVICE,seal(plain,DEVICE_AAD)).commit())throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");}finally{Arrays.fill(plain,(byte)0);}}}
+ void clearDevice(){synchronized(LOCK){prefs.edit().remove(DEVICE).commit();}}
+ void pauseDevice(TaskDevice device)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll();long now=System.currentTimeMillis();for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&p.enabled)next=next.enabled(p.binding,false,now);write(next);}}
+ /** Adds connections for newly joined sessions and moves every derived connection to the device's
+  * current token in one write. A full registry first drops an expired registration, then the oldest
+  * idle derived session; the default target and connections with unsent answers are kept. */
+ boolean syncDevice(TaskDevice device,List<Map<String,Object>> routes,Set<String> busy,long now)throws Exception{synchronized(LOCK){
+  TaskProfiles current=loadAll(),next=current;
+  for(TaskProfiles.Profile p:current.profiles)if(device.owns(p.connection)&&!p.connection.token().equals(device.token))next=next.upsert(device.derive(p.connection.route(),now),p.enabled,now,false);
+  for(Map<String,Object> route:routes){
+   TaskConnection c=device.derive(route,now);boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
+   // Expired imported registrations go first, then the oldest idle derived session.
+   if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(p.connection.expiresAt<=now&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
+   if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
+   if(next.profiles.size()>=TaskProfiles.MAX)break;
+   TaskProfiles.Profile selected=next.selected();next=next.upsert(c,true,now,selected==null||selected.connection.expiresAt<=now||!selected.enabled);
+  }
+  if(Arrays.equals(next.encode(),current.encode()))return false;write(next);return true;
+ }}
 }

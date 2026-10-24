@@ -55,7 +55,10 @@ public final class TaskPrompterTest {
   clear();yes(NewsTele.recoverTask("cancelled-question","glasses",10000,()->voice++));yes(NewsTele.cancelTask("cancelled-question"));
   frame("glasses","cancelled-question",6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
   clear();yes(NewsTele.recoverTask("unknown-question","glasses",1000,()->voice++));
-  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","unknown-question","action",2,"state",99),null));Handler.advance(20000);yes(NewsTele.active()&&voice==0&&stops()==0);
+  // 2026-10-24: an unknown state is held only through the original show period, then released
+  // without a stop or dictation (a lens that never showed it cannot be exited by the wearer).
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","unknown-question","action",2,"state",99),null));Handler.advance(500);yes(NewsTele.active()&&voice==0&&stops()==0);
+  Handler.advance(20000);yes(!NewsTele.active()&&voice==0&&stops()==0);
   frame("glasses","unknown-question",6,1,1);Handler.ready();yes(!NewsTele.active()&&voice==0);
   clear();yes(NewsTele.recoverTask("absent-question","glasses",1000,()->voice++));
   NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","absent-question","action",2,"state",0),null));Handler.ready();yes(!NewsTele.active()&&voice==0&&stops()==0);
@@ -71,6 +74,9 @@ public final class TaskPrompterTest {
   NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did",disconnected,"action",2,"state",4),null));
   Handler.advance(4999);yes(stops()==0&&voice==0);Handler.advance(1);yes(stops()==1);
   frame("glasses",disconnected,6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  // 2026-10-24: glasses switched off and not back within the show period: released, no stop, no dictation.
+  String gone=start();set("phase","playing");set("waiting",0);NativeTransfer.peer="";Handler.advance(250);yes(NewsTele.active()&&NewsTele.did().equals(gone));
+  NavReflect.sent.clear();Handler.advance(29000);yes(NewsTele.active());Handler.advance(1000);yes(!NewsTele.active()&&stops()==0&&voice==0);NativeTransfer.peer="glasses";
   // An elapsed/withdrawn question is queried and stopped, never re-started, after a reconnect.
   disconnected=start();set("phase","playing");set("waiting",0);NativeTransfer.peer="";Handler.advance(250);NativeTransfer.peer="glasses";
   yes(NewsTele.recoverTask(disconnected,"glasses",0,null));

@@ -21,7 +21,7 @@ const MESSAGES = {
   CONFIG_PATH_UNSAFE: '配置文件或 remote-debug 目录不能是符号链接。共享 .private 根可以是链接。',
   CONFIG_CHANGED: '验证期间配置发生变化，未保存端口；请重新核对后重试。',
   CONFIG_SAVE_FAILED: '端口保存失败；未报告为已保存。',
-  DEVICE_LOCK_REQUIRED: '需要尚未到期且 owner=codex 的设备锁；本工具不会自动抢锁。',
+  DEVICE_LOCK_REQUIRED: '需要本代理（codex 或 claude）持有且尚未到期的设备锁；本工具不会自动抢锁。',
   DEVICE_LOCK_UNAVAILABLE: '无法核对设备锁，已停止设备操作。',
   TAILSCALE_UNAVAILABLE: '无法读取 Tailscale 状态，请在本机客户端检查登录和连接。',
   TAILSCALE_NOT_RUNNING: 'Tailscale 尚未运行，请在本机客户端完成登录和连接。',
@@ -75,7 +75,8 @@ function childEnvironment() {
 
 // Dependency injection exists for offline tests only; no CLI flags or environment variables
 // can replace the lock script, config location, SDK adb binary, or expected device identity.
-export function createRemoteAdb({workspace = WORKSPACE, run = spawnSync, now = Date.now} = {}) {
+// The lock must belong to the agent running this tool (Claude took over device work on 2026-10-24).
+export function createRemoteAdb({workspace = WORKSPACE, run = spawnSync, now = Date.now, agent = 'codex'} = {}) {
   const configFile = path.join(workspace, CONFIG);
   const adb = path.join(workspace, 'rebuild/android-app/.tools/sdk/platform-tools', process.platform === 'win32' ? 'adb.exe' : 'adb');
   const lockScript = path.join(workspace, 'tools/collab/device-lock.mjs');
@@ -89,7 +90,7 @@ export function createRemoteAdb({workspace = WORKSPACE, run = spawnSync, now = D
     if (!good(result)) fail('DEVICE_LOCK_UNAVAILABLE');
     let value;
     try { value = JSON.parse(result.stdout); } catch { fail('DEVICE_LOCK_UNAVAILABLE'); }
-    if (value?.state !== 'held' || value.owner !== 'codex' || typeof value.until !== 'string' ||
+    if (value?.state !== 'held' || value.owner !== agent || typeof value.until !== 'string' ||
         !Number.isFinite(Date.parse(value.until)) || Date.parse(value.until) <= now() + 100) fail('DEVICE_LOCK_REQUIRED');
     return Date.parse(value.until);
   }
@@ -197,5 +198,6 @@ export function main(args, options = {}, io = process) {
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  process.exitCode = main(process.argv.slice(2));
+  const agent = process.env.CODEX_THREAD_ID ? 'codex' : process.env.CLAUDE_CODE_SESSION_ID ? 'claude' : 'codex';
+  process.exitCode = main(process.argv.slice(2), {agent});
 }

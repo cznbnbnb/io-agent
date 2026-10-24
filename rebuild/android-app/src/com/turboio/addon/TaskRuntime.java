@@ -10,11 +10,12 @@ import java.util.concurrent.*;
 final class TaskRuntime {
  interface Result {void done(Snapshot snapshot,String error);}
  static final class Snapshot {
-  final TaskSettings.Saved saved;final String binding,note,fingerprint;final List<TaskHub.View> contexts;
-  Snapshot(TaskHub hub,String note){
-   this.note=note;contexts=hub==null?Collections.emptyList():hub.views();TaskProfiles.Profile p=hub==null?null:hub.profiles().selected();binding=p==null?"":p.binding;saved=p==null?null:new TaskSettings.Saved(p.connection,p.enabled);
+  final TaskSettings.Saved saved;final String binding,note,fingerprint,device,pairing;final List<TaskHub.View> contexts;
+  Snapshot(TaskHub hub,String note){this(hub,note,"","");}
+  Snapshot(TaskHub hub,String note,String device,String pairing){
+   this.note=note;this.device=device;this.pairing=pairing;contexts=hub==null?Collections.emptyList():hub.views();TaskProfiles.Profile p=hub==null?null:hub.profiles().selected();binding=p==null?"":p.binding;saved=p==null?null:new TaskSettings.Saved(p.connection,p.enabled);
    List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"pending",v.pending,"objects",v.objects));
-   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows)));
+   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing)));
   }
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
  }
@@ -24,6 +25,7 @@ final class TaskRuntime {
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
  private final Map<Result,Activity> observers=new LinkedHashMap<>();
  private final Map<String,TaskHttp> transports=new ConcurrentHashMap<>();private final Set<String> enabled=ConcurrentHashMap.newKeySet();
+ private volatile TaskDevice device;private volatile String pairing="";private long nextDiscovery;private boolean deviceLoaded;
  private TaskHub hub;private String note="paused";private volatile boolean visible=true;
  private boolean initialized,ticking;private volatile long generation;
  private TaskRuntime(Activity activity){
@@ -42,7 +44,7 @@ final class TaskRuntime {
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
  private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
- private Snapshot snapshot(){return new Snapshot(hub,note);}
+ private Snapshot snapshot(){TaskDevice d=device;return new Snapshot(hub,note,d==null?"":d.preview(),pairing);}
  private void cancelAll(){for(TaskHttp t:transports.values())t.cancel();}
  private void load()throws Exception{
   if(initialized)return;TaskProfiles profiles=settings.loadAll();final long boundGeneration=generation;enabled.clear();for(TaskProfiles.Profile p:profiles.profiles)if(p.enabled)enabled.add(p.binding);
@@ -90,8 +92,39 @@ final class TaskRuntime {
  void answerGlasses(String binding,String operation,String request,long revision,Object option,String text,String fingerprint,Result result){work(()->{bound(binding);hub.answerGlasses(binding,operation,request,revision,option,text,fingerprint,System.currentTimeMillis());},result);schedule();}
  void prepareVoice(String binding,String requestId,long revision,String fingerprint,VoiceAnswerSession draft,Result result){work(()->{bound(binding);hub.prepareVoice(binding,requestId,revision,fingerprint,draft,System.currentTimeMillis());},result);}
  void answerVoice(String binding,VoiceAnswerSession draft,Result result){work(()->{bound(binding);boolean fresh=draft.phase().equals("REVIEW");if(fresh)VoiceAnswerEvidence.verify(app.getFilesDir(),draft);hub.answerVoice(binding,draft,System.currentTimeMillis());if(fresh)schedule();},result);}
+ // One-time pairing (TaskDevice, 2026-10-24): renew the device credential in the background and give
+ // every newly joined agent session its own derived connection. The hub is rebuilt only when the
+ // registry changed (bindings exclude the token, so mailboxes carry over); cards are not paused.
+ private void device(long now)throws Exception{
+  if(!deviceLoaded){device=settings.loadDevice();deviceLoaded=true;}
+  TaskDevice d=device;if(d==null)return;
+  if(now>=d.expiresAt){pairing="PAIRING_EXPIRED";return;}
+  if(d.renewDue(now)){try{d=TaskPairing.renew(d,now);settings.saveDevice(d);device=d;}catch(java.io.IOException failure){pairing=TaskApi.safeError(failure);if(pairing.equals("PAIRING_REVOKED"))return;}}
+  List<Map<String,Object>> routes=new ArrayList<>();TaskDevice seen=d;
+  if(now>=nextDiscovery){
+   nextDiscovery=now+5000;
+   for(int page=0;page<5;page++){
+    Map<String,Object> p;try{p=TaskPairing.inbox(seen);}catch(java.io.IOException failure){if("CURSOR_RESET_REQUIRED".equals(failure.getMessage())){seen=seen.withCursor("");continue;}pairing=TaskApi.safeError(failure);break;}
+    routes.addAll(TaskDevice.openRoutes(p));seen=seen.withCursor(TaskWire.text(p.get("next_cursor"),4096,false));pairing="";if(!Boolean.TRUE.equals(p.get("has_more")))break;
+   }
+  }
+  Set<String> busy=new HashSet<>();if(hub!=null)for(TaskHub.View v:hub.views())if(!v.pending.isEmpty())busy.add(v.binding);
+  boolean changed=settings.syncDevice(seen,routes,busy,now);
+  if(seen!=d){settings.saveDevice(seen);device=seen;}
+  if(changed)rebuild();
+ }
+ private void rebuild()throws Exception{generation++;cancelAll();if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();}
+ void pair(String code,Result result){work(()->{
+  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");long now=System.currentTimeMillis();
+  TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;pairing="";nextDiscovery=0;device(now);note="contexts_ready";
+ },result);schedule();}
+ /** Unpairs this phone on the server, forgets the credential and pauses the derived connections. */
+ void unpairDevice(Result result){work(()->{
+  TaskDevice d=settings.loadDevice();if(d!=null){TaskPairing.unpair(d);settings.clearDevice();settings.pauseDevice(d);}
+  device=null;deviceLoaded=true;pairing="";rebuild();note="contexts_ready";
+ },result);}
  private final Runnable tick=()->{
-  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn())hub.pump(System.currentTimeMillis());}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
+  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
  private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }
