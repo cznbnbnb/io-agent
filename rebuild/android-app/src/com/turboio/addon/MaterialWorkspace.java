@@ -27,6 +27,8 @@ final class MaterialWorkspace {
   case "LIFELOG_DISCOVERY_BUDGET":case "LIFELOG_LIST_BUDGET":case "LIFELOG_LIST_SOURCE_BUDGET":return "当天资料超出本次读取范围，本次未导入，已有资料保留";
   case "LIFELOG_RESPONSE_REJECTED":return "官方暂未提供当天智记，请稍后重试";
   case "OFFICIAL_LOGIN_REQUIRED":return "请先完成雷鸟账号登录";case "OFFICIAL_ACCOUNT_CHANGED":case "MATERIAL_ACCOUNT_REBIND_REFUSED":return "当前雷鸟账号与资料连接不一致，请核对账号和登记文件";
+  case "MATERIAL_LEGACY_CHANGED":case "MATERIAL_LEGACY_CONFIG_CHANGED":return "旧版本中的同步记录或连接有变化，资料已保留，请先核对后再继续同步";
+  case "MATERIAL_LEGACY_UNCERTAIN":case "MATERIAL_MIGRATION_CONFLICT":case "MATERIAL_MIGRATION_UNOWNED":case "MATERIAL_MIGRATION_MISSING":return "资料升级尚未确认，原资料已保留，暂不上传";
   case "MATERIAL_IMPORT_EXPIRED":case "AUTH_REQUIRED":case "expired":return "资料凭据或待发事件已到期，请更新连接并核对队列";
   case "LIFELOG_SOURCE_REFRESH_REQUIRED":return "发现正文变化，已暂停发送，等待权威修订核对";
   case "MATERIAL_TEXT_REVISION_REPAIR_REQUIRED":return "旧修订版本需要核对，资料已保留；请联网后重试同步";

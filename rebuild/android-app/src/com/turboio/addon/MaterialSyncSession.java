@@ -14,18 +14,19 @@ final class MaterialSyncSession {
   int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";
   Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"too_large",tooLarge,"note",note);}
  }
- private final File files;private final MaterialConfig config;private final AccountSource source;private final Guard guard;private final MaterialApi api;
+ private final File root,files;private final MaterialConfig config;private final AccountSource source;private final Guard guard;private final MaterialApi api;
  MaterialSyncSession(File files,MaterialConfig config,Source source,Guard guard,MaterialApi.Transport transport){this(files,config,(AccountSource)source,guard,transport);}
- MaterialSyncSession(File files,MaterialConfig config,AccountSource source,Guard guard,MaterialApi.Transport transport){this.files=accountFiles(files,config);this.config=config;this.source=source;this.guard=guard;
+ MaterialSyncSession(File files,MaterialConfig config,AccountSource source,Guard guard,MaterialApi.Transport transport){this.root=files;this.files=accountFiles(files,config);this.config=config;this.source=source;this.guard=guard;
   api=new MaterialApi(config.connection,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{admit();return transport.exchange(path,body);}public void cancel(){transport.cancel();}});
  }
- static File accountFiles(File files,MaterialConfig config){return new File(files,"material-accounts/"+config.account);}
+ static File accountFiles(File files,MaterialConfig config){return MaterialStorage.current(files,config);}
  private OfficialAccountBinding admit()throws IOException{
   guard.check();MaterialWire.require(config.enabled,"MATERIAL_PAUSED");try{OfficialAccountBinding now=source.current();MaterialWire.require(now!=null&&config.account.equals(now.binding),"OFFICIAL_ACCOUNT_CHANGED");return now;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}
  }
- static Status status(File files,MaterialConfig config)throws IOException{Status status=new Status();if(config==null){status.note="unconfigured";return status;}try(MaterialOutbox outbox=new MaterialOutbox(accountFiles(files,config),config.connection)){count(status,outbox);}if(!config.enabled)status.note="paused";return status;}
+ static Status status(File files,MaterialConfig config)throws IOException{Status status=new Status();if(config==null){status.note="unconfigured";return status;}try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(files,config),config.connection)){count(status,outbox);}if(!config.enabled)status.note="paused";return status;}
  private static void count(Status status,MaterialOutbox outbox){status.queued=status.stored=status.blocked=status.expired=status.reconcile=0;status.stored=outbox.retiredCount();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);String state=(String)row.get("state");if(state.equals("server_stored"))status.stored++;else if(state.equals("blocked"))status.blocked++;else if(state.equals("expired"))status.expired++;else{status.queued++;if(Boolean.TRUE.equals(row.get("needs_lookup")))status.reconcile++;}}}
  Status sync()throws Exception{
+  admit();MaterialStorage.prepare(root,config);
   if(source instanceof FreshSource||source instanceof DiscoverySource)return syncFresh();
   admit();Status status=new Status();
   try(MaterialOutbox outbox=new MaterialOutbox(files,config.connection);LifelogImportJournal journal=new LifelogImportJournal(files,config.connection,config.account)){

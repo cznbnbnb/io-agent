@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev72",
-  "version_code": 10494,
-  "revision": "io-agent-android-107-request-status-sync",
+  "version": "0.5.3-dev73",
+  "version_code": 10495,
+  "revision": "io-agent-android-107-material-auto-transfer",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-24T08:42:00.797Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev72.apk",
-  "bytes": 429707545,
-  "sha256": "738a515774db41970655285bd13b93fbdfabc1969cfd43b50831de0d0d2952fe",
+  "signed": "2026-10-24T10:43:35.583Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev73.apk",
+  "bytes": 429719833,
+  "sha256": "47fe7e9843d4a74b465e74e7bc033ec1d124bf5d6b7b255df81bd758c5cdffb5",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -51,5 +51,5 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "installation": "Explicit USB serial bae62ca9; normal adb install -r; installed version and complete APK SHA verified."
+  "phone_install_evidence": "r4-storage-dev73-2026-10-24.json"
 }

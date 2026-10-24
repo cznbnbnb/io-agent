@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T10:04:05.351Z",
+  "at": "2026-10-24T10:48:17.404Z",
   "assertions": 22,
   "scope": "Synthetic normal refresh session, existing bootstrap migration, offline recovery, changed pending body protection and account fencing",
   "sources": [
@@ -56,8 +56,16 @@
       "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
     },
     {
+      "path": "src/com/turboio/addon/MaterialStorage.java",
+      "sha256": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialSettingsState.java",
+      "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+    },
+    {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "4452cf1d6e8b35c263edf74b947fc83bc338a6f3cde91e3dcce05412f878e36c"
+      "sha256": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -157,11 +165,15 @@
     },
     {
       "path": "../../tools/android/MaterialSyncSessionTest.java",
-      "sha256": "edbb9fed8f277ab80f07ad600d20eabf891cf4602f79f3f7982f3331a09d51ec"
+      "sha256": "4bb0cb47027aaed4ff8d49685ff6b681cb0cb2f17f92c4012469c9ad182154bd"
     },
     {
       "path": "../../tools/android/MaterialHistoryTest.java",
       "sha256": "23e450223cd1c0ff2b7851f4594187ba22d81fec3ff6012332b417e6342253e1"
+    },
+    {
+      "path": "../../tools/android/MaterialStorageTest.java",
+      "sha256": "92e0d1718f3d06239849b73ef889df6fe6c052b471c417ec5abac07accf306b8"
     }
   ]
 }

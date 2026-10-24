@@ -296,7 +296,7 @@ final class MaterialSyncSession{
  static int started,completed;static String kind;static void reset(){started=completed=0;kind="";}final AccountSource source;final Guard guard;
  MaterialSyncSession(File dir,MaterialConfig cfg,AccountSource source,Guard guard,MaterialHttp http){started++;this.source=source;this.guard=guard;}
  static Status status(File dir,MaterialConfig config){return new Status();}
- static File accountFiles(File dir,MaterialConfig config){return new File(dir,"material-accounts/"+config.account);}
+ static File accountFiles(File dir,MaterialConfig config){return MaterialStorage.current(dir,config);}
  Status sync()throws Exception{guard.check();source.current();if(source instanceof DiscoverySource){kind="discovery";((DiscoverySource)source).discover();}else{kind="fresh";FreshSource fresh=(FreshSource)source;fresh.refresh(fresh.read());}guard.check();source.current();completed++;return new Status();}
 }
 

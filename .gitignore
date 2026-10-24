@@ -214,3 +214,6 @@
 
 !/rebuild/android-app/r4-pending-cancellation-2026-10-24.json
 !/rebuild/android-app/r4-server-release-preparation-2026-10-24.json
+
+!/rebuild/android-app/r4-storage-dev73-2026-10-24.json
+!/rebuild/android-app/r4-server-activation-2026-10-24.json

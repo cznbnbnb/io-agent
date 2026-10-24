@@ -43,4 +43,6 @@
 
 `tools/phase1/rehearse-material-transfer-release.mjs` 只接收两个代码目录，自己创建独立临时数据库和合成凭据，四个进程依次验证旧版写入、新版分块/撤销、旧代码回退、再次升级与新修订。完成后撤销合成凭据、删除临时资料，记录全部运行文件/契约哈希。
 
-`tools/phase1/package-material-transfer-release.py` 根据这份演练报告与明确 Git 提交生成 17 份文件的源码审阅包，补齐旧清单遗漏的 `devices.mjs`、`material-transfer.mjs`。包内不含数据库、凭据、node_modules 或手机资料；缺模块、哈希变化、演练失败都会在输出前拒绝。该包标为 `activation_verified=false`，历史发布控制器不接受此新 profile，不能直接当作已发布版本。当前服务/手机都未改变。[准备证据](../../rebuild/android-app/r4-server-release-preparation-2026-10-24.json)。
+`tools/phase1/package-material-transfer-release.py` 根据这份演练报告与明确 Git 提交生成 17 份文件的源码审阅包，补齐旧清单遗漏的 `devices.mjs`、`material-transfer.mjs`。包内不含数据库、凭据、node_modules 或手机资料；缺模块、哈希变化、演练失败都会在输出前拒绝。该包标为 `activation_verified=false`，历史发布控制器不接受此新 profile，不能直接当作已发布版本。准备阶段未改变服务和手机；实际激活结果见下文。[准备证据](../../rebuild/android-app/r4-server-release-preparation-2026-10-24.json)。
+
+2026-10-24 实际发布：新发布器复用原代码切换控制器，先比对线上基线并保存服务端 SQLite 备份（不回灌），再启用已演练的 17 文件来源包；源码、服务、HTTPS 与数据库 inode 核验通过。原审阅包仍保持 `activation_verified=false`，独立[发布证据](../../rebuild/android-app/r4-server-activation-2026-10-24.json)记录实际激活结果；正式材料联调仍待限期授权。

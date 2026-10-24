@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T10:05:04.172Z",
+  "at": "2026-10-24T10:36:40.093Z",
   "unit_assertions": 71,
   "transport": "real Java material core to existing loopback HTTP/SQLite service across two JVM processes",
   "computer_query": "existing MaterialQueryClient via actual HTTP with separate read-only credential",
@@ -44,8 +44,16 @@
       "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
     },
     {
+      "path": "src/com/turboio/addon/MaterialStorage.java",
+      "sha256": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialSettingsState.java",
+      "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+    },
+    {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "4452cf1d6e8b35c263edf74b947fc83bc338a6f3cde91e3dcce05412f878e36c"
+      "sha256": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogBatch.java",
@@ -181,7 +189,7 @@
     },
     {
       "path": "../../tools/android/test-material.mjs",
-      "sha256": "78abfcd66d68cb0a59306f7c886dab2f3b1f541724e8ad4c1bd54ff439eb71fc"
+      "sha256": "19769ce8043bc1594ef36fd553a9be01fec74311f1ab790fdf445f7c1ece5b6f"
     }
   ]
 }

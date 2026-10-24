@@ -28,4 +28,5 @@
  <instrumentation android:name="com.turboio.androidtests.MaterialRefreshReadProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.LifelogInventoryProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.OfficialMetadataProbe" android:targetPackage="com.rayneo.venus.pub" />
+  <instrumentation android:name="com.turboio.androidtests.MaterialUpgradeProbe" android:targetPackage="com.rayneo.venus.pub" android:functionalTest="true" android:handleProfiling="false" />
 </manifest>

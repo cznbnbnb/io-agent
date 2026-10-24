@@ -65,7 +65,7 @@ final class MaterialRuntime {
   // reading the currently signed-in account's official records.
   if(saved!=null&&!saved.account.equals(current.binding))saved=null;
   MaterialCatalog uploaded=MaterialCatalog.empty(current.binding,zone);
-  if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialSyncSession.accountFiles(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
+  if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
   MaterialLocalLibrary.Snapshot local;try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   return new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"");
