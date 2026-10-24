@@ -51,6 +51,8 @@ dev83 已安装且元数据探针通过；本轮正常进程的独立原厂观�
 
 真实临时 HTTP/SQLite、独立 JVM 四处强制退出恢复和 Android 编译/D8 通过，限合成不透明字节；不是产品手机上传或实际 TLS 测试。手机仍 dev83；来源生产者、自动调度、配置/UI、服务专用发布/回退、真实原音授权及权威删除尚未接通。[可复核证据](../../rebuild/android-app/r4-audio-client-2026-10-24.json)。
 
+后台来源发现用收集器 `catalog()` 的有序只读屏障：在同一 writer 队列等待此前批次，返回同账号管理目录的深拷贝；不调用 `end`、不分配新段或更改原件回执。它和人工导出的封存 checkpoint 共用一个在途额度，停止后不接新屏障；交付前重新核对准入，异常完成 future。自动生产器只能选其中已封存且来源已核验的段，不能读正在增长的原件，也不能把目录项当上传授权。组件真实文件测试 640 次轮询不封段，原件/状态/管理回执逐字节保持；封存型错误变体被同一回归检出，既有导出仍通过。此接口尚未进入 dev83 或自动运行时。[目录屏障证据](../../rebuild/android-app/r4-audio-catalog-2026-10-24.json)。
+
 ## 原厂入口与已验证格式
 
 固定宿主 1.0.7 的 A3 实时帧经 `com.rayneo.rayneo_venus_sdk_plugin.e.h(message,data)` 解析，进入 `t8/b$b.c`；A4 缓存数据经 `t8/b$b.a` 写入 `files/always_on_cached_audio/<resolvedTaskId>.opus`，结束后通知 `taskId/filePath/sizeBytes`。A3 的实时数据与 A4 的缓存结束不能互相替代。后缀 `.opus` 本身不证明编码或可播放封装。
