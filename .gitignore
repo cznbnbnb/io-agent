@@ -208,3 +208,5 @@
 /rebuild/android-app/.private
 /rebuild/android-app/.tools
 /rebuild/android-app/artifacts
+
+!/rebuild/android-app/r4-text-transfer-2026-10-24.json
