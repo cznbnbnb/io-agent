@@ -84,12 +84,17 @@ final class AgentCardRequest {
   // A dictated choice shows the recognised option; an unrecognised one shows the words as said.
   String spoken=confirm==null?null:voice?null:VoiceOption.confirmCopy(confirm,labels(),CONTENT_LIMIT);
   String content=confirm!=null?(spoken!=null?spoken:confirm.replaceAll("\\s*[\\r\\n]+\\s*"," ").trim()):voice?TaskWire.body(request).get("question")+VOICE_SUFFIX:page((String)TaskWire.body(request).get("question"),index,size(),answerText(index));
+  // 2026-10-24 (device): a dictation longer than one card got no confirm card at all and had to be
+  // finished on the phone. The confirm copy shows its start and full length; a nod still saves the
+  // whole draft exactly (confirm), only the lens copy is shortened.
+  if(confirm!=null&&spoken==null&&content.length()>CONTENT_LIMIT)content=preview(content);
   // Conservative previously tested copy limits. Do not truncate a question, condition or option.
   TaskWire.require(content.length()<=CONTENT_LIMIT&&clean(agent)&&clean(computer)&&clean(content),"TASK_GLASS_COPY_TOO_LONG");
   // Native card headings have 16-character slots. Abbreviate presentation only: the
   // frozen route, owner and saved answer still contain the full original identifiers.
   return new Copy(cardName(agent),cardName(computer),content);
  }
+ private static String preview(String text){String tail="…（共"+text.length()+"字）";int cut=CONTENT_LIMIT-tail.length();if(Character.isHighSurrogate(text.charAt(cut-1)))cut--;return text.substring(0,cut)+tail;}
  private static String cardName(String name){return name.length()<=16?name:name.substring(0,15)+"…";}
  private void checkCopy(){TaskWire.require(voice||"choice".equals(TaskWire.body(request).get("mode")),"TASK_GLASS_PHONE_ANSWER");for(int i=0;i<size();i++)copy(i);}
  private static boolean clean(String text){if(text.trim().isEmpty())return false;for(int i=0;i<text.length();i++)if(Character.isISOControl(text.charAt(i)))return false;return true;}

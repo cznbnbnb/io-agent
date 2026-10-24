@@ -77,8 +77,12 @@ public final class TurboAddon {
         MAIN.postDelayed(() -> {
             if (app != null) return;
             try {
-                BackgroundWork.init(application); BackgroundWork.register("新闻", NewsTele::stop); NativeTransfer.init(application);
+                // OTA guards first: their journals keep cards and dictation off the lens during an upgrade.
+                OtaController.init(application); OfficialOtaBridge.init(application);
+                BackgroundWork.init(application); BackgroundWork.register("新闻", NewsTele::stop); NativeTransfer.init(application); CardTransport.init();
                 Host107Login.warm(application);
+                Host107Connection.boot(application);
+                HeadGestureRuntime.boot(application);
                 AgentCardRuntime.boot(application);
                 android.util.Log.i("TurboIOCard", "headless task runtime started");
             } catch (Throwable failure) { android.util.Log.w("TurboIOCard", "headless task runtime unavailable " + failure.getClass().getSimpleName()); }

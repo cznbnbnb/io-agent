@@ -22,14 +22,14 @@ final class HeadGestureRuntime {
  private String checkOwner="",checkExport="";private long checkStarted;private boolean checkFinishing;private TextView checkView;private final Set<String> checkPhases=new LinkedHashSet<>();
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("HEAD_GUARD_THREAD");}
- private HeadGestureRuntime(Activity activity)throws IOException{
-  app=(Application)activity.getApplication();foreground.add(activity);document=new AtomicDocument(new File(activity.getFilesDir(),"io-agent-head-guard-v1.json"));
+ private HeadGestureRuntime(Application application,Activity activity)throws IOException{
+  app=application;if(activity!=null)foreground.add(activity);document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-head-guard-v1.json"));
   session=new HeadGestureSession(new HeadGestureSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object raw)throws Exception{document.save(raw);}});
   HeadGestureGate.observe(new HeadGestureGate.Observer(){
    public boolean userWrite(String peer,HeadGestureSession.Setting setting){boolean allowed=session.userWrite(peer,setting);main.post(()->pump());return allowed;}
    public boolean unknownWrite(String peer){boolean allowed=session.unknownWrite(peer);main.post(()->pump());return allowed;}
   });
-  ((Application)activity.getApplication()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
+  app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){foreground.add(a);}
    public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!TaskAttention.background()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("App进入后台；卡片停止接收答案，封存后恢复设置");}
    public void onActivityDestroyed(Activity a){foreground.remove(a);}
@@ -37,7 +37,9 @@ final class HeadGestureRuntime {
   });
   main.post(poll);
  }
- static void init(Activity activity){main();if(instance==null)try{instance=new HeadGestureRuntime(activity);}catch(IOException unavailable){/* No guard instance means no actionable task card. */}}
+ static void init(Activity activity){main();if(instance==null)try{instance=new HeadGestureRuntime(activity.getApplication(),activity);}catch(IOException unavailable){/* No guard instance means no actionable task card. */}}
+ /** No screen yet (TurboAddon.boot): task cards need the head-gesture guard too. */
+ static void boot(Application application){main();if(instance==null)try{instance=new HeadGestureRuntime(application,null);}catch(IOException unavailable){/* No actionable task card. */}}
  static boolean begin(String owner,Listener callback){return begin(owner,callback,false);}
  /** keepGestures: hold the wearer's current nod/shake setting instead of turning it off (confirm cards only). */
  static boolean begin(String owner,Listener callback,boolean keepGestures){

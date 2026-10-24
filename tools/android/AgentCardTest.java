@@ -159,7 +159,7 @@ public final class AgentCardTest {
   final AgentCardRequest cf=v.confirming("文件名叫录音测试。\n内容是通过。");yes(cf.voice&&cf.size()==1&&cf.copy(0).content.equals("文件名叫录音测试。 内容是通过。"));
   yes(!cf.owner.equals(v.owner)&&!cf.owner.equals(v.confirming("文件名叫录音测试。").owner)&&cf.fingerprint.equals(v.fingerprint));
   AgentCardRequest back=AgentCardRequest.restore(cf.json());yes(cf.confirm.equals(back.confirm)&&back.owner.equals(cf.owner)&&AgentCardRequest.restore(v.json()).confirm==null);
-  rejects(()->v.confirming(" "));rejects(()->cf.confirming("再确认"));rejects(()->v.confirming(String.join("",Collections.nCopies(49,"字"))));yes(v.confirming(String.join("",Collections.nCopies(48,"字"))).copy(0).content.length()==48);
+  rejects(()->v.confirming(" "));rejects(()->cf.confirming("再确认"));{String said=String.join("",Collections.nCopies(60,"字"));AgentCardRequest longSaid=v.confirming(said);String shown=longSaid.copy(0).content;yes(shown.length()<=48&&shown.endsWith("…（共60字）")&&shown.startsWith("字字字")&&longSaid.confirm.equals(said));}yes(v.confirming(String.join("",Collections.nCopies(48,"字"))).copy(0).content.length()==48);
   m=new Memory();s=active(m,cf);s.receive(PEER,1,action(s.uid(),1),clock,NOW,true);yes(s.pendingAnswer()==null&&!s.hasSelection());ackAndRemove(s);cleanup(s,1);AgentCardRequest confirmed=s.takeVoiceHandoff(clock);yes(confirmed!=null&&confirmed.confirm.equals(cf.confirm)&&s.takeVoiceHandoff(clock)==null);
   s=active(new Memory(),cf);s.receive(PEER,1,action(s.uid(),2),clock,NOW,true);ackAndRemove(s);cleanup(s,1);yes(s.takeVoiceHandoff(clock)==null&&s.pendingAnswer()==null);
   // A handoff never carries over to the next prepared question.
@@ -180,7 +180,8 @@ public final class AgentCardTest {
   yes(AgentCardRequest.restore(longConfirm.json()).owner.equals(longConfirm.owner)&&longConfirm.matches(longRequest,task(longConnection),NOW));
   Map<String,Object> otherSpec=WireJson.map(WireJson.copy(longSpec));otherSpec.put("computer_id","io-mac-codex-competing");TaskConnection otherConnection=TaskConnection.parse(WireJson.bytes(otherSpec),NOW);
   rejects(()->AgentCardRequest.prepareConfirm(otherConnection,longRequest,task(longConnection),NOW,"选二"));
-  rejects(()->AgentCardRequest.prepareConfirm(longConnection,longRequest,task(longConnection),NOW,String.join("",Collections.nCopies(49,"字"))));
+  // An unrecognised long dictation on a choice question still gets a confirm card: its start and length.
+  {AgentCardRequest said=AgentCardRequest.prepareConfirm(longConnection,longRequest,task(longConnection),NOW,String.join("",Collections.nCopies(49,"字")));yes(said.copy(0).content.endsWith("…（共49字）")&&said.copy(0).content.length()<=48&&said.confirm.length()==49);}
   Map<String,Object> text=WireJson.map(WireJson.copy(TaskWire.body(textRequest)));text.put("question",String.join("",Collections.nCopies(36,"问")));yes(AgentCardRequest.route(text).equals("card"));
   text.put("question",String.join("",Collections.nCopies(37,"问")));yes(AgentCardRequest.route(text).equals("prompter"));
   // Every choice, even a short two-option one, goes to the prompter.
