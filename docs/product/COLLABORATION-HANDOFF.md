@@ -1,3 +1,13 @@
+## [codex] 2026-10-24 R4 原音来源调查取得证据，产品仍 dev76
+
+新增独立只读 LifelogAudioMetadataProbe 和驱动入口；旧 OfficialMetadataProbe 固定旧 dev6，未据此冒充新版本。驱动编译/签名、当前 dev76 版本及账号核对通过；真机两次类型/路径核验均未改队列和配置，无 HTTP、无采音/播放/音频读取，输出仅字段形状、计数与哈希。Claude 仍 96b1dbb，未改其工作区。
+
+当前账号缓存有 66 个唯一来源，类型包括 conversation 与 recording。四个文件名相符的 Opus 候选全部属于 recording，三份非空、一份零字节；不能作为全天对话原音。录音列表缓存和四项旧全局录音偏好均不存在，文件扫描深度 8、最多 3000 项，不声称穷尽所有历史。
+
+原厂固定 1.0.7 smali 确认：t8/b$b.a 的 A4 缓存音频进入 o8/e.a/c，写 files/always_on_cached_audio/<resolvedTaskId>.opus，结束后回传 taskId/filePath/sizeBytes；手机当前不存在该目录。A3 实时帧为另一条入口，debug dump 为独立行为，不开启调试开关。taskId 可回退为最近/生成值，尚不能直接等同 conversation sourceId。Dart /always-on/message/conversation/query 仅静态线索，未重放请求。[本批脱敏证据](../../rebuild/android-app/r4-audio-source-audit-2026-10-24.json)。
+
+**下一项**：准备 A3/A4 原音归档及来源证明，包含帧顺序/完整结束、实际编码封装、账号和 sourceId 关联；先合成验证再装机。三天远程保存/到期、手机导出与权威删除继续开放，当前正式授权仍仅 24 小时文字。本批无新产品包、仍 dev76 /10498，回退 dev75；驱动已卸载，App 正常恢复后台，设备锁收尾释放。完成 checkpoint 已入库，未声称镜片人工确认；正常提交推送 Codex 分支，不合 main。
+
 ## [codex] 2026-10-24 R4 文字自动同步与全文回读通过，dev76 /10498 已装
 
 当前 **dev76 /10498，回退 dev75 /10497**。dev75 修复原厂把同一来源分在多个聚合事件中导致整轮失败；只合并元数据一致且不重叠的片段，保留全部句子与真实间隙，较小读取范围不覆盖已存正文。dev76 修复正常分批上传被当作失败退避：有新存储回执时一分钟继续，补查日期只在全部完成后推进。两版均只传 1,437,284 字节差异，手机重建、签名与现装完整 SHA 核对；dev76 SHA `2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4`。只保留 75/76 两包。
