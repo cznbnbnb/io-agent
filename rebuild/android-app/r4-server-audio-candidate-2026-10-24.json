@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T18:33:31.222366+00:00",
+  "node": "v22.23.2",
+  "scope": "Real local SQLite, loopback HTTP and independent Node processes; synthetic bytes only",
+  "passed": true,
+  "targeted_tests": {
+    "tests": 27,
+    "pass": 27,
+    "fail": 0,
+    "skipped": 0
+  },
+  "includes_default_cli_expiry_timer": true,
+  "timer_test_seconds": 60,
+  "publisher_boundary_tests": {
+    "tests": 9,
+    "passed": true,
+    "log_sha256": "5e36adb5663e7dc5ce39a8f297d03ffb97a1065801c91259ffd351261669afbc"
+  },
+  "targeted_log_sha256": "757a0a9187b219bf1960d8e6da5b01039986a67b0263603e6be9bbe009430f01",
+  "wider_regression": {
+    "tests": 42,
+    "passed": 41,
+    "failed": 1,
+    "reason": "Pre-existing missing ArkTS device-p21-wire39-seed.json fixture; not called a full pass.",
+    "log_sha256": "a6506f1c566d421960019285935a7e48456559fc63771a65b2c38ba65c2cd694"
+  },
+  "initial_failures_retained": [
+    "Audio worker URL.pathname contained encoded spaces; fixed with fileURLToPath, actual before/after commit process exits then passed.",
+    "Two historical publisher expectations required current source equal the old bundle; now independently verify its committed bytes, stale-source rejection and live-baseline refusal."
+  ],
+  "properties": [
+    "Separate server-bound audio side database excluded from ordinary text backup.",
+    "Exact 72h starts at verified durable commit; retries keep the original instant.",
+    "Independent audio scopes; existing text and paired-device permissions unchanged.",
+    "Streamed whole-object SHA, bounded 128 KiB parts, owner/producer isolation and quotas.",
+    "Expiry denies reads immediately and active service prunes on a real 60s timer.",
+    "Source material tombstone blocks reads/late finalization; source deletion discovery is still pending.",
+    "Optional audio store failure leaves text/question service available.",
+    "A missing source head is unavailable, never deletion evidence; only explicit material tombstones withdraw audio before TTL."
+  ],
+  "production_deployed": false,
+  "real_audio_uploaded": false,
+  "real_audio_credentials_minted": false,
+  "phone_product_changed": false,
+  "phone_version": "dev80 /10502",
+  "stable_rollback": "dev76 /10498",
+  "next": [
+    "Prepare independent original-audio release/rollback/expiry rehearsal and publish complete runtime.",
+    "Connect Android durable audio upload/outbox and remote status/download.",
+    "Complete exact source association, actual phone export and capture stability.",
+    "Implement original-source authoritative deletion discovery and own permission before real deletion."
+  ],
+  "sources": {
+    "rebuild/material-server/audio.mjs": "c7eb45cf4cb6bb474fc40a930e72f6f37dcfa85dcd561b8c057dab7a8a014ca6",
+    "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+    "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+    "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+    "rebuild/material-server/tests/audio.test.mjs": "5e9634fb26fc4afda7d2d71d2a7ad2bca2923e7ea2fdc0acb8634d67451aa9ae",
+    "rebuild/material-server/tests/audio-worker.mjs": "11d37f6ef9d0668b92e0b3b6f1eed4c59e8171d0fdb007aa787cf62cc41f6341",
+    "tools/phase1/package-material-transfer-release.py": "ed87478c90439a00fab05ff4e1c5db73f243e408801cb20042942bf13e9c00f5",
+    "tools/phase1/deploy-material-transfer-release.py": "fdbf1a8bec00de2221a374b55ab2c4aacbb778088e4a009306055912274d6d6f",
+    "tools/phase1/test-material-transfer-publisher.py": "c54764dcb02556e4d566c38e176b5a3156d02aef20fde49200a16ce560bdb7e0"
+  }
+}

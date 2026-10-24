@@ -2,6 +2,7 @@ import importlib.util
 import json
 from pathlib import Path
 import sqlite3
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -28,10 +29,14 @@ class PublisherTests(unittest.TestCase):
                 target.writestr(n, data)
         return path
 
-    def test_reviewed_commit_and_rehearsal(self):
-        result = publisher.reviewed(self.bundle)
-        self.assertEqual(set(result['before_sha256']), set(publisher.FILES))
-        self.assertIsNone(result['before_sha256']['rebuild/material-server/material-transfer.mjs'])
+    def test_historical_bundle_is_committed_but_current_audio_source_requires_new_review(self):
+        metadata = publisher.inspect_bundle(self.bundle)
+        with zipfile.ZipFile(self.bundle) as archive:
+            for name in publisher.FILES:
+                committed = subprocess.check_output(['git', 'show', metadata['source_commit'] + ':' + name], cwd=publisher.ROOT)
+                self.assertEqual(committed.replace(b'\r\n', b'\n'), archive.read(name).replace(b'\r\n', b'\n'))
+        with self.assertRaisesRegex(ValueError, 'CURRENT_SOURCE_DIFFERS'):
+            publisher.reviewed(self.bundle)
 
     def test_changed_payload_refused(self):
         path = self.changed_bundle(lambda v: v.__setitem__('rebuild/material-server/http.mjs', b'changed'))
@@ -50,6 +55,29 @@ class PublisherTests(unittest.TestCase):
             values['manifest.json'] = json.dumps(m).encode()
         with self.assertRaisesRegex(ValueError, 'MANIFEST_INVALID'):
             publisher.inspect_bundle(self.changed_bundle(change))
+
+    def test_audio_runtime_cannot_use_text_only_release_profile(self):
+        def change(values):
+            key = 'rebuild/material-server/store.mjs'
+            values[key] += b"\nimport {AudioArchive} from './audio.mjs';\n"
+            metadata = json.loads(values['manifest.json'])
+            metadata['files'][key] = {'bytes': len(values[key]), 'sha256': publisher.sha(values[key])}
+            values['manifest.json'] = json.dumps(metadata).encode()
+        with self.assertRaisesRegex(ValueError, 'AUDIO_RELEASE_PROFILE_REQUIRED'):
+            publisher.inspect_bundle(self.changed_bundle(change))
+
+    def test_packager_refuses_audio_before_creating_any_archive(self):
+        spec = importlib.util.spec_from_file_location('audio_boundary_packager',
+            Path(__file__).with_name('package-material-transfer-release.py'))
+        packager = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(packager)
+        source = self.root / 'rebuild/material-server/store.mjs'
+        source.parent.mkdir(parents=True)
+        source.write_text("import {AudioArchive} from './audio.mjs';")
+        output = self.root / 'must-not-exist.zip'
+        with self.assertRaisesRegex(ValueError, 'AUDIO_RELEASE_PROFILE_REQUIRED'):
+            packager.build(self.root, self.root / 'not-read.json', 'a' * 40, output)
+        self.assertFalse(output.exists())
 
     def test_backup_is_consistent_and_never_restores(self):
         source = self.root / 'source.sqlite'
@@ -81,7 +109,13 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(source.read_bytes(), b'preserve')
 
     def test_live_change_refused_before_backup(self):
-        metadata = publisher.reviewed(self.bundle)
+        # Review rejection is covered above; independently exercise the live
+        # baseline boundary with this historical bundle's immutable manifest.
+        manifest = publisher.inspect_bundle(self.bundle)
+        before = dict(manifest['baseline_sha256'])
+        before['rebuild/material-server/material-transfer.mjs'] = None
+        metadata = {'release_id': manifest['release_id'], 'archive_sha256': publisher.sha(self.bundle.read_bytes()),
+                    'before_sha256': before}
         paths = {k: self.root / k for k in ('current', 'journal', 'archive', 'stage', 'backup', 'rejected')}
         controller = {'locations': lambda _: paths, 'source_hashes': lambda *_: {}}
         with self.assertRaisesRegex(ValueError, 'LIVE_BASELINE_CHANGED'):

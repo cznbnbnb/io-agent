@@ -26,6 +26,10 @@ def sha(value):
 def build(root, report_path, commit, output):
     if not re.fullmatch(r'[a-f0-9]{40}', commit):
         raise ValueError('EXPLICIT_COMMIT_REQUIRED')
+    # This historical profile has no independent original-audio database or
+    # expiry/rollback rehearsal. Never publish a partial audio runtime with it.
+    if b"./audio.mjs" in (root / 'rebuild/material-server/store.mjs').read_bytes():
+        raise ValueError('AUDIO_RELEASE_PROFILE_REQUIRED')
     report = json.loads(report_path.read_text())
     if report.get('passed') is not True or report.get('production_changed') is not False or \
             not report.get('temporary_data_removed') or not re.fullmatch(r'v22\.\d+\.\d+', report.get('node', '')):

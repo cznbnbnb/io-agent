@@ -1,0 +1,326 @@
+{
+  "version": "0.5.3-dev80",
+  "version_code": 10502,
+  "fresh_day_read": [
+    "原厂读取于 10-25 02:24 · 本次返回 36 份正文"
+  ],
+  "probe": {
+    "android_extracted_frames": 66800,
+    "android_opus_container_verified": true,
+    "audio_uploaded_played_or_returned": false,
+    "capture_metadata": [
+      {
+        "clock_epoch": "43c6d0bb66bb40acbdb83071176970de",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859287326,
+        "last_received_at": 1792859510578,
+        "saved_batches": 132,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "4d9149eb5bd646c493e2a1a5d801e883",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859527990,
+        "last_received_at": 1792859587947,
+        "saved_batches": 44,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "6c6be5ab5a7b4e14906b072056b4a5c3",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859607990,
+        "last_received_at": 1792859668330,
+        "saved_batches": 44,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "6e3a0ba2b201498c9e1d925de0348790",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859688159,
+        "last_received_at": 1792859750318,
+        "saved_batches": 44,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "90214baab1f948c98603fdacd383e041",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859768267,
+        "last_received_at": 1792859828683,
+        "saved_batches": 44,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "b9d7c95dcb45443b8d803a71a5ad9efa",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859848456,
+        "last_received_at": 1792859909007,
+        "saved_batches": 44,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "bbe3368194774cb09db0d4a1a7756a84",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792859928668,
+        "last_received_at": 1792860110017,
+        "saved_batches": 110,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "121b138505824cf4803a2ee21590fd50",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792860128920,
+        "last_received_at": 1792860149656,
+        "saved_batches": 22,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "10e8555920f34cc59814291f2425a3ef",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792860169160,
+        "last_received_at": 1792860171131,
+        "saved_batches": 11,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "6078ab95e411469e88bbb5330a4bcd2c",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792860188836,
+        "last_received_at": 1792860330596,
+        "saved_batches": 88,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "a530cfdeaf344799b97a80c04ee69f63",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792860349170,
+        "last_received_at": 1792860530123,
+        "saved_batches": 110,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "b3aac568020e4578b2e58451f1ce17f3",
+        "task_sha256": "5341a5258c12adf0ea7fa763b66711c0340c5ab525d72b0e739e2ca69addddec",
+        "material_id": "rayneo-lifelog-14df765c5220d28fe4dc0be862bd6ed01c901b5898c3abb7c193aa29fdef50f6",
+        "started_at": 1792860567497,
+        "last_received_at": 1792860847964,
+        "saved_batches": 157,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "bd90b12bd2784b1e96bc4dae3677b823",
+        "task_sha256": "a7890b390550b2228a7357125c9049f912147e3afa1b5c1c95aafeb2a58ffdf4",
+        "material_id": "rayneo-lifelog-d4c1db0444f56fe369024b629529c725e2155bdf26dc125e3ef265ef6fd97d70",
+        "started_at": 1792860896749,
+        "last_received_at": 1792861177213,
+        "saved_batches": 157,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "696c163fdc4d46e28ab50f93c2866284",
+        "task_sha256": "523e0d0f0f7aa264adce849b55988d5b12f930ebb12b914e2019ad8328f017d5",
+        "material_id": "rayneo-lifelog-48fbe7a4f2ecd3054e75a320b5d9dcce29f9f4791bdcb0b33349d7ac93c2a66e",
+        "started_at": 1792861204443,
+        "last_received_at": 1792861465505,
+        "saved_batches": 154,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "44f58d622608484da3d705fd89ca4af9",
+        "task_sha256": "181b2e5e2d30d5cff8ef97f05370741a7d990356aac9d83a7bfdac9bf81905ea",
+        "material_id": "rayneo-lifelog-deb05669da77ee8cc386fda892f80b6ffe2ff782fdb9a15b64f20b286f9ccf81",
+        "started_at": 1792861648926,
+        "last_received_at": 1792864154672,
+        "saved_batches": 1386,
+        "phase": "FAILED",
+        "error": "OFFICIAL_ACCOUNT_CHANGED",
+        "source_link_verified": true
+      },
+      {
+        "clock_epoch": "f25f8056359f4edb8f671c297f8d29d9",
+        "task_sha256": "181b2e5e2d30d5cff8ef97f05370741a7d990356aac9d83a7bfdac9bf81905ea",
+        "material_id": "rayneo-lifelog-deb05669da77ee8cc386fda892f80b6ffe2ff782fdb9a15b64f20b286f9ccf81",
+        "started_at": 1792864875600,
+        "last_received_at": 1792866338945,
+        "saved_batches": 814,
+        "phase": "RUNNING",
+        "error": "",
+        "source_link_verified": true
+      }
+    ],
+    "derived_test_export_removed": true,
+    "export_bytes": 17906952,
+    "export_frames": 66800,
+    "export_parts": 3,
+    "export_sha256": "243845329c634e048ade8e4232be3cd55f8c40d2a70552a0860881c963e0b8e3",
+    "new_recording_started": false,
+    "normal_capture_saved_batches": 814,
+    "original_audio_removed": false,
+    "passed": true,
+    "probe_id": "d74dc7cd8d1d4f0a94c3abc0e673f69c",
+    "runtime_metadata": "{phase=IDLE, remote_stored=false}",
+    "samples48": 192384000,
+    "source_metadata": {
+      "cached_conversation_sources": 67,
+      "local_conversation_sources": 56,
+      "fresh_day_reads": [
+        {
+          "date": "2026-10-22",
+          "read_at": 1792754279658,
+          "source_count": 0,
+          "timezone": "Asia/Shanghai"
+        },
+        {
+          "date": "2026-10-23",
+          "read_at": 1792754647902,
+          "source_count": 20,
+          "timezone": "Asia/Shanghai"
+        },
+        {
+          "date": "2026-10-24",
+          "read_at": 1792866251119,
+          "source_count": 36,
+          "timezone": "Asia/Shanghai"
+        },
+        {
+          "date": "2026-10-25",
+          "read_at": 1792866171167,
+          "source_count": 0,
+          "timezone": "Asia/Shanghai"
+        }
+      ],
+      "cached_exact_task_matches": [
+        "181b2e5e2d30d5cff8ef97f05370741a7d990356aac9d83a7bfdac9bf81905ea"
+      ],
+      "local_exact_task_matches": [
+        "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252"
+      ]
+    }
+  },
+  "adb_exit_code": 0,
+  "schema": 1,
+  "phone": {
+    "endpoint": "100.86.133.91:35137",
+    "model": "M332BF",
+    "device_serial_sha256": "b181defe2da6688947b83081f8ff3b9fa9fb99649f3b84d0631c5692097dcdc8",
+    "version": "0.5.3-dev80",
+    "version_code": 10502,
+    "installed_sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+    "expected_device_serial_verified": true
+  },
+  "scope": "Installed dev80 capture/export/decoder; real audio remains on the phone. No new recording/playback/upload.",
+  "driver_sha256": "f42ad80983e26325193779322e217a90713843cb4506998736fa5a3495009735",
+  "driver_source_sha256": "76ec5a155f8999a566b1431a514431e0e075655764dc7f18a0fef9c99eb8a6af",
+  "source_association_blocker_resolved": true,
+  "capture_stability_verified": false,
+  "phone_saf_picker_verified": true,
+  "subjective_listening_verified": false,
+  "interpretation": "Latest official source read associated the formerly pending task exactly. A real exported ZIP had 66,800 privately decoded packets and Android MediaExtractor counted the same packets in 3 Ogg parts. This proves this export path, not complete capture. Last metadata window includes repeated context/account-check interruption errors.",
+  "normal_ui_export_button_enabled": true,
+  "system_document_picker_opened": true,
+  "system_document_picker_package": "com.google.android.documentsui",
+  "save_as_input_adaptation": {
+    "adb_input_was_rejected_by_exact_text_check": true,
+    "input_method_changed": false,
+    "self_targeted_driver_sha256": "2308532d074090e792d8265fbd1ee8df9fee034e3786556dc2bf3dc14843659d",
+    "system_input_source_sha256": "8d8d9731e2e0ac845ce42f56edeeaa85012e252508d8ea4872acf9250d3fa2bf"
+  },
+  "system_filename_input": {
+    "name": "io-agent-audio-export-20261024-codex-6397af.zip",
+    "target": "/sdcard/Download/io-agent-audio-export-20261024-codex-6397af.zip",
+    "name_unique_before_save": true,
+    "document_filename_verified": true,
+    "instrumentation_target_package": "com.turboio.androidtests"
+  },
+  "normal_ui_saved_export": {
+    "passed": true,
+    "bytes": 12182687,
+    "sha256": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+    "parts": 19,
+    "frames": 45424,
+    "samples48": 130821120,
+    "zip_crc_verified": true,
+    "index_packet_counts_verified": true,
+    "android_opus_container_verified": true,
+    "audio_uploaded_played_or_returned": false,
+    "original_audio_removed": false,
+    "target": "/sdcard/Download/io-agent-audio-export-20261024-codex-6397af.zip",
+    "system_saf_export_verified": true,
+    "verification_dex_sha256": "e7cae355def0b75156a3d39fd2d89497cba9bd8f170cc9a9250b5f00fdbdec76",
+    "verifier_source_sha256": "6775538058f4f514809eb60234b017ba87983803e02873f65040cbfec643cb3a",
+    "export_kept_in_phone_download": true
+  },
+  "progress_estimate": {
+    "R3": 100,
+    "R4": 80
+  },
+  "cleanup": {
+    "driver_uninstalled": true,
+    "normal_app_running": true,
+    "app_background_command_completed": true,
+    "sleep_command_completed": true,
+    "wakefulness_observed": "Dozing",
+    "original_audio_removed": false,
+    "export_in_download_preserved": true,
+    "installed_apk_sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+    "product_version_unchanged": true,
+    "normal_app_launched": true,
+    "phone_verifier_and_scratch_removed": true,
+    "local_regenerable_test_builds_removed": [
+      "rebuild/android-app/build/emulator-input",
+      "rebuild/android-app/build/audio-export-verifier"
+    ],
+    "signed_product_apks_retained": [
+      "iO-Agent-Android-0.5.3-dev80.apk",
+      "iO-Agent-Android-0.5.3-dev76.apk"
+    ],
+    "device_lock_released": true
+  },
+  "cli_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-real-export-and-server-candidate-20261024",
+    "server_stored": true,
+    "caller_verified": true,
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T19:30:11.097Z",
+    "message_id": "notice-6b126cd028371e64b57a55b468bc78725237e7091637e695d082d3e9f711d319"
+  }
+}

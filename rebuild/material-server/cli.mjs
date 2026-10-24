@@ -25,7 +25,9 @@ try{
       const server=await listen(store,port,{traffic,trafficUnavailable});process.stdout.write(JSON.stringify({service:'turboio-materials',listen:'127.0.0.1',port})+'\n');
       // Overdue agent check-ins become one server-made glasses notice each (store.watchdogTick).
       const watchdog=setInterval(()=>{try{store.watchdogTick();}catch{}},60000);
-      let closing=false;const stop=()=>{if(closing)return;closing=true;clearInterval(watchdog);server.close(()=>{traffic?.close();store.close();process.exit(0);});};
+      if(store.audioUnavailable)process.stderr.write(JSON.stringify({warning:'AUDIO_UNAVAILABLE'})+'\n');
+      const audioExpiry=store.audio?setInterval(()=>{try{store.audio.prune();}catch{process.stderr.write(JSON.stringify({warning:'AUDIO_EXPIRY_UNAVAILABLE'})+'\n');}},60000):null;
+      let closing=false;const stop=()=>{if(closing)return;closing=true;clearInterval(watchdog);clearInterval(audioExpiry);server.close(()=>{traffic?.close();store.close();process.exit(0);});};
       process.on('SIGINT',stop);process.on('SIGTERM',stop);
     }else if(action==='mint'){
       // O_EXCL prevents overwriting a previous credential. On Windows restrict

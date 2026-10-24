@@ -52,6 +52,8 @@ def inspect_bundle(path):
             data = archive.read(name)
             if m['files'][name] != {'sha256': sha(data), 'bytes': len(data)}:
                 raise ValueError('SOURCE_HASH_MISMATCH')
+        if b"./audio.mjs" in archive.read('rebuild/material-server/store.mjs'):
+            raise ValueError('AUDIO_RELEASE_PROFILE_REQUIRED')
     m['release_id'] = 'r4-transfer-' + m['source_commit'][:12] + '-' + sha(path.read_bytes())[:12]
     return m
 

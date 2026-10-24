@@ -11,6 +11,8 @@ const ADMIN_ASSETS=new Map([
   ['/v1/admin/style.css',['admin/style.css','text/css; charset=utf-8']]
 ].map(([route,[file,type]])=>[route,{data:fs.readFileSync(new URL(file,import.meta.url)),type}]));
 
+function audioArchive(store){if(!store.audio)reject(503,'AUDIO_UNAVAILABLE');return store.audio;}
+
 function decoded(value){try{return decodeURIComponent(value);}catch{reject(400,'INVALID_QUERY');}}
 async function smallJson(req,observation,limit=8192){
   if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']??'')||req.headers['content-encoding'])reject(415,'UNSUPPORTED_MEDIA_TYPE');
@@ -81,6 +83,30 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;observation.request_bytes=size;if(size>8192)reject(413,'PAYLOAD_TOO_LARGE');chunks.push(chunk);}
         let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}catch{reject(400,'INVALID_UNICODE');}
         send(200,store.watchSet(token,decoded(watch[1]),parseStrict(text)));return;
+      }
+      if(req.method==='POST'&&url.pathname==='/v1/audio-uploads'){
+        observation.route='materials';if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'audio:write');
+        send(200,audioArchive(store).begin(token,await smallJson(req,observation)));return;
+      }
+      const audioUpload=/^\/v1\/audio-uploads\/([a-f0-9]{64})(?:\/(finalize|parts\/(0|[1-9]\d*)))?$/.exec(url.pathname);
+      if(audioUpload){
+        observation.route='materials';if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'audio:write');
+        if(req.method==='GET'&&!audioUpload[2]){send(200,audioArchive(store).status(token,audioUpload[1]));return;}
+        if(req.method==='POST'&&audioUpload[3]!==undefined){send(200,audioArchive(store).put(token,audioUpload[1],Number(audioUpload[3]),await smallJson(req,observation,262144)));return;}
+        if(req.method==='POST'&&audioUpload[2]==='finalize'){
+          const v=await smallJson(req,observation);if(!v||Array.isArray(v)||typeof v!=='object'||Object.keys(v).length)reject(400,'INVALID_AUDIO_MANIFEST');
+          send(200,audioArchive(store).finalize(token,audioUpload[1]));return;
+        }
+      }
+      const audio=/^\/v1\/audio\/([a-f0-9]{64})$/.exec(url.pathname);
+      if(audio&&req.method==='GET'){
+        store.auth(token,'audio:read');observation.route='materials';if(Object.keys(query).some(k=>k!=='index')||query.index!==undefined&&!/^(0|[1-9]\d*)$/.test(query.index))reject(400,'INVALID_QUERY');
+        send(200,query.index===undefined?audioArchive(store).get(token,audio[1]):audioArchive(store).content(token,audio[1],Number(query.index)));return;
+      }
+      const materialAudio=/^\/v1\/material-audio\/([^/]+)$/.exec(url.pathname);
+      if(materialAudio&&req.method==='GET'){
+        store.auth(token,'audio:read');observation.route='materials';if(Object.keys(query).some(k=>!['after','limit'].includes(k))||query.limit!==undefined&&!/^[1-9]\d*$/.test(query.limit))reject(400,'INVALID_QUERY');
+        send(200,audioArchive(store).list(token,decoded(materialAudio[1]),{after:query.after??null,limit:query.limit===undefined?50:Number(query.limit)}));return;
       }
       if(req.method==='POST'&&url.pathname==='/v1/material-cancellations'){
         observation.route='materials';if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'materials:write');

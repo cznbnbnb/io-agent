@@ -6,8 +6,9 @@ import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
+import {AudioArchive} from './audio.mjs';
 
-const SCOPES=new Set(['materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
+const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
 const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
@@ -86,9 +87,12 @@ export class MaterialStore {
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
       this.devices=new DeviceRegistry(this);this.transfer=new MaterialTransfer(this);
-    }catch(e){this.db.close();throw e;}
+      this.audio=null;this.audioUnavailable=false;
+      try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
+      catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
+    }catch(e){this.audio?.close();this.db.close();throw e;}
   }
-  close(){this.db.close();}
+  close(){this.audio?.close();this.db.close();}
   async backupTo(destination){
     if(!path.isAbsolute(destination))reject(400,'EXPLICIT_ABSOLUTE_BACKUP_REQUIRED');
     // Reserve a private temporary file. Publish exclusively so an existing
@@ -125,7 +129,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1','material_cancel_v1'],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){

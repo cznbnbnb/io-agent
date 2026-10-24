@@ -1,0 +1,24 @@
+package com.turboio.tools;
+import android.media.*;import org.json.*;
+import java.io.*;import java.nio.*;import java.nio.charset.StandardCharsets;import java.security.*;import java.util.*;import java.util.zip.*;
+
+/** Verify one newly created iO export in-place. Never returns audio or opens a recorder/player. */
+public final class PhoneAudioExportVerifier {
+ static void check(boolean ok,String code)throws IOException{if(!ok)throw new IOException(code);}
+ static String sha(File f)throws Exception{MessageDigest d=MessageDigest.getInstance("SHA-256");try(InputStream in=new FileInputStream(f)){byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)d.update(b,0,n);}StringBuilder s=new StringBuilder();for(byte x:d.digest())s.append(String.format(Locale.ROOT,"%02x",x&255));return s.toString();}
+ public static void main(String[] args)throws Exception{
+  check(args.length==2&&args[0].matches("io-agent-audio-export-20261024-codex-[a-f0-9]{6}\\.zip")&&args[1].matches("[a-f0-9]{32}"),"EXPORT_VERIFY_SCOPE");
+  File root=new File("/sdcard/Download").getCanonicalFile(),file=new File(root,args[0]);check(file.isFile()&&file.getCanonicalFile().equals(file)&&file.length()>0&&file.length()<=536870912,"EXPORT_VERIFY_PATH");try(ZipFile central=new ZipFile(file)){check(central.size()>0&&central.size()<=258,"EXPORT_VERIFY_CENTRAL_DIRECTORY");}long size=file.length();String digest=sha(file);File scratch=new File("/data/local/tmp/codex-audio-export-verify-"+args[1]);check(scratch.mkdir(),"EXPORT_VERIFY_SCRATCH");check(scratch.setReadable(false,false)&&scratch.setWritable(false,false)&&scratch.setExecutable(false,false)&&scratch.setReadable(true,true)&&scratch.setWritable(true,true)&&scratch.setExecutable(true,true),"EXPORT_VERIFY_PERMISSIONS");File part=new File(scratch,"part.opus");Map<String,Long> packets=new HashMap<>();Set<String> names=new HashSet<>();byte[] metadata=null;long total=0;int entries=0;
+  try{
+   try(ZipInputStream zip=new ZipInputStream(new FileInputStream(file),StandardCharsets.UTF_8)){
+    ZipEntry entry;byte[] b=new byte[65536];while((entry=zip.getNextEntry())!=null){String name=entry.getName();boolean opus=name.matches("片段-[0-9]{3}\\.opus");check(++entries<=258&&!entry.isDirectory()&&names.add(name)&&(opus||name.equals("说明.txt")||name.equals("片段索引.json")),"EXPORT_VERIFY_ZIP_ENTRY");CRC32 crc=new CRC32();long bytes=0;ByteArrayOutputStream index=new ByteArrayOutputStream();OutputStream out=opus?new FileOutputStream(part):index;
+     try{int n;while((n=zip.read(b))!=-1){bytes+=n;total+=n;check(total<=536870912&&(opus||bytes<=65536),"EXPORT_VERIFY_BUDGET");crc.update(b,0,n);out.write(b,0,n);}}finally{out.close();}zip.closeEntry();check(entry.getCrc()==crc.getValue(),"EXPORT_VERIFY_CRC");
+     if(name.equals("片段索引.json"))metadata=index.toByteArray();
+     if(opus){MediaExtractor extractor=new MediaExtractor();try(FileInputStream in=new FileInputStream(part)){extractor.setDataSource(in.getFD());check(extractor.getTrackCount()==1,"EXPORT_VERIFY_TRACKS");MediaFormat format=extractor.getTrackFormat(0);check("audio/opus".equals(format.getString(MediaFormat.KEY_MIME))&&format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)==1,"EXPORT_VERIFY_CODEC");extractor.selectTrack(0);ByteBuffer packet=ByteBuffer.allocate(16384);long frames=0;while(extractor.readSampleData(packet,0)>=0){check(++frames<=5000000,"EXPORT_VERIFY_BUDGET");packet.clear();if(!extractor.advance())break;}packets.put(name,frames);}finally{extractor.release();check(part.delete(),"EXPORT_VERIFY_TEMP_CLEANUP");}}
+    }
+   }
+   check(metadata!=null&&names.contains("说明.txt")&&!packets.isEmpty(),"EXPORT_VERIFY_INDEX");JSONObject index=new JSONObject(new String(metadata,StandardCharsets.UTF_8));check(index.getBoolean("source_link_verified")&&!index.getBoolean("recording_complete")&&!index.getBoolean("remote_stored"),"EXPORT_VERIFY_CLAIMS");JSONArray rows=index.getJSONArray("parts");check(rows.length()==packets.size(),"EXPORT_VERIFY_PARTS");Set<String> indexed=new HashSet<>();long frames=0,samples=0;for(int i=0;i<rows.length();i++){JSONObject row=rows.getJSONObject(i);String name=row.getString("file");check(indexed.add(name)&&packets.containsKey(name)&&packets.get(name)==row.getLong("frames")&&!row.getBoolean("recording_complete"),"EXPORT_VERIFY_PACKET_COUNT");frames+=row.getLong("frames");samples+=row.getLong("samples48");}check(size==file.length()&&digest.equals(sha(file)),"EXPORT_VERIFY_CHANGED");
+   System.out.println(new JSONObject().put("passed",true).put("bytes",size).put("sha256",digest).put("parts",packets.size()).put("frames",frames).put("samples48",samples).put("zip_crc_verified",true).put("index_packet_counts_verified",true).put("android_opus_container_verified",true).put("audio_uploaded_played_or_returned",false).put("original_audio_removed",false));
+  }finally{if(part.exists())check(part.delete(),"EXPORT_VERIFY_TEMP_CLEANUP");check(scratch.delete(),"EXPORT_VERIFY_TEMP_CLEANUP");}
+ }
+}
