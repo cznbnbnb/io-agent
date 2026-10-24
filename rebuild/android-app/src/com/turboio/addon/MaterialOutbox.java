@@ -8,16 +8,16 @@ final class MaterialOutbox implements AutoCloseable {
   private final MaterialOutbox owner;final String eventId,payload,action;final long attempt;
   private Claim(MaterialOutbox owner,Map<String,Object> row){this.owner=owner;eventId=(String)row.get("event_id");payload=(String)row.get("payload");action=Boolean.TRUE.equals(row.get("needs_lookup"))?"lookup":"send";attempt=MaterialWire.positive(row.get("attempts"));}
  }
- private final AtomicDocument document;private final String binding,producer;private List<Object> rows;private boolean closed;
+ private final AtomicDocument document;private final String binding,producer;private List<Object> rows;private List<Object> retired=new ArrayList<>();private boolean closed;
  MaterialOutbox(File files,MaterialConnection connection)throws IOException{
-  binding=connection.binding();producer=connection.producer;File file=new File(files,"material-outbox/"+binding+"/state.json");document=new AtomicDocument(file);
+  binding=connection.binding();producer=connection.producer;File file=new File(files,"material-outbox/"+binding+"/state.json");document=new AtomicDocument(file,33554432);
   try{
    if(new File(file.getPath()+".partial").exists())throw new IOException("MATERIAL_STORE_UNCERTAIN");Object raw=document.read();rows=new ArrayList<>();
-   boolean migrated=false;if(raw!=null){Map<String,Object> state=WireJson.map(raw);BoundedJson.keys(state,"schema","binding","rows");long schema=MaterialWire.positive(state.get("schema"));MaterialWire.require((schema==1||schema==2||schema==3)&&binding.equals(state.get("binding")),"MATERIAL_STORE_INVALID");rows=WireJson.list(WireJson.copy(state.get("rows")));if(schema==1){for(Object item:rows){Map<String,Object> row=WireJson.map(item);BoundedJson.keys(row,"event_id","material_id","revision","payload","payload_sha256","state","attempts","next_attempt_at","needs_lookup","error","ack");row.put("history",new ArrayList<>());row.put("absence_confirmed_at",0);}migrated=true;}if(schema<3){for(Object item:rows){Map<String,Object> row=WireJson.map(item);BoundedJson.keys(row,"event_id","material_id","revision","payload","payload_sha256","state","attempts","next_attempt_at","needs_lookup","error","ack","history","absence_confirmed_at");row.put("text_revision_repair",null);}migrated=true;}validate(rows);}
+   boolean migrated=false;if(raw!=null){Map<String,Object> state=WireJson.map(raw);BoundedJson.keys(state,"schema","binding","rows","retired");long schema=MaterialWire.positive(state.get("schema"));MaterialWire.require((schema==1||schema==2||schema==3||schema==4)&&binding.equals(state.get("binding")),"MATERIAL_STORE_INVALID");rows=WireJson.list(MaterialWire.copy(state.get("rows")));if(schema==4)retired=WireJson.list(MaterialWire.copy(state.get("retired")));if(schema==1){for(Object item:rows){Map<String,Object> row=WireJson.map(item);BoundedJson.keys(row,"event_id","material_id","revision","payload","payload_sha256","state","attempts","next_attempt_at","needs_lookup","error","ack");row.put("history",new ArrayList<>());row.put("absence_confirmed_at",0);}migrated=true;}if(schema<3){for(Object item:rows){Map<String,Object> row=WireJson.map(item);BoundedJson.keys(row,"event_id","material_id","revision","payload","payload_sha256","state","attempts","next_attempt_at","needs_lookup","error","ack","history","absence_confirmed_at");row.put("text_revision_repair",null);}migrated=true;}validate(rows);validateRetired(retired,rows);}
    List<Object> next=copy();boolean changed=migrated;for(Object item:next){Map<String,Object> row=WireJson.map(item);if(row.get("state").equals("sending")){row.put("state","reconcile");row.put("needs_lookup",true);row.put("next_attempt_at",0);row.put("error","INTERRUPTED");changed=true;}}if(changed)save(next);
   }catch(IOException|RuntimeException invalid){document.close();throw invalid;}
  }
- private List<Object> copy(){return WireJson.list(WireJson.copy(rows));}
+ private List<Object> copy(){return WireJson.list(MaterialWire.copy(rows));}
  String binding(){return binding;}
  synchronized List<Object> all(){return copy();}
  private Map<String,Object> event(Map<String,Object> row){byte[] bytes=((String)row.get("payload")).getBytes(StandardCharsets.UTF_8);MaterialWire.require(TaskWire.hash(bytes).equals(row.get("payload_sha256")),"MATERIAL_PAYLOAD_CORRUPT");return MaterialWire.event(bytes,producer);}
@@ -35,11 +35,44 @@ final class MaterialOutbox implements AutoCloseable {
     Map<String,Object> corrected=correctTranscript(originalBody,WireJson.map(event(base).get("body")));MaterialWire.require(corrected!=null&&corrected.equals(b),"MATERIAL_REPAIR_INVALID");payloadBytes+=originalBytes.length;
    }
    payloadBytes+=((String)r.get("payload")).getBytes(StandardCharsets.UTF_8).length;
-  }MaterialWire.require(payloadBytes<=4194304,"MATERIAL_STORE_FULL");
+  }MaterialWire.require(payloadBytes<=16777216,"MATERIAL_STORE_FULL");
  }
- private void save(List<Object> next)throws IOException{MaterialWire.require(!closed,"MATERIAL_STORE_CLOSED");validate(next);Map<String,Object> state=WireJson.object("schema",3,"binding",binding,"rows",next);MaterialWire.require(WireJson.bytes(state).length<=8388608,"MATERIAL_STORE_FULL");document.save(state);rows=next;}
+ private void save(List<Object> next)throws IOException{MaterialWire.require(!closed,"MATERIAL_STORE_CLOSED");validate(next);validateRetired(retired,next);Map<String,Object> state=WireJson.object("schema",4,"binding",binding,"rows",next,"retired",retired);MaterialWire.require(WireJson.bytes(state).length<=33554432,"MATERIAL_STORE_FULL");document.save(state);rows=next;}
+ /** Only verified stored predecessors can lose their transport copy. Retain
+  * exact event hashes/aliases and receipt evidence for crash replay. */
+ private void validateRetired(List<Object> history,List<Object> active){
+  MaterialWire.require(history.size()<=16384,"MATERIAL_HISTORY_FULL");Set<String> ids=new HashSet<>(),versions=new HashSet<>();
+  for(Object raw:active){Map<String,Object> r=WireJson.map(raw);ids.add((String)r.get("event_id"));versions.add(r.get("material_id")+"/"+r.get("revision"));}
+  for(Object raw:history){Map<String,Object> r=WireJson.map(raw);BoundedJson.keys(r,"event_id","material_id","revision","payload_sha256","ack","aliases");MaterialWire.id(r.get("event_id"));MaterialWire.id(r.get("material_id"));MaterialWire.positive(r.get("revision"));
+   MaterialWire.require(ids.add((String)r.get("event_id"))&&versions.add(r.get("material_id")+"/"+r.get("revision"))&&MaterialWire.text(r.get("payload_sha256"),64,false).matches("[a-f0-9]{64}"),"MATERIAL_HISTORY_INVALID");
+   MaterialWire.ack(WireJson.map(r.get("ack")),WireJson.object("event_id",r.get("event_id"),"body",WireJson.object("material_id",r.get("material_id"),"revision",r.get("revision"))));
+   List<Object> aliases=WireJson.list(r.get("aliases"));MaterialWire.require(aliases.size()<=17,"MATERIAL_HISTORY_INVALID");for(Object alias:aliases){Map<String,Object> a=WireJson.map(alias);BoundedJson.keys(a,"event_id","payload_sha256");MaterialWire.id(a.get("event_id"));MaterialWire.require(ids.add((String)a.get("event_id"))&&MaterialWire.text(a.get("payload_sha256"),64,false).matches("[a-f0-9]{64}"),"MATERIAL_HISTORY_INVALID");}
+  }
+ }
+ private Map<String,Object> retiredMatch(Map<String,Object> e,String payload){
+  Map<String,Object> b=WireJson.map(e.get("body"));String hash=TaskWire.hash(payload.getBytes(StandardCharsets.UTF_8));
+  for(Object raw:retired){Map<String,Object> r=WireJson.map(raw);boolean sameVersion=r.get("material_id").equals(b.get("material_id"))&&MaterialWire.positive(r.get("revision"))==MaterialWire.positive(b.get("revision")),known=false,sameEvent=r.get("event_id").equals(e.get("event_id"));
+   if(sameEvent&&r.get("payload_sha256").equals(hash))known=true;
+   for(Object alias:WireJson.list(r.get("aliases"))){Map<String,Object> a=WireJson.map(alias);if(a.get("event_id").equals(e.get("event_id"))){sameEvent=true;if(a.get("payload_sha256").equals(hash))known=true;}}
+   if(sameVersion||sameEvent){MaterialWire.require(sameVersion&&known,"MATERIAL_LOCAL_REVISION_CONFLICT");return r;}
+  }return null;
+ }
+ synchronized boolean retiredPayload(String hash){for(Object raw:retired){Map<String,Object> r=WireJson.map(raw);if(hash.equals(r.get("payload_sha256")))return true;for(Object a:WireJson.list(r.get("aliases")))if(hash.equals(WireJson.map(a).get("payload_sha256")))return true;}return false;}
+ synchronized int retiredCount(){return retired.size();}
+ synchronized int compact()throws IOException{
+  Map<String,Long> latest=new HashMap<>();for(Object raw:rows){Map<String,Object> r=WireJson.map(raw);if("server_stored".equals(r.get("state")))latest.merge((String)r.get("material_id"),MaterialWire.positive(r.get("revision")),Math::max);}
+  Set<String> keepBases=new HashSet<>();for(Object raw:rows){Map<String,Object> r=WireJson.map(raw);if(!"server_stored".equals(r.get("state"))||MaterialWire.positive(r.get("revision"))==latest.getOrDefault((String)r.get("material_id"),0L))if(r.get("text_revision_repair")!=null)keepBases.add((String)WireJson.map(r.get("text_revision_repair")).get("base_payload_sha256"));}
+  List<Object> kept=new ArrayList<>(),history=WireJson.list(MaterialWire.copy(retired));int count=0;
+  for(Object raw:rows){Map<String,Object> r=WireJson.map(raw);if(!"server_stored".equals(r.get("state"))||MaterialWire.positive(r.get("revision"))>=latest.getOrDefault((String)r.get("material_id"),0L)||keepBases.contains(r.get("payload_sha256"))){kept.add(raw);continue;}
+   MaterialWire.ack(WireJson.map(r.get("ack")),event(r));List<Object> aliases=new ArrayList<>();for(Object old:WireJson.list(r.get("history"))){Map<String,Object> a=WireJson.map(old);aliases.add(WireJson.object("event_id",a.get("event_id"),"payload_sha256",a.get("payload_sha256")));}
+   if(r.get("text_revision_repair")!=null){Map<String,Object> a=WireJson.map(r.get("text_revision_repair"));aliases.add(WireJson.object("event_id",a.get("event_id"),"payload_sha256",a.get("payload_sha256")));}
+   history.add(WireJson.object("event_id",r.get("event_id"),"material_id",r.get("material_id"),"revision",r.get("revision"),"payload_sha256",r.get("payload_sha256"),"ack",r.get("ack"),"aliases",aliases));count++;
+  }
+  if(count>0){List<Object> old=retired;retired=history;try{save(kept);}catch(IOException|RuntimeException failed){retired=old;throw failed;}}return count;
+ }
  synchronized Map<String,Object> enqueue(byte[] raw)throws IOException{
   Map<String,Object> e=MaterialWire.event(raw,producer),b=WireJson.map(e.get("body"));String payload=new String(WireJson.bytes(e),StandardCharsets.UTF_8);MaterialWire.require(payload.getBytes(StandardCharsets.UTF_8).length<=MaterialWire.MAX_EVENT_BYTES,"MATERIAL_EVENT_BUDGET");
+  Map<String,Object> completed=retiredMatch(e,payload);if(completed!=null)return WireJson.map(MaterialWire.copy(completed));
   for(Object item:rows){Map<String,Object> r=WireJson.map(item);if(r.get("event_id").equals(e.get("event_id"))||r.get("material_id").equals(b.get("material_id"))&&MaterialWire.positive(r.get("revision"))==MaterialWire.positive(b.get("revision"))){boolean known=r.get("payload").equals(payload);if(r.get("text_revision_repair")!=null){Map<String,Object> repair=WireJson.map(r.get("text_revision_repair"));if(repair.get("event_id").equals(e.get("event_id"))&&repair.get("payload").equals(payload))known=true;}for(Object old:WireJson.list(r.get("history"))){Map<String,Object> h=WireJson.map(old);if(h.get("event_id").equals(e.get("event_id"))&&h.get("payload_sha256").equals(TaskWire.hash(payload.getBytes(StandardCharsets.UTF_8))))known=true;}MaterialWire.require(known,"MATERIAL_LOCAL_REVISION_CONFLICT");return WireJson.map(WireJson.copy(r));}}
   if(b.get("operation").equals("upsert"))for(Object item:rows){Map<String,Object> r=WireJson.map(item);if(r.get("material_id").equals(b.get("material_id")))MaterialWire.require(!WireJson.map(event(r).get("body")).get("operation").equals("delete"),"MATERIAL_DELETED");}
   List<Object> next=copy();Map<String,Object> row=WireJson.object("event_id",e.get("event_id"),"material_id",b.get("material_id"),"revision",b.get("revision"),"payload",payload,"payload_sha256",TaskWire.hash(payload.getBytes(StandardCharsets.UTF_8)),"state","queued","attempts",0,"next_attempt_at",0,"needs_lookup",false,"error","","ack",null,"history",new ArrayList<>(),"absence_confirmed_at",0,"text_revision_repair",null);next.add(row);save(next);return WireJson.map(WireJson.copy(row));

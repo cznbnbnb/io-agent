@@ -5,6 +5,7 @@ import java.util.*;
 /** Material 1.2 shape/cross-field checks. Historic parent verification remains server-authoritative. */
 final class MaterialWire {
  static final int MAX_EVENT_BYTES=4194304;
+ static Object copy(Object value){return WireJson.read(WireJson.bytes(value),33554432,2000000);}
  static Object read(byte[] bytes){return WireJson.read(bytes,MAX_EVENT_BYTES,500000);}
  static void require(boolean value,String code){if(!value)throw new IllegalArgumentException(code);}
  static String text(Object value,int max,boolean empty){require(value instanceof String,"MATERIAL_TEXT_INVALID");String s=(String)value;require((empty||!s.isEmpty())&&s.codePointCount(0,s.length())<=max,"MATERIAL_TEXT_INVALID");return s;}

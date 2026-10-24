@@ -8,11 +8,11 @@ import java.io.*;import java.nio.charset.StandardCharsets;import java.util.*;
 final class LifelogRevisionJournal implements AutoCloseable {
  interface Guard {OfficialAccountBinding current()throws Exception;}
  private final AtomicDocument document;private final MaterialConnection connection;private final String account;
- private List<Object> records;private boolean closed;
+ private List<Object> records;private Set<String> initials=new TreeSet<>();private boolean closed;
  LifelogRevisionJournal(File files,MaterialConnection connection,String account)throws IOException{
   MaterialWire.require(account!=null&&account.matches("[a-f0-9]{64}"),"OFFICIAL_ACCOUNT_INVALID");this.connection=connection;this.account=account;
-  File file=new File(files,"lifelog-revisions/"+connection.binding()+"/"+account+"/state.json");document=new AtomicDocument(file);
-  try{if(new File(file.getPath()+".partial").exists())throw new IOException("LIFELOG_REVISION_UNCERTAIN");Object raw=document.read();records=new ArrayList<>();if(raw!=null){Map<String,Object> state=WireJson.map(raw);BoundedJson.keys(state,"schema","account","connection","records");MaterialWire.require(MaterialWire.positive(state.get("schema"))==1&&account.equals(state.get("account"))&&connection.binding().equals(state.get("connection")),"LIFELOG_REVISION_BINDING");records=WireJson.list(state.get("records"));validate(records);}}
+  File file=new File(files,"lifelog-revisions/"+connection.binding()+"/"+account+"/state.json");document=new AtomicDocument(file,33554432);
+  try{if(new File(file.getPath()+".partial").exists())throw new IOException("LIFELOG_REVISION_UNCERTAIN");Object raw=document.read();records=new ArrayList<>();if(raw!=null){Map<String,Object> state=WireJson.map(raw);BoundedJson.keys(state,"schema","account","connection","records","initials");long schema=MaterialWire.positive(state.get("schema"));MaterialWire.require((schema==1||schema==2)&&account.equals(state.get("account"))&&connection.binding().equals(state.get("connection")),"LIFELOG_REVISION_BINDING");records=WireJson.list(state.get("records"));if(schema==2){for(Object id:WireJson.list(state.get("initials")))MaterialWire.require(initials.add(MaterialWire.text(id,512,false)),"LIFELOG_REVISION_CORRUPT");MaterialWire.require(initials.size()<=256,"LIFELOG_REVISION_FULL");}validate(records);}}
   catch(IOException|RuntimeException failure){document.close();throw failure;}
  }
  private void admit(Guard guard)throws Exception{MaterialWire.require(!closed,"LIFELOG_REVISION_CLOSED");OfficialAccountBinding current=guard.current();MaterialWire.require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");}
@@ -20,7 +20,7 @@ final class LifelogRevisionJournal implements AutoCloseable {
   MaterialWire.require(rows.size()<=256,"LIFELOG_REVISION_FULL");Set<String> unique=new HashSet<>();long bytes=0;
   for(Object raw:rows){Map<String,Object> row=WireJson.map(raw);BoundedJson.keys(row,"original","original_sha256","event");String original=MaterialWire.text(row.get("original"),1048576,false),encoded=MaterialWire.text(row.get("event"),MaterialWire.MAX_EVENT_BYTES,false);byte[] sourceBytes=original.getBytes(StandardCharsets.UTF_8);MaterialWire.require(TaskWire.hash(sourceBytes).equals(row.get("original_sha256")),"LIFELOG_REVISION_CORRUPT");
    OfficialLifelogSnapshot.Source source=OfficialLifelogSnapshot.original(sourceBytes);Map<String,Object> event=MaterialWire.event(encoded.getBytes(StandardCharsets.UTF_8),connection.producer),body=WireJson.map(event.get("body"));String id=source.materialId(account);long revision=MaterialWire.positive(body.get("revision"));MaterialWire.require(id.equals(body.get("material_id"))&&"lifelog".equals(body.get("source"))&&"upsert".equals(body.get("operation"))&&unique.add(id+"/"+revision),"LIFELOG_REVISION_CORRUPT");bytes+=sourceBytes.length+encoded.getBytes(StandardCharsets.UTF_8).length;
-  }MaterialWire.require(bytes<=4194304,"LIFELOG_REVISION_FULL");
+  }MaterialWire.require(bytes<=16777216,"LIFELOG_REVISION_FULL");
  }
  /** Replays exact prepared payloads. It must run before stageFresh so an earlier
   * interrupted journal->queue handoff cannot be mistaken for a new revision. */
@@ -28,8 +28,17 @@ final class LifelogRevisionJournal implements AutoCloseable {
   admit(guard);MaterialWire.require(connection.binding().equals(outbox.binding()),"MATERIAL_TARGET_CHANGED");int n=0;
   for(Object raw:records){admit(guard);outbox.enqueue(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8));n++;}return n;
  }
+ /** Run after outbox.compact. If killed between the two files, replay sees
+  * the retained receipt hash and does not resurrect an older POST. */
+ synchronized int compact(Guard guard,MaterialOutbox outbox)throws Exception{
+  admit(guard);MaterialWire.require(connection.binding().equals(outbox.binding()),"MATERIAL_TARGET_CHANGED");List<Object> next=new ArrayList<>();Set<String> owned=new TreeSet<>(initials);int count=0;
+  for(Object raw:records){Map<String,Object> row=WireJson.map(raw);byte[] event=((String)row.get("event")).getBytes(StandardCharsets.UTF_8);if(!outbox.retiredPayload(TaskWire.hash(event))){next.add(raw);continue;}
+   Map<String,Object> body=WireJson.map(MaterialWire.event(event,connection.producer).get("body"));if(MaterialWire.positive(body.get("revision"))==1)owned.add((String)body.get("material_id"));count++;
+  }
+  if(count>0){MaterialWire.require(owned.size()<=256,"LIFELOG_REVISION_FULL");validate(next);admit(guard);document.save(WireJson.object("schema",2,"account",account,"connection",connection.binding(),"records",next,"initials",new ArrayList<>(owned)));records=next;initials=owned;}return count;
+ }
  synchronized boolean ownsInitial(String materialId){
-  MaterialWire.require(!closed,"LIFELOG_REVISION_CLOSED");for(Object raw:records){Map<String,Object> event=WireJson.map(MaterialWire.read(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8))),body=WireJson.map(event.get("body"));if(materialId.equals(body.get("material_id"))&&MaterialWire.positive(body.get("revision"))==1)return true;}return false;
+  MaterialWire.require(!closed,"LIFELOG_REVISION_CLOSED");if(initials.contains(materialId))return true;for(Object raw:records){Map<String,Object> event=WireJson.map(MaterialWire.read(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8))),body=WireJson.map(event.get("body"));if(materialId.equals(body.get("material_id"))&&MaterialWire.positive(body.get("revision"))==1)return true;}return false;
  }
  private static Map<String,Object> body(Map<String,Object> row){return WireJson.map(WireJson.map(MaterialWire.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))).get("body"));}
  private static boolean equivalent(Map<String,Object> fresh,Map<String,Object> before){Map<String,Object> a=new TreeMap<>(fresh),b=new TreeMap<>(before);a.remove("revision");a.remove("base_revision");b.remove("revision");b.remove("base_revision");return a.equals(b);}
@@ -47,8 +56,8 @@ final class LifelogRevisionJournal implements AutoCloseable {
   for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw),b=body(row);String id=(String)b.get("material_id");Map<String,Object> prior=latest.get(id);if(prior==null||MaterialWire.positive(b.get("revision"))>MaterialWire.positive(prior.get("revision")))latest.put(id,row);queuedPayloads.add((String)row.get("payload_sha256"));if(row.get("text_revision_repair")!=null)queuedPayloads.add((String)WireJson.map(row.get("text_revision_repair")).get("payload_sha256"));for(Object history:WireJson.list(row.get("history")))queuedPayloads.add((String)WireJson.map(history).get("payload_sha256"));}
   // The caller must replay any durable intent first, including aliases retained
   // when an expired event was renewed by MaterialOutbox.
-  for(Object raw:records)MaterialWire.require(queuedPayloads.contains(TaskWire.hash(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8))),"LIFELOG_REVISION_REPLAY_REQUIRED");
-  List<Object> next=WireJson.list(WireJson.copy(records));int added=0;
+  for(Object raw:records)MaterialWire.require((queuedPayloads.contains(TaskWire.hash(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8)))||outbox.retiredPayload(TaskWire.hash(((String)WireJson.map(raw).get("event")).getBytes(StandardCharsets.UTF_8)))),"LIFELOG_REVISION_REPLAY_REQUIRED");
+  List<Object> next=WireJson.list(MaterialWire.copy(records));int added=0;
   for(Map.Entry<String,OfficialLifelogSnapshot.Source> item:selected.entrySet()){
    String id=item.getKey();OfficialLifelogSnapshot.Source source=item.getValue();Map<String,Object> prior=latest.get(id),mapped;long revision=1;
    if(prior==null)mapped=WireJson.map(MaterialWire.read(source.materialBody(account,1)));
@@ -60,7 +69,7 @@ final class LifelogRevisionJournal implements AutoCloseable {
    Map<String,Object> event=WireJson.object("schema_version","1.2","event_id",eventId,"idempotency_key",eventId,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(now),"expires_at",connection.expires,"body",mapped);byte[] payload=WireJson.bytes(event);if(payload.length>MaterialWire.MAX_EVENT_BYTES){oversized.add(id);continue;}MaterialWire.event(payload,connection.producer);byte[] original=source.original();
    next.add(WireJson.object("original",new String(original,StandardCharsets.UTF_8),"original_sha256",TaskWire.hash(original),"event",new String(payload,StandardCharsets.UTF_8)));added++;
   }
-  if(added>0){validate(next);admit(guard);document.save(WireJson.object("schema",1,"account",account,"connection",connection.binding(),"records",next));records=next;}return added;
+  if(added>0){validate(next);admit(guard);document.save(WireJson.object("schema",2,"account",account,"connection",connection.binding(),"records",next,"initials",new ArrayList<>(initials)));records=next;}return added;
  }
  public synchronized void close()throws IOException{if(!closed){closed=true;document.close();}}
 }

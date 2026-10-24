@@ -157,6 +157,53 @@ public final class MaterialMonthRuntimeTest {
    }
   }finally{TimeZone.setDefault(old);}
  }
+ static void autoSync()throws Exception{
+  for(int mode=0;mode<4;mode++)try(Fixture f=new Fixture()){
+   if(mode==0)MaterialSettings.value=null;if(mode==1)MaterialSettings.value=config("a",false,System.currentTimeMillis()+600000);if(mode==2)MaterialSettings.value=config("a",true,System.currentTimeMillis()-1);if(mode==3)Host107Login.current=OTHER;
+   f.runtime.wakeAuto(false);f.idle();noUpload();
+  }
+  for(boolean background:Arrays.asList(false,true))try(Fixture f=new Fixture()){
+   if(background)f.app.callbacks.onActivityStopped(f.activity);else Host107LifelogHttp.afterFull=()->f.app.callbacks.onActivityStopped(f.activity);
+   f.runtime.wakeAuto(false);f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.started==1&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.selected.size()==2);
+   f.runtime.wakeAuto(true);f.idle();yes(MaterialSyncSession.started==1); // Network callbacks cannot spin within 30 seconds.
+   Catalog hidden=f.catalog();rejected(hidden,"MATERIAL_PAUSED"); // Background upload does not authorize UI content.
+  }
+  try(Fixture f=new Fixture()){
+   Host107LifelogHttp.afterFull=()->Host107Login.current=OTHER;f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.completed==0);
+  }
+  try(Fixture f=new Fixture()){
+   Host107LifelogHttp.entered=new CountDownLatch(1);Host107LifelogHttp.release=new CountDownLatch(1);f.runtime.wakeAuto(false);yes(Host107LifelogHttp.entered.await(2,TimeUnit.SECONDS));
+   Done stopped=new Done();f.runtime.pause(stopped);Host107LifelogHttp.release.countDown();f.idle();f.deliver();yes(stopped.calls==1&&stopped.error.isEmpty()&&!MaterialSettings.value.enabled&&MaterialSyncSession.completed==0);yes(Host107LifelogHttp.disabled>0);
+  }
+  // The actual headless constructor does not fabricate a foreground Activity.
+  try(Fixture f=new Fixture()){
+   Constructor<MaterialRuntime> ctor=MaterialRuntime.class.getDeclaredConstructor(android.content.Context.class,Activity.class);ctor.setAccessible(true);MaterialRuntime headless=ctor.newInstance(f.app,null);
+   Field field=MaterialRuntime.class.getDeclaredField("io");field.setAccessible(true);ExecutorService io=(ExecutorService)field.get(headless);Field cancel=MaterialRuntime.class.getDeclaredField("cancel");cancel.setAccessible(true);
+   try{headless.wakeAuto(false);io.submit(()->{}).get(3,TimeUnit.SECONDS);yes(MaterialSyncSession.started==1&&MaterialSyncSession.completed==1);}finally{io.shutdownNow();((ExecutorService)cancel.get(headless)).shutdownNow();}
+  }
+ }
+ static void autoSchedule()throws Exception{
+  try(Fixture f=new Fixture()){
+   MaterialConfig config=MaterialSettings.value;long start=Instant.parse("2026-10-24T01:00:00Z").toEpochMilli();
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){
+    MaterialAutoSchedule.Plan p=schedule.begin(start,"Asia/Shanghai",false);yes(p.days.get(0).date.equals("2026-10-24")&&p.days.get(1).date.equals("2026-10-23"));schedule.finish(p,start+1000,true);
+    yes(schedule.begin(start+30000,"Asia/Shanghai",false)==null);yes(schedule.begin(start+30000,"Asia/Shanghai",true)==null);
+   }
+   // Offline for three days: always include today, then advance one missed day per successful round.
+   long later=start+3*86400000L;
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){
+    MaterialAutoSchedule.Plan p=schedule.begin(later,"Asia/Shanghai",false);yes(p.days.get(0).date.equals("2026-10-27")&&p.days.get(1).date.equals("2026-10-24"));schedule.finish(p,later,false);
+    yes(schedule.begin(later+29999,"Asia/Shanghai",true)==null);p=schedule.begin(later+30000,"Asia/Shanghai",true);yes(p.days.get(1).date.equals("2026-10-24"));schedule.finish(p,later+30000,true);
+   }
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){
+    MaterialAutoSchedule.Plan p=schedule.begin(later+90001,"Asia/Shanghai",false);yes(p.days.get(1).date.equals("2026-10-25"));schedule.finish(p,later+90001,true);
+    p=schedule.begin(later+150002,"America/Los_Angeles",false);yes(p.days.get(0).date.equals("2026-10-26")&&p.days.get(1).date.equals("2026-10-25"));schedule.finish(p,later+150002,true);
+    yes(schedule.begin(start,"Asia/Shanghai",false)!=null); // Clock rollback cannot freeze synchronization.
+   }
+   // A killed round has a durable cooldown, but no falsely advanced catch-up date.
+   try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(f.files,config)){yes(schedule.begin(start+1000,"Asia/Shanghai",false)==null);MaterialAutoSchedule.Plan p=schedule.begin(start+60001,"Asia/Shanghai",false);yes(p!=null);}
+  }
+ }
  public static void main(String[] args)throws Exception{
   root=new File(args[0]);
   // Catalog reads use the real serialized runtime and queue, reject another
@@ -205,7 +252,7 @@ public final class MaterialMonthRuntimeTest {
   // The two existing entry points retain their original source routing.
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.sync(done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("fresh")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&OfficialLifelogBatch.reads==1&&OfficialLifelogRefresh.refreshes==1&&Host107LifelogHttp.discoveryCalls==0);}
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.syncDay("2026-10-10","Asia/Shanghai",done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("discovery")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&Host107LifelogHttp.selected.size()==1&&Host107LifelogHttp.selected.get(0).date.equals("2026-10-10"));}
-  dayReads();
+  dayReads();autoSync();autoSchedule();
   System.out.println("Material month runtime: "+checks+" checks passed; real Runtime and month core, synthetic Android/IO boundaries");
  }
 }
@@ -245,7 +292,7 @@ final class MaterialHttp implements MaterialApi.Transport{static int created,exc
 final class MaterialApi{interface Transport{Response exchange(String path,byte[] body)throws IOException;void cancel();}static final class Response{}final Transport http;MaterialApi(MaterialConnection connection,Transport http){this.http=http;}void preflight(long now,boolean versions)throws IOException{http.exchange("/identity",null);}}
 final class MaterialSyncSession{
  interface Guard{void check()throws IOException;}interface AccountSource{OfficialAccountBinding current()throws Exception;}interface DiscoverySource extends AccountSource{OfficialLifelogDiscovery.Snapshot discover()throws Exception;}interface FreshSource extends AccountSource{OfficialLifelogBatch read()throws Exception;OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception;}
- static final class Status{int added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";}
+ static final class Status{boolean selectedComplete=true;int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";}
  static int started,completed;static String kind;static void reset(){started=completed=0;kind="";}final AccountSource source;final Guard guard;
  MaterialSyncSession(File dir,MaterialConfig cfg,AccountSource source,Guard guard,MaterialHttp http){started++;this.source=source;this.guard=guard;}
  static Status status(File dir,MaterialConfig config){return new Status();}

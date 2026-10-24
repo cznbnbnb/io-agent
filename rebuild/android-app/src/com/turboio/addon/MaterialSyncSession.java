@@ -10,6 +10,7 @@ final class MaterialSyncSession {
  interface DiscoverySource extends AccountSource {OfficialLifelogDiscovery.Snapshot discover()throws Exception;}
  interface Guard {void check()throws IOException;}
  static final class Status {
+  boolean selectedComplete;
   int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";
   Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"too_large",tooLarge,"note",note);}
  }
@@ -23,7 +24,7 @@ final class MaterialSyncSession {
   guard.check();MaterialWire.require(config.enabled,"MATERIAL_PAUSED");try{OfficialAccountBinding now=source.current();MaterialWire.require(now!=null&&config.account.equals(now.binding),"OFFICIAL_ACCOUNT_CHANGED");return now;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}
  }
  static Status status(File files,MaterialConfig config)throws IOException{Status status=new Status();if(config==null){status.note="unconfigured";return status;}try(MaterialOutbox outbox=new MaterialOutbox(accountFiles(files,config),config.connection)){count(status,outbox);}if(!config.enabled)status.note="paused";return status;}
- private static void count(Status status,MaterialOutbox outbox){status.queued=status.stored=status.blocked=status.expired=status.reconcile=0;for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);String state=(String)row.get("state");if(state.equals("server_stored"))status.stored++;else if(state.equals("blocked"))status.blocked++;else if(state.equals("expired"))status.expired++;else{status.queued++;if(Boolean.TRUE.equals(row.get("needs_lookup")))status.reconcile++;}}}
+ private static void count(Status status,MaterialOutbox outbox){status.queued=status.stored=status.blocked=status.expired=status.reconcile=0;status.stored=outbox.retiredCount();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);String state=(String)row.get("state");if(state.equals("server_stored"))status.stored++;else if(state.equals("blocked"))status.blocked++;else if(state.equals("expired"))status.expired++;else{status.queued++;if(Boolean.TRUE.equals(row.get("needs_lookup")))status.reconcile++;}}}
  Status sync()throws Exception{
   if(source instanceof FreshSource||source instanceof DiscoverySource)return syncFresh();
   admit();Status status=new Status();
@@ -50,6 +51,7 @@ final class MaterialSyncSession {
    // Both writer locks remain held throughout discovery, refresh and staging.
    // Replay committed intents before deciding whether this is a new revision.
    revisions.replay(this::admit,outbox);
+   admit();outbox.compact();revisions.compact(this::admit,outbox);
    // A legacy rollback may have prepared an obsolete bootstrap revision one.
    // A validated fresh revision-one intent takes precedence, and is replayed
    // above before suppressing that conflict. Preserve both historical files.
@@ -94,6 +96,7 @@ final class MaterialSyncSession {
    if(!allowed.isEmpty()){
     admit();api.preflight(System.currentTimeMillis(),true);outbox.resumeBlocked();for(int i=0;i<16;i++){admit();if(!api.pump(outbox,System.currentTimeMillis(),allowed))break;}
    }
+   status.selectedComplete=oversized.isEmpty();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(allowed.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state")))status.selectedComplete=false;}
    count(status,outbox);status.tooLarge=oversized.size();status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
   }return status;
  }

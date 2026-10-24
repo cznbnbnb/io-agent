@@ -7,6 +7,8 @@ final class MaterialWorkspace {
   case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
   case "syncing":return "正在读取智记并同步…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
   case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
+  case "MATERIAL_AUTO_DEADLINE":return "本轮同步时间较长，队列已保留，稍后自动继续";
+  case "MATERIAL_AUTO_UNCERTAIN":case "MATERIAL_AUTO_INVALID":return "自动同步计划需要核对，已有资料保留";
   case "MATERIAL_TRANSFER_UNSUPPORTED":return "服务器尚未启用长资料传输，原文和队列已保留";
   case "MATERIAL_TRANSFER_MISMATCH":return "分块回执不匹配，未标为同步成功，请重试";
   case "MATERIAL_EVENT_TOO_LARGE":return "部分智记超出当前完整传输容量，原文保留、未截断；其他资料已处理";
@@ -38,7 +40,7 @@ final class MaterialWorkspace {
   case "MATERIAL_SCHEMA_UNSUPPORTED":return "服务器暂不支持当前资料格式";case "MATERIAL_CONFIG_SAVE_FAILED":return "连接保存失败，请重试";
   case "MATERIAL_KEY_UNAVAILABLE":case "MATERIAL_CONFIG_INVALID":return "无法读取本机资料连接，请重新登记";
   case "MATERIAL_RENEWAL_LIMIT":return "资料续传次数已达上限，原文和记录保留，请核对连接";
-  case "MATERIAL_STORE_FULL":case "LIFELOG_IMPORT_FULL":case "LIFELOG_REVISION_FULL":return "本机同步记录已满，资料保留，需整理后继续";
+  case "MATERIAL_HISTORY_FULL":case "MATERIAL_STORE_FULL":case "LIFELOG_IMPORT_FULL":case "LIFELOG_REVISION_FULL":return "本机同步记录已满，资料保留，需整理后继续";
   case "LIFELOG_IMPORT_SCAN_INCOMPLETE":case "OFFICIAL_CACHE_CHANGED":return "资料正在变化，本次未导入，请稍后重试";
   case "blocked":return "有资料需要核对，未记为同步成功";case "MATERIAL_IMPORT_UNAVAILABLE":return "未找到资料登记文件";
   default:return "同步暂未完成，请检查网络或连接配置后重试（"+code+"）";
@@ -46,7 +48,7 @@ final class MaterialWorkspace {
  static void show(Activity activity){show(activity,()->{});}
  static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
   MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(AgentUI.text(activity,label(error.isEmpty()?state.note:error),20,AgentUI.INK));
-   body.addView(AgentUI.text(activity,"同步已打开的智记，或按日期、月份查找可同步正文，保留说话人和时间。月份查找需手动选择日期；原音、普通录音、全历史和删除同步仍在接入。",14,AgentUI.MUTED));
+   body.addView(AgentUI.text(activity,"开启后每分钟自动检查当天智记，并逐日补查中断期间的日期。也可按日期、月份补传历史正文，保留说话人和时间；原音、普通录音和删除同步仍在接入。",14,AgentUI.MUTED));
    if(state.config!=null)body.addView(AgentUI.text(activity,state.config.connection.preview(),13,AgentUI.MUTED));
    MaterialSyncSession.Status s=state.status;body.addView(AgentUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,AgentUI.INK));
    if(s.days>0)body.addView(AgentUI.text(activity,"本次读取 "+s.days+" 天 · 发现智记正文 "+s.discovered+" 份\n未同步普通录音 "+s.recordings+" 条 · 其他类型 "+s.otherEntries+" 条\n发现数量不代表服务器已保存数量。",14,AgentUI.MUTED));

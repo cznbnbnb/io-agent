@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T09:21:39.209Z",
+  "at": "2026-10-24T09:43:43.720Z",
   "unit_assertions": 71,
   "transport": "real Java material core to existing loopback HTTP/SQLite service across two JVM processes",
   "computer_query": "existing MaterialQueryClient via actual HTTP with separate read-only credential",
@@ -42,7 +42,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "c3ecf30d6b5a08343fd3c80c66cec6e866c3e3aa9b0e750bb7ba93d77b646da2"
+      "sha256": "f5776f900feb33f69e90532d7bfc1cdf80c1ac9292bc49af7b66f55adcb5defa"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogBatch.java",
@@ -58,7 +58,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "7a3007bd972bcbf02f8f73ff8220e8a1f9ebe66f7c5f03e68a7b8d7dd997f20f"
+      "sha256": "0c4841272ce4fa1d624aebe398100c92de6716d27cabea42d96654223137e916"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -98,11 +98,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
-      "sha256": "4dfaa5a0f5ee44715873c3718a67dd8552c09ba91446c6b4f7fa3957f8fc27a2"
+      "sha256": "f887e33a1eb259bdf091ca301e68efcf08222c11cf0aa87bf55d6f303e68d863"
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "e87531d574ed01764c27b9ad4d909be20445bd942fd9c10ac1fc35056e9e0aef"
+      "sha256": "3fff228c7a9f08dff68299b5b935ceefafcc8bd75801d1d3b18f51524c582043"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -118,7 +118,7 @@
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
@@ -146,11 +146,11 @@
     },
     {
       "path": "../../tools/android/MaterialRepairTest.java",
-      "sha256": "75613e73e03219a2bcc3ec57b307901c09108c8342246c70e5c5c4df3db9d10d"
+      "sha256": "b42571b82b3ecd999fa53564b6d4ab2c5e3784c9c7c98fcafc9d2af19e6312c0"
     },
     {
       "path": "../../tools/android/MaterialRenewalTest.java",
-      "sha256": "536621b37add0395f1af6bf4a1946e4e765eff988f859c7acc81bc3d3e9f156d"
+      "sha256": "ce3403037a2db9bc093a324e5d77a838bfb22ce260d5a8f305c75265b2618938"
     },
     {
       "path": "../../tools/android/MaterialImportHttpTest.java",

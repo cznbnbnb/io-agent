@@ -210,3 +210,4 @@
 /rebuild/android-app/artifacts
 
 !/rebuild/android-app/r4-text-transfer-2026-10-24.json
+!/rebuild/android-app/r4-auto-foundation-2026-10-24.json

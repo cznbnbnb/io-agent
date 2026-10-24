@@ -64,13 +64,15 @@ public final class MaterialDiscoverySyncTest {
   yes(((Number)after.get("text_revision")).intValue()==2);
   yes(((String)WireJson.map(after.get("full_text")).get("text")).startsWith("合成修订：周五再处理。\n保留完整附加条件 😀\n"));
   yes(sync(firstRoot,config,changed(),server).added==0&&server.posts==2);
+  List<String> retained=payloads(firstRoot,config);yes(retained.size()==1&&retained.get(0).equals(versions.get(1)));
+  try(MaterialOutbox q=new MaterialOutbox(MaterialSyncSession.accountFiles(firstRoot,config),connection)){yes(q.retiredCount()==1&&q.retiredPayload(TaskWire.hash(initial.get(0).getBytes(java.nio.charset.StandardCharsets.UTF_8))));}
 
   // A day disappearing from the inventory does not imply deletion, nor does
   // an unsupported ordinary recording authorize uploading a lifelog body.
   Source empty=new Source();OfficialLifelogInventoryTest.data(empty.listing).put("events",Collections.emptyList());
   MaterialSyncSession.Status absent=sync(firstRoot,config,empty,server);
   yes(absent.stored==2&&absent.added==0&&absent.discovered==0&&absent.note.equals("no_day_sources"));
-  yes(empty.fulls==0&&server.posts==2&&versions.equals(payloads(firstRoot,config)));
+  yes(empty.fulls==0&&server.posts==2&&retained.equals(payloads(firstRoot,config)));
   for(String payload:payloads(firstRoot,config))yes(body(payload).get("operation").equals("upsert"));
   Source recording=new Source();OfficialLifelogInventoryTest.data(recording.listing).put("events",Collections.singletonList(OfficialLifelogInventoryTest.event("recording-only","recording")));
   MaterialSyncSession.Status deferred=sync(new File(root,"recording-only"),config,recording,server);
@@ -134,13 +136,14 @@ public final class MaterialDiscoverySyncTest {
   yes(legacyPayloads.equals(payloads(legacyRoot,config)));
   yes(sync(legacyRoot,config,changed(),legacyServer).stored==2&&legacyServer.posts==2);
   yes(payloads(legacyRoot,config).get(0).equals(legacyPayloads.get(0)));
-  // An oversized day is reported, never posted or truncated, and the session
-  // still completes; a later normal-size revision of the same source proceeds.
+  // >256KiB is now a durable full event. A legacy server cannot accept it;
+  // preserve it explicitly instead of reporting a silent skipped/successful day.
   File bigRoot=new File(root,"oversized");Source big=new Source();OfficialLifelogSnapshotTest.source(big.detail).put("clips",OfficialLifelogSnapshotTest.source(LifelogRevisionJournalTest.oversized(OfficialLifelogSnapshotTest.SOURCE)).get("clips"));
-  MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(connection);MaterialSyncSession.Status skipped=sync(bigRoot,config,big,bigServer);
-  yes(skipped.tooLarge==1&&skipped.discovered==1&&skipped.added==0&&skipped.stored==0&&skipped.queued==0&&bigServer.posts==0);
-  yes("MATERIAL_EVENT_TOO_LARGE".equals(skipped.note)&&payloads(bigRoot,config).isEmpty());
-  MaterialSyncSession.Status resumed=sync(bigRoot,config,new Source(),bigServer);yes(resumed.tooLarge==0&&resumed.stored==1&&bigServer.posts==1&&"server_stored".equals(resumed.note));
+  MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(connection);
+  reject("MATERIAL_TRANSFER_UNSUPPORTED",()->sync(bigRoot,config,big,bigServer));
+  List<String> retainedBig=payloads(bigRoot,config);yes(retainedBig.size()==1&&retainedBig.get(0).getBytes(StandardCharsets.UTF_8).length>262144&&bigServer.posts==0);
+  yes(MaterialSyncSession.status(bigRoot,config).queued==1);
+  reject("LIFELOG_PENDING_REVISION_CHANGED",()->sync(bigRoot,config,new Source(),bigServer));yes(retainedBig.equals(payloads(bigRoot,config))&&bigServer.posts==0);
   System.out.println("Material discovery session: "+checks+" assertions passed");
  }
 }

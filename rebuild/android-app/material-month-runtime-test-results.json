@@ -1,20 +1,24 @@
 {
   "schema": 1,
-  "at": "2026-10-23T11:12:44.362Z",
+  "at": "2026-10-24T09:41:50.758Z",
   "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 342,
+  "checks": 386,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "a545227da2e177ec4692788582b4123fd4a139d88701c6f81fa81a60dbb98747"
+      "sha256": "0dad47b6b1b0e98317f49469bdcdea1c73de8aec0af37bbd3c7677d67f51eb82"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
+      "sha256": "53d6eee7c6309c6c3f53f69e687ac08601a9f3eb9b9e1bd1902aaddac1e7a627"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
-      "sha256": "ad1ff4f03d6f777851edf854398cf78025d9f20803ddcb33470cad2b2c8542b2"
+      "sha256": "7a5142492437dcc328b8eb119232cfc81b45ac0e7ecda0845c7854e72ce22b78"
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
@@ -22,11 +26,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "2cfd01afd0676a152dfb3323cc93ab2502cf5de7cdfd8493f05c5fde525b5fef"
+      "sha256": "3fff228c7a9f08dff68299b5b935ceefafcc8bd75801d1d3b18f51524c582043"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -66,7 +70,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
-      "sha256": "12afb46a50cef07711638cdbb33c876b29ea94d2a702a5b66eae7c19911f660c"
+      "sha256": "9726da370b53b054d5914d924c6d8194405278d028781a04d14f978399421476"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogJson.java",
@@ -86,7 +90,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
-      "sha256": "fba7ef5f34c0bc3e1aebf451a9771782750931eca3dbc03f6c70f3a277b5736b"
+      "sha256": "f887e33a1eb259bdf091ca301e68efcf08222c11cf0aa87bf55d6f303e68d863"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
@@ -94,11 +98,11 @@
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "321d39d7cd5f37debb7a3cdbb6f74594d84757975dffb95af0e2445ae58e067f"
+      "sha256": "80df800273e3b0b43e38b70c0f335d622d047df90e9eb00322f249818266aab7"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",
-      "sha256": "95276bf7a68a4f5973ef62a70655f45c0cfa133adcb2a722509a46b20b0c88c3"
+      "sha256": "bb11be0224f1c95245e05688bfa7a3e2acd9f88bd01322e55cfe86d6665177b6"
     }
   ],
   "temporary_classes_removed": true

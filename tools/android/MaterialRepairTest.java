@@ -43,7 +43,7 @@ public final class MaterialRepairTest {
   try(MaterialOutbox q=new MaterialOutbox(new File(root,"later-delete"),connection)){seed(q,bad);MaterialOutbox.Claim c=lookup(q,404,MaterialRenewalTest.absent());Map<String,Object> tombstone=WireJson.map(WireJson.copy(second));tombstone.put("revision",3L);tombstone.put("base_revision",2L);tombstone.put("operation","delete");tombstone.put("utterances",new ArrayList<>());tombstone.put("speakers",new ArrayList<>());WireJson.map(tombstone.get("full_text")).put("text","");q.enqueue(event(tombstone,"repair-delete"));yes(!q.repairTextRevision(c,404,MaterialRenewalTest.absent(),connection,now));}
   Path state=new File(recover,"material-outbox/"+connection.binding()+"/state.json").toPath();byte[] intact=Files.readAllBytes(state);Map<String,Object> damaged=parse(intact);Map<String,Object> last=WireJson.map(WireJson.list(damaged.get("rows")).get(1));WireJson.map(last.get("text_revision_repair")).put("base_payload_sha256","0".repeat(64));Files.write(state,WireJson.bytes(damaged));byte[] damagedBytes=Files.readAllBytes(state);rejects(()->{try(MaterialOutbox q=new MaterialOutbox(recover,connection)){} });yes(Arrays.equals(damagedBytes,Files.readAllBytes(state)));Files.write(state,intact);
   // Older readers must fail closed at the version gate, before queue rewrites.
-  yes(MaterialWire.positive(parse(intact).get("schema"))==3);
+  yes(MaterialWire.positive(parse(intact).get("schema"))==4);
   Files.write(Paths.get(state.toString()+".partial"),new byte[]{1});rejects(()->{try(MaterialOutbox q=new MaterialOutbox(recover,connection)){} });yes(Arrays.equals(intact,Files.readAllBytes(state)));
   System.out.println("Material repair: "+checks+" assertions passed");
  }
