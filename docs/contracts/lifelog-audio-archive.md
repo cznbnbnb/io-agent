@@ -53,6 +53,14 @@ dev83 已安装且元数据探针通过；本轮正常进程的独立原厂观�
 
 后台来源发现用收集器 `catalog()` 的有序只读屏障：在同一 writer 队列等待此前批次，返回同账号管理目录的深拷贝；不调用 `end`、不分配新段或更改原件回执。它和人工导出的封存 checkpoint 共用一个在途额度，停止后不接新屏障；交付前重新核对准入，异常完成 future。自动生产器只能选其中已封存且来源已核验的段，不能读正在增长的原件，也不能把目录项当上传授权。组件真实文件测试 640 次轮询不封段，原件/状态/管理回执逐字节保持；封存型错误变体被同一回归检出，既有导出仍通过。此接口尚未进入 dev83 或自动运行时。[目录屏障证据](../../rebuild/android-app/r4-audio-catalog-2026-10-24.json)。
 
+### 可验证原件快照生产器（合成端到端通过，未接手机）
+
+`LifelogAudioPayloads.TextSource.stored` 直接读取绑定同一 base/owner/producer/server 的文字 outbox，最新修订须有有效已存回执并为 lifelog/upsert；不能用未上传的新修订或任意传入正文冒充服务器来源。源段必须同账号、已封存、无未知尾部，peer/generation/clock、原消息 task 与已核验会话/material ID 精确一致。原件 reader 流式提供原始 journal 字节和校验链，不重新编码元数据、不忽略不支持批次。当前原音快照只支持固定已知字段 A3；未知 protobuf/JSON 字段及 A4/A5 保留本地并明确拒绝准备，待各自来源/格式适配，不将其省略后声称完整。
+
+原始封套为 8 字节 ASCII `IOARAW01`、大端 uint32 元数据长度、大端 uint64 journal 长度、最多 65536 字节规范 UTF-8 JSON、完整 original.frames。JSON 含原件状态/归属/链、接收上下文和精确来源说明，不含 bearer、文字正文或文字修订；`recording_complete=false`，封存不是物理完整性证明。外部 manifest 单独绑定已存文字修订和正文摘要。同一原件对应固定载荷 SHA；后续文字修订可以复用队列已有对象，固定第一份 manifest/body SHA/存储时间/72 小时期限，不能自动重包装续期。
+
+快照目录是 `lifelog-audio-payloads/<account>/<sha256>/payload.bin`。全局锁和跨账号 512 MiB/512 项计量；流式检查守卫、全摘要和每段校验，文件刷盘、原子发布并同步目录后才可入上传队列。未发布自有 partial 在失败或下次本账号启动时回收；原件、发布后的快照和用户导出不删除。缓存命中仍重新验证原件及完整载荷摘要，满额时相同缓存可复用；坏缓存不覆盖。独立 JVM 的复制和发布后中断恢复、真实临时服务上传和 Node 独立拆包回读均通过，仅合成原件；不是手机自动上传、codec 或真实官方来源证明。生产器调度/配置、已验回执后的有界缓存清理和服务上线仍未实现。[生产器证据](../../rebuild/android-app/r4-audio-producer-2026-10-24.json)。
+
 ## 原厂入口与已验证格式
 
 固定宿主 1.0.7 的 A3 实时帧经 `com.rayneo.rayneo_venus_sdk_plugin.e.h(message,data)` 解析，进入 `t8/b$b.c`；A4 缓存数据经 `t8/b$b.a` 写入 `files/always_on_cached_audio/<resolvedTaskId>.opus`，结束后通知 `taskId/filePath/sizeBytes`。A3 的实时数据与 A4 的缓存结束不能互相替代。后缀 `.opus` 本身不证明编码或可播放封装。

@@ -11,13 +11,16 @@ final class AlwaysOnWire {
  final int type,version; final String message; private final byte[] data;
  private AlwaysOnWire(int type,int version,String message,byte[] data){this.type=type;this.version=version;this.message=message;this.data=data;}
  byte[] data(){return data.clone();}
- static AlwaysOnWire read(byte[] raw){
+ static AlwaysOnWire read(byte[] raw){return read(raw,false);}
+ /** Uploadable raw envelopes must not silently carry unknown protobuf fields. */
+ static AlwaysOnWire readKnown(byte[] raw){return read(raw,true);}
+ private static AlwaysOnWire read(byte[] raw,boolean known){
   require(raw!=null&&raw.length<=MAX_BYTES);Reader r=new Reader(raw);boolean[] seen=new boolean[5];int type=0,version=0;String message="";byte[] data=new byte[0];
   while(r.at<raw.length){long tag=r.number();require(tag>0&&tag<=0xffffffffL);int field=(int)(tag>>>3),wire=(int)(tag&7);require(field>0);
    if(field<=4){require(!seen[field]);seen[field]=true;require(wire==(field<=2?0:2));
     if(field<=2){long n=r.number();require(n>=0&&n<=Integer.MAX_VALUE);if(field==1)version=(int)n;else type=(int)n;}
     else{byte[] b=r.bytes(field==3?16384:MAX_BYTES);if(field==3)try{message=StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(b)).toString();}catch(CharacterCodingException invalid){throw new IllegalArgumentException("AUDIO_WIRE_INVALID");}else data=b;}
-   }else switch(wire){case 0:r.number();break;case 1:r.skip(8);break;case 2:r.bytes(MAX_BYTES);break;case 5:r.skip(4);break;default:throw new IllegalArgumentException("AUDIO_WIRE_INVALID");}
+   }else {require(!known);switch(wire){case 0:r.number();break;case 1:r.skip(8);break;case 2:r.bytes(MAX_BYTES);break;case 5:r.skip(4);break;default:throw new IllegalArgumentException("AUDIO_WIRE_INVALID");}}
   }return new AlwaysOnWire(type,version,message,data);
  }
  private static void require(boolean value){if(!value)throw new IllegalArgumentException("AUDIO_WIRE_INVALID");}

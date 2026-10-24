@@ -12,7 +12,7 @@ public final class AudioUploadHttpTest {
  private static File input(File root,Map<String,Object> plan)throws Exception{Map<String,Object> m=row(plan.get("manifest"));File file=new File(root,"lifelog-audio-payloads/"+ACCOUNT+"/"+m.get("sha256")+"/payload.bin");if(!file.exists()){yes(file.getParentFile().mkdirs());byte[] data=Base64.getDecoder().decode((String)plan.get("data"));Files.write(file.toPath(),data);yes(TaskWire.hash(data).equals(m.get("sha256")));}return file;}
  private static Map<String,Object> only(AudioUploadOutbox q,long now)throws Exception{List<Object> rows=q.snapshot(now);yes(rows.size()==1);return row(rows.get(0));}
  private static File staged(File root,Map<String,Object> job){return new File(root,"lifelog-audio-uploads/payloads/"+job.get("id")+".bin");}
- private static final class Loopback implements MaterialApi.Transport {
+ static final class Loopback implements MaterialApi.Transport {
   final String endpoint,token,mode;final AtomicBoolean allowed;int posts,parts;boolean halted;
   Loopback(String endpoint,String token,String mode,AtomicBoolean allowed){this.endpoint=endpoint;this.token=token;this.mode=mode;this.allowed=allowed;}
   public MaterialApi.Response exchange(String path,byte[] data)throws IOException{

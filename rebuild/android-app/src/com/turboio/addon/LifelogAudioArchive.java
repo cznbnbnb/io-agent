@@ -87,9 +87,13 @@ final class LifelogAudioArchive implements AutoCloseable {
  /** Only frozen, fully checksummed journals are supplied to a decoder. Callers
   * write derived output to staging and publish it only after this method returns.
   * The journal's source/recording-completeness flags remain independent. */
- synchronized void visit(Visitor visitor,Guard guard)throws IOException{
+ synchronized void visit(Visitor visitor,Guard guard)throws IOException{readFrozen(visitor,guard,null);}
+ /** Stream the exact validated journal bytes to an unpublished snapshot. The
+  * caller must discard output unless the entire visit and final guard succeed. */
+ synchronized void copyFrozen(OutputStream output,Visitor validator,Guard guard)throws IOException{require(output!=null,"AUDIO_ARCHIVE_OUTPUT_INVALID");readFrozen(validator,guard,output);}
+ private void readFrozen(Visitor visitor,Guard guard,OutputStream output)throws IOException{
   require(!closed&&!uncertain&&!sealed.isEmpty()&&visitor!=null,"AUDIO_ARCHIVE_NOT_READABLE");admit(guard);recover(guard);require(!uncertain,"AUDIO_ARCHIVE_NOT_READABLE");long position=channel.position();String previous=genesis();long seen=0;
-  try{channel.position(8);while(channel.position()<bytes){admit(guard);byte[] sizes=read(8);ByteBuffer lengths=ByteBuffer.wrap(sizes);int h=lengths.getInt(),p=lengths.getInt();require(h>0&&h<=131072&&p>=0&&p<=MAX_PAYLOAD,"AUDIO_ARCHIVE_COMMITTED_CORRUPT");byte[] meta=read(h),payload=read(p),footer=read(32);String digest=hash(sizes,meta,payload);require(Arrays.equals(footer,unhex(digest)),"AUDIO_ARCHIVE_COMMITTED_CORRUPT");Map<String,Object> parsed=WireJson.map(WireJson.read(meta));validateHeader(parsed,++seen,previous);require(hash(WireJson.bytes(identity(parsed)),payload).equals(receipts.get(seen)),"AUDIO_ARCHIVE_COMMITTED_CORRUPT");previous=digest;admit(guard);visitor.batch(new Batch(parsed,payload));}
+  try{if(output!=null)output.write(MAGIC);channel.position(8);while(channel.position()<bytes){admit(guard);byte[] sizes=read(8);ByteBuffer lengths=ByteBuffer.wrap(sizes);int h=lengths.getInt(),p=lengths.getInt();require(h>0&&h<=131072&&p>=0&&p<=MAX_PAYLOAD,"AUDIO_ARCHIVE_COMMITTED_CORRUPT");byte[] meta=read(h),payload=read(p),footer=read(32);String digest=hash(sizes,meta,payload);require(Arrays.equals(footer,unhex(digest)),"AUDIO_ARCHIVE_COMMITTED_CORRUPT");Map<String,Object> parsed=WireJson.map(WireJson.read(meta));validateHeader(parsed,++seen,previous);require(hash(WireJson.bytes(identity(parsed)),payload).equals(receipts.get(seen)),"AUDIO_ARCHIVE_COMMITTED_CORRUPT");previous=digest;admit(guard);visitor.batch(new Batch(parsed,payload));if(output!=null){admit(guard);for(byte[] original:new byte[][]{sizes,meta,payload,footer})output.write(original);}}
    require(seen==count&&previous.equals(chain)&&channel.size()==bytes,"AUDIO_ARCHIVE_RAW_CHANGED");admit(guard);
   }finally{channel.position(position);}
  }
