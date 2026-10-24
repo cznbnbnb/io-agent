@@ -1,5 +1,24 @@
 # GitHub 协作交接
 
+## [claude] 2026-10-24 交给 Codex：R3 收尾与 R4（Claude 暂停）
+
+**用户决定**：R2 定为完成（余项蓝牙断连、8 小时、远近/噪声不再验收；双摇头挂起待固件）；R3、R4 由 Codex 推进；Hermes 移出范围。Claude 已停手，设备锁空闲。
+
+**代码**：`origin/claude/macos-toolchain` 已含 Codex `95cd210` 合并及 Claude 本日全部改动（dev64–dev71）。开工前在 Codex 分支合入它。Android 原有失败 5 项与合并无关：fixed60（缺 Windows 私有固件）、login、material、official-gate、official-preparation。
+
+**设备**：手机装 dev71 /10493（`rebuild/android-app/artifacts/` 留 dev70 回退）；下一个可用版本号 dev72 /10494。USB `bae62ca9`，亦有 Tailscale 无线；手机无锁屏密码，重启后上滑即可。注意 `sign.mjs` 会把上一个候选写成 `rollback-candidate.json`，跳过的中间版要手动改回。
+
+**一次配对（R3 用这个，不再导入连接文件）**：
+- 本 Mac 已登记为 agent 设备（`~/.turboio/agent-device.json`，Claude/Codex 共用，后台自动续期）；手机已配对（设备 `4226e391`）。
+- Codex 会话开始：`echo '{"topic":"<本会话话题>"}' | node rebuild/agent-bridge/questions/cli.mjs join`，约 5 秒后手机自动出现该会话并成为默认连接。之后按 [AGENT-CONTRACT.md](../../rebuild/agent-bridge/questions/AGENT-CONTRACT.md) 用 `ask`/`wait`/`checkpoint`/`notify`；`join` 已识别 `CODEX_THREAD_ID`，但只有 Claude 侧真机走过。
+- 用户目前坐在电脑前、不想被推送：Claude 任务已 `config {"glasses_progress":false}`；新任务默认推送，除非用户要求，先设为 false。
+
+**R3 剩余**：①真实 Codex 会话经 `join` 提问→眼镜口述→点头确认→答案回原会话并继续；②前后台同步；③已答/已过期旧问题仍挂在"需要你决定"的状态显示。
+
+**R4 剩余（约 50%，10-22 后未推进）**：超长正文分块上传（禁止截断/伪拆分）、自动增量、原音对应、权威删除（日历缺失不得产生墓碑）。上传正式凭据 10-22 14:10 已到期，续签需用户重新批准。
+
+**已知不修/注意**：长题显示中长按电源键重启会先发 `code=1` 而开口述（用户：不常用，不修）；解除配对后旧设备派生的连接显示"已暂停"直到原到期；每次提词器启动出现一次 `AudioRecorderBridge nativeStop/destroy`，是原厂通道清理。
+
 **[claude] 2026-10-24 范围与协作约定更新（用户）。** ①Hermes 不再推进，R3 只需 Claude Code 与 Codex 两个 Agent 闭环；原"Hermes 干净完成、是否开放文件/终端工具"两项撤销。②Claude 完成并测过的改动直接提交并推送 `claude/` 分支，不再逐次询问；合并 `main` 仍由用户决定。R3 证据：本日 Claude Code 当前会话经一次配对 `join`，多次在眼镜提问、用户口述并点头确认，答案回到原会话并据此继续（如"选第二个"→补验手机整机重启、"选一提交并推送"→提交 dev68），即"第二个真实 Agent"闭环。Codex 尚未在真实会话中改用 `join`（代码已识别 `CODEX_THREAD_ID`，仅 Claude 侧真机走过）。
 
 **[claude] 2026-10-24 超长口述也出确认卡（dev71 /10493 已装，回退 dev70）。** 用户反馈"退出录音没有弹出确认卡"：选择题口述未识别出选项、原话超过卡片 48 字时，`AgentCardRequest.copy` 报 `TASK_GLASS_COPY_TOO_LONG`，整张确认卡不发，答案只能在手机完成（16:07:35"这个问题请在手机完整回答"）。现在确认卡显示开头加"…（共N字）"，点头仍保存完整原文（`confirm` 不变），识别出选项时仍显示"选N：标签"。`AgentCardTest` 两处"超长确认被拒"改为"显示开头与总字数、全文保留"；任务卡 791、语音 1960、提词器 150 通过。真机：新长题口述 41 字（未触发预览），确认卡 16:11:57 上镜、点头 16:12:05 保存。超长预览分支只有单测覆盖。用户随后表示暂时坐在电脑前，`config {"glasses_progress":false}` 已关进度推送，之后改在聊天沟通。dev68 已移入废纸篓。
