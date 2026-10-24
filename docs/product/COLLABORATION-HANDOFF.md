@@ -1,5 +1,7 @@
 # GitHub 协作交接
 
+**[claude] 2026-10-24 范围与协作约定更新（用户）。** ①Hermes 不再推进，R3 只需 Claude Code 与 Codex 两个 Agent 闭环；原"Hermes 干净完成、是否开放文件/终端工具"两项撤销。②Claude 完成并测过的改动直接提交并推送 `claude/` 分支，不再逐次询问；合并 `main` 仍由用户决定。R3 证据：本日 Claude Code 当前会话经一次配对 `join`，多次在眼镜提问、用户口述并点头确认，答案回到原会话并据此继续（如"选第二个"→补验手机整机重启、"选一提交并推送"→提交 dev68），即"第二个真实 Agent"闭环。Codex 尚未在真实会话中改用 `join`（代码已识别 `CODEX_THREAD_ID`，仅 Claude 侧真机走过）。
+
 **[claude] 2026-10-24 超长口述也出确认卡（dev71 /10493 已装，回退 dev70）。** 用户反馈"退出录音没有弹出确认卡"：选择题口述未识别出选项、原话超过卡片 48 字时，`AgentCardRequest.copy` 报 `TASK_GLASS_COPY_TOO_LONG`，整张确认卡不发，答案只能在手机完成（16:07:35"这个问题请在手机完整回答"）。现在确认卡显示开头加"…（共N字）"，点头仍保存完整原文（`confirm` 不变），识别出选项时仍显示"选N：标签"。`AgentCardTest` 两处"超长确认被拒"改为"显示开头与总字数、全文保留"；任务卡 791、语音 1960、提词器 150 通过。真机：新长题口述 41 字（未触发预览），确认卡 16:11:57 上镜、点头 16:12:05 保存。超长预览分支只有单测覆盖。用户随后表示暂时坐在电脑前，`config {"glasses_progress":false}` 已关进度推送，之后改在聊天沟通。dev68 已移入废纸篓。
 
 **[claude] 2026-10-24 不开 App 时短卡片与口述全流程打通（dev70 /10492 已装，回退 dev68；dev69 为同批中间版已作废）。** dev67 只把任务运行时放到进程启动，短卡片报"交互保护尚未就绪"：卡片与口述都经 `Host107Ota.link()`（要 `Host107Connection` 实例）和 `HeadGestureRuntime`，两者都只随界面创建。现在两者都有 `boot(Context/Application)`（无界面时不进 foreground），`TurboAddon.boot` 依次：`OtaController`/`OfficialOtaBridge` 升级保护日志（升级待确认时卡片与口述仍被挡）→ BackgroundWork/NativeTransfer/CardTransport → 预热引擎 → `Host107Connection.boot` → `HeadGestureRuntime.boot` → `AgentCardRuntime.boot`。测试：任务卡 791、头势 498、语音 1960、分钟卡 126、host 通过。真机：重启→上滑解锁停在桌面，16:03:30 后台启动；16:03:44 短卡片上镜；16:04:21 在卡片选口述，16:04:22–32 录音，16:04:33 后台确认卡（`headless confirm offered`）上镜，点头后保存提交，全程桌面在前。旧安装包 dev59、dev69 已移入废纸篓。
