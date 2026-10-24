@@ -310,7 +310,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "673cd729698b81e534eb0f3cc67695c33cc790d327e77e69d69d3e4143672bab"
+      "sha256": "d68439ebd868f66f47a3302b8a0ff34d50d0ffb9ba2ebb7f94ef000ee6ec49c0"
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
@@ -441,6 +441,10 @@
       "sha256": "4926ae06c1be26b81a268c2f477ba13910fc6e2d3f398ab6d79535a71658d0be"
     },
     {
+      "path": "src/com/turboio/addon/Host107OpusFileDecoder.java",
+      "sha256": "e97fc617bb3ab096b1da9d0cc393c0b40dc920db18324244920843cb9c91abd9"
+    },
+    {
       "path": "src/com/turboio/addon/Host107Ota.java",
       "sha256": "263aaec31bb45b27d6837da8777fa2800c284eac5c373db90916577e640a31f6"
     },
@@ -474,11 +478,19 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioCollector.java",
-      "sha256": "10810676ae0695e124cd140b1baca042d521ca6940306f488e27c553d201a6d6"
+      "sha256": "da3ed977a1425abca2341e7f5fbc0c57155e0bfe8a191613275435f69d4e5799"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioExport.java",
+      "sha256": "d28a351a155185881a83acb551f7aff712b6e78a54aa600fb5b5cdbcc3109984"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioHealth.java",
       "sha256": "e897361a86bbfe7ee8ddeb83d698545261fac713c644be875c74fadc9b9f985b"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+      "sha256": "70b6125dc3d03a53c370adbd962987f225f90b9a243f72571a70942011f2d074"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioManager.java",
@@ -490,7 +502,11 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioObservationRuntime.java",
-      "sha256": "382e92b17b0d46e44cf2b04dafd03e226740dbbcf6b7d86f81806a76f2b84e3a"
+      "sha256": "363876b7dfe7ce78fb234b9c7f8c8e370940287185713b4289f1579df603ee86"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioRuntime.java",
+      "sha256": "2316330d23e0d6e1513e6d0d139741aaa289918a55f80d53a360d2a302424d27"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -519,6 +535,10 @@
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
       "sha256": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialAudioExport.java",
+      "sha256": "54340706b076638024c71637c26a03f8c30f4d4bb85dbbd86eef4ca7c0375bb8"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
@@ -566,7 +586,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "ded09feda5d6e491e5cecc6f0d65f9e5b3c5f0040b585de78e75137f9edc9884"
+      "sha256": "c87eb8a4674baa968eb7817c982d90dba4e456517a1cd9363eea3dfb9c98979e"
     },
     {
       "path": "src/com/turboio/addon/MaterialSettings.java",
@@ -663,6 +683,10 @@
     {
       "path": "src/com/turboio/addon/OfficialSdkReceipt.java",
       "sha256": "9bdaa9c78adc9df58e12a938f20ffdde2aa6d2fea157d2eff0115b2412c0b3e0"
+    },
+    {
+      "path": "src/com/turboio/addon/OpusFile.java",
+      "sha256": "da53ca5068d79b0379f03841694bf0e131ba297f0cfe469d8ca6ad7261d6cca8"
     },
     {
       "path": "src/com/turboio/addon/PrompterFile.java",
@@ -826,11 +850,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "0e4e7a72e40a0d68aee42b5085e3e75979d00d06f822711ad1ed1fa4798994bb"
+      "sha256": "d2d6b30091b68d9410ab6dcb914137628159e96aef89d08e2a1ca6012d41afdb"
     }
   ],
-  "product_sha256": "efba3afdc21eac18ed8a21c1f324be33f074b58a69dddce6bbdbc4b9df8fd9fc",
-  "addon_sha256": "d2d0364593b8829f18bbc141e44ea9ff29a6066bc4de7a96a0abd515537189a7",
+  "product_sha256": "fe224b32fce3ed01a9e5dca6b793fc50b67f0dcef5ac45ff32d2a45609b8beee",
+  "addon_sha256": "c73a85f2952c2c796c868de9f6092239c8114cea69caded22ab9fbafa406d7fa",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

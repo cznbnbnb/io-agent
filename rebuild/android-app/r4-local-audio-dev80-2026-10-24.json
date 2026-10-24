@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T16:28:24.552852+00:00",
+  "version": "0.5.3-dev80",
+  "version_code": 10502,
+  "sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+  "signed_source_count": 213,
+  "signature_v2": true,
+  "signature_v3": true,
+  "source_manifest_sha256": "b4418b9a5761718858266d9c197154e1a330f834b6c5f6f493b8bf22e6a22903",
+  "installed": {
+    "version": "0.5.3-dev80",
+    "version_code": 10502,
+    "installed_apk_sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+    "verified": true
+  },
+  "delta": {
+    "baseline_sha256": "e5d9e33ea3c581be176701a5e9e2f957056ade84bfd75d60b62459460a391aea",
+    "target_sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+    "delta_bytes": 1482053,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 8.019
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 7.91
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 9.791
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 8.336
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 12.376
+      },
+      {
+        "bytes": 171333,
+        "through": 1482053,
+        "seconds": 8.738
+      }
+    ],
+    "resume_seconds": 61.715,
+    "earlier_attempts": []
+  },
+  "stable_rollback": {
+    "version": "0.5.3-dev76",
+    "version_code": 10498,
+    "sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4"
+  },
+  "delivery": {
+    "passive_original_capture_wired": true,
+    "fresh_source_association_wired": true,
+    "phone_export_code_installed": true,
+    "real_phone_export_verified": false,
+    "phone_saf_picker_verified": false,
+    "remote_audio_upload": false,
+    "remote_72h_retention": false,
+    "authoritative_deletion": false,
+    "recording_complete_claimed": false,
+    "new_recording_started": false
+  },
+  "capture": {
+    "persisted_session_count": 7,
+    "reported_saved_batches": 698,
+    "scope": "Persisted normal-process counters; instrumentation restarts the app. Not a continuous-capture test.",
+    "sessions": [
+      {
+        "clock_epoch": "dc6267937881430392c39e531d942466",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792857709159,
+        "last_received_at": 1792857830017,
+        "saved_batches": 77,
+        "phase": "INTERRUPTED",
+        "error": "",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "cced1bffe15d4cc1bc67479dfc66e548",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792857880897,
+        "last_received_at": 1792858121378,
+        "saved_batches": 143,
+        "phase": "INTERRUPTED",
+        "error": "",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "a6fae477e41c4d9dad450f454646a0ed",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792858171800,
+        "last_received_at": 1792858614369,
+        "saved_batches": 253,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "c8c3f8ae70c54d9aa273fc8d60967ff0",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792858632663,
+        "last_received_at": 1792858655010,
+        "saved_batches": 22,
+        "phase": "FAILED",
+        "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "e0f5041e59a2491eb309c1ed728b73bb",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792858673140,
+        "last_received_at": 1792858753472,
+        "saved_batches": 55,
+        "phase": "INTERRUPTED",
+        "error": "",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "13ac9290628546f4a0d42abd9f610c83",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792858790986,
+        "last_received_at": 1792858851025,
+        "saved_batches": 44,
+        "phase": "INTERRUPTED",
+        "error": "",
+        "source_link_verified": false
+      },
+      {
+        "clock_epoch": "c6c7b6051ffd4d32960ac7d8c56e6b48",
+        "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+        "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+        "started_at": 1792858887455,
+        "last_received_at": 1792859068284,
+        "saved_batches": 104,
+        "phase": "RUNNING",
+        "error": "",
+        "source_link_verified": false
+      }
+    ],
+    "context_changed_failed_sessions": 2,
+    "continuous_capture_verified": false
+  },
+  "phone_probe": {
+    "version": "0.5.3-dev80",
+    "version_code": 10502,
+    "probe": {
+      "audio_uploaded_played_or_returned": false,
+      "capture_metadata": [
+        {
+          "clock_epoch": "dc6267937881430392c39e531d942466",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792857709159,
+          "last_received_at": 1792857830017,
+          "saved_batches": 77,
+          "phase": "INTERRUPTED",
+          "error": "",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "cced1bffe15d4cc1bc67479dfc66e548",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792857880897,
+          "last_received_at": 1792858121378,
+          "saved_batches": 143,
+          "phase": "INTERRUPTED",
+          "error": "",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "a6fae477e41c4d9dad450f454646a0ed",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792858171800,
+          "last_received_at": 1792858614369,
+          "saved_batches": 253,
+          "phase": "FAILED",
+          "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "c8c3f8ae70c54d9aa273fc8d60967ff0",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792858632663,
+          "last_received_at": 1792858655010,
+          "saved_batches": 22,
+          "phase": "FAILED",
+          "error": "AUDIO_CAPTURE_CONTEXT_CHANGED",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "e0f5041e59a2491eb309c1ed728b73bb",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792858673140,
+          "last_received_at": 1792858753472,
+          "saved_batches": 55,
+          "phase": "INTERRUPTED",
+          "error": "",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "13ac9290628546f4a0d42abd9f610c83",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792858790986,
+          "last_received_at": 1792858851025,
+          "saved_batches": 44,
+          "phase": "INTERRUPTED",
+          "error": "",
+          "source_link_verified": false
+        },
+        {
+          "clock_epoch": "c6c7b6051ffd4d32960ac7d8c56e6b48",
+          "task_sha256": "27cabdda9d33ecb15eb2f67ac5daf993224abc49e8b7364d0ef0a2ec7893f252",
+          "material_id": "rayneo-lifelog-0f73c0232006335b85cb339af0bd4501a165fb5eb686b6cd96c023111c17b75c",
+          "started_at": 1792858887455,
+          "last_received_at": 1792859068284,
+          "saved_batches": 104,
+          "phase": "RUNNING",
+          "error": "",
+          "source_link_verified": false
+        }
+      ],
+      "error": "AUDIO_EXPORT_PROBE_NO_LINKED_AUDIO",
+      "new_recording_started": false,
+      "original_audio_removed": false,
+      "passed": false,
+      "probe_id": "0f6ce43c19b44204b41e63b3eddf3abd",
+      "runtime_metadata": "{phase=IDLE, remote_stored=false}",
+      "source_metadata": {
+        "cached_conversation_sources": 66,
+        "local_conversation_sources": 55,
+        "fresh_day_reads": [
+          {
+            "date": "2026-10-22",
+            "read_at": 1792754279658,
+            "source_count": 0,
+            "timezone": "Asia/Shanghai"
+          },
+          {
+            "date": "2026-10-23",
+            "read_at": 1792754647902,
+            "source_count": 20,
+            "timezone": "Asia/Shanghai"
+          },
+          {
+            "date": "2026-10-24",
+            "read_at": 1792859014090,
+            "source_count": 35,
+            "timezone": "Asia/Shanghai"
+          },
+          {
+            "date": "2026-10-25",
+            "read_at": 1792858979190,
+            "source_count": 0,
+            "timezone": "Asia/Shanghai"
+          }
+        ],
+        "cached_exact_task_matches": [],
+        "local_exact_task_matches": []
+      }
+    },
+    "adb_exit_code": 0
+  },
+  "failed_attempts": [
+    {
+      "version": "dev79",
+      "error": "AUDIO_EXPORT_PROBE_NO_LINKED_AUDIO",
+      "passed": false
+    },
+    {
+      "version": "dev80",
+      "error": "AUDIO_EXPORT_PROBE_NO_LINKED_AUDIO",
+      "passed": false,
+      "before_explicit_fresh_day_read": true
+    },
+    {
+      "method": "adb run-as",
+      "error": "package not debuggable",
+      "security_changed": false
+    }
+  ],
+  "source_blocker": {
+    "cached_conversation_sources": 66,
+    "local_conversation_sources": 55,
+    "current_task_in_latest_sources": false,
+    "fresh_day_reads": [
+      {
+        "date": "2026-10-22",
+        "read_at": 1792754279658,
+        "source_count": 0,
+        "timezone": "Asia/Shanghai"
+      },
+      {
+        "date": "2026-10-23",
+        "read_at": 1792754647902,
+        "source_count": 20,
+        "timezone": "Asia/Shanghai"
+      },
+      {
+        "date": "2026-10-24",
+        "read_at": 1792859014090,
+        "source_count": 35,
+        "timezone": "Asia/Shanghai"
+      },
+      {
+        "date": "2026-10-25",
+        "read_at": 1792858979190,
+        "source_count": 0,
+        "timezone": "Asia/Shanghai"
+      }
+    ],
+    "interpretation": "Current saved task is absent from the official cache and latest account-owned local sources. Later publication is possible, not proven. No guessed binding or override."
+  },
+  "tests": {
+    "export": {
+      "schema": 1,
+      "at": "2026-10-24T16:12:07.971Z",
+      "passed": true,
+      "checks": 37,
+      "independent_decoder": {
+        "codec_name": "opus",
+        "sample_rate": 48000,
+        "channels": 1
+      },
+      "decoded_pcm_bytes": 3840,
+      "scope": "Synthetic delayed association, immutable export checkpoints, streaming archive/ZIP/Opus output, account/corruption/expiry rejection; actual phone is separate",
+      "sources": [
+        {
+          "path": "src/com/turboio/addon/LifelogAudioExport.java",
+          "sha256": "d28a351a155185881a83acb551f7aff712b6e78a54aa600fb5b5cdbcc3109984"
+        },
+        {
+          "path": "src/com/turboio/addon/OpusFile.java",
+          "sha256": "da53ca5068d79b0379f03841694bf0e131ba297f0cfe469d8ca6ad7261d6cca8"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+          "sha256": "70b6125dc3d03a53c370adbd962987f225f90b9a243f72571a70942011f2d074"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioCollector.java",
+          "sha256": "da3ed977a1425abca2341e7f5fbc0c57155e0bfe8a191613275435f69d4e5799"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioHealth.java",
+          "sha256": "e897361a86bbfe7ee8ddeb83d698545261fac713c644be875c74fadc9b9f985b"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioManager.java",
+          "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+          "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnWire.java",
+          "sha256": "ca44324211216a63f81eb2a6274c471086b15a9637526b82d0405028ace3ae4c"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+          "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+        },
+        {
+          "path": "src/com/turboio/addon/AtomicDocument.java",
+          "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+        },
+        {
+          "path": "src/com/turboio/addon/WireJson.java",
+          "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+        },
+        {
+          "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+          "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+        },
+        {
+          "path": "../../tools/android/LifelogAudioExportTest.java",
+          "sha256": "08ea66daa591970ebf824decfe3f20c0d874b92037d5784abcd9d2c30935b066"
+        },
+        {
+          "path": "../../tools/android/test-lifelog-audio-export.mjs",
+          "sha256": "f4745e7deefc227bf0aacd12274c7b0cf3d8f0c5667e854f9501eaa1d5d95eda"
+        }
+      ],
+      "temporary_fixture_removed": true
+    },
+    "collector": {
+      "schema": 1,
+      "at": "2026-10-24T15:48:30.426Z",
+      "passed": true,
+      "checks": 48,
+      "separate_process_unfinished_marker_recovery": true,
+      "scope": "Synthetic bytes; real filesystem, bounded worker/queue and independent JVM halt; no native hook, actual audio or source/codec claims",
+      "sources": [
+        {
+          "path": "src/com/turboio/addon/LifelogAudioCollector.java",
+          "sha256": "da3ed977a1425abca2341e7f5fbc0c57155e0bfe8a191613275435f69d4e5799"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioHealth.java",
+          "sha256": "e897361a86bbfe7ee8ddeb83d698545261fac713c644be875c74fadc9b9f985b"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioManager.java",
+          "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+          "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+          "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+        },
+        {
+          "path": "src/com/turboio/addon/AtomicDocument.java",
+          "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+        },
+        {
+          "path": "src/com/turboio/addon/WireJson.java",
+          "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+        },
+        {
+          "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+          "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+        },
+        {
+          "path": "../../tools/android/LifelogAudioCollectorTest.java",
+          "sha256": "b1f1bcc1bce038c89bbccde8c90294067c96d80eb5ccff91e5eafa43b5275cde"
+        },
+        {
+          "path": "../../tools/android/test-lifelog-audio-collector.mjs",
+          "sha256": "ab35f14103d1f55057858d38598a8930af3678c541adebdcfa3a76ce92439d8e"
+        }
+      ],
+      "temporary_fixture_removed": true
+    },
+    "material_catalog_document_checks": 32,
+    "material_local_library_checks": 40,
+    "android_source_compile": true,
+    "host_classes_retained": 10944,
+    "host_members_retained": 97781,
+    "driver_build_and_install": true,
+    "driver_sha256": "0a890afe274837b628cb86d760255156dc47802e7d72217de687c3dc557322c8",
+    "driver_source_sha256": "76ec5a155f8999a566b1431a514431e0e075655764dc7f18a0fef9c99eb8a6af"
+  },
+  "cleanup": {
+    "installed_sha256": "379c2c13f103efb21f7ab0655ca8e1af7d405c7ceac4e717959178b8658ecd0e",
+    "stable_rollback_verified": true,
+    "remote_delta_staging_removed": true,
+    "driver_removed": true,
+    "app_restarted": true,
+    "original_audio_deleted": false,
+    "app_running": true,
+    "normal_app_pid": 11094,
+    "app_backgrounded": true,
+    "wakefulness": "Dozing",
+    "wakefulness_changing": false,
+    "resumed_activity": "",
+    "screen_off_or_dozing": true,
+    "earlier_asleep_assumption_failed": true,
+    "local_signed_apks_retained": [
+      "dev80",
+      "dev76"
+    ],
+    "dev79_signed_apk_removed_after_sha_check": true,
+    "regenerable_build_directories_removed": [
+      "build/classes",
+      "build/dex",
+      "build/emulator-input"
+    ],
+    "current_generated_source_staging_retained": true,
+    "device_lock_released": true
+  },
+  "cli_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-dev80-local-audio-delivered-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T17:16:26.605Z",
+    "requires_answer": false,
+    "message_id": "notice-3b6b864ed9a2027baba768201388a98ba92b3fde5698917b363c45be740134fc",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "scope": {
+    "audio_uploaded_played_or_returned": false,
+    "original_audio_removed": false,
+    "plain_account_ids_credentials_or_transcripts_in_evidence": false,
+    "existing_formal_grant": "text only; phone-android expires 2026-10-25T11:21:31.920Z"
+  },
+  "next": [
+    "Complete real audio export and SAF verification after an exact source is available; investigate context-change interruptions.",
+    "Implement fixed 72-hour remote retention/expiry and authoritative deletion using synthetic data.",
+    "Obtain a separate real-audio/deletion grant when implementation is ready."
+  ],
+  "progress_estimate": {
+    "R3": 100,
+    "R4": 75,
+    "basis": "Delivery scope, not assertion count"
+  }
+}

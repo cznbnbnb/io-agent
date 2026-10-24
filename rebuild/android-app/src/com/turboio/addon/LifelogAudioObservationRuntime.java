@@ -18,8 +18,9 @@ public final class LifelogAudioObservationRuntime {
  private final LifelogAudioObservation model=new LifelogAudioObservation(UUID.randomUUID().toString().replace("-",""));
  private int outstanding,queuedBytes;private long dropped,lastRefresh,lastSave,contextAt,lastErrorLog;private boolean dirty=true;private AtomicDocument journal;private String account="",error="",stage="initial";private Set<String> conversations,cachedIds;private String cachedAccount="";private long cachedLength=-1,cachedModified=-1;private Map<String,Object> nativeContext=WireJson.object("available",false);
  private LifelogAudioObservationRuntime(Context context){app=context.getApplicationContext();io.scheduleWithFixedDelay(this::tick,1,200,TimeUnit.MILLISECONDS);}
- static synchronized void boot(Context context){if(instance==null)instance=new LifelogAudioObservationRuntime(context);}
+ static synchronized void boot(Context context){if(instance==null)instance=new LifelogAudioObservationRuntime(context);LifelogAudioRuntime.boot(context);}
  public static void incoming(String peer,byte[] raw){
+  try{LifelogAudioRuntime.incoming(peer,raw);}catch(RuntimeException ignored){}
   LifelogAudioObservationRuntime self=instance;if(self==null)return;
   synchronized(self){if(peer==null||peer.length()>256||raw==null||raw.length>AlwaysOnWire.MAX_BYTES||self.outstanding>=32||self.queuedBytes+raw.length>2097152){self.dropped++;return;}self.queue.add(new Event(peer,raw));self.outstanding++;self.queuedBytes+=raw.length;}
  }

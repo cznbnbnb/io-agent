@@ -68,6 +68,7 @@ final class MaterialRuntime {
   if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
   MaterialLocalLibrary.Snapshot local;try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
+  List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
   return new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"");
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
@@ -151,10 +152,10 @@ final class MaterialRuntime {
   OfficialAccountBinding login=account(owner);MaterialWire.require(target.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");Host107LifelogHttp official=new Host107LifelogHttp(app,login,()->check(owner),selectedDays==null?"Asia/Shanghai":selectedDays.get(0).timezone);synchronized(guard){check(owner);officialTransport=official;}
   try{
    MaterialSyncSession.AccountSource source;
-   if(selectedDays!=null){source=new MaterialSyncSession.DiscoverySource(){public OfficialAccountBinding current()throws Exception{return account(owner);}public OfficialLifelogDiscovery.Snapshot discover()throws Exception{return OfficialLifelogDiscovery.read(target.account,selectedDays,this::current,official);}};}else{
+   if(selectedDays!=null){source=new MaterialSyncSession.DiscoverySource(){public OfficialAccountBinding current()throws Exception{return account(owner);}public OfficialLifelogDiscovery.Snapshot discover()throws Exception{OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(target.account,selectedDays,this::current,official);LifelogAudioRuntime.sources(target.account,fresh.sources);return fresh;}};}else{
    File flutter=new File(app.getApplicationInfo().dataDir,"app_flutter");
    OfficialLifelogRefresh.Ownership ownership=new OfficialLifelogRefresh.Ownership(){public OfficialAccountBinding current()throws Exception{return account(owner);}public Set<String> references()throws Exception{OfficialAccountBinding current=current();return OfficialHiveCache.sourceReferences(OfficialHiveCache.read(current.cacheFile(flutter)));}};
-   source=new MaterialSyncSession.FreshSource(){public OfficialAccountBinding current()throws Exception{return ownership.current();}public OfficialLifelogBatch read()throws Exception{return OfficialLifelogBatch.read(flutter,this::current);}public OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception{return OfficialLifelogRefresh.read(observed,ownership,official);}};}
+   source=new MaterialSyncSession.FreshSource(){public OfficialAccountBinding current()throws Exception{return ownership.current();}public OfficialLifelogBatch read()throws Exception{return OfficialLifelogBatch.read(flutter,this::current);}public OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception{OfficialLifelogRefresh.Fresh fresh=OfficialLifelogRefresh.read(observed,ownership,official);LifelogAudioRuntime.sources(target.account,fresh.sources);return fresh;}};}
    MaterialSyncSession session=new MaterialSyncSession(app.getFilesDir(),target,source,()->check(owner),http);note="syncing";status=session.sync();note=status.note;
   }finally{official.close();http.cancel();synchronized(guard){if(officialTransport==official)officialTransport=null;if(transport==http)transport=null;}}
  }

@@ -35,4 +35,5 @@
   <instrumentation android:name="com.turboio.androidtests.voice.AlwaysOnWireProbe" android:targetPackage="com.rayneo.venus.pub" android:functionalTest="true" />
  <instrumentation android:name="com.turboio.androidtests.LifelogAudioLinkProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.voice.AlwaysOnLiveCodecProbe" android:targetPackage="com.rayneo.venus.pub" />
+<instrumentation android:name="com.turboio.androidtests.LifelogAudioExportProbe" android:targetPackage="com.rayneo.venus.pub" android:label="Installed lifelog audio export audit" />
 </manifest>
