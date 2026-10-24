@@ -11,7 +11,7 @@ const credentials=Object.fromEntries(['phone','reader','text'].map(n=>[n,read(pa
 const bundle=read(path.join(privateDir,'bundle.json')),owner='synthetic-cloud-'+runId,base='https://cznbnb.cn/io-api/v1/';
 assert.equal(bundle.phone.owner_id,owner);assert.equal(bundle.phone.base_url,base);assert.equal(bundle.phone.producer_id,'cloud-phone');
 const sha=x=>createHash('sha256').update(x).digest('hex'),work=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'io-public-audio-tls-')));fs.chmodSync(work,0o700);
-const names=['AudioConnection','AudioHttp','AudioUploadWire','AudioUploadOutbox','MaterialConnection','MaterialWire','MaterialApi','MaterialOutbox','MaterialTransfer','AtomicDocument','WireJson','TaskWire','TaskConnection'];
+const names=['AudioConnection','AudioHttp','AudioUploadWire','AudioUploadOutbox','MaterialConnection','MaterialWire','MaterialApi','MaterialOutbox','MaterialTransfer','AtomicDocument','WireJson','TaskWire','TaskConnection','AudioDownloads','AudioDownloadWire','AudioReadHttp','AudioConfig','LifelogAudioArchive'];
 const sources=names.map(n=>path.join(app,'src/com/turboio/addon',n+'.java')).concat(path.join(app,'upstream/android-addon/src/com/turboio/addon/BoundedJson.java'),path.join(root,'tools/android/AudioTlsIntegrationTest.java'));
 const hashes=Object.fromEntries(sources.map(p=>[path.relative(root,p),sha(fs.readFileSync(p))]));
 const call=async(route,credential,value)=>{
@@ -21,7 +21,7 @@ const call=async(route,credential,value)=>{
 let initial=null,deleted=false,success=false,report,cleanupError='';
 try{
  const identity=await call('identity',credentials.phone);assert.equal(identity.status,200);assert.equal(identity.body.owner_id,owner);assert(identity.body.capabilities.includes('audio_archive_v1'));
- const e=structuredClone(read(path.join(root,'docs/contracts/material-v1.2.json')).events.find(e=>e.body.revision===1&&e.body.operation==='upsert')),material='synthetic-audio-tls-'+runId;
+ const e=structuredClone(read(path.join(root,'docs/contracts/material-v1.2.json')).events.find(e=>e.body.revision===1&&e.body.operation==='upsert')),material='rayneo-lifelog-'+sha('synthetic-reader-'+runId);
  e.body=JSON.parse(JSON.stringify(e.body).replaceAll(e.body.material_id,material));Object.assign(e,{event_id:randomUUID(),idempotency_key:randomUUID(),producer_id:'cloud-phone',created_at:new Date().toISOString(),expires_at:new Date(Date.now()+900000).toISOString()});initial=e;
  assert.equal((await call('material-events',credentials.phone,e)).status,201);
  const data=Buffer.alloc(262267);for(let i=0;i<data.length;i++)data[i]=(i*37+19)%256;
@@ -29,7 +29,8 @@ try{
  const conn={format:'turboio-audio-sync/1',base_url:base.slice(0,-1),owner_id:owner,producer_id:'cloud-phone',server_id:identity.body.server_id,...credentials.phone};
  // Connection wire format deliberately excludes issuer-only metadata.
  const connection=Object.fromEntries(['format','base_url','owner_id','producer_id','server_id','token','token_id','expires_at'].map(n=>[n,conn[n]]));
- const input=path.join(work,'fixture.json');fs.writeFileSync(input,JSON.stringify({connection,manifest,data:data.toString('base64'),body_sha256:sha(canonical(e.body))}),{mode:0o600});
+ const reader_connection={...connection,producer_id:'cloud-reader',...credentials.reader};
+ const input=path.join(work,'fixture.json');fs.writeFileSync(input,JSON.stringify({connection,reader_connection,manifest,data:data.toString('base64'),body_sha256:sha(canonical(e.body))}),{mode:0o600});
  const classes=path.join(work,'classes');fs.mkdirSync(classes);const compile=spawnSync('javac',['-encoding','UTF-8','-d',classes,...sources],{encoding:'utf8',timeout:60000});assert.equal(compile.status,0,compile.stderr);
  const state=path.join(work,'state');fs.mkdirSync(state);
  const java=async mode=>await new Promise((resolve,reject)=>{const child=spawn('java',['-cp',classes,'com.turboio.addon.AudioTlsIntegrationTest',state,input,mode],{stdio:['ignore','pipe','pipe']});let output='';const timer=setTimeout(()=>{child.kill();reject(Error('PUBLIC_AUDIO_JAVA_TIMEOUT'));},90000);child.stdout.on('data',x=>output+=x);child.stderr.on('data',x=>output+=x);child.on('error',reject);child.on('exit',code=>{clearTimeout(timer);resolve({code,output});});});
@@ -41,7 +42,8 @@ try{
  assert.equal((await call('audio-uploads',credentials.text,manifest)).status,403);assert.equal((await call('audio-uploads',credentials.reader,manifest)).status,403);
  assert.equal((await call('materials/'+encodeURIComponent(material),credentials.reader)).status,200);
  assert.deepEqual(Object.fromEntries(sources.map(p=>[path.relative(root,p),sha(fs.readFileSync(p))])),hashes);
- report={schema:1,at:new Date().toISOString(),passed:true,scope:'Production Java AudioHttp and durable queue over real public TLS; synthetic opaque bytes only, not phone, source-format or Keystore proof.',run_id:runId,synthetic_bytes:data.length,payload_sha256:sha(data),java_checks:result.checks,actual_process_halt_after_tls_part_response:87,parts_sent_after_resume:result.parts_sent_after_resume,independent_node_exact_byte_readback:true,fixed_receipt_unchanged_on_repeat:true,text_only_and_reader_write_denied:true,recording_completeness_verified:false,sources:hashes,receipt,real_user_audio_uploaded:false,phone_accessed:false};success=true;
+ assert(result.actual_read_tls_resumed&&result.independent_reader_other_producer&&result.derived_read_cache_removed);
+ report={schema:1,at:new Date().toISOString(),passed:true,scope:'Production Java AudioHttp upload and AudioReadHttp durable read-cache resume over real public TLS; synthetic opaque bytes only, not phone, source-format, native decoder or Keystore proof.',run_id:runId,synthetic_bytes:data.length,payload_sha256:sha(data),java_checks:result.checks,actual_process_halt_after_tls_part_response:87,parts_sent_after_resume:result.parts_sent_after_resume,actual_read_tls_resumed:true,independent_reader_other_producer:true,derived_read_cache_removed:true,independent_node_exact_byte_readback:true,fixed_receipt_unchanged_on_repeat:true,text_only_and_reader_write_denied:true,recording_completeness_verified:false,sources:hashes,receipt,real_user_audio_uploaded:false,phone_accessed:false};success=true;
 }finally{
  if(initial){try{const tombstone=structuredClone(initial);Object.assign(tombstone,{event_id:randomUUID(),idempotency_key:randomUUID()});Object.assign(tombstone.body,{operation:'delete',revision:2,base_revision:1,text_revision:2});tombstone.body.full_text.text='';tombstone.body.utterances=[];tombstone.body.speakers=[];const r=await call('material-events',credentials.phone,tombstone);assert([200,201].includes(r.status));deleted=true;}catch(e){cleanupError='SYNTHETIC_TOMBSTONE_NOT_CONFIRMED';success=false;}}
  fs.rmSync(work,{recursive:true});
