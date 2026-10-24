@@ -1,11 +1,13 @@
 {
   "schema": 1,
-  "at": "2026-10-21T08:16:39.952Z",
+  "at": "2026-10-24T09:21:39.209Z",
   "unit_assertions": 71,
   "transport": "real Java material core to existing loopback HTTP/SQLite service across two JVM processes",
   "computer_query": "existing MaterialQueryClient via actual HTTP with separate read-only credential",
   "material_schema": "1.2",
-  "committed_revisions": 12,
+  "committed_revisions": 14,
+  "large_material_jvm_restart_fragment_and_finalize_recovery": true,
+  "large_material_exact_full_text_readback": true,
   "legacy_invalid_revision_rejected_then_repaired": true,
   "legacy_queue_schema2_migration": true,
   "legacy_repair_repeat_posts": 0,
@@ -17,7 +19,7 @@
   "lifelog_repeat_posts": 0,
   "lifelog_exact_text_server_readback": true,
   "material_posts": 13,
-  "event_lookups": 3,
+  "event_lookups": 5,
   "lost_ack_reconciled_without_resend": true,
   "rename_merge_split_and_tombstone": true,
   "historical_read_after_delete": "MATERIAL_DELETED",
@@ -27,128 +29,152 @@
   "product_ui_wired": false,
   "sources": [
     {
-      "path": "src\\com\\turboio\\addon\\MaterialConfig.java",
+      "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
+      "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
+      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialConfig.java",
       "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialSyncSession.java",
-      "sha256": "b291214c2415902d8411b01967bfbca8986de1af93519e203f0a03ecdd2b0b41"
+      "path": "src/com/turboio/addon/MaterialSyncSession.java",
+      "sha256": "c3ecf30d6b5a08343fd3c80c66cec6e866c3e3aa9b0e750bb7ba93d77b646da2"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialLifelogBatch.java",
+      "path": "src/com/turboio/addon/OfficialLifelogBatch.java",
       "sha256": "e1243b806e5fde1ec483fd958642efa5c025f7a0e82d9efb0e2737554d2104c7"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialLifelogRefresh.java",
+      "path": "src/com/turboio/addon/OfficialLifelogRefresh.java",
       "sha256": "7e397d24394e839d546139f30ab8e6d6fbf4e59b94a29da3b4c9396aae0087d8"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialLifelogJson.java",
+      "path": "src/com/turboio/addon/OfficialLifelogJson.java",
       "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
     },
     {
-      "path": "src\\com\\turboio\\addon\\LifelogRevisionJournal.java",
-      "sha256": "ce7a0ebbb26e971f942c046f4f9765bcb1d13d0d70f0765e3aadc2d2383daf83"
+      "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
+      "sha256": "7a3007bd972bcbf02f8f73ff8220e8a1f9ebe66f7c5f03e68a7b8d7dd997f20f"
     },
     {
-      "path": "src\\com\\turboio\\addon\\LifelogRevisionMapper.java",
-      "sha256": "12afb46a50cef07711638cdbb33c876b29ea94d2a702a5b66eae7c19911f660c"
+      "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
+      "sha256": "9726da370b53b054d5914d924c6d8194405278d028781a04d14f978399421476"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialLifelogSnapshot.java",
+      "path": "src/com/turboio/addon/MaterialCatalog.java",
+      "sha256": "7a5142492437dcc328b8eb119232cfc81b45ac0e7ecda0845c7854e72ce22b78"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
+      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
       "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialLifelogLogReader.java",
+      "path": "src/com/turboio/addon/OfficialLifelogLogReader.java",
       "sha256": "db8e43c8aaef2b86b04431870d48ac1fe2d4cccab6dbc5f313c224746cd72fb6"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialHiveCache.java",
+      "path": "src/com/turboio/addon/OfficialHiveCache.java",
       "sha256": "7d7e15608c083e411e4d54288c50698a98b0f6f62ece72c48c0e8966d0e773d5"
     },
     {
-      "path": "src\\com\\turboio\\addon\\OfficialAccountBinding.java",
+      "path": "src/com/turboio/addon/OfficialAccountBinding.java",
       "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
     },
     {
-      "path": "src\\com\\turboio\\addon\\LifelogImportJournal.java",
-      "sha256": "176e22e993f97a60f0a0346eee7a4bf875f73680ab99acc8f4e435c34cc5bac8"
+      "path": "src/com/turboio/addon/LifelogImportJournal.java",
+      "sha256": "37648bd3bddd1139969f1cda36a3101da8993c15c1e77dec86c4d7ade7d36b4a"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialConnection.java",
+      "path": "src/com/turboio/addon/MaterialConnection.java",
       "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialWire.java",
-      "sha256": "fba7ef5f34c0bc3e1aebf451a9771782750931eca3dbc03f6c70f3a277b5736b"
+      "path": "src/com/turboio/addon/MaterialWire.java",
+      "sha256": "4dfaa5a0f5ee44715873c3718a67dd8552c09ba91446c6b4f7fa3957f8fc27a2"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialOutbox.java",
-      "sha256": "2cfd01afd0676a152dfb3323cc93ab2502cf5de7cdfd8493f05c5fde525b5fef"
+      "path": "src/com/turboio/addon/MaterialOutbox.java",
+      "sha256": "e87531d574ed01764c27b9ad4d909be20445bd942fd9c10ac1fc35056e9e0aef"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialApi.java",
-      "sha256": "74085a6b80a18406f47275d7952c613c6fda5857e798b1e6e062a85161e7409e"
+      "path": "src/com/turboio/addon/MaterialApi.java",
+      "sha256": "205a3f3d9a991ade63389193f286c8a553d22878765faeb67c9051d0e68e049b"
     },
     {
-      "path": "src\\com\\turboio\\addon\\MaterialHttp.java",
-      "sha256": "f8fdcce4e2da582b837d45b47ecca9b116aede967324c06131851888a316e40e"
+      "path": "src/com/turboio/addon/MaterialTransfer.java",
+      "sha256": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735"
     },
     {
-      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
+      "path": "src/com/turboio/addon/MaterialHttp.java",
+      "sha256": "2367e4d3cb1cf97b0014220aed0e62c83143901dedaefc9a2d08bdd462039c46"
+    },
+    {
+      "path": "src/com/turboio/addon/AtomicDocument.java",
       "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
     },
     {
-      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "path": "src/com/turboio/addon/WireJson.java",
       "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskWire.java",
+      "path": "src/com/turboio/addon/TaskWire.java",
       "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskConnection.java",
+      "path": "src/com/turboio/addon/TaskConnection.java",
       "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
     },
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
       "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
     },
     {
-      "path": "..\\..\\tools\\android\\MaterialTest.java",
+      "path": "../../tools/android/MaterialTest.java",
       "sha256": "2128604a9bb7b9d3bdcb8e748e089240f576984b46cb5c9b59ce4a10feb9a2fa"
     },
     {
-      "path": "..\\..\\tools\\android\\MaterialRepairTest.java",
+      "path": "../../tools/android/MaterialTransferHttpTest.java",
+      "sha256": "9341cfd00da02e15ddabd9527a29815a82c4e60aaba42bb3b8d30335a5239929"
+    },
+    {
+      "path": "../../tools/android/MaterialRepairTest.java",
       "sha256": "75613e73e03219a2bcc3ec57b307901c09108c8342246c70e5c5c4df3db9d10d"
     },
     {
-      "path": "..\\..\\tools\\android\\MaterialRenewalTest.java",
+      "path": "../../tools/android/MaterialRenewalTest.java",
       "sha256": "536621b37add0395f1af6bf4a1946e4e765eff988f859c7acc81bc3d3e9f156d"
     },
     {
-      "path": "..\\..\\tools\\android\\MaterialImportHttpTest.java",
+      "path": "../../tools/android/MaterialImportHttpTest.java",
       "sha256": "d22ba85d34dd4c85e53998259cfb427345907b0457f515e26b09101e980dd386"
     },
     {
-      "path": "..\\..\\tools\\android\\MaterialFreshHttpTest.java",
+      "path": "../../tools/android/MaterialFreshHttpTest.java",
       "sha256": "4b22b571531b29896ffd3c963ffbf18edd5f319f7267bab96f30355cc3ef8a2a"
     },
     {
-      "path": "..\\..\\tools\\android\\OfficialLifelogSnapshotTest.java",
+      "path": "../../tools/android/OfficialLifelogSnapshotTest.java",
       "sha256": "d02680fa9688c2434dcd3c6c749d607157787bfca4ac9de94fd4427817a1d3fb"
     },
     {
-      "path": "..\\..\\tools\\android\\OfficialHiveCacheTest.java",
+      "path": "../../tools/android/OfficialHiveCacheTest.java",
       "sha256": "830c7272f43ba58c5faf98050f37bb0f93366742a1959a313768fc5ba0d7bf8c"
     },
     {
-      "path": "..\\..\\tools\\android\\LifelogImportJournalTest.java",
+      "path": "../../tools/android/LifelogImportJournalTest.java",
       "sha256": "ecac922f6898cec2b44e5295a3a5583b0cc4dbb785201ecfb6e25395da768fff"
     },
     {
-      "path": "..\\..\\tools\\android\\test-material.mjs",
-      "sha256": "cdda7afe6528f048552b712f654f0d4094f7c2261f6e19ed5669cdc951613430"
+      "path": "../../tools/android/test-material.mjs",
+      "sha256": "f2598eb8170c8f46aac139fd97b3bf4b0f5cbb78bc199825c67841a6e1ddb3df"
     }
   ]
 }

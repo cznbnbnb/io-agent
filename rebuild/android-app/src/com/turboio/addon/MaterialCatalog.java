@@ -50,7 +50,7 @@ final class MaterialCatalog {
    if("server_stored".equals(row.get("state"))){MaterialWire.ack(WireJson.map(row.get("ack")),event);stored=Math.max(stored,MaterialWire.time(WireJson.map(row.get("ack")).get("stored_at")));}
    String id=(String)body.get("material_id");Map<String,Object> prior=latest.get(id);if(prior==null||MaterialWire.positive(row.get("revision"))>MaterialWire.positive(prior.get("revision")))latest.put(id,row);
   }
-  List<Entry> entries=new ArrayList<>();Set<String> deleted=new HashSet<>();for(Map<String,Object> row:latest.values()){Map<String,Object> event=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))),body=WireJson.map(event.get("body"));if(!"delete".equals(body.get("operation")))entries.add(new Entry(body,row,zone,null,Collections.emptySet(),MaterialWire.time(event.get("created_at"))));else deleted.add((String)body.get("material_id"));}
+  List<Entry> entries=new ArrayList<>();Set<String> deleted=new HashSet<>();for(Map<String,Object> row:latest.values()){Map<String,Object> event=WireJson.map(MaterialWire.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))),body=WireJson.map(event.get("body"));if(!"delete".equals(body.get("operation")))entries.add(new Entry(body,row,zone,null,Collections.emptySet(),MaterialWire.time(event.get("created_at"))));else deleted.add((String)body.get("material_id"));}
   entries.sort(Comparator.comparingLong((Entry e)->e.startedAt).reversed().thenComparing(e->e.id));return new MaterialCatalog(account,zone,entries,stored,deleted);
  }
  /** Compare exported transcript semantics, not independent local/server revision

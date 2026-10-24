@@ -54,7 +54,7 @@ Authorization 为 `Bearer <token>`，不接受查询参数凭据。由凭据推�
 
 手机发送前先核对identity与已登记的owner/producer/server三者完全一致，并且具备materials:write；不能只相信配置里为令牌写下的标签。server_id为数据库内持久随机UUID，服务重启/备份保留，新建空库产生新ID。迁移到另一服务需要显式登记并重新对账，不能继承原服务的已存回执。
 
-所有事件UTF-8≤256KiB；超限413，全文不截断、不伪造拆分。JSON重复键（包括转义后相同名称）、非法UTF-8/孤立代理项、超过64层嵌套均拒绝。按 [RFC8785](https://www.rfc-editor.org/rfc/rfc8785.html) 的ECMAScript序列化和UTF-16键排序计算SHA256；不会通过先排序到普通Object再stringify导致数字键被重排。
+直接事件请求 UTF-8≤256KiB；超限413。2026-10-24 新增可协商的[长资料传输](../../docs/contracts/material-transfer-v1.md)：保持单请求上限，分块组装至 8 MiB，仍提交同一完整资料修订，不截断、不伪造拆分；目前仅源码与合成验证，未发布。JSON重复键（包括转义后相同名称）、非法UTF-8/孤立代理项、超过64层嵌套均拒绝。按 [RFC8785](https://www.rfc-editor.org/rfc/rfc8785.html) 的ECMAScript序列化和UTF-16键排序计算SHA256；不会通过先排序到普通Object再stringify导致数字键被重排。
 
 成功响应例（结构示意，ID均由实际提交产生）：
 

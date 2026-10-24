@@ -45,19 +45,20 @@ public final class LifelogRevisionJournalTest {
   // a conflicting row. Files here are isolated synthetic fixtures only.
   File state=new File(root,"lifelog-revisions/"+c.binding()+"/"+account.binding+"/state.json");byte[] saved=Files.readAllBytes(state.toPath());Files.write(new File(state.getPath()+".partial").toPath(),new byte[]{123});reject("LIFELOG_REVISION_UNCERTAIN",()->{try(LifelogRevisionJournal ignored=new LifelogRevisionJournal(root,c,account.binding)) {}});yes(Arrays.equals(saved,Files.readAllBytes(state.toPath())));Files.delete(new File(state.getPath()+".partial").toPath());
   try(LifelogRevisionJournal empty=new LifelogRevisionJournal(root,c,other.binding);MaterialOutbox q=new MaterialOutbox(new File(root,"other"),c)){current.set(other);yes(empty.replay(guard,q)==0&&q.all().isEmpty());}
-  // An oversized source is reported and skipped; the rest of the batch stages.
-  // Nothing is truncated or split, and a stored revision is never displaced.
+  // Formerly skipped >256KiB sources now retain one exact material revision for transfer.
   File big=new File(root,"oversized");current.set(account);String bigSource="fedcba9876543210fedcba9876543210";
   try(LifelogRevisionJournal j=new LifelogRevisionJournal(big,c,account.binding);MaterialOutbox q=new MaterialOutbox(big,c)){
-   OfficialLifelogSnapshot.Source normal=OfficialLifelogSnapshotTest.read(original),huge=OfficialLifelogSnapshotTest.read(oversized(bigSource));String hugeId=huge.materialId(account.binding);
-   Set<String> skipped=new TreeSet<>();yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now,skipped)==1);yes(skipped.equals(Collections.singleton(hugeId)));
-   yes(j.replay(guard,q)==1&&q.all().size()==1&&normal.materialId(account.binding).equals(WireJson.map(q.all().get(0)).get("material_id")));
-   skipped.clear();yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now+1,skipped)==0&&skipped.size()==1&&q.all().size()==1);
-   MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(c);yes(new MaterialApi(c,bigServer).pump(q,now+2));yes(bigServer.posts==1);
-   Map<String,Object> grown=oversized(OfficialLifelogSnapshotTest.SOURCE);skipped.clear();
-   yes(j.stageFresh(sources(grown),guard,q,now+3,skipped)==0&&skipped.size()==1&&q.all().size()==1&&"server_stored".equals(WireJson.map(q.all().get(0)).get("state")));
-   yes(j.stageFresh(sources(grown),guard,q,now+4)==0&&j.replay(guard,q)==1);
+   OfficialLifelogSnapshot.Source normal=OfficialLifelogSnapshotTest.read(original),huge=OfficialLifelogSnapshotTest.read(oversized(bigSource));
+   Set<String> skipped=new TreeSet<>();yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now,skipped)==2&&skipped.isEmpty());
+   yes(j.replay(guard,q)==2&&q.all().size()==2);
+   yes(j.stageFresh(Arrays.asList(huge,normal),guard,q,now+1,skipped)==0&&skipped.isEmpty());
+   MaterialSyncSessionTest.MemoryServer bigServer=new MaterialSyncSessionTest.MemoryServer(c);MaterialApi bigApi=new MaterialApi(c,bigServer);
+   yes(bigApi.pump(q,now+2,Collections.singleton(normal.materialId(account.binding)))&&bigServer.posts==1);
+   reject("MATERIAL_TRANSFER_UNSUPPORTED",()->bigApi.pump(q,now+3,Collections.singleton(huge.materialId(account.binding))));yes(bigServer.posts==1);
+   Map<String,Object> grown=oversized(OfficialLifelogSnapshotTest.SOURCE);
+   yes(j.stageFresh(sources(grown),guard,q,now+4,skipped)==1&&skipped.isEmpty());yes(j.replay(guard,q)==3);
   }
+  reject("MATERIAL_EVENT_BUDGET",()->MaterialWire.event(new byte[MaterialWire.MAX_EVENT_BYTES+1],c.producer));
   System.out.println("Lifelog revision journal: "+checks+" assertions passed");
  }
 }

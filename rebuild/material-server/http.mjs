@@ -1,3 +1,4 @@
+import {materialWire} from './material-transfer.mjs';
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {ApiError,parseStrict,reject} from './json.mjs';
@@ -53,8 +54,8 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       const bearer=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.authorization??'');if(!bearer)reject(401,'UNAUTHENTICATED');
       const token=bearer[1],query={};
       observation.principal=store.auth(token);
-      const route=/^\/v1\/(identity|materials|material-events|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices)(?:\/|$)/.exec(url.pathname)?.[1];
-      observation.route=route==='material-events'?'materials':route??'other';
+      const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices)(?:\/|$)/.exec(url.pathname)?.[1];
+      observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':route??'other';
       for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_QUERY');query[key]=value;}
       if(req.method==='GET'&&url.pathname==='/v1/operations/summary'){
         observation.principal=null; // 管理页面刷新不计入设备转发流量。
@@ -80,6 +81,26 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;observation.request_bytes=size;if(size>8192)reject(413,'PAYLOAD_TOO_LARGE');chunks.push(chunk);}
         let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}catch{reject(400,'INVALID_UNICODE');}
         send(200,store.watchSet(token,decoded(watch[1]),parseStrict(text)));return;
+      }
+      if(req.method==='POST'&&url.pathname==='/v1/material-uploads'){
+        if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'materials:write');
+        send(200,store.transfer.begin(token,await smallJson(req,observation)));return;
+      }
+      const upload=/^\/v1\/material-uploads\/([a-f0-9]{64})(?:\/(finalize|parts\/(0|[1-9]\d*)))?$/.exec(url.pathname);
+      if(upload){
+        if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'materials:write');
+        if(req.method==='GET'&&!upload[2]){send(200,store.transfer.status(token,upload[1]));return;}
+        if(req.method==='POST'&&upload[3]!==undefined){send(200,store.transfer.put(token,upload[1],Number(upload[3]),await smallJson(req,observation,262144)));return;}
+        if(req.method==='POST'&&upload[2]==='finalize'){
+          const input=await smallJson(req,observation);
+          if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)reject(400,'INVALID_UPLOAD');
+          const result=store.transfer.finalize(token,upload[1]);send(result.status,result.body);return;
+        }
+      }
+      const content=/^\/v1\/material-content\/([^/]+)$/.exec(url.pathname);
+      if(content&&req.method==='GET'){
+        if(Object.keys(query).sort().join()!=='index,revision'||!/^0$|^[1-9]\d*$/.test(query.index)||! /^[1-9]\d*$/.test(query.revision))reject(400,'INVALID_QUERY');
+        send(200,store.transfer.content(token,decoded(content[1]),Number(query.revision),Number(query.index)));return;
       }
       const lifecycle=/^\/v1\/requests\/([^/]+)\/reconcile$/.exec(url.pathname);
       if(req.method==='POST'&&(url.pathname==='/v1/material-events'||QUEUE_PATHS.has(url.pathname)||lifecycle)){
@@ -108,8 +129,8 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       }
       const material=/^\/v1\/materials\/([^/]+)$/.exec(url.pathname),event=/^\/v1\/events\/([^/]+)$/.exec(url.pathname);
       if(req.method==='GET'&&material){
-        if(Object.keys(query).some(k=>k!=='revision')||(query.revision!==undefined&&!/^[1-9]\d*$/.test(query.revision)))reject(400,'INVALID_QUERY');
-        send(200,store.get(token,decoded(material[1]),query.revision===undefined?null:Number(query.revision)));return;
+        if(Object.keys(query).some(k=>!['revision','content'].includes(k))||query.content!==undefined&&query.content!=='reference'||(query.revision!==undefined&&!/^[1-9]\d*$/.test(query.revision)))reject(400,'INVALID_QUERY');
+        send(200,materialWire(store.get(token,decoded(material[1]),query.revision===undefined?null:Number(query.revision)),query.content));return;
       }
       if(req.method==='GET'&&event){if(url.search)reject(400,'INVALID_QUERY');send(200,store.event(token,decoded(event[1])));return;}
       reject(404,'NOT_FOUND');

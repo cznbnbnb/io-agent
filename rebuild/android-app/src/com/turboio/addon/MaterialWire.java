@@ -4,6 +4,8 @@ import java.util.*;
 
 /** Material 1.2 shape/cross-field checks. Historic parent verification remains server-authoritative. */
 final class MaterialWire {
+ static final int MAX_EVENT_BYTES=4194304;
+ static Object read(byte[] bytes){return WireJson.read(bytes,MAX_EVENT_BYTES,500000);}
  static void require(boolean value,String code){if(!value)throw new IllegalArgumentException(code);}
  static String text(Object value,int max,boolean empty){require(value instanceof String,"MATERIAL_TEXT_INVALID");String s=(String)value;require((empty||!s.isEmpty())&&s.codePointCount(0,s.length())<=max,"MATERIAL_TEXT_INVALID");return s;}
  static String id(Object v){return text(v,512,false);}
@@ -12,7 +14,7 @@ final class MaterialWire {
  static long time(Object v){try{return TaskConnection.stamp(v);}catch(RuntimeException invalid){throw new IllegalArgumentException("MATERIAL_TIME_INVALID");}}
  static boolean choice(Object v,String...allowed){return Arrays.asList(allowed).contains(v);}
  static Map<String,Object> event(byte[] raw,String producer){
-  require(raw!=null&&raw.length<=262144,"MATERIAL_EVENT_BUDGET");Map<String,Object> e=WireJson.map(WireJson.read(raw));
+  require(raw!=null&&raw.length<=MAX_EVENT_BYTES,"MATERIAL_EVENT_BUDGET");Map<String,Object> e=WireJson.map(WireJson.read(raw,MAX_EVENT_BYTES,500000));
   BoundedJson.keys(e,"schema_version","event_id","idempotency_key","kind","producer_id","created_at","expires_at","body");
   require("1.2".equals(e.get("schema_version"))&&"material.revision".equals(e.get("kind"))&&producer.equals(e.get("producer_id")),"MATERIAL_EVENT_INVALID");require(!choice(id(e.get("event_id")),".",".."),"MATERIAL_EVENT_INVALID");String key=text(e.get("idempotency_key"),256,false);require(key.length()>=8,"MATERIAL_EVENT_INVALID");long created=time(e.get("created_at")),expires=time(e.get("expires_at"));require(created<expires,"MATERIAL_EVENT_TIME_INVALID");body(WireJson.map(e.get("body")));return e;
  }

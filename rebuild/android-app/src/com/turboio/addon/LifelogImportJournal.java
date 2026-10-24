@@ -14,7 +14,7 @@ final class LifelogImportJournal implements AutoCloseable {
   catch(IOException|RuntimeException failed){document.close();throw failed;}
  }
  private void validate(Map<String,Object> entries){MaterialWire.require(entries.size()<=256,"LIFELOG_IMPORT_FULL");long total=0;
-  for(Map.Entry<String,Object> entry:entries.entrySet()){Map<String,Object> row=WireJson.map(entry.getValue());BoundedJson.keys(row,"source_sha256","original","event");String original=MaterialWire.text(row.get("original"),1048576,false),encoded=MaterialWire.text(row.get("event"),262144,false);Map<String,Object> event=MaterialWire.event(encoded.getBytes(StandardCharsets.UTF_8),connection.producer),body=WireJson.map(event.get("body"));MaterialWire.require(entry.getKey().equals(body.get("material_id"))&&MaterialWire.positive(body.get("revision"))==1&&"upsert".equals(body.get("operation"))&&TaskWire.hash(original.getBytes(StandardCharsets.UTF_8)).equals(row.get("source_sha256")),"LIFELOG_IMPORT_CORRUPT");total+=original.getBytes(StandardCharsets.UTF_8).length+encoded.getBytes(StandardCharsets.UTF_8).length;}
+  for(Map.Entry<String,Object> entry:entries.entrySet()){Map<String,Object> row=WireJson.map(entry.getValue());BoundedJson.keys(row,"source_sha256","original","event");String original=MaterialWire.text(row.get("original"),1048576,false),encoded=MaterialWire.text(row.get("event"),MaterialWire.MAX_EVENT_BYTES,false);Map<String,Object> event=MaterialWire.event(encoded.getBytes(StandardCharsets.UTF_8),connection.producer),body=WireJson.map(event.get("body"));MaterialWire.require(entry.getKey().equals(body.get("material_id"))&&MaterialWire.positive(body.get("revision"))==1&&"upsert".equals(body.get("operation"))&&TaskWire.hash(original.getBytes(StandardCharsets.UTF_8)).equals(row.get("source_sha256")),"LIFELOG_IMPORT_CORRUPT");total+=original.getBytes(StandardCharsets.UTF_8).length+encoded.getBytes(StandardCharsets.UTF_8).length;}
   MaterialWire.require(total<=4194304,"LIFELOG_IMPORT_FULL");
  }
  /** Caller supplies the current valid account again immediately before commit. */
@@ -31,7 +31,7 @@ final class LifelogImportJournal implements AutoCloseable {
    if(existing.contains(id))continue;
    if(prior!=null){MaterialWire.require(hash.equals(prior.get("source_sha256")),"LIFELOG_SOURCE_REFRESH_REQUIRED");continue;}
    String eventId="lifelog-"+TaskWire.hash(WireJson.bytes(WireJson.object("connection",connection.binding(),"material",id,"revision",1)));
-   Map<String,Object> event=WireJson.object("schema_version","1.2","event_id",eventId,"idempotency_key",eventId,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(now),"expires_at",connection.expires,"body",WireJson.read(source.materialBody(account,1)));
+   Map<String,Object> event=WireJson.object("schema_version","1.2","event_id",eventId,"idempotency_key",eventId,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(now),"expires_at",connection.expires,"body",MaterialWire.read(source.materialBody(account,1)));
    next.put(id,WireJson.object("source_sha256",hash,"original",new String(source.original(),StandardCharsets.UTF_8),"event",new String(WireJson.bytes(event),StandardCharsets.UTF_8)));added++;
   }
   if(added>0){validate(next);document.save(WireJson.object("schema",1,"account",account,"connection",connection.binding(),"rows",next));rows=next;}return added;

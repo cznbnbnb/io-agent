@@ -5,6 +5,7 @@ import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
+import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES} from './material-transfer.mjs';
 
 const SCOPES=new Set(['materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
@@ -84,7 +85,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.devices=new DeviceRegistry(this);
+      this.devices=new DeviceRegistry(this);this.transfer=new MaterialTransfer(this);
     }catch(e){this.db.close();throw e;}
   }
   close(){this.db.close();}
@@ -124,7 +125,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1'],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1'],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -135,9 +136,11 @@ export class MaterialStore {
     const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(p.owner);
     return {server_time:iso(this.clock()),owner_id:p.owner,queue,receipts,materials,recent};
   }
-  submit(token,event){
-    // Used by HTTP and direct adapters: neither can bypass byte limit or schema checks.
-    const encoded=canonical(event);if(Buffer.byteLength(encoded)>MAX_BODY)reject(413,'PAYLOAD_TOO_LARGE');this.validate(event);
+  submit(token,event){return this.#submit(token,event,MAX_BODY);}
+  submitAssembled(token,event){return this.#submit(token,event,MAX_MATERIAL_BYTES);}
+  #submit(token,event,budget){
+    // The ordinary event endpoint stays small; only verified assembled transfers use the larger budget.
+    const encoded=canonical(event);if(Buffer.byteLength(encoded)>budget)reject(413,'PAYLOAD_TOO_LARGE');this.validate(event);
     return this.tx(()=>{
       const p=this.auth(token,'materials:write'),now=this.clock(),b=event.body;
       if(p.producer!==event.producer_id)reject(403,'FORBIDDEN');
@@ -484,11 +487,12 @@ export class MaterialStore {
   }
   page(token,kind,query={}){
     const p=this.auth(token,kind==='changes'?'changes:read':'materials:read');
-    const allowed=kind==='changes'?['cursor','limit']:['cursor','limit','from','to','keyword','speaker'];
+    const allowed=kind==='changes'?['cursor','limit','content']:['cursor','limit','from','to','keyword','speaker','content'];
+    if(query.content!==undefined&&query.content!=='reference')reject(400,'INVALID_QUERY');
     if(Object.keys(query).some(k=>!allowed.includes(k)))reject(400,'INVALID_QUERY');
     const limit=query.limit===undefined?20:Number(query.limit);
     if(!Number.isSafeInteger(limit)||limit<1||limit>50||!/^\d+$/.test(String(query.limit??20)))reject(400,'INVALID_QUERY');
-    const filters={};for(const k of ['from','to','keyword','speaker'])if(query[k]!==undefined){
+    const filters=query.content?{content:query.content}:{};for(const k of ['from','to','keyword','speaker'])if(query[k]!==undefined){
       if(typeof query[k]!=='string'||!query[k]||query[k].length>512)reject(400,'INVALID_QUERY');filters[k]=query[k];
     }
     if((filters.from&&!timestamp(filters.from))||(filters.to&&!timestamp(filters.to))||
@@ -508,7 +512,7 @@ export class MaterialStore {
     if(filters.speaker){sql+=" AND EXISTS(SELECT 1 FROM json_each(r.body,'$.utterances') u WHERE json_extract(u.value,'$.speaker_id')=?)";args.push(filters.speaker);}
     sql+=' ORDER BY r.seq LIMIT ?';args.push(limit+1);
     const rows=this.db.prepare(sql).all(...args),items=[];let bytes=8192,last=state.last;
-    for(const row of rows.slice(0,limit)){const item=this.item(row),size=Buffer.byteLength(JSON.stringify(item));if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;}
+    for(const row of rows.slice(0,limit)){const item=materialWire(this.item(row),query.content),size=Buffer.byteLength(JSON.stringify(item));if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;}
     const hasMore=rows.length>items.length;
     // Empty/final pages advance through nonmatching gaps. Changes release the
     // snapshot ceiling for the next poll; snapshot cursors keep their ceiling.

@@ -1,5 +1,15 @@
 # GitHub 协作交接
 
+## [codex] 2026-10-24 R4 长文字分块源码完成，尚未部署/装机
+
+R3 已提交推送 `053b60a`；当前手机 dev72 /10494，回退 dev71。用户将拔 USB，稍后在另一地点给无线调试端点；本批未操作手机。按用户新要求已恢复眼镜进度推送，checkpoint 已在服务器入库，不冒充镜片确认；设备锁已释放。
+
+按真实眼镜答案 text-auto，已实现完整事件分块上传、原修订原子提交和电脑完整回读。单请求仍 256 KiB，128 KiB 块可跨进程续传，丢最终回执按原 event 对账；权限、过期、CAS、删除后的禁止回读沿用原约束。Android 事件上限 4 MiB，服务器 8 MiB；schema 不变，无伪拆分或正文截断。与 Claude 已提交 store/http 文件重叠已在开工前登记；未改 Claude 目录。
+
+验证：194 份 Java 来源编译；Node 22.23.2 隔离临时目录 6 项分块＋11 项查询通过；Java 真实 HTTP/SQLite 三进程覆盖丢块回执、丢提交回执、重启恢复及增长修订。修订日志 43、catalog 32、local library 38 项通过，原小事件/续签/修订恢复回归通过。[证据](../../rebuild/android-app/r4-text-transfer-2026-10-24.json)，[传输契约](../contracts/material-transfer-v1.md)。服务器旧全量检查仍受缺失 ArkTS fixture / DevEco TypeScript 影响，未报告全绿。
+
+**下一步**：聚合队列/修订日志仍只有 4 MiB，会阻塞长期自动增量；先处理已确认历史占用，再接一分钟自动节奏与后台生命周期。部署包须纳入新模块并演练升级/回退；本批未发布服务、未装 APK、未签发正式资料凭据、未上传真实智记。超过旧版事件上限的日志不能宣称 dev72 回退兼容。源码继续在本分支推进，正常提交推送，不合并 main。
+
 ## [codex] 2026-10-24 R3 一次配对与状态同步收口，dev72 /10494 已装，继续 R4
 
 已 fast-forward 合入 Claude `96b1dbb`，保留双方提交；仅修改 Codex 工作区。R2 按用户决定完成，Hermes 移出范围。当前 dev72，回退 dev71；193 份 Android 来源、签名 v2/v3、完整装机 SHA 核对通过。已核验并清理 dev70，只留两包。[本批证据](../../rebuild/android-app/r3-paired-status-dev72-2026-10-24.json)。

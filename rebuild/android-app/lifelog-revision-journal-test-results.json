@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-22T04:55:11.326Z",
-  "assertions": 42,
+  "at": "2026-10-24T09:22:32.614Z",
+  "assertions": 43,
   "scope": "Synthetic fresh revision handoff, replay, pending conflict, lost ACK, source absence and account isolation",
   "sources": [
     {
@@ -25,7 +25,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
-      "sha256": "12afb46a50cef07711638cdbb33c876b29ea94d2a702a5b66eae7c19911f660c"
+      "sha256": "9726da370b53b054d5914d924c6d8194405278d028781a04d14f978399421476"
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
@@ -45,11 +45,11 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
-      "sha256": "176e22e993f97a60f0a0346eee7a4bf875f73680ab99acc8f4e435c34cc5bac8"
+      "sha256": "37648bd3bddd1139969f1cda36a3101da8993c15c1e77dec86c4d7ade7d36b4a"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "b6195c3f71457022b0d6a75ae0ed84fe7c206acd9af4caec5c1f5f626ae01e27"
+      "sha256": "7a3007bd972bcbf02f8f73ff8220e8a1f9ebe66f7c5f03e68a7b8d7dd997f20f"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -61,11 +61,15 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
-      "sha256": "74085a6b80a18406f47275d7952c613c6fda5857e798b1e6e062a85161e7409e"
+      "sha256": "205a3f3d9a991ade63389193f286c8a553d22878765faeb67c9051d0e68e049b"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialTransfer.java",
+      "sha256": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735"
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
-      "sha256": "fba7ef5f34c0bc3e1aebf451a9771782750931eca3dbc03f6c70f3a277b5736b"
+      "sha256": "4dfaa5a0f5ee44715873c3718a67dd8552c09ba91446c6b4f7fa3957f8fc27a2"
     },
     {
       "path": "src/com/turboio/addon/MaterialConnection.java",
@@ -73,7 +77,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "2cfd01afd0676a152dfb3323cc93ab2502cf5de7cdfd8493f05c5fde525b5fef"
+      "sha256": "e87531d574ed01764c27b9ad4d909be20445bd942fd9c10ac1fc35056e9e0aef"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -121,7 +125,7 @@
     },
     {
       "path": "../../tools/android/LifelogRevisionJournalTest.java",
-      "sha256": "6b185af516ccca20dece244def9cc5d22da3a0b0450091d2e884d8305f98f59c"
+      "sha256": "ad87d6d72e32ecab017da02d0f20bf96730fdd00fd216113447fe45da7ff4998"
     },
     {
       "path": "../../tools/android/OfficialLifelogRefreshTest.java",
@@ -133,7 +137,7 @@
     },
     {
       "path": "../../tools/android/MaterialDiscoverySyncTest.java",
-      "sha256": "53a1dcb6be878e9ee3807cfd9185c53c462834e6bdfc9b89e2a2e49c357be02d"
+      "sha256": "eff221ce4fb123b90b859a0acf57b890fce3a17bc5b554d69b562093ea5c947d"
     },
     {
       "path": "../../tools/android/OfficialHiveCacheTest.java",

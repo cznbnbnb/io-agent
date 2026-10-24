@@ -4,6 +4,8 @@
 
 调用说明的 Agent 版见 [skill/turboio-material-query/SKILL.md](../skill/turboio-material-query/SKILL.md)。
 
+2026-10-24：协商 `material_transfer_v1` 后自动分块回读长正文，调用方仍得到完整原条目。单页展开上限 32 MiB；超限请减小 `--limit`。无部分结果或静默截断，见[长资料传输契约](../../../docs/contracts/material-transfer-v1.md)。服务部署尚待完成。
+
 ## 前提
 
 - 运行时与服务一致：Node **22.23.2**（服务目录 `.node-version`），锁定依赖见 `package-lock.json`。

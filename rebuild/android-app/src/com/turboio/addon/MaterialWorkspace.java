@@ -7,7 +7,9 @@ final class MaterialWorkspace {
   case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
   case "syncing":return "正在读取智记并同步…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
   case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
-  case "MATERIAL_EVENT_TOO_LARGE":return "部分智记正文超过单条 256KiB 上限，暂未上传；其他资料已处理";
+  case "MATERIAL_TRANSFER_UNSUPPORTED":return "服务器尚未启用长资料传输，原文和队列已保留";
+  case "MATERIAL_TRANSFER_MISMATCH":return "分块回执不匹配，未标为同步成功，请重试";
+  case "MATERIAL_EVENT_TOO_LARGE":return "部分智记超出当前完整传输容量，原文保留、未截断；其他资料已处理";
   case "LIFELOG_CALENDAR_MONTH_INVALID":return "月份无效，请重新选择";
   case "LIFELOG_CALENDAR_TIMEZONE_UNSUPPORTED":return "当前月份发现仅支持北京时间";
   case "MATERIAL_MONTH_SELECTION_STALE":return "账号、连接或同步状态已变化，请重新查找日期";
