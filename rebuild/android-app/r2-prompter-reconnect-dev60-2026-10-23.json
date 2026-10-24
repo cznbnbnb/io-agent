@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T06:33:22.831286+00:00",
+  "scope": "R2 quiet task prompter and same-process reconnect recovery; inherits Claude accepted baseline",
+  "installed": "0.5.3-dev60",
+  "version_code": 10482,
+  "apk_sha256": "588641b29f313bdaf5c0fccc174ed21b6c0974e83fd8150fef1996d60f84e4a5",
+  "rollback": "0.5.3-dev59",
+  "claude_baseline": "00e112c; already merged; do not retest ordinary voice/process restart/offline submission as new work",
+  "changes": [
+    "Query original quiet question DID and peer when no unsolicited reading frames arrive; preserve original deadline.",
+    "Allow the same retained task-owned uncertain DID to be queried after reconnect; do not replace a live or foreign manuscript or release unknown ownership.",
+    "Limit runtime queries per original DID and connection generation; suppress late duplicate adoption after close.",
+    "Cancelled/expired recovered questions and all notices never invoke voice; unknown query states retain responsibility."
+  ],
+  "checks": {
+    "task_prompter_assertions": 136,
+    "android_sources_compiled": 191,
+    "source_hashes_match_signed_package": true,
+    "javac_d8_hook_compile": true,
+    "signature_v2_v3_and_package_audits": true,
+    "exact_byte_delta_rebuilt_on_phone": true,
+    "installed_version_and_sha_match": true,
+    "agent_workspace_normal_entry": true,
+    "no_pending_question_on_page": true
+  },
+  "device_test_boundary": {
+    "new_question_sent": true,
+    "task_recording_started": false,
+    "bluetooth_switched": true,
+    "pairing_or_audio_settings_changed": false,
+    "same_process_notice_disconnect_device_passed": true,
+    "quiet_original_question_device_passed": true,
+    "reason": "User clarified no music was playing and explicitly authorized testing. A reported media stream alone is not evidence the user is listening.",
+    "phone_takeover_device_passed": true,
+    "lens_observation_claimed": false
+  },
+  "next": "Paused at user request after this batch and local commit; wait for user confirmation of Claude CLI connection commit before integration.",
+  "not_verified": [
+    "Pausing the corresponding connection while an original question is displayed (not started before requested pause)",
+    "Live original question across Bluetooth loss and subsequent voice answer (this batch tested cancelled notice cleanup)",
+    "dev59 asynchronous voice-stop completion ordering on a new physical interruption (Claude dev50 baseline remains accepted)",
+    "Full phone reboot",
+    "8-hour wear/background/power"
+  ],
+  "retention": {
+    "removed_verified_old_apk": "dev58",
+    "retained": [
+      "dev60",
+      "dev59"
+    ]
+  },
+  "r2_complete": false,
+  "r3_or_r4_started": false,
+  "bluetooth_device_test": {
+    "radio_off_seconds": 8,
+    "phone_side_restore_trap": true,
+    "radio_restored": true,
+    "same_app_pid": true,
+    "disconnect_observed": "14:21:51.990",
+    "query_recovery_observed": "14:22:05.643",
+    "query_state": 4,
+    "remaining_ms": 0,
+    "exit_ack": "14:22:06.402",
+    "owner_cleared_audio_frames": 0,
+    "scope": "Cancelled progress notice after link loss; not a voice capture or live question answer",
+    "log_sha256": "16dfb6277579fe897146d925677e2f12d78eda83a6267516c5ca324d5d716b59"
+  },
+  "expired_quiet_original_question": {
+    "request_id": "req-7a767357627b832e0a569d33ee22456d3a00e8a3a20734d36723bad2a0e510dd",
+    "expires_at": "2026-10-24T06:23:58.183Z",
+    "app_force_stopped_after_ready": true,
+    "no_process_during_expiry": true,
+    "relaunch_after_expiry": true,
+    "new_pid": true,
+    "unsolicited_reading_frame_needed": false,
+    "query_state": 4,
+    "remaining_ms": 0,
+    "exit_ack": "14:24:45.786",
+    "audio_frames_at_clear": 0,
+    "cli_state": "expired",
+    "answer": null,
+    "log_sha256": "a9af82320413defc55bedbca73762fb44c7b79850eb73a88d1df6f32ddb92430"
+  },
+  "phone_takeover": {
+    "request_id": "req-d80682f11ed152612ac7f198ff0a99ce54da5277489a9f2f070d3e24e32d9966",
+    "normal_ui_action": "查看并回复 → 回复原任务",
+    "display_ready_before_ui": true,
+    "withdraw_and_exit_ack": "14:27:31.302",
+    "audio_frames_at_clear": 0,
+    "answer_submitted": false,
+    "log_sha256": "eb1204203e45a176b6da05c63329fc90497ffd2a11406126a6a31808eb7ea344",
+    "cli_state": "expired",
+    "network_checked": true,
+    "answer": null,
+    "deadline_reconciled": true
+  },
+  "user_requested_pause": true,
+  "progress_checkpoint": {
+    "key": "codex-dev60-handoff-20261023",
+    "server_stored": true,
+    "lens_confirmation": false
+  },
+  "cleanup": {
+    "at": "2026-10-24T06:34:52.460949+00:00",
+    "caller": "caller603-20261023-codex",
+    "task_state": "cancelled",
+    "phone_connection_paused": true,
+    "default_target_unchanged": true,
+    "watch_disabled": true,
+    "glasses_progress_preference_unchanged": true,
+    "credentials_revoked": true,
+    "credential_identity_http": {
+      "phone": 401,
+      "agent": 401,
+      "operations": 401
+    },
+    "device_lock": "free",
+    "bluetooth_on": true,
+    "own_bluetooth_restore_script_removed": true,
+    "last_notice_exit": "14:32:48.418",
+    "last_notice_audio_frames_at_clear": 0,
+    "cleanup_log_sha256": "67ce993f301842b671106dc8177ff74681d14ef3ee897c06a4a83b5a99f046c5"
+  }
+}

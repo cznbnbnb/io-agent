@@ -40,6 +40,45 @@ public final class TaskPrompterTest {
   clear();yes(NewsTele.recoverNotice("expired","glasses",0));yes(stops()==0);NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","expired","action",2,"state",1),null));yes(stops()==1);frame("glasses","expired",6,2,1);yes(!NewsTele.active());
   clear();int[] retired={0};NewsTele.closed=id->retired[0]++;yes(NewsTele.recoverNotice("absent","glasses",1000));NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","absent","action",2,"state",0),null));yes(stops()==0&&!NewsTele.active()&&retired[0]==1);
   clear();yes(NewsTele.recoverNotice("cancelled","glasses",10000));yes(NewsTele.cancelTask("cancelled"));yes(stops()==0);NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","cancelled","action",2,"state",4),null));yes(stops()==1);
+  // Silent original questions have the same bounded query; only a wearer exit starts voice.
+  clear();yes(!NewsTele.recoverTask("question","other",1000,()->voice++));yes(!NewsTele.active());
+  yes(NewsTele.recoverTask("question","glasses",1000,()->voice++));yes(NavReflect.sent.size()==1&&NavCore.decode(NavReflect.sent.get(0)).type==10);
+  NewsTele.receive("other",OtaFrame.encode(10,WireJson.object("did","question","action",2,"state",4),null));yes(NewsTele.active()&&stops()==0&&voice==0);
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","question","action",2,"state",4),null));yes(voice==0&&stops()==0);
+  frame("glasses","question",6,1,1);Handler.ready();yes(voice==1&&!NewsTele.active());
+  for(int state:new int[]{1,4}){
+   clear();yes(NewsTele.recoverTask("question","glasses",1000,()->voice++));Handler.advance(400);
+   NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","question","action",2,"state",state),null));Handler.advance(599);yes(stops()==0);Handler.advance(1);yes(stops()==1);
+   frame("glasses","question",6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  }
+  clear();yes(NewsTele.recoverTask("expired-question","glasses",0,()->voice++));frame("glasses","expired-question",6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  clear();yes(NewsTele.recoverTask("cancelled-question","glasses",10000,()->voice++));yes(NewsTele.cancelTask("cancelled-question"));
+  frame("glasses","cancelled-question",6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  clear();yes(NewsTele.recoverTask("unknown-question","glasses",1000,()->voice++));
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","unknown-question","action",2,"state",99),null));Handler.advance(20000);yes(NewsTele.active()&&voice==0&&stops()==0);
+  frame("glasses","unknown-question",6,1,1);Handler.ready();yes(!NewsTele.active()&&voice==0);
+  clear();yes(NewsTele.recoverTask("absent-question","glasses",1000,()->voice++));
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did","absent-question","action",2,"state",0),null));Handler.ready();yes(!NewsTele.active()&&voice==0&&stops()==0);
+  // Same-process disconnect retains the original DID, then permits only that task's state query.
+  String disconnected=start();set("phase","playing");set("waiting",0);NativeTransfer.peer="";Handler.advance(250);
+  yes(NewsTele.active()&&NewsTele.did().equals(disconnected)&&NewsTele.canRecoverTask(disconnected));
+  yes(!NewsTele.recoverTask(disconnected,"glasses",5000,()->voice++));
+  NativeTransfer.peer="other";yes(!NewsTele.recoverTask(disconnected,"other",5000,()->voice++));
+  NativeTransfer.peer="glasses";yes(!NewsTele.recoverTask("foreign","glasses",5000,()->voice++));
+  NavReflect.sent.clear();yes(NewsTele.recoverTask(disconnected,"glasses",5000,()->voice++));
+  yes(NavReflect.sent.size()==1&&NavCore.decode(NavReflect.sent.get(0)).type==10&&NewsTele.did().equals(disconnected));
+  yes(!NewsTele.recoverTask(disconnected,"glasses",5000,()->voice++));
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did",disconnected,"action",2,"state",4),null));
+  Handler.advance(4999);yes(stops()==0&&voice==0);Handler.advance(1);yes(stops()==1);
+  frame("glasses",disconnected,6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  // An elapsed/withdrawn question is queried and stopped, never re-started, after a reconnect.
+  disconnected=start();set("phase","playing");set("waiting",0);NativeTransfer.peer="";Handler.advance(250);NativeTransfer.peer="glasses";
+  yes(NewsTele.recoverTask(disconnected,"glasses",0,null));
+  NewsTele.receive("glasses",OtaFrame.encode(10,WireJson.object("did",disconnected,"action",2,"state",1),null));yes(stops()==1);
+  frame("glasses",disconnected,6,2,1);Handler.ready();yes(voice==0&&!NewsTele.active());
+  // Stock/foreign and still-running task manuscripts cannot be replaced by recovery.
+  clear();NewsTele.start("stock manuscript",120);set("phase","uncertain");yes(!NewsTele.canRecoverTask(NewsTele.did()));
+  String running=start();yes(!NewsTele.canRecoverTask(running));yes(!NewsTele.recoverTask(running,"glasses",1000,()->voice++));
   // A direct phone stop wins even if the wearer exit arrives before its ACK, including duplicates.
   String did=start();NewsTele.control(6);yes(stops()==1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());frame("glasses",did,6,1,1);Handler.ready();yes(voice==0);
   // Normal wearer exit remains exactly once; foreign DID/peer cannot retire the owner.

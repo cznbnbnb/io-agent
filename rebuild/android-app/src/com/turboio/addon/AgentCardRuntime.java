@@ -23,14 +23,14 @@ final class AgentCardRuntime {
  private WeakReference<Activity> activity;private volatile long observedGeneration=Long.MIN_VALUE;
  private boolean localLease,fetching,checkingShow,answerBusy,headStarted,restoreStarted,pumping;
  // Questions whose interrupted dictation was closed after a restart; offered again once.
- private final Set<String> reoffer=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>();
+ private final Set<String> reoffer=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>(),questionChecks=new HashSet<>(),retiredPrompters=new HashSet<>();
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Activity host)throws IOException{
   app=(Application)host.getApplication();activity=new WeakReference<>(host);foreground.add(host);tasks=TaskRuntime.get(host);prefs=app.getSharedPreferences("io_agent_card_preferences_v1",0);offered.addAll(prefs.getStringSet("offered",Collections.emptySet()));TaskAttention.background(prefs.getBoolean("background_answer",true));
   NewsTele.orphans=this::orphan;
-  NewsTele.closed=did->{TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
+  NewsTele.closed=did->{retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
   VoiceAnswerRuntime.get(app,tasks).recoverInterrupted((binding,request)->{reoffer.add(binding+"\n"+request);message="口述被中断，已结束眼镜录音；这道题会重新发到眼镜";nextAuto=0;refresh();pump();});
   document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-card-v1.json"));session=new AgentCardSession(new AgentCardSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object value)throws Exception{document.save(value);}});
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
@@ -176,17 +176,27 @@ final class AgentCardRuntime {
  }
  private void checkPrompter(){
   TaskPrompterNotice notice=prompterNotice();
-  if(notice!=null&&!NewsTele.active()&&notice.peer.equals(NativeTransfer.connected())){
+  if(notice!=null&&NewsTele.canRecoverTask(notice.did)&&notice.peer.equals(NativeTransfer.connected())){
    String attempt=notice.did+"@"+Host107Ota.link().generation;
    if(!noticeChecks.contains(attempt)&&NewsTele.recoverNotice(notice.did,notice.peer,notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis())))noticeChecks.add(attempt);
   }
   if(notice!=null&&notice.did.equals(NewsTele.did())&&notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis())<=0)withdrawPrompter(notice.binding,null,"通知显示已结束，正在退出提词器");
-  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(NewsTele.did()))return;
+  TaskPrompterOwner owner=prompter();if(owner==null)return;
+  if(NewsTele.canRecoverTask(owner.did)&&!retiredPrompters.contains(owner.did)&&!owner.peer.isEmpty()&&owner.peer.equals(NativeTransfer.connected())){
+   String attempt=owner.did+"@"+Host107Ota.link().generation;
+   if(!questionChecks.contains(attempt)){
+    NewsTele.Adoption adoption=orphan(owner.did);
+    if(adoption!=null&&NewsTele.recoverTask(owner.did,owner.peer,adoption.remaining,adoption.exited))questionChecks.add(attempt);
+   }
+  }
+  if(!owner.did.equals(NewsTele.did()))return;
   // Missing startup snapshot is unknown; the durable deadline still applies.
   if(!owner.live(System.currentTimeMillis())||!enabled()||!attended()||snapshot!=null&&!prompterAllowed(owner,snapshot))withdrawPrompter(owner.binding,owner.id,"原问题已失效或转到手机，正在退出提词器");
  }
  /** A matching expired/withdrawn DID is adopted for stop-only recovery, never for recording. */
  private NewsTele.Adoption orphan(String did){
+  // A delayed exit frame cannot re-adopt a manuscript while its original exit callback is queued.
+  if(retiredPrompters.contains(did))return null;
   TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did)){
    if(!notice.peer.equals(NativeTransfer.connected()))return null;
    return new NewsTele.Adoption(null,notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis()));
