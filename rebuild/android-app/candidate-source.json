@@ -506,7 +506,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioRuntime.java",
-      "sha256": "2316330d23e0d6e1513e6d0d139741aaa289918a55f80d53a360d2a302424d27"
+      "sha256": "0a087bc9ad2fec0bfa32eb98ba633eeb4481a22d4aa031dea4d56115306d15d7"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -850,11 +850,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "d2d6b30091b68d9410ab6dcb914137628159e96aef89d08e2a1ca6012d41afdb"
+      "sha256": "e795e43e1b4638496389c8a219bf3204270a27192e47ebe8f9a782b1c4326728"
     }
   ],
-  "product_sha256": "fe224b32fce3ed01a9e5dca6b793fc50b67f0dcef5ac45ff32d2a45609b8beee",
-  "addon_sha256": "c73a85f2952c2c796c868de9f6092239c8114cea69caded22ab9fbafa406d7fa",
+  "product_sha256": "20edafbc61ab12abf3ba6ba3270b20b61777522f33fb9b737042158d23c631c6",
+  "addon_sha256": "584c36d8f77977b94641989504d1bd559c7cdb666b246df063d02161d461b5ec",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
