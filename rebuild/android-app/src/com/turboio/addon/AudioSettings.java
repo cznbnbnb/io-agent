@@ -7,6 +7,7 @@ import java.io.*;import java.nio.channels.FileChannel;import java.nio.charset.St
  * older enabled configuration after preference write/readback failure or death.
  * Never reads/writes the material, task or vendor credential namespaces. */
 final class AudioSettings {
+ interface Guard {void check()throws IOException;}
  private static final Object LOCK=new Object();private static final String ALIAS="io.agent.audio.config.v1",SLOT="sealed_audio_v1";
  private static final byte[] AAD="io-agent/audio-connection/1".getBytes(StandardCharsets.UTF_8);
  private final SharedPreferences prefs;private final File fence;
@@ -20,10 +21,11 @@ final class AudioSettings {
  private AudioConfig decrypted()throws Exception{String sealed=prefs.getString(SLOT,null);if(sealed==null)return null;byte[] plain=open(sealed);try{return AudioConfig.decode(plain);}finally{Arrays.fill(plain,(byte)0);}}
  private static Map<String,Object> intent(Object raw)throws IOException{if(raw==null)return null;try{Map<String,Object> v=WireJson.map(raw);AudioUploadWire.keys(v,"schema","phase","fingerprint");AudioUploadWire.check(AudioUploadWire.number(v.get("schema"))==1&&Arrays.asList("pending","ready").contains(v.get("phase")),"AUDIO_CONFIG_FENCE_INVALID");AudioUploadWire.hash(v.get("fingerprint"));return v;}catch(IllegalArgumentException invalid){throw new IOException("AUDIO_CONFIG_FENCE_INVALID");}}
  AudioConfig load()throws Exception{synchronized(LOCK){paths();AudioUploadWire.check(!new File(fence.getPath()+".partial").exists(),"AUDIO_CONFIG_PENDING");try(AtomicDocument document=new AtomicDocument(fence,4096)){Map<String,Object> state=intent(document.read());if(state!=null)AudioUploadWire.check("ready".equals(state.get("phase")),"AUDIO_CONFIG_PENDING");AudioConfig config=decrypted();if(config==null&&state==null)return null;AudioUploadWire.check(config!=null&&state!=null&&config.fingerprint().equals(state.get("fingerprint")),"AUDIO_CONFIG_CHANGED");return config;}}}
- void save(AudioConfig config)throws Exception{synchronized(LOCK){AudioUploadWire.check(config!=null,"AUDIO_CONFIG_INVALID");paths();try(AtomicDocument document=new AtomicDocument(fence,4096)){
+ void save(AudioConfig config)throws Exception{save(config,()->{});}
+ void save(AudioConfig config,Guard guard)throws Exception{synchronized(LOCK){AudioUploadWire.check(config!=null&&guard!=null,"AUDIO_CONFIG_INVALID");guard.check();paths();try(AtomicDocument document=new AtomicDocument(fence,4096)){
   intent(document.read());AudioConfig old=decrypted();if(old!=null)old.replaceAllowed(config);String fingerprint=config.fingerprint();
-  document.save(WireJson.object("schema",1,"phase","pending","fingerprint",fingerprint));sync(fence.getParentFile());byte[] plain=config.encode();try{
-   String encrypted=seal(plain);if(!prefs.edit().putString(SLOT,encrypted).commit())throw new IOException("AUDIO_CONFIG_SAVE_FAILED");AudioConfig written=decrypted();AudioUploadWire.check(written!=null&&fingerprint.equals(written.fingerprint()),"AUDIO_CONFIG_SAVE_FAILED");paths();document.save(WireJson.object("schema",1,"phase","ready","fingerprint",fingerprint));sync(fence.getParentFile());
-  }finally{Arrays.fill(plain,(byte)0);}
+  Map<String,Object> pending=WireJson.object("schema",1,"phase","pending","fingerprint",fingerprint);document.save(pending);sync(fence.getParentFile());byte[] plain=config.encode();try{guard.check();
+   String encrypted=seal(plain);guard.check();if(!prefs.edit().putString(SLOT,encrypted).commit())throw new IOException("AUDIO_CONFIG_SAVE_FAILED");AudioConfig written=decrypted();AudioUploadWire.check(written!=null&&fingerprint.equals(written.fingerprint()),"AUDIO_CONFIG_SAVE_FAILED");guard.check();paths();document.save(WireJson.object("schema",1,"phase","ready","fingerprint",fingerprint));sync(fence.getParentFile());guard.check();
+  }catch(Exception failed){try{paths();document.save(pending);sync(fence.getParentFile());}catch(Exception stopFailed){failed.addSuppressed(stopFailed);}throw failed;}finally{Arrays.fill(plain,(byte)0);}
  }}}
 }

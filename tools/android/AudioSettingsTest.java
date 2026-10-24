@@ -8,9 +8,9 @@ public final class AudioSettingsTest {
  static void denied(Work work)throws Exception{try{work.run();throw new AssertionError("settings accepted");}catch(Exception expected){checks++;}}
  static void code(Work work,String expected)throws Exception{try{work.run();throw new AssertionError("settings accepted "+expected);}catch(IOException e){yes(expected.equals(e.getMessage()));}}
  static final class Prefs implements SharedPreferences {
-  final Map<String,String> values=new HashMap<>();boolean fail,halt;int commits;
+  final Map<String,String> values=new HashMap<>();boolean fail,halt;Runnable afterCommit;int commits;
   public String getString(String k,String fallback){return values.getOrDefault(k,fallback);}public boolean contains(String k){return values.containsKey(k);}
-  public Editor edit(){return new Editor(){final Map<String,String> pending=new HashMap<>();public Editor putString(String k,String v){pending.put(k,v);return this;}public boolean commit(){commits++;if(halt)Runtime.getRuntime().halt(83);values.putAll(pending);return !fail;}};}
+  public Editor edit(){return new Editor(){final Map<String,String> pending=new HashMap<>();public Editor putString(String k,String v){pending.put(k,v);return this;}public boolean commit(){commits++;if(halt)Runtime.getRuntime().halt(83);values.putAll(pending);if(afterCommit!=null)afterCommit.run();return !fail;}};}
  }
  static final class App extends Context {
   final File files;final Map<String,Prefs> namespaces=new HashMap<>();App(File files)throws Exception{this.files=files.getCanonicalFile();yes(this.files.isDirectory());}
@@ -30,6 +30,7 @@ public final class AudioSettingsTest {
   Path partial=Paths.get(fence+".partial");Files.write(partial,ready);code(settings::load,"AUDIO_CONFIG_PENDING");Files.delete(partial);yes(settings.load().enabled);
   // Android may update the in-memory preference even when commit returns false.
   app.audio().fail=true;code(()->settings.save(initial.enabled(false)),"AUDIO_CONFIG_SAVE_FAILED");code(()->new AudioSettings(app).load(),"AUDIO_CONFIG_PENDING");app.audio().values.put("sealed_audio_v1",encrypted);code(()->new AudioSettings(app).load(),"AUDIO_CONFIG_PENDING");app.audio().fail=false;settings.save(initial.enabled(false));yes(!new AudioSettings(app).load().enabled);
+  final boolean[] active={true};app.audio().afterCommit=()->active[0]=false;code(()->settings.save(initial,()->{if(!active[0])throw new IOException("AUDIO_PAUSED");}),"AUDIO_PAUSED");code(()->new AudioSettings(app).load(),"AUDIO_CONFIG_PENDING");app.audio().afterCommit=null;settings.save(initial.enabled(false));yes(!settings.load().enabled);
   byte[] paused=Files.readAllBytes(fence);AudioConfig other=new AudioConfig(initial.connection,String.join("",Collections.nCopies(64,"b")),true);code(()->settings.save(other),"AUDIO_ACCOUNT_REBIND_REFUSED");yes(Arrays.equals(paused,Files.readAllBytes(fence))&&!settings.load().enabled);
   String cipher=app.audio().values.get("sealed_audio_v1");Files.delete(fence);code(settings::load,"AUDIO_CONFIG_CHANGED");yes(cipher.equals(app.audio().values.get("sealed_audio_v1")));settings.save(initial.enabled(false));yes(!settings.load().enabled);
   Key key=MaterialSettingsTest.keys.remove("io.agent.audio.config.v1");code(settings::load,"AUDIO_KEY_UNAVAILABLE");yes(!MaterialSettingsTest.keys.containsKey("io.agent.audio.config.v1"));MaterialSettingsTest.keys.put("io.agent.audio.config.v1",key);yes(!settings.load().enabled);

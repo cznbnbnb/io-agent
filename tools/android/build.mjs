@@ -50,7 +50,14 @@ try{
   fs.writeFileSync(generated,productInfoSource());
   const sources=[...files.values(),generated];
   if(mode!=='smali'){
-  const classes=path.join(build,'classes');fs.mkdirSync(classes,{recursive:true});
+  const classes=path.join(build,'classes');
+  // D8 must not package class files left behind by a renamed/deleted source.
+  // This directory is generated-only and protected by the build owner lock.
+  if(fs.existsSync(classes)){
+   let entries=0;const inspect=directory=>{for(const item of fs.readdirSync(directory,{withFileTypes:true})){const file=path.join(directory,item.name);if(++entries>20000||item.isSymbolicLink())throw new Error('Unexpected compiled stage entry');if(item.isDirectory())inspect(file);else if(!item.isFile()||!item.name.endsWith('.class'))throw new Error('Unknown file in compiled stage');}};
+   if(fs.lstatSync(classes).isSymbolicLink()||!fs.statSync(classes).isDirectory())throw new Error('Compiled stage path changed');inspect(classes);fs.rmSync(classes,{recursive:true});
+  }
+  fs.mkdirSync(classes,{recursive:true});
   const args=path.join(build,'javac.args');fs.writeFileSync(args,['-encoding','UTF-8','-source','8','-target','8','-cp','"'+androidJar.replaceAll('\\','/')+'"','-d','"'+classes.replaceAll('\\','/')+'"',...sources.map(p=>'"'+p.replaceAll('\\','/')+'"')].join('\n'));
   run('javac',['-J-Dfile.encoding=UTF-8','@'+args]);
   run('jar',['cf',path.join(build,'addon.jar'),'-C',classes,'.']);

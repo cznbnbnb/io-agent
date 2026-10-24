@@ -12,6 +12,7 @@ final class AudioConnection {
   try{AudioUploadWire.check(bytes!=null&&bytes.length<=8192,"AUDIO_CONNECTION_INVALID");Map<String,Object> v=WireJson.map(WireJson.read(bytes));AudioUploadWire.check(FORMAT.equals(v.get("format")),"AUDIO_CONNECTION_FORMAT");v.put("format",MaterialConnection.FORMAT);return new AudioConnection(MaterialConnection.parse(WireJson.bytes(v),now));}
   catch(IllegalArgumentException invalid){throw new IOException("AUDIO_CONNECTION_INVALID");}
  }
+ String preview(){return target.preview();}
  String token(){return target.token();}String binding(){return target.binding();}
  byte[] encode(){Map<String,Object> v=WireJson.map(WireJson.read(target.encode()));v.put("format",FORMAT);return WireJson.bytes(v);}
  void identity(byte[] raw,long now)throws IOException{

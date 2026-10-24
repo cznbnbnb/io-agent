@@ -51,7 +51,7 @@ final class MaterialWorkspace {
  static void show(Activity activity){show(activity,()->{});}
  static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
   MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(AgentUI.text(activity,label(error.isEmpty()?state.note:error),20,AgentUI.INK));
-   body.addView(AgentUI.text(activity,"开启后每分钟自动检查当天智记，并逐日补查中断期间的日期。也可按日期、月份补传历史正文，保留说话人和时间；原音、普通录音和删除同步仍在接入。",14,AgentUI.MUTED));
+   body.addView(AgentUI.text(activity,"开启后每分钟自动检查当天智记，并逐日补查中断期间的日期。也可按日期、月份补传历史正文，保留说话人和时间；原音备份需要单独授权，可在原音备份设置中查看；普通录音和删除同步仍在接入。",14,AgentUI.MUTED));
    if(state.config!=null)body.addView(AgentUI.text(activity,state.config.connection.preview(),13,AgentUI.MUTED));
    MaterialSyncSession.Status s=state.status;body.addView(AgentUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,AgentUI.INK));
    if(s.days>0)body.addView(AgentUI.text(activity,"本次读取 "+s.days+" 天 · 发现智记正文 "+s.discovered+" 份\n未同步普通录音 "+s.recordings+" 条 · 其他类型 "+s.otherEntries+" 条\n发现数量不代表服务器已保存数量。",14,AgentUI.MUTED));
@@ -59,6 +59,7 @@ final class MaterialWorkspace {
    if(s.conflicts+s.unowned+s.invalid>0)body.addView(AgentUI.text(activity,"正文冲突 "+s.conflicts+" · 归属待核对 "+s.unowned+" · 无效响应 "+s.invalid,14,AgentUI.MUTED));
    AgentUI.button(activity,body,"资料连接设置",false,()->configure(activity,runtime,state.config,refresh[0]));
    if(state.config!=null&&state.config.enabled){AgentUI.button(activity,body,"同步一次",true,()->{body.addView(AgentUI.text(activity,"正在同步，可随时暂停。",14,AgentUI.MUTED));runtime.sync((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);});});AgentUI.button(activity,body,"按日期同步",false,()->selectDay(activity,runtime,state.config,()->body.addView(AgentUI.text(activity,"正在按日期同步…",14,AgentUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));AgentUI.button(activity,body,"按月份查找智记",false,()->MaterialMonthWorkspace.show(activity,runtime,state.config,()->!closed[0],()->body.addView(AgentUI.text(activity,"正在读取所选智记…",14,AgentUI.MUTED)),()->{if(!closed[0])refresh[0].run();}));AgentUI.button(activity,body,"暂停同步",false,()->runtime.pause((done,code)->{if(!closed[0])renderResult(activity,code,refresh[0]);}));}
+   AgentUI.button(activity,body,"原音备份设置",false,()->AudioWorkspace.show(activity,refresh[0]));
    AgentUI.button(activity,body,"刷新状态",false,refresh[0]);
   };
   refresh[0]=()->runtime.read(render);screen.dialog.setOnDismissListener(dialog->{closed[0]=true;runtime.cancelPending();if(!activity.isDestroyed())returned.run();});refresh[0].run();

@@ -16,5 +16,6 @@ final class AudioHttp implements MaterialApi.Transport {
    long after=0;String retry=request.getHeaderField("Retry-After");if(retry!=null&&retry.matches("[0-9]{1,6}"))after=Math.min(86400000,Long.parseLong(retry)*1000);return new MaterialApi.Response(status,bytes.toByteArray(),after);
   }finally{if(active==request)active=null;request.disconnect();}
  }
- public void cancel(){disabled=true;HttpsURLConnection old=active;if(old!=null)old.disconnect();}
+ void disable(){disabled=true;}
+ public void cancel(){disable();HttpsURLConnection old=active;if(old!=null)old.disconnect();}
 }

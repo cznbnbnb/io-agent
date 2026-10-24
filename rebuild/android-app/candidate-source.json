@@ -310,7 +310,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "d68439ebd868f66f47a3302b8a0ff34d50d0ffb9ba2ebb7f94ef000ee6ec49c0"
+      "sha256": "c3c441287689a75025bc75ff9f1db3e8875d1858d7b5c4f5cc255036b76ea032"
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
@@ -330,11 +330,47 @@
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnWire.java",
-      "sha256": "ca44324211216a63f81eb2a6274c471086b15a9637526b82d0405028ace3ae4c"
+      "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
       "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioAutoSchedule.java",
+      "sha256": "488ed92f89c0dacc46a4c8f014518e0697d24163be3f1dc56f3f90395db9778f"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioConfig.java",
+      "sha256": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioConnection.java",
+      "sha256": "01220ecaec22a5659b058d4b4f959076a6539935f24af8669bf7c1bcbab9e842"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioHttp.java",
+      "sha256": "39c211174cc77fbb236b9ca4a61ef2552cb7abffd1a3233f299c1a3b459a8447"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioSettings.java",
+      "sha256": "9b9f71352535e605078323cff0f117d0a04b20956a0f79fe959cd11b94f9339b"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioSyncSession.java",
+      "sha256": "e2aac1cf74a48edab5e7e687a3543ed75fbc781619601c2d6896c9a87405a457"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+      "sha256": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadWire.java",
+      "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioWorkspace.java",
+      "sha256": "a29afdcffad64710471c5afafcbc7aab4c8ba90271ddc9f2751502c166d8b7b6"
     },
     {
       "path": "src/com/turboio/addon/CardInputClosure.java",
@@ -474,11 +510,11 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioArchive.java",
-      "sha256": "422c7c0ea27bc4cf7035145521f35e700bce7ab978a83f54ad8ee77e00ae0e18"
+      "sha256": "9e198c951363b2419bf5a26f4f9193be5ff03afc92fcddbfaff9aa2ef80fe2ab"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioCollector.java",
-      "sha256": "da3ed977a1425abca2341e7f5fbc0c57155e0bfe8a191613275435f69d4e5799"
+      "sha256": "62bec1d74b6d7ba695c6550e0bda3e29172054a6a9bdf12492d18cae8a657bb2"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioExport.java",
@@ -490,7 +526,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
-      "sha256": "70b6125dc3d03a53c370adbd962987f225f90b9a243f72571a70942011f2d074"
+      "sha256": "3e1a7e4b7607258b565a9c637da8bf31504f37d0e4901ece8783603c61949e4b"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioManager.java",
@@ -505,8 +541,12 @@
       "sha256": "363876b7dfe7ce78fb234b9c7f8c8e370940287185713b4289f1579df603ee86"
     },
     {
+      "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
+      "sha256": "cead33e1d1866b2212ac0b90c317a954ff240a2fb57644212d5c28a1c605028a"
+    },
+    {
       "path": "src/com/turboio/addon/LifelogAudioRuntime.java",
-      "sha256": "28860356eac997f9b47f85a592d2a4bbc3b60d309582762c8cd2811b4dc03f0c"
+      "sha256": "a4ef2c82bd51c422fdcfe7a60bdab4ab955ece03d2992322314408f615b429bf"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -586,7 +626,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "c87eb8a4674baa968eb7817c982d90dba4e456517a1cd9363eea3dfb9c98979e"
+      "sha256": "68e9b24d2ea066fa7aa45faa82dd62abc72c9e0a02e2c0fdcf851718761ff6be"
     },
     {
       "path": "src/com/turboio/addon/MaterialSettings.java",
@@ -618,7 +658,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "63b3d9807ea546c16b3e76de9d59eb63bd8a36e4773190987f07d9d3485c51c7"
+      "sha256": "76df3396043e0ee0540966d03c2219c91898b9c91c63a2e687d358f3c6bee43f"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -850,11 +890,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "f4e86610e7dab1938e8515341bc433eb9c6fd00533d563604a568c963941af93"
+      "sha256": "96668b55b541538bab4020b4232648e27e99c7745768d341a1d37e0f1eaf6b75"
     }
   ],
-  "product_sha256": "e690bd83c8e8eba3b6c7d053a257c250502a737d141cd4c161c2a7c14a24e326",
-  "addon_sha256": "fef6ac3297df2e8d8708c78adf5c3cfcf400fc6263689b202685bf1a4125c09c",
+  "product_sha256": "48edf730eabe3a31255452615e4d1afb31a0970643ee8ad4746acd59469f1543",
+  "addon_sha256": "e2d88bcd6a1911d58f7acfb5ca6ddd0cfcff6376277ed5fbcd8aa84fc606c618",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
