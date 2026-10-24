@@ -61,6 +61,12 @@ dev83 已安装且元数据探针通过；本轮正常进程的独立原厂观�
 
 快照目录是 `lifelog-audio-payloads/<account>/<sha256>/payload.bin`。全局锁和跨账号 512 MiB/512 项计量；流式检查守卫、全摘要和每段校验，文件刷盘、原子发布并同步目录后才可入上传队列。未发布自有 partial 在失败或下次本账号启动时回收；原件、发布后的快照和用户导出不删除。缓存命中仍重新验证原件及完整载荷摘要，满额时相同缓存可复用；坏缓存不覆盖。独立 JVM 的复制和发布后中断恢复、真实临时服务上传和 Node 独立拆包回读均通过，仅合成原件；不是手机自动上传、codec 或真实官方来源证明。生产器调度/配置、已验回执后的有界缓存清理和服务上线仍未实现。[生产器证据](../../rebuild/android-app/r4-audio-producer-2026-10-24.json)。
 
+### 原音配置围栏与队列来源（源码检查通过）
+
+AudioConfig 使用独立 audio 格式和账号绑定；AudioSettings 的 prefs `io_agent_audio_sync_v1`、key `io.agent.audio.config.v1` 和 AAD 与文字/任务分开。`audio-sync-settings/state.json` 仅保存 schema、pending/ready 和配置摘要。更改配置先刷盘/原子发布 pending 并同步目录，再提交密文并解密回读，最后 ready；任何 pending、partial、缺失围栏或摘要不符均停止，不能回退旧的启用配置。commit 返回 false 时即便内存偏好已更新，下一实例/进程仍须拒绝，明确重存完成后才恢复。加载不签发权限，原音网络身份/到期/能力仍须逐请求核验。
+
+队列 schema2 的 origin 是同账号/目标下的稳定封存段摘要，从准备意图起持久保存；不能让同一 origin 指向另一个载荷，也不能覆盖非空来源。旧 schema1 保留所有作业和回执、补空来源后原子升级；遇到精确已知对象可在核验后补关联，供后续自动轮询跳过已入队原件。自动运行时尚未接入，因此这些源码测试不能证明实际后台已上传。真实 GCM、文件与独立 JVM pending 中断通过；Android Keystore/偏好为合成边界，真机待合批验证。[配置证据](../../rebuild/android-app/r4-audio-settings-2026-10-24.json)。
+
 ## 原厂入口与已验证格式
 
 固定宿主 1.0.7 的 A3 实时帧经 `com.rayneo.rayneo_venus_sdk_plugin.e.h(message,data)` 解析，进入 `t8/b$b.c`；A4 缓存数据经 `t8/b$b.a` 写入 `files/always_on_cached_audio/<resolvedTaskId>.opus`，结束后通知 `taskId/filePath/sizeBytes`。A3 的实时数据与 A4 的缓存结束不能互相替代。后缀 `.opus` 本身不证明编码或可播放封装。

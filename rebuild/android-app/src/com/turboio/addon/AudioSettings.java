@@ -1,0 +1,29 @@
+package com.turboio.addon;
+
+import android.content.*;import android.security.keystore.*;import android.util.Base64;
+import java.io.*;import java.nio.channels.FileChannel;import java.nio.charset.StandardCharsets;import java.nio.file.*;import java.security.*;import java.util.*;import javax.crypto.*;import javax.crypto.spec.GCMParameterSpec;
+
+/** Separate audio Keystore slot. A durable pending intent blocks recovery of an
+ * older enabled configuration after preference write/readback failure or death.
+ * Never reads/writes the material, task or vendor credential namespaces. */
+final class AudioSettings {
+ private static final Object LOCK=new Object();private static final String ALIAS="io.agent.audio.config.v1",SLOT="sealed_audio_v1";
+ private static final byte[] AAD="io-agent/audio-connection/1".getBytes(StandardCharsets.UTF_8);
+ private final SharedPreferences prefs;private final File fence;
+ AudioSettings(Context app)throws IOException{prefs=app.getSharedPreferences("io_agent_audio_sync_v1",Context.MODE_PRIVATE);File root=app.getFilesDir().getCanonicalFile();safe(root,true);File directory=new File(root,"audio-sync-settings");safe(directory,true);if(!directory.exists()){AudioUploadWire.check(directory.mkdir(),"AUDIO_CONFIG_DIRECTORY");sync(root);}fence=new File(directory,"state.json");paths();}
+ private static void safe(File path,boolean directory)throws IOException{AudioUploadWire.check(!Files.isSymbolicLink(path.toPath())&&path.getAbsoluteFile().equals(path.getCanonicalFile()),"AUDIO_CONFIG_PATH");if(path.exists())AudioUploadWire.check(directory?path.isDirectory():path.isFile(),"AUDIO_CONFIG_PATH");}
+ private static void sync(File dir)throws IOException{try(FileChannel c=FileChannel.open(dir.toPath(),StandardOpenOption.READ)){c.force(true);}}
+ private void paths()throws IOException{safe(fence.getParentFile(),true);for(String name:new String[]{"state.json","state.json.partial","state.json.lock"})safe(new File(fence.getParentFile(),name),false);}
+ private static SecretKey key(boolean create)throws Exception{KeyStore store=KeyStore.getInstance("AndroidKeyStore");store.load(null);if(store.containsAlias(ALIAS))return (SecretKey)store.getKey(ALIAS,null);if(!create)throw new IOException("AUDIO_KEY_UNAVAILABLE");KeyGenerator generator=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore");generator.init(new KeyGenParameterSpec.Builder(ALIAS,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setRandomizedEncryptionRequired(true).build());return generator.generateKey();}
+ private static byte[] open(String text)throws Exception{AudioUploadWire.check(text!=null&&text.length()<=(12288+32)*4/3+8,"AUDIO_CONFIG_INVALID");byte[] bytes=Base64.decode(text,Base64.NO_WRAP);AudioUploadWire.check(bytes.length>=29&&bytes.length<=12288+28,"AUDIO_CONFIG_INVALID");Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.DECRYPT_MODE,key(false),new GCMParameterSpec(128,Arrays.copyOf(bytes,12)));cipher.updateAAD(AAD);return cipher.doFinal(Arrays.copyOfRange(bytes,12,bytes.length));}
+ private static String seal(byte[] plain)throws Exception{AudioUploadWire.check(plain.length<=12288,"AUDIO_CONFIG_INVALID");Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,key(true));cipher.updateAAD(AAD);byte[] encrypted=cipher.doFinal(plain),iv=cipher.getIV();AudioUploadWire.check(iv.length==12,"AUDIO_CONFIG_INVALID");byte[] result=new byte[12+encrypted.length];System.arraycopy(iv,0,result,0,12);System.arraycopy(encrypted,0,result,12,encrypted.length);return Base64.encodeToString(result,Base64.NO_WRAP);}
+ private AudioConfig decrypted()throws Exception{String sealed=prefs.getString(SLOT,null);if(sealed==null)return null;byte[] plain=open(sealed);try{return AudioConfig.decode(plain);}finally{Arrays.fill(plain,(byte)0);}}
+ private static Map<String,Object> intent(Object raw)throws IOException{if(raw==null)return null;try{Map<String,Object> v=WireJson.map(raw);AudioUploadWire.keys(v,"schema","phase","fingerprint");AudioUploadWire.check(AudioUploadWire.number(v.get("schema"))==1&&Arrays.asList("pending","ready").contains(v.get("phase")),"AUDIO_CONFIG_FENCE_INVALID");AudioUploadWire.hash(v.get("fingerprint"));return v;}catch(IllegalArgumentException invalid){throw new IOException("AUDIO_CONFIG_FENCE_INVALID");}}
+ AudioConfig load()throws Exception{synchronized(LOCK){paths();AudioUploadWire.check(!new File(fence.getPath()+".partial").exists(),"AUDIO_CONFIG_PENDING");try(AtomicDocument document=new AtomicDocument(fence,4096)){Map<String,Object> state=intent(document.read());if(state!=null)AudioUploadWire.check("ready".equals(state.get("phase")),"AUDIO_CONFIG_PENDING");AudioConfig config=decrypted();if(config==null&&state==null)return null;AudioUploadWire.check(config!=null&&state!=null&&config.fingerprint().equals(state.get("fingerprint")),"AUDIO_CONFIG_CHANGED");return config;}}}
+ void save(AudioConfig config)throws Exception{synchronized(LOCK){AudioUploadWire.check(config!=null,"AUDIO_CONFIG_INVALID");paths();try(AtomicDocument document=new AtomicDocument(fence,4096)){
+  intent(document.read());AudioConfig old=decrypted();if(old!=null)old.replaceAllowed(config);String fingerprint=config.fingerprint();
+  document.save(WireJson.object("schema",1,"phase","pending","fingerprint",fingerprint));sync(fence.getParentFile());byte[] plain=config.encode();try{
+   String encrypted=seal(plain);if(!prefs.edit().putString(SLOT,encrypted).commit())throw new IOException("AUDIO_CONFIG_SAVE_FAILED");AudioConfig written=decrypted();AudioUploadWire.check(written!=null&&fingerprint.equals(written.fingerprint()),"AUDIO_CONFIG_SAVE_FAILED");paths();document.save(WireJson.object("schema",1,"phase","ready","fingerprint",fingerprint));sync(fence.getParentFile());
+  }finally{Arrays.fill(plain,(byte)0);}
+ }}}
+}
