@@ -31,6 +31,7 @@ final class VoiceAnswerRuntime {
  // Glasses-started dictation that may continue with the screen off / App in background (TaskAttention).
  private volatile Object backgroundOwner;private volatile Observer headless;
  private boolean action;private long actionId;
+ private InterruptedVoiceRecovery interruptedRecovery;
  private volatile Snapshot value=new Snapshot("IDLE","","","","",false,false,false,true);
  private interface Work {void run()throws Exception;}
  private static final class Attempt {
@@ -357,14 +358,22 @@ final class VoiceAnswerRuntime {
   * recovered it until someone opened a voice page. Called at App start: once the store is loaded and the
   * glasses are linked, an interrupted capture is closed through the same retryCleanup a page would use;
   * recovered gets the original question so the glasses can offer it again. */
- void recoverInterrupted(java.util.function.BiConsumer<String,String> recovered){recoverInterrupted(recovered,0);}
- private void recoverInterrupted(java.util.function.BiConsumer<String,String> recovered,int tries){
-  mainThread();if(tries>60)return;
-  if(!loaded){main.postDelayed(()->recoverInterrupted(recovered,tries+1),1000);return;}
-  Attempt a=active;if(blocked||a==null||!a.recovery||!a.draft.needsStop())return;
-  if(Host107Ota.link().peer==null||a.recovering){main.postDelayed(()->recoverInterrupted(recovered,tries+1),2000);return;}
-  String binding=a.binding,request=a.request;
-  retryCleanup((snapshot,error)->{if(error.isEmpty())recovered.accept(binding,request);else main.postDelayed(()->recoverInterrupted(recovered,tries+5),5000);});
+ void recoverInterrupted(java.util.function.BiConsumer<String,String> recovered){
+  mainThread();if(interruptedRecovery!=null&&interruptedRecovery.running())return;
+  interruptedRecovery=new InterruptedVoiceRecovery(new InterruptedVoiceRecovery.Port(){
+   public long now(){return SystemClock.elapsedRealtime();}
+   public void later(Runnable action,long delay){main.postDelayed(action,delay);}
+   public InterruptedVoiceRecovery.State state(){
+    Attempt a=active;Fixed60Session.Link link=Host107Ota.link();
+    if(a==null)return new InterruptedVoiceRecovery.State(null,"","",loaded,blocked,true,false,false,true,false,false);
+    boolean linked=link.peer!=null&&!link.peer.isEmpty()&&a.draft.capturePermit().peer.equals(FixedPeerHash.of(link.peer));
+    return new InterruptedVoiceRecovery.State(a,a.binding,a.request,loaded,blocked,a.draft.healthy(),a.recovery,a.draft.needsStop(),a.physicallyReleased,a.recovering,linked);
+   }
+   public void cleanup(java.util.function.Consumer<String> dispatched){retryCleanup((snapshot,error)->dispatched.accept(error));}
+   public void recovered(String binding,String request){recovered.accept(binding,request);}
+   public void incomplete(String reason){android.util.Log.i("TurboIOVoice","interrupted recovery remains pending: "+reason);}
+  });
+  interruptedRecovery.start();
  }
  void retryCleanup(Result result){
   long operation=begin(result);if(operation==0)return;Attempt a=active;if(a==null||blocked){finish(operation,result,"VOICE_RECOVERY_REQUIRED");return;}

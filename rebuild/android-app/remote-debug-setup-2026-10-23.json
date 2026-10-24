@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T11:54:34.000090+00:00",
+  "scope": "Configure Mac and authorized Redmi remote debugging with Tailscale and Android TLS wireless ADB",
+  "app": {
+    "version": "0.5.3-dev55",
+    "version_code": 10477,
+    "changed": false,
+    "recording_started": false
+  },
+  "clients": {
+    "tailscale": "1.104.2",
+    "macos": "26.5.1",
+    "android": 16,
+    "official_mac_pkg_sha256": "1724d2e021d3c5f817f427f628260c013531a528f1258a7d477735d198b11f55",
+    "official_android_apk_sha256": "270b3e6e54c99103ed98fa967de7bbf6053e1066250ea35d2b9f450947fd0a78",
+    "official_checksums_verified": true,
+    "mac_notarized_team": "W5364U7YZB",
+    "android_signer_sha256": "5cdb295551bfe1a087fed6acda07141c6c929fa7c29bd273a7092813acc434bf"
+  },
+  "configuration": {
+    "same_account_as_phone_user_selected": true,
+    "mac_extension_enabled": true,
+    "mac_accept_dns": false,
+    "mac_accept_routes": false,
+    "exit_node_used": false,
+    "tailscale_ssh_enabled": false,
+    "phone_vpn_authorized": true,
+    "phone_notifications_allowed": true,
+    "phone_autostart_enabled": true,
+    "phone_battery_unrestricted": true,
+    "phone_always_on_vpn": false,
+    "phone_always_on_note": "System VPN settings requested lockscreen-password setup. Cancelled without changing credentials.",
+    "adb_mode": "paired TLS dynamic port",
+    "legacy_tcpip_5555_enabled": false,
+    "public_adb_exposure_configured": false,
+    "private_config_mode": "0600"
+  },
+  "checks": {
+    "tailscale_ip_adb_connected": true,
+    "expected_phone_serial_verified": true,
+    "screen_off_adb_success": true,
+    "screen_off_power_state": "Dozing",
+    "wifi_reconnect": {
+      "at": "2026-10-23T11:44:36.642247+00:00",
+      "before": {
+        "wifi_on": "1",
+        "adb_wifi_enabled": "1"
+      },
+      "after": {
+        "wifi_on": "1",
+        "adb_wifi_enabled": "0"
+      },
+      "wifi_reconnected": true
+    },
+    "tailscale_reconnected_after_wifi_loss": true,
+    "wireless_debugging_reenabled_via_ui": true,
+    "new_port_connected_without_pairing_again": true,
+    "mac_client_relaunch_connected": true,
+    "remote_helper_connect_status_exec_passed": true,
+    "remote_binary_screenshot_png_valid": true,
+    "app_version_read_via_remote_adb": true,
+    "unplugged_new_wifi": {
+      "at": "2026-10-23T11:53:27.222125+00:00",
+      "usb_absent": true,
+      "remote_endpoint_only": true,
+      "expected_phone_serial_verified": true,
+      "power_state": [
+        "mWakefulness=Dozing"
+      ],
+      "screenshot_png_valid": true,
+      "screenshot_sha256": "0b5e33ac5b4658ebea4f84e1fa5505e147eadf6dd6d6c382ea79cad40ac26fc6",
+      "path": "Tailscale direct over routable private endpoint; not a public-network/DERP proof"
+    },
+    "offline_helper_tests": 16,
+    "helper_connect_updated_user_reported_port": true,
+    "different_wifi_derp": {
+      "at": "2026-10-23T13:06:10.997949+00:00",
+      "user_confirmed_other_wifi": true,
+      "new_port_identity_verified": true,
+      "tailscale_ping": "DERP(hkg), 690 ms",
+      "direct_connection_established": false,
+      "adb_ui_and_private_import_worked": true,
+      "usb_used": false
+    },
+    "wireless_apk_install": {
+      "candidate": "0.5.3-dev58",
+      "version_code": 10480,
+      "delta_bytes": 1413005,
+      "installed_sha256": "f0afc0697db934b591a0f3cbc3667bde7378345e9e627fa094709ee8601ccc39",
+      "exact_reconstruction_and_package_update_verified": true,
+      "evidence": "r2-prompter-lifecycle-dev58-2026-10-23.json"
+    }
+  },
+  "resolved_setup_issue": {
+    "symptom": "ADB protocol fault / No route to host while normal LAN TCP was reachable",
+    "action": "Restarted the existing ADB server while holding the exclusive device lock. Existing Mac pairing retained.",
+    "outcome": "LAN TLS and Tailscale-address TLS connections both succeeded"
+  },
+  "not_verified": [
+    "Phone full reboot recovery",
+    "Long-duration sleep"
+  ],
+  "test_identity": {
+    "caller": "caller601-20261023-codex",
+    "expires_at": "2026-10-23T12:11:05.878Z",
+    "new_identity_issued": false,
+    "glasses_checkpoint_server_stored": true,
+    "glasses_display_confirmed": false,
+    "batch_watch_enabled": false
+  },
+  "private_evidence_sha256": {
+    "wifi-reconnect.json": "478e5e18cb802371d05781a6a52853dc823a51ee6dcdff2d42cc18b28af68121",
+    "wireless-ready.png": "dc2a9a07e2cf073b18ac73173ccafe7934ca0069daca6b3694228b2a3287178c",
+    "unplugged-check.json": "7bdb3dfdaa64c88225398e118442f02624d21799efcb636cd25af8d838ba35d8",
+    "unplugged-new-wifi.png": "0b5e33ac5b4658ebea4f84e1fa5505e147eadf6dd6d6c382ea79cad40ac26fc6"
+  },
+  "installer_cleanup": {
+    "verified_installer_copies_removed": true,
+    "MiB_freed": 122.0,
+    "expired_pairing_capture_removed": true
+  },
+  "device_lock_released": true
+}

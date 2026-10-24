@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T13:37:23.569790+00:00",
+  "current": "artifacts/iO-Agent-Android-0.5.3-dev57.apk",
+  "rollback": "artifacts/iO-Agent-Android-0.5.3-dev55.apk",
+  "current_installed_sha256": "0456abaf1685b963b536972af677332caa5d00fa452b020171c70f23a9845bd2",
+  "removed": [
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev54.apk",
+      "sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb",
+      "bytes": 429687065
+    },
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev56.apk",
+      "sha256": "b2605146990499ab636806d8b75a297b709d1c854cd4f948cc8659820edff39d",
+      "bytes": 429695257
+    }
+  ],
+  "reclaimed_bytes": 859382322
+}

@@ -34,8 +34,14 @@ final class TaskProfiles {
  }
  byte[] encode(){List<Object> rows=new ArrayList<>();for(Profile p:profiles)rows.add(WireJson.object("binding",p.binding,"connection",WireJson.read(p.connection.encode()),"enabled",p.enabled));byte[] result=WireJson.bytes(WireJson.object("format",FORMAT,"selected",selected,"profiles",rows));TaskWire.require(result.length<=MAX_BYTES,"TASK_CONFIG_INVALID");return result;}
  TaskProfiles upsert(TaskConnection c,boolean enabled,long now){
+  return upsert(c,enabled,now,true);
+ }
+ /** New UI callers opt into changing the outgoing default explicitly. Keep the
+  * v2 invariant (a non-empty registry has a selected target) for rollback hosts. */
+ TaskProfiles upsert(TaskConnection c,boolean enabled,long now,boolean makeDefault){
+  TaskWire.require(makeDefault||!selected.isEmpty(),"TASK_DEFAULT_REQUIRED");
   TaskWire.require(!enabled||c.expiresAt>now,"TASK_IMPORT_EXPIRED");Profile next=new Profile(c,enabled);List<Profile> rows=new ArrayList<>();boolean replaced=false;
-  for(Profile p:profiles){if(p.binding.equals(next.binding)){rows.add(next);replaced=true;}else rows.add(p);}if(!replaced)rows.add(next);return new TaskProfiles(next.binding,rows);
+  for(Profile p:profiles){if(p.binding.equals(next.binding)){rows.add(next);replaced=true;}else rows.add(p);}if(!replaced)rows.add(next);return new TaskProfiles(makeDefault?next.binding:selected,rows);
  }
  TaskProfiles select(String binding){get(binding);return new TaskProfiles(binding,profiles);}
  /** Frees a slot held by an expired registration. The current default target is

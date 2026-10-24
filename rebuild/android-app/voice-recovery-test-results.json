@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T08:07:58.896Z",
+  "at": "2026-10-23T14:04:12.017Z",
   "assertions": 485,
   "scope": "Independent cutoff and host recording adapter including stop-only cold recovery, same-process rebind and blocked old receiver; physical SDK and idle are test doubles",
   "real_native_asr": false,
@@ -81,11 +81,11 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
+      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "c2ff8a5e548f36e96b2d089618e25ace35337a0746ac43388ea0e3d5fada3bfe"
+      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
@@ -149,7 +149,7 @@
     },
     {
       "path": "../../tools/android/TaskVoiceBridgeTest.java",
-      "sha256": "984d080dd5ab1e3a619f1165a43cae85842221d6260e9bb1a00f2dcdb47878cd"
+      "sha256": "27c74d4d40df7a2290b82c854c284f6dbe3f4299868a94f46dbee36ddb0aaf18"
     },
     {
       "path": "../../tools/android/VoiceAnswerTest.java",

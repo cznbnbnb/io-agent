@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "started": "2026-10-23T13:36:40.651788+00:00",
+  "source": "Normal CLI notice, public product status and process commands; no answer/capture",
+  "samples": [
+    {
+      "at": "2026-10-23T13:36:43.691230+00:00",
+      "version": "0.5.3-dev57",
+      "attention": "",
+      "pending": false,
+      "answer_busy": false,
+      "notifications_held": 0,
+      "message": "通知显示已结束，正在退出提词器"
+    },
+    {
+      "at": "2026-10-23T13:36:46.035548+00:00",
+      "version": "0.5.3-dev57",
+      "attention": "",
+      "pending": false,
+      "answer_busy": false,
+      "notifications_held": 0,
+      "message": "通知显示已结束，正在退出提词器"
+    },
+    {
+      "at": "2026-10-23T13:36:49.550045+00:00",
+      "version": "0.5.3-dev57",
+      "attention": "prompter",
+      "pending": false,
+      "answer_busy": false,
+      "notifications_held": 0,
+      "message": "任务提醒已提交到眼镜；长按退出，无需回答"
+    }
+  ],
+  "passed": false,
+  "server_stored": true,
+  "expires_at": "2026-10-23T13:38:13.691Z",
+  "active_before_restart": true,
+  "error": "Harness expected no PID after force-stop; process had already restarted. MainActivity launch was skipped by that assertion.",
+  "process_before_from_log": 4214,
+  "process_after_verified": 8826,
+  "process_kill_verified": true,
+  "manual_followup_launch": true
+}

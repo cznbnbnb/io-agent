@@ -40,9 +40,12 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  assert.equal((await run(caller,'checkpoint',{...point,checkpoint_key:'too-soon',next_checkin_minutes:1})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
  assert.equal((await run(caller,'notify',notice)).value.progress.checkpoint_due,false);
  const off=await run(caller,'config',{glasses_progress:false});assert.equal(off.code,0,JSON.stringify(off));assert.equal(off.value.server_watch,'off');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,false);
+ const originalSubmit=store.queueSubmit.bind(store);let replayedPosts=0;store.queueSubmit=(token,event,kind)=>{if(kind==='message'&&event.event_id===pointObject.event_id)replayedPosts++;return originalSubmit(token,event,kind);};
+ const replayWhileOff=await run(caller,'checkpoint',point);assert.equal(replayWhileOff.code,0,JSON.stringify(replayWhileOff));assert.equal(replayWhileOff.value.glasses_display,'off');assert.equal(replayWhileOff.value.message_id,null);assert.equal(replayWhileOff.value.server_watch,'off');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,false);assert.equal(replayedPosts,0,'old checkpoints must not repost or re-arm after switch-off');store.queueSubmit=originalSubmit;
  const quiet=await run(caller,'checkpoint',{checkpoint_key:'step-2',done:'核对代码',next:'等设备锁'});assert.equal(quiet.value.glasses_display,'off');assert.equal(quiet.value.message_id,null);assert.equal(quiet.value.server_watch,'off');
  assert.equal((await run(caller,'notify',notice)).value.progress.glasses_progress,false);
  assert.equal((await run(caller,'config',{glasses_progress:true,checkin_minutes:30})).value.policy.checkin_minutes,30);
+ const resumedPoint=await run(caller,'checkpoint',{checkpoint_key:'step-3',done:'恢复进度推送',next:'继续原任务'});assert.equal(resumedPoint.code,0,JSON.stringify(resumedPoint));assert.equal(resumedPoint.value.glasses_display,'notice');assert.equal(resumedPoint.value.server_watch,'armed');assert.equal(store.watchGet(agent.token,registered.value.task_id).enabled,true);
  assert.equal((await run(caller,'config',{glasses_progress:'yes'})).value.error,'RUNTIME_TOOL_ARGUMENT_INVALID');
  const args={question_key:'one',question:'Preserve the full additional conditions?',mode:'free_text',options:[],expires_at:new Date(Date.now()+300000).toISOString()};
  const asked=await run(caller,'ask',args);assert.equal(asked.code,0,JSON.stringify(asked));assert.equal(asked.value.server_stored,true);

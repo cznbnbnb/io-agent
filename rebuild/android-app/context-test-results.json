@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "date": "2026-10-22T13:09:44.457Z",
+  "date": "2026-10-23T09:46:22.190Z",
   "kind": "JVM real durable stores/protocol fixtures and isolated synthetic transports; no physical-device or real Agent acceptance",
-  "checks": "Task contexts: 47 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
+  "checks": "Task contexts: 59 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
   "sources": [
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
@@ -22,7 +22,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "c2ff8a5e548f36e96b2d089618e25ace35337a0746ac43388ea0e3d5fada3bfe"
+      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",

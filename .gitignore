@@ -201,3 +201,10 @@
 
 !/rebuild/android-app/phone-card-names-dev36-install-2026-10-23.json
 !/rebuild/android-app/phone-screen-off-dev36-2026-10-23.json
+
+# Shared local-material symlinks in agent worktrees (never commit private data).
+!/tools/collab/
+/rebuild/agent-bridge/private
+/rebuild/android-app/.private
+/rebuild/android-app/.tools
+/rebuild/android-app/artifacts

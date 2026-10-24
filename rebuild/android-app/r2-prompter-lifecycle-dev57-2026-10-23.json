@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T13:04:32.569771+00:00",
+  "scope": "R2 question prompter lifecycle; no recording or wearer action",
+  "candidate": {
+    "version": "0.5.3-dev57",
+    "version_code": 10479,
+    "sha256": "0456abaf1685b963b536972af677332caa5d00fa452b020171c70f23a9845bd2",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad"
+  },
+  "changes": [
+    "Question display expires at the earlier of request expiry, connection expiry and 180 seconds.",
+    "Connection pause, phone takeover, disabled reminders and invalidated requests withdraw only the matching question manuscript.",
+    "Phone cancellation clears the dictation callback before startup guard or exit-ACK races.",
+    "Deferred startup stop is bound to its original DID and survives transition to playing.",
+    "Restart adoption of expired/cancelled/legacy-owner manuscripts is stop-only; unexpired questions are checked against their original request before dictation.",
+    "Progress and busy notices now retain peer/DID/deadline across App process loss; adoption has no dictation callback."
+  ],
+  "validation": {
+    "task_prompter_checks": 73,
+    "agent_card_checks": 790,
+    "task_voice_bridge_checks": 248,
+    "android_source_count": 190,
+    "javac_d8_and_signing": true,
+    "signed_apk_audit": true,
+    "device_install": "passed",
+    "installed_apk_hash_verified": true,
+    "installed_version_code": 10479,
+    "notice_three_minute_exit_ack": true,
+    "normal_notice_timeout_log": [
+      "21:32:50.696 notice prepare",
+      "21:35:50.698 question timeout phase=ready",
+      "21:35:50.977 type6 action2 code1 phase=closing",
+      "21:35:50.978 clear phase=closing audio=0"
+    ],
+    "paused_connection_restart_evidence_version": "dev56; see prior_device_batch"
+  },
+  "boundaries": {
+    "physical_audio_started": false,
+    "new_question_sent": false,
+    "user_lens_confirmation": false,
+    "phone_reboot": false,
+    "wifi_or_bluetooth_toggled": false,
+    "r2_complete": false,
+    "r3_started": false,
+    "r4_started": false
+  },
+  "remaining": [
+    "Silent notice restart recovered only on unsolicited frames; fixed and verified in dev58.",
+    "Human lens and normal valid-question long-press voice regression remain open."
+  ],
+  "remote": {
+    "new_user_provided_port_connected": true,
+    "phone_identity_verified": true,
+    "tailscale_ping": "DERP(hkg), 690 ms; direct connection not established",
+    "usb_used": false
+  },
+  "work_identity": {
+    "caller": "caller602-20261023-codex",
+    "expires_at": "2026-10-23T13:48:05.986Z",
+    "phone_ui_enabled": true,
+    "default_changed": false,
+    "delivery_file_removed": true,
+    "checkpoint_server_stored": true,
+    "lens_confirmed": false,
+    "previous_caller601_revoked": true,
+    "previous_roles_verified_401": 3
+  },
+  "push_to_origin": false,
+  "delta_install": {
+    "baseline_sha256": "b2605146990499ab636806d8b75a297b709d1c854cd4f948cc8659820edff39d",
+    "candidate_sha256": "0456abaf1685b963b536972af677332caa5d00fa452b020171c70f23a9845bd2",
+    "apk_bytes": 429695257,
+    "delta_bytes": 1413005,
+    "commands": 8089,
+    "delta_sha256": "ac2402a8ea77c05de82b80ebe2555d509a0bf7a6713a5f07e0d7afb5c6d9b05a",
+    "reconstruction_hash_verified": true,
+    "host_guard_checks": 15,
+    "device_temporary_files_removed": true,
+    "android_app_process_reconstruction": true,
+    "remote_output_hash_verified": true,
+    "package_manager_result": "Success"
+  },
+  "restart_observation": {
+    "stock_ui_toast": "手机端找不到眼镜正在题词的文稿，请重新同步后再恢复",
+    "notice_recovery_gap_confirmed_in_source": true,
+    "which_manuscript_was_on_lens": "Not directly observed; notice attribution is an inference, not a lens confirmation."
+  },
+  "prior_device_batch": "r2-prompter-lifecycle-dev56-2026-10-23.json",
+  "restart_attempt_evidence": "notice-restart-dev57-2026-10-23.json",
+  "superseded_by": "r2-prompter-lifecycle-dev58-2026-10-23.json"
+}

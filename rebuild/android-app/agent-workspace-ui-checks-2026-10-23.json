@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T10:07:25.070Z",
+  "scope": "Native Agent workspace migration; Android compilation and targeted synthetic tests only",
+  "branch": "codex/agent-workspace-ui",
+  "claude_committed_base": "e0b4f09",
+  "device": false,
+  "network": false,
+  "installed": false,
+  "signed_apk": false,
+  "new_version_reserved": false,
+  "compile": {
+    "javac": true,
+    "d8": true,
+    "host_dex_assembly": true,
+    "source_count": 187,
+    "source_hashes_verified": true,
+    "baseline_product_version": "0.5.3-dev45"
+  },
+  "tests": [
+    {
+      "command": "node tools/android/test-contexts.mjs",
+      "checks": 59,
+      "passed": true,
+      "scope": "Core identity/default selection/connection isolation and durable queue; includes existing connection and mailbox tests"
+    },
+    {
+      "command": "node tools/android/test-task-presentation.mjs",
+      "checks": 28,
+      "passed": true
+    },
+    {
+      "command": "node tools/android/test-material-catalog-document.mjs",
+      "checks": 32,
+      "passed": true
+    },
+    {
+      "command": "node tools/android/test-material-task-draft.mjs",
+      "checks": 18,
+      "passed": true
+    },
+    {
+      "command": "node tools/android/test-material-month-runtime.mjs",
+      "checks": 128,
+      "passed": true,
+      "scope": "Actual runtime with synthetic Android/account/transport bindings"
+    }
+  ],
+  "ui_sources": [
+    {
+      "path": "src/com/turboio/addon/AgentConnectionsPage.java",
+      "sha256": "bb51282bf74cb035b7e23f48a410045e4414e4e9c9466640249f2dd7312bd0ad"
+    },
+    {
+      "path": "src/com/turboio/addon/AgentMaterialPage.java",
+      "sha256": "7d7c70c4db0dce42c654122c5061b72e84918946496e31d9cd973828839b2369"
+    },
+    {
+      "path": "src/com/turboio/addon/AgentTaskPage.java",
+      "sha256": "b611f5c4626da2ae52a29485ac1c0b070b62c9aa17d273459ed038617cc4e53f"
+    },
+    {
+      "path": "src/com/turboio/addon/AgentUI.java",
+      "sha256": "f3645b955d135f26fecdce82c8f59f99d4c1904f682b452ac8dd22acf100a46e"
+    },
+    {
+      "path": "src/com/turboio/addon/AgentWorkspace.java",
+      "sha256": "d0a3da6dda0da5ef8ad2f6b23f02eb9207875fdf273be9411d49d2d743555f17"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialCatalog.java",
+      "sha256": "63994f8c6ef34db24b46721586d4fc5149edca870d0fe2a3e8fe2404e707c7e1"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialDocument.java",
+      "sha256": "98467a0fcd3212a94aa099ccb12bcf67ed06680ea173e74438c7ba343832b3b8"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialDocumentExport.java",
+      "sha256": "3bf75047f56aacd6b1a4c9a5bd493a850415ea796098fb1bcd6b56b92e3cad63"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialExportCache.java",
+      "sha256": "3fab9fb88c4d3a4f76e64f357f8778b42f7a4e284c0d16d2fed2bea955bb9d93"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialMonthWorkspace.java",
+      "sha256": "e8cdb669dd6a0deffc6760a0bfef045d0767709501e10e156fc65e76a56e5692"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialRuntime.java",
+      "sha256": "95e0329f1a3f65399e373ffc9826eca9263eb5f195991e8e97e4a67445d9f2b0"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialTaskDraft.java",
+      "sha256": "6de82876fdc0ee45c57a3be1ca92acf0091263038c8a120453498cea421f4db8"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialWorkspace.java",
+      "sha256": "5ced06d81397621f9551174a0415c5d042c87e9485ac93dd73815b6073338148"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskConnectionUI.java",
+      "sha256": "1c10d8b7bab6b3382551467a0a52cd090c9b41509aa8ac159c6912908edcc9ca"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskPresentation.java",
+      "sha256": "933d37fbc4d5276ea0208c5b6df0143b78cbdbbf5b8e58aef2edb5b13b1e3209"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskProfiles.java",
+      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskRuntime.java",
+      "sha256": "580d588f834c3cc7273a063eabe00c17c692256f7d51f49b0ff5941cdaad8bdc"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskSettings.java",
+      "sha256": "03fb339664c672706eefebbf23adadb3032923efaaf5faa633080ee8be08bb86"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskWorkspace.java",
+      "sha256": "2078e49f7d576c529f9154698f6d54646209a0ec47a61250013d1d095bc34cb6"
+    }
+  ],
+  "not_verified": [
+    "Native phone layout, font sizes, keyboard and system insets",
+    "System document picker save/cancel/recreation on device",
+    "Phone account changes and activity recreation",
+    "Native task question/voice/glasses regression",
+    "Claude dev46 changes not yet committed/integrated"
+  ],
+  "not_implemented": [
+    "Task pause/resume/instruction protocol and Agent receipts",
+    "Automatic material sync",
+    "Remote original audio retention and export",
+    "CLI default-target registration and glasses AI default invocation"
+  ],
+  "device_handoff": "Claude holds shared device lock for R2 dev46/10468; do not sign or install baseline dev45 over it. Merge latest committed fixes and reserve next version while holding Codex lock."
+}

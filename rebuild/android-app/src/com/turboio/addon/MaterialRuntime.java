@@ -7,6 +7,11 @@ import java.io.*;import java.util.*;import java.util.concurrent.*;
 final class MaterialRuntime {
  interface Result {void done(Snapshot value,String error);}
  interface MonthResult {void done(MonthSelection value,String error);}
+ interface CatalogResult {void done(CatalogSnapshot value,String error);}
+ static final class CatalogSnapshot {
+  final MaterialConfig config;final MaterialCatalog catalog;final MaterialLocalLibrary.Snapshot local;final String uploadError;
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;}
+ }
  static final class MonthSelection {
   final OfficialLifelogMonthDiscovery.Snapshot source;final String configFingerprint;private final long owner;
   private MonthSelection(OfficialLifelogMonthDiscovery.Snapshot source,String fingerprint,long owner){this.source=source;configFingerprint=fingerprint;this.owner=owner;}
@@ -28,6 +33,54 @@ final class MaterialRuntime {
  private void counts()throws IOException{MaterialSyncSession.Status next=MaterialSyncSession.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
  void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
+ /** Browsing belongs to the official signed-in account, independently of an
+  * optional remote upload connection. All local owners share this serial IO. */
+ private CatalogSnapshot loadCatalog(long owner)throws Exception{
+  OfficialAccountBinding current=account(owner);MaterialConfig saved=null;String uploadError="";java.time.ZoneId zone=java.time.ZoneId.systemDefault();
+  // Upload settings/receipts are optional views. Their failure must not hide
+  // verified local records; account checks and local-library failures remain fatal.
+  try{saved=settings.load();}catch(Exception failed){uploadError=safe(failed);}
+  // A stale connection for another account must not expose its data or block
+  // reading the currently signed-in account's official records.
+  if(saved!=null&&!saved.account.equals(current.binding))saved=null;
+  MaterialCatalog uploaded=MaterialCatalog.empty(current.binding,zone);
+  if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialSyncSession.accountFiles(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
+  MaterialLocalLibrary.Snapshot local;try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}
+  MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
+  return new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError);
+ }
+ private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
+  try{check(owner);}catch(Exception stale){result.done(null,safe(stale));return;}
+  if(snapshot==null){result.done(null,error);return;}
+  // Revalidate after the result reaches the UI queue, without blocking that
+  // queue on the host secure-store handler. Lifecycle generation also fences
+  // a login screen transition before the final callback is allowed to render.
+  io.execute(()->{String rejected="";try{MaterialWire.require(snapshot.catalog.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");}catch(Exception stale){rejected=safe(stale);}final String failure=rejected;
+   main.post(()->{try{check(owner);}catch(Exception stale){result.done(null,safe(stale));return;}result.done(failure.isEmpty()?snapshot:null,failure.isEmpty()?error:failure);});
+  });
+ });}
+ void catalog(CatalogResult result){long owner=generation;io.execute(()->{CatalogSnapshot found=null;String error="";try{found=loadCatalog(owner);}catch(Exception failed){error=safe(failed);}deliverCatalog(owner,found,error,result);});}
+ /** One foreground, account-verified official day read. No MaterialApi,
+  * credentials issuance, outbox staging or remote upload is performed here. */
+ long readDay(String date,String timezone,CatalogResult result){long owner=invalidate();io.execute(()->{
+  CatalogSnapshot found=null;String error="";Host107LifelogHttp official=null;OfficialAccountBinding login=null;
+  try{
+   OfficialLifelogInventory.Request day=OfficialLifelogInventory.Request.day(date,timezone);login=account(owner);final OfficialAccountBinding expected=login;
+   official=new Host107LifelogHttp(app,login,()->check(owner),timezone);synchronized(guard){check(owner);officialTransport=official;}
+   OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),official);
+   synchronized(guard){check(owner);MaterialWire.require(expected.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
+    try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),expected.binding)){library.recordRead(date,timezone,fresh.sources,System.currentTimeMillis(),()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}
+   }
+   found=loadCatalog(owner);
+  }catch(Exception failed){error=safe(failed);
+   // A failed source refresh retains the previous verified snapshot. A changed
+   // account/cancelled owner may never receive the previous account's content.
+   if(login!=null&&!"OFFICIAL_ACCOUNT_CHANGED".equals(error))try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");found=loadCatalog(owner);}catch(Exception stale){error=safe(stale);found=null;}
+  }finally{if(official!=null){official.close();synchronized(guard){if(officialTransport==official)officialTransport=null;}}}
+  deliverCatalog(owner,found,error,result);
+ });return owner;}
+ /** A closed older page must never invalidate a newer read or sync owner. */
+ void cancelRead(long owner){synchronized(guard){if(owner==generation)invalidate();}}
  void cancelPending(){invalidate();}
  void configure(byte[] raw,boolean enabled,Result result){long owner=invalidate();byte[] input=raw.clone();work(()->{try{
   OfficialAccountBinding source=account(owner);MaterialConnection next=MaterialConnection.parse(input,System.currentTimeMillis());MaterialConfig candidate=new MaterialConfig(next,source.binding,enabled);if(config!=null)config.replaceAllowed(candidate);
@@ -38,6 +91,17 @@ final class MaterialRuntime {
   status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  }finally{Arrays.fill(input,(byte)0);}},result);}
  void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=MaterialSyncSession.status(app.getFilesDir(),config);note="paused";},result);}
+ /** Toggle only the configuration the caller actually saw. Never re-import
+  * credentials from a stale UI snapshot after another registration was saved. */
+ void setEnabled(String expectedFingerprint,boolean enabled,Result result){long owner=invalidate();work(()->{
+  check(owner);MaterialWire.require(config!=null&&config.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");
+  OfficialAccountBinding login=account(owner);MaterialWire.require(config.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig original=config;
+  if(enabled){MaterialWire.require(original.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");MaterialHttp http=new MaterialHttp(original.connection);synchronized(guard){check(owner);transport=http;}
+   try{new MaterialApi(original.connection,http).preflight(System.currentTimeMillis(),true);}finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
+  }
+  synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
+  status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+ },result);}
  void discoverMonth(String month,MonthResult result){long owner=invalidate();io.execute(()->{
   MonthSelection found=null;String error="";Host107LifelogHttp official=null;
   try{
