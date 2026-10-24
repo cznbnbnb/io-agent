@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T14:04:06.405Z",
+  "scope": "Production interruption-completion observer; synthetic scheduler, dispatch, durable stop and physical-release inputs. No recording or device stop proof.",
+  "passed": true,
+  "checks": 38,
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/InterruptedVoiceRecovery.java",
+      "sha256": "4293d75aef42e82637a6009817bef490f3561e5d8b8604176d5371603ea8b4f8"
+    },
+    {
+      "path": "../../tools/android/InterruptedVoiceRecoveryTest.java",
+      "sha256": "431ba935ec9657e0cfb3fffb339c011500eca73b023705c301ee41ea27f80db7"
+    },
+    {
+      "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
+      "sha256": "9136b6a64c3a043b32fed8cf73fb5b2081c080d80377a6947ec36f683c055a95"
+    },
+    {
+      "path": "../../tools/android/test-interrupted-voice-recovery.mjs",
+      "sha256": "1530a7102fb588fbf4902ac100f8ca43728aa8cd3eab85588fe5e96448680742"
+    }
+  ]
+}

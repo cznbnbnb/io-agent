@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T05:52:03.878084+00:00",
+  "scope": "R2 original interrupted recording completion before reoffering its question",
+  "source_fix": true,
+  "issue": "retryCleanup can return an empty dispatch error before stop/idle/resource-release completion; recoverInterrupted previously treated that as recovered.",
+  "behavior": [
+    "Wait for the exact original attempt and route.",
+    "Require healthy durable stop obligation cleared, physical resources released, and no ongoing recovery before callback.",
+    "Pending resources still qualify for cleanup even when needsStop is already false.",
+    "Ignore delayed/duplicate dispatch callbacks and target changes.",
+    "Bound initial recovery observation to 120 seconds and 12 cleanup requests.",
+    "Never starts recording or creates a replacement answer."
+  ],
+  "tests": {
+    "observer_checks": 38,
+    "recording_recovery_assertions": 485,
+    "android_sources_compiled": 191,
+    "javac_d8_hook_compile_passed": true,
+    "synthetic_inputs_not_physical_stop_proof": true
+  },
+  "installed": true,
+  "signed_or_packaged": true,
+  "last_verified_device_version": "0.5.3-dev59 /10481",
+  "candidate_metadata_preserved": false,
+  "new_question_sent": true,
+  "recording_started": true,
+  "r2_complete": false,
+  "r3_or_r4_started": false,
+  "current_caller": "caller603-20261023-codex; original live Codex conversation; short-lived and non-default",
+  "remaining": [
+    "Recording interrupted by process death still requires a separately guarded device test.",
+    "Quiet prompter/reconnect, phone competition, Bluetooth disconnect, full phone reboot and endurance remain open.",
+    "Historical overnight stock foreground-location-service crashes need separate diagnosis."
+  ],
+  "observer_sources": [
+    {
+      "path": "src/com/turboio/addon/InterruptedVoiceRecovery.java",
+      "sha256": "4293d75aef42e82637a6009817bef490f3561e5d8b8604176d5371603ea8b4f8"
+    },
+    {
+      "path": "../../tools/android/InterruptedVoiceRecoveryTest.java",
+      "sha256": "431ba935ec9657e0cfb3fffb339c011500eca73b023705c301ee41ea27f80db7"
+    },
+    {
+      "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
+      "sha256": "9136b6a64c3a043b32fed8cf73fb5b2081c080d80377a6947ec36f683c055a95"
+    },
+    {
+      "path": "../../tools/android/test-interrupted-voice-recovery.mjs",
+      "sha256": "1530a7102fb588fbf4902ac100f8ca43728aa8cd3eab85588fe5e96448680742"
+    }
+  ],
+  "apk_sha256": "02b679d30bf8f9e7031000370574f071eec688119040187aa3b3a20c5d3f8220",
+  "notification_exit_human_confirmed": true,
+  "normal_voice_original_conversation_passed": true,
+  "interrupted_recording_device_verified": false,
+  "joint_tests": [
+    {
+      "case": "normal",
+      "request_id": "req-c3680481e854a654c0b57a1f6bbe968282b896d59b7d3f6b0d0d085da1483eda",
+      "request_revision": 1,
+      "option_id": "continue-r2",
+      "text_sha256": "135bd8d4c61dedbf765977b4753cbc1134fd620a9eeaca19d8ac5d6c9879e2c1",
+      "stored_at": "2026-10-24T05:50:12.333Z",
+      "original_conversation_verified": true
+    },
+    {
+      "case": "restart",
+      "request_id": "req-d295c0251251b9007d27731828e7cb71656a1daac1579d2710c8a27594849957",
+      "request_revision": 1,
+      "option_id": "restart-ok",
+      "text_sha256": "23dff8426ee8914b5dc4e939ef77412ad1a8ba20884b12f0953073aa73f8dbe6",
+      "stored_at": "2026-10-24T05:52:41.236Z",
+      "original_conversation_verified": true
+    }
+  ],
+  "prompter_restart": {
+    "developer_force_stop_pid_changed": true,
+    "additional_exit_reason": "SwipeUpClean",
+    "re_adopted_after_both_process_starts": true,
+    "question_revalidated_before_voice": true,
+    "voice_review_resources_released": true,
+    "head_preferences_restored": true,
+    "server_answer_consumed": true,
+    "human_response": "restart-ok"
+  }
+}

@@ -457,6 +457,10 @@
       "sha256": "f714824dc097a665774fda18ee3a35d3e41e17d0a7852ee209e08d7eecbe54c5"
     },
     {
+      "path": "src/com/turboio/addon/InterruptedVoiceRecovery.java",
+      "sha256": "4293d75aef42e82637a6009817bef490f3561e5d8b8604176d5371603ea8b4f8"
+    },
+    {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
       "sha256": "176e22e993f97a60f0a0346eee7a4bf875f73680ab99acc8f4e435c34cc5bac8"
     },
@@ -714,7 +718,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "a538e38482932a6e2e84818e23701c8b2ff798b9141385be6c44fe274f02a291"
+      "sha256": "9136b6a64c3a043b32fed8cf73fb5b2081c080d80377a6947ec36f683c055a95"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
@@ -758,11 +762,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "591d5d7e6c1a2c85b134de417b5add14be1a88783674df73d6bd9f54ec0c0b4b"
+      "sha256": "16c031fcd771437bcc8ba5bac4c0dd596ab1f24a706a32793094b7840b5eded5"
     }
   ],
-  "product_sha256": "6fd923408a309b8bf37ecac13a2a7870f9cca3b4ca6408d745a260ffe833fc13",
-  "addon_sha256": "1be200f73e00897626276d9902caa5eddba790d6469c75352d8ac9da80da539c",
+  "product_sha256": "071b3d74b03e29f94d71bdd0467e27d71bb15c0a2be7bfe3ef1c1853920ea97d",
+  "addon_sha256": "7a8333a90caea8a1970c8cadc4eb87d47a9dbd5caf3f4592d4c842ff396f53ea",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
