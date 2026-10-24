@@ -44,7 +44,7 @@ final class LifelogAudioArchive implements AutoCloseable {
   require(sequence>0&&sequence<=MAX_RECORDS&&Arrays.asList("A3","A4","A5","link_lost").contains(kind)&&message!=null&&message.length()<=MAX_MESSAGE&&message.getBytes(StandardCharsets.UTF_8).length<=MAX_MESSAGE&&message.equals(new String(message.getBytes(StandardCharsets.UTF_8),StandardCharsets.UTF_8))&&received>0&&elapsed>=0&&clock!=null&&clock.matches("[a-f0-9]{32}"),"AUDIO_ARCHIVE_INPUT_INVALID");
   return WireJson.object("sequence",sequence,"kind",kind,"message",message,"received_at",received,"elapsed_nanos",elapsed,"clock_epoch",clock,"previous",previous);
  }
- private void validateHeader(Map<String,Object> h,long expected,String previous)throws IOException{
+ private static void validateHeader(Map<String,Object> h,long expected,String previous)throws IOException{
   try{Map<String,Object> canonical=header(number(h,"sequence"),(String)h.get("kind"),(String)h.get("message"),number(h,"received_at"),number(h,"elapsed_nanos"),(String)h.get("clock_epoch"),(String)h.get("previous"));require(h.equals(canonical)&&number(h,"sequence")==expected&&previous.equals(h.get("previous")),"AUDIO_ARCHIVE_RECORD_INVALID");}catch(ClassCastException e){throw new IOException("AUDIO_ARCHIVE_RECORD_INVALID");}
  }
  private void recover(Guard guard)throws IOException{
@@ -78,6 +78,24 @@ final class LifelogAudioArchive implements AutoCloseable {
   byte[] payload(){return bytes.clone();}
  }
  interface Visitor {void batch(Batch batch)throws IOException;}
+ /** Validate a downloaded sealed journal without constructing, repairing or
+  * publishing anything in the original archive namespace. */
+ static Map<String,Object> copiedState(Object raw)throws IOException{
+  try{Map<String,Object> s=WireJson.map(WireJson.copy(raw)),o=WireJson.map(s.get("owner"));
+   require(s.keySet().equals(new HashSet<>(Arrays.asList("schema","owner","count","bytes","chain","sealed","recording_complete","source_link_verified","tail_error","raw_bytes","uncertain")))&&Long.valueOf(1).equals(s.get("schema")),"AUDIO_ARCHIVE_COPY_STATE");
+   require(o.keySet().equals(new HashSet<>(Arrays.asList("account","peer","generation","stream")))&&o.get("account") instanceof String&&((String)o.get("account")).matches("[a-f0-9]{64}")&&o.get("peer") instanceof String&&((String)o.get("peer")).matches("[a-f0-9]{64}")&&number(o,"generation")>0&&o.get("stream") instanceof String&&((String)o.get("stream")).matches("[a-f0-9]{32}"),"AUDIO_ARCHIVE_COPY_STATE");
+   require(number(s,"count")>0&&number(s,"count")<=MAX_RECORDS&&number(s,"bytes")>=8&&number(s,"bytes")<=MAX_BYTES&&s.get("bytes").equals(s.get("raw_bytes"))&&s.get("chain") instanceof String&&((String)s.get("chain")).matches("[a-f0-9]{64}")&&s.get("sealed") instanceof String&&reason((String)s.get("sealed"))&&Boolean.FALSE.equals(s.get("uncertain"))&&"".equals(s.get("tail_error"))&&Boolean.FALSE.equals(s.get("recording_complete"))&&Boolean.FALSE.equals(s.get("source_link_verified")),"AUDIO_ARCHIVE_COPY_STATE");return s;
+  }catch(IllegalArgumentException|ClassCastException invalid){throw new IOException("AUDIO_ARCHIVE_COPY_STATE");}
+ }
+ static void visitCopied(InputStream input,Object expected,Visitor visitor,Guard guard)throws IOException{
+  require(input!=null&&visitor!=null,"AUDIO_ARCHIVE_OUTPUT_INVALID");admit(guard);Map<String,Object> state=copiedState(expected),owner=WireJson.map(state.get("owner"));long expectedBytes=number(state,"bytes"),count=number(state,"count"),consumed=8;String previous=hash(MAGIC,WireJson.bytes(owner));DataInputStream in=new DataInputStream(input);
+  try{byte[] magic=new byte[8];in.readFully(magic);require(Arrays.equals(magic,MAGIC),"AUDIO_ARCHIVE_MAGIC");
+   for(long sequence=1;sequence<=count;sequence++){admit(guard);int h=in.readInt(),p=in.readInt();require(h>0&&h<=131072&&p>=0&&p<=MAX_PAYLOAD&&consumed+40L+h+p<=expectedBytes,"AUDIO_ARCHIVE_COMMITTED_CORRUPT");byte[] meta=new byte[h],payload=new byte[p],footer=new byte[32];in.readFully(meta);in.readFully(payload);in.readFully(footer);
+    try{String digest=hash(sizes(h,p),meta,payload);require(Arrays.equals(footer,unhex(digest)),"AUDIO_ARCHIVE_COMMITTED_CORRUPT");Map<String,Object> parsed=WireJson.map(WireJson.read(meta));validateHeader(parsed,sequence,previous);previous=digest;consumed+=40L+h+p;admit(guard);visitor.batch(new Batch(parsed,payload));}finally{Arrays.fill(payload,(byte)0);}
+   }
+   require(consumed==expectedBytes&&previous.equals(state.get("chain"))&&in.read()==-1,"AUDIO_ARCHIVE_COMMITTED_CORRUPT");admit(guard);
+  }catch(EOFException|IllegalArgumentException invalid){throw new IOException("AUDIO_ARCHIVE_COMMITTED_CORRUPT");}
+ }
  static long recordBytes(long sequence,String kind,String message,int payloadBytes,long received,long elapsed,String clock)throws IOException{
   require(payloadBytes>=0&&payloadBytes<=MAX_PAYLOAD,"AUDIO_ARCHIVE_INPUT_INVALID");return 40L+WireJson.bytes(header(sequence,kind,message,received,elapsed,clock,"0000000000000000000000000000000000000000000000000000000000000000")).length+payloadBytes;
  }

@@ -90,7 +90,8 @@ final class AgentMaterialPage {
    String state=!error.isEmpty()?"暂时无法读取原音":saved==0?"尚无已保存的原音":!linked?"原音已保存 · 等待关联智记":running?"原音正在保存 · 可导出已有片段":failed?"已保存部分原音 · 曾发生中断":"已保存部分原音";
    card.addView(AgentUI.text(activity,state,14,AgentUI.INK));card.addView(AgentUI.text(activity,"从手机收到音频时开始保存，可能缺少开头或断连期间的内容。导出包含音频片段和范围说明。",12,AgentUI.MUTED));
    TextView button=AgentUI.button(activity,card,"导出原音到手机",false,()->MaterialAudioExport.save(activity,catalog.account,entry));boolean enabled=error.isEmpty()&&saved>0&&linked;button.setEnabled(enabled);button.setAlpha(enabled?1f:.45f);button.setContentDescription(enabled?"导出已保存的原音片段到手机":"导出原音不可用："+state);
-   AgentUI.button(activity,card,"刷新原音状态",false,()->renderAudio(screen,card,catalog,entry));card.addView(AgentUI.text(activity,"这里显示手机已保存的原音。远程备份状态请查看原音备份设置。",12,AgentUI.MUTED));
+   AgentUI.button(activity,card,"导出远程备份到手机",false,()->MaterialAudioExport.saveRemote(activity,catalog.account,entry));AgentUI.button(activity,card,"原音备份设置",false,()->AudioWorkspace.show(activity,()->{if(!closed&&!suspended&&screen.dialog.isShowing())renderAudio(screen,card,catalog,entry);}));
+   AgentUI.button(activity,card,"刷新原音状态",false,()->renderAudio(screen,card,catalog,entry));card.addView(AgentUI.text(activity,"远程原音固定保留三天；本地缺失时可从远程备份导出。导出不续期，也不会开启自动备份。",12,AgentUI.MUTED));
   });
  }
  private void delegate(MaterialCatalog catalog,MaterialCatalog.Entry entry,AgentUI.Screen owner){
