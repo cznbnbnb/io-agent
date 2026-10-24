@@ -1,0 +1,475 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T23:14:23.304821+00:00",
+  "scope": "Source-only remote read protocol and resumable verified cache; not a shipped remote export.",
+  "passed": true,
+  "phone_version": "dev85 /10507",
+  "stable_rollback": "dev76 /10498",
+  "new_apk_built_or_installed": false,
+  "r3_percent": 100,
+  "r4_estimate_percent": 85,
+  "sources": [
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AudioConnection.java",
+      "sha256": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AudioReadHttp.java",
+      "sha256": "0d947d89708a49d27d44743279839cf0847db377a15b7ee36d17e41a7a308d6c"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AudioDownloadWire.java",
+      "sha256": "a1ab9114f132f0706eb611372085a5dc81d66a4232322e703cfa92db964137fc"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AudioDownloads.java",
+      "sha256": "5fa6af5ebf857fc92e5d4e24ef5829af2d8615ae3c8cfc63464b031a5bb6a802"
+    },
+    {
+      "path": "tools/android/AudioDownloadsTest.java",
+      "sha256": "b98762ce1b58c5f00abf9de8dc3950106ab013bd696acb1bc24a5d81fc465567"
+    },
+    {
+      "path": "tools/android/test-audio-downloads.mjs",
+      "sha256": "a70e7dbcb7760b80c4351f53403c637fda6e4da20e9837dcf6e9e3e13e261ab1"
+    },
+    {
+      "path": "tools/android/AudioDownloadFsProbe.java",
+      "sha256": "9d66482ebce25bc04490c2af49841496e18ba504ebf1f343a12bf792000f1780"
+    }
+  ],
+  "download_tests": {
+    "schema": 1,
+    "at": "2026-10-24T23:05:54.630Z",
+    "passed": true,
+    "scope": "Production read protocol and durable bounded cache over isolated HTTP/SQLite; opaque synthetic bytes, not raw format, phone, actual TLS or export proof.",
+    "phases": [
+      {
+        "mode": "list",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "scope",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "deny-first",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "resume",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "repeat",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "crash-tail",
+        "expected_exit": 88,
+        "passed": true
+      },
+      {
+        "mode": "recover-tail",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "crash-cursor",
+        "expected_exit": 89,
+        "passed": true
+      },
+      {
+        "mode": "resume",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "crash-rename",
+        "expected_exit": 90,
+        "passed": true
+      },
+      {
+        "mode": "recover-rename",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "cancel",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "recover-cancel",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "capacity",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "bad-part",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "wrong-expiry",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "whole-mismatch",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "corrupt",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "meta-drift",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "foreign-state",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "linked",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "linked",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "cache-age",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "step",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "revoked",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "resume",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "remove",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "expires",
+        "expected_exit": 0,
+        "passed": true
+      },
+      {
+        "mode": "withdrawn",
+        "expected_exit": 0,
+        "passed": true
+      }
+    ],
+    "source_hashes": {
+      "rebuild/android-app/src/com/turboio/addon/AudioDownloads.java": "5fa6af5ebf857fc92e5d4e24ef5829af2d8615ae3c8cfc63464b031a5bb6a802",
+      "rebuild/android-app/src/com/turboio/addon/AudioDownloadWire.java": "a1ab9114f132f0706eb611372085a5dc81d66a4232322e703cfa92db964137fc",
+      "rebuild/android-app/src/com/turboio/addon/AudioReadHttp.java": "0d947d89708a49d27d44743279839cf0847db377a15b7ee36d17e41a7a308d6c",
+      "rebuild/android-app/src/com/turboio/addon/AudioConnection.java": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368",
+      "rebuild/android-app/src/com/turboio/addon/AudioConfig.java": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51",
+      "rebuild/android-app/src/com/turboio/addon/AudioUploadWire.java": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c",
+      "rebuild/android-app/src/com/turboio/addon/LifelogAudioArchive.java": "9e198c951363b2419bf5a26f4f9193be5ff03afc92fcddbfaff9aa2ef80fe2ab",
+      "rebuild/android-app/src/com/turboio/addon/MaterialConnection.java": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4",
+      "rebuild/android-app/src/com/turboio/addon/MaterialWire.java": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialApi.java": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialOutbox.java": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207",
+      "rebuild/android-app/src/com/turboio/addon/MaterialTransfer.java": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735",
+      "rebuild/android-app/src/com/turboio/addon/AtomicDocument.java": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0",
+      "rebuild/android-app/src/com/turboio/addon/WireJson.java": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735",
+      "rebuild/android-app/src/com/turboio/addon/TaskWire.java": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d",
+      "rebuild/android-app/src/com/turboio/addon/TaskConnection.java": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb",
+      "rebuild/android-app/upstream/android-addon/src/com/turboio/addon/BoundedJson.java": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0",
+      "tools/android/AudioDownloadsTest.java": "b98762ce1b58c5f00abf9de8dc3950106ab013bd696acb1bc24a5d81fc465567",
+      "tools/android/test-audio-downloads.mjs": "a70e7dbcb7760b80c4351f53403c637fda6e4da20e9837dcf6e9e3e13e261ab1"
+    },
+    "read_only_token_reads_other_producer": true,
+    "independent_exact_byte_check": true,
+    "cache_metadata_contains_no_tokens": true,
+    "process_halts": [
+      88,
+      89,
+      90
+    ],
+    "android_36_bootclasspath_new_sources": 4,
+    "android_d8_min_api": 29,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": true
+  },
+  "write_identity_regression": {
+    "schema": 1,
+    "at": "2026-10-24T23:08:43.554Z",
+    "node": "v22.23.2",
+    "passed": true,
+    "unit_assertions": 70,
+    "scope": "Production Java audio connection/wire/outbox over isolated HTTP/SQLite; opaque synthetic payload bytes, not codec, official source or phone-runtime proof.",
+    "new_sources_android_36_bootclasspath_compile": 4,
+    "product_style_java_8_compile": true,
+    "android_d8_min_api": 29,
+    "part_response_process_halt_recovered": true,
+    "finalize_response_process_halt_recovered": true,
+    "partial_copy_process_halt_recovered": true,
+    "renamed_copy_process_halt_recovered": true,
+    "exact_full_byte_download": true,
+    "missing_parts_only_after_restart": true,
+    "three_day_receipt_never_renewed": true,
+    "text_only_identity_denied_before_audio_post": true,
+    "pause_after_commit_reconciled": true,
+    "bad_receipt_retained_payload": true,
+    "corrupt_payload_not_transmitted": true,
+    "owned_cleanup_recovery_preserves_source": true,
+    "canonical_body_control_escapes_agree": true,
+    "mid_request_credential_revocation_renewal": true,
+    "producer_completeness_claim_not_verified": true,
+    "explicit_bad_receipt_retry_reconciles": true,
+    "producer_raw_envelope_exact_original_bytes": true,
+    "producer_copy_and_publish_process_halt_recovery": true,
+    "automatic_session_queue_before_network_crash_recovered": true,
+    "automatic_queue_progress_without_source_discovery": true,
+    "automatic_source_cursor_and_permission_gating": true,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "product_runtime_wired": false,
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/AudioConnection.java",
+        "sha256": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioUploadWire.java",
+        "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioHttp.java",
+        "sha256": "39c211174cc77fbb236b9ca4a61ef2552cb7abffd1a3233f299c1a3b459a8447"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+        "sha256": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialConnection.java",
+        "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialWire.java",
+        "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialApi.java",
+        "sha256": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialTransfer.java",
+        "sha256": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialOutbox.java",
+        "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      },
+      {
+        "path": "src/com/turboio/addon/AtomicDocument.java",
+        "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "src/com/turboio/addon/TaskWire.java",
+        "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      },
+      {
+        "path": "src/com/turboio/addon/TaskConnection.java",
+        "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
+        "sha256": "cead33e1d1866b2212ac0b90c317a954ff240a2fb57644212d5c28a1c605028a"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+        "sha256": "3e1a7e4b7607258b565a9c637da8bf31504f37d0e4901ece8783603c61949e4b"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+        "sha256": "9e198c951363b2419bf5a26f4f9193be5ff03afc92fcddbfaff9aa2ef80fe2ab"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioManager.java",
+        "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnWire.java",
+        "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioConfig.java",
+        "sha256": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51"
+      },
+      {
+        "path": "src/com/turboio/addon/MaterialConfig.java",
+        "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioSyncSession.java",
+        "sha256": "e2aac1cf74a48edab5e7e687a3543ed75fbc781619601c2d6896c9a87405a457"
+      },
+      {
+        "path": "src/com/turboio/addon/AudioAutoSchedule.java",
+        "sha256": "488ed92f89c0dacc46a4c8f014518e0697d24163be3f1dc56f3f90395db9778f"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/AudioUploadHttpTest.java",
+        "sha256": "4f98ae86cda54328b43ae59002ac64715f4cb2e460f5d3ad350256cfee85c0e6"
+      },
+      {
+        "path": "../../tools/android/AudioUploadOutboxTest.java",
+        "sha256": "403740f6d66c8766269ed9d10b16dad134d66c7fab31375a91e28f7b39fd1a13"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioPayloadsTest.java",
+        "sha256": "4716285711dcd25072381b6457530f609fdce23875ec5688640d1d7d9ec8d301"
+      },
+      {
+        "path": "../../tools/android/AudioSyncSessionTest.java",
+        "sha256": "f30d607175b5fdb60c8b8bac5d4cb0721d9d6e9009824513d2aca0723f7e5268"
+      },
+      {
+        "path": "../../tools/android/test-audio-upload.mjs",
+        "sha256": "cc98d03be8c44e9f2ded8e87d723908381b9fa0344a42f2f38f379f1137b7af1"
+      }
+    ],
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 4
+  },
+  "android_nio_shape": {
+    "unix_nlink_supported": true,
+    "single_link_count": 1,
+    "paired_link_count": null,
+    "hardlink_creation_denied": true,
+    "synthetic_files_removed": true,
+    "app_or_user_files_accessed": false,
+    "source_sha256": "9d66482ebce25bc04490c2af49841496e18ba504ebf1f343a12bf792000f1780",
+    "dex_sha256": "f26e0fbd260fcb22450a8abbfc5be05e9d9ec7c91632b238566d4965d5c0793b",
+    "runtime": "dalvikvm -Xmx32m",
+    "prior_failures_retained": true,
+    "remote_code_removed": true,
+    "product_apk_unchanged": true,
+    "scope": "Android NIO shape on shell-owned synthetic files; not App-UID, Keystore, phone downloader or media proof.",
+    "local_probe_stage_removed": true,
+    "current_app_process_present": true,
+    "final_wakefulness": "Dozing",
+    "continuous_app_pid_not_measured": true
+  },
+  "probe_failure_history": {
+    "app_process_exit": 137,
+    "original_process_confirmed_terminal": true,
+    "app_process_scratch_absent": true,
+    "dalvikvm_exit": 1,
+    "output": "",
+    "stderr": "Exception in thread \"main\" java.nio.file.AccessDeniedException: /data/local/tmp/codex-audio-fs-data-20261024/synthetic-hardlink -> /data/local/tmp/codex-audio-fs-data-20261024/synthetic-marker\n\tat sun.nio.fs.UnixFileSystemProvider.createLink(UnixFileSystemProvider.java:496)\n\tat java.nio.file.Files.createLink(Files.java:1086)\n\tat com.turboio.tools.AudioDownloadFsProbe.main(AudioDownloadFsProbe.java:9)",
+    "source_sha256_before_hardlink_probe_fix": "4df5962b176c1ccafac639328d12da7bb56fefbee2bbf031e293b534f048d2c5",
+    "dex_sha256_before_hardlink_probe_fix": "1b25b98b2210fd924ee82f645f2870c4c301d532a5c3f4dd756d2666be935ead"
+  },
+  "progress": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-download-core-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T23:38:38.677Z",
+    "requires_answer": false,
+    "message_id": "notice-600176e73cc54294f413e3543d3ba494038f58384da6501033d744b1c1331df3",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_released": true,
+  "behavior": [
+    "Separate read-only TLS routes and audio:read identity; never infer read permission from materials or audio:write.",
+    "Strict owner/material/object receipt, per-part and complete digest, fixed expiry, ordered pagination and pinned metadata. Reader can read an authorized object from a different producer of the same owner.",
+    "Cache scoped by official account and target, no token persistence; at most 512MiB and 128 entries globally, one writer. Up to 32 parts per step.",
+    "Authoritative fsynced part cursor; verify committed prefix, truncate only bounded unconfirmed owned tail, reconcile rename-before-publication. No partial file exposed.",
+    "Fresh auth before cache use; revoke, account change or tombstone block use. Explicit derived-cache cleanup validates scope and leaves unknown entries, originals and exports untouched.",
+    "Reject symbolic and hard links, including a cache alias to a retained synthetic original. Android supports reading link count; shell policy refuses making a hard link and was not changed."
+  ],
+  "failures_retained": [
+    "Initial revoked-token fixture tried to discover server ID through the revoked token. Captured immutable server ID before revoke; product authorization checks unchanged.",
+    "Standalone app_process filesystem probe exited 137 and was confirmed terminal with no scratch tree. Root cause not established.",
+    "Restricted dalvikvm probe reached main; NIO link-count read succeeded, but shell hard-link creation was denied. Probe now records denial and validates the required read-only attribute; production refusal of links is unchanged."
+  ],
+  "unverified": [
+    "Raw IOARAW01 format, source/journal chain and codec validation, combined ZIP export and local/remote de-duplication are next work.",
+    "New reader not yet wired to normal phone UI, settings/foreground ownership or the installed dev85. Existing candidate-source intentionally remains the historical dev85 record.",
+    "No positive AudioReadHttp public TLS, App-UID cache execution, Keystore import or actual authorized raw upload/download.",
+    "No real user audio transferred. Formal permission remains text-only; A4/A5, continuous capture, authoritative vendor deletion and original/local GC remain open."
+  ]
+}

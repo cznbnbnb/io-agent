@@ -15,11 +15,13 @@ final class AudioConnection {
  String preview(){return target.preview();}
  String token(){return target.token();}String binding(){return target.binding();}
  byte[] encode(){Map<String,Object> v=WireJson.map(WireJson.read(target.encode()));v.put("format",FORMAT);return WireJson.bytes(v);}
- void identity(byte[] raw,long now)throws IOException{
+ void identity(byte[] raw,long now)throws IOException{identity(raw,now,"audio:write");}
+ void readIdentity(byte[] raw,long now)throws IOException{identity(raw,now,"audio:read");}
+ private void identity(byte[] raw,long now,String scope)throws IOException{
   try{Map<String,Object> v=WireJson.map(WireJson.read(raw,16384,1000));
    AudioUploadWire.check(expiresAt>now,"AUDIO_CREDENTIAL_EXPIRED");
    AudioUploadWire.check("1.0".equals(v.get("schema_version"))&&owner.equals(v.get("owner_id"))&&producer.equals(v.get("producer_id"))&&server.equals(v.get("server_id"))&&MaterialWire.time(v.get("expires_at"))==expiresAt,"AUDIO_IDENTITY_MISMATCH");
-   AudioUploadWire.check(WireJson.list(v.get("scopes")).contains("audio:write"),"AUDIO_SCOPE_REQUIRED");
+   AudioUploadWire.check(WireJson.list(v.get("scopes")).contains(scope),"AUDIO_SCOPE_REQUIRED");
    AudioUploadWire.check(v.get("capabilities") instanceof List&&WireJson.list(v.get("capabilities")).contains("audio_archive_v1"),"AUDIO_CAPABILITY_UNAVAILABLE");
   }catch(IllegalArgumentException invalid){throw new IOException("AUDIO_IDENTITY_INVALID");}
  }
