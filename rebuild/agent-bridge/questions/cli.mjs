@@ -1,6 +1,6 @@
 // ask/wait/status for the caller that is already executing this command.
 // The host registers routing once. JSON input cannot select routes or executables.
-import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {AgentBridge} from '../bridge.mjs';import {BridgeClient,BridgeError,readPrivateJson} from '../client.mjs';import {AdapterHost} from '../adapter-host.mjs';
 import {isDeepStrictEqual} from 'node:util';
 const here=path.dirname(fileURLToPath(import.meta.url)),workspace=path.resolve(here,'../../..');
@@ -29,7 +29,7 @@ async function withBridge(directory,callback,deadline=Date.now()+30000){const {c
 // Optional conversation topic (2026-10-23, user): the wearer cannot see the asking chat, so the task
 // command carries a short one-line topic, shown in the phone task list and the prompter header.
 const topicValid=t=>typeof t==='string'&&t.length>=1&&t.length<=40&&t.trim()===t&&!/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(t);
-async function register(file){const spec=readPrivateJson(file),base=location(),keys=['bridge','operation_key','project_id','python',...('topic' in spec?['topic']:[])];if(Object.keys(spec).sort().join()!==keys.sort().join()||('topic' in spec&&!topicValid(spec.topic))||!path.isAbsolute(spec.python)||!fs.existsSync(spec.python)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.project_id)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.operation_key))fail('CALLER_ENROLLMENT_INVALID');
+async function register(file){const spec=readPrivateJson(file),base=location(),keys=['bridge','operation_key','project_id','python',...('topic' in spec?['topic']:[]),...('task_hours' in spec?['task_hours']:[])];if(Object.keys(spec).sort().join()!==keys.sort().join()||('topic' in spec&&!topicValid(spec.topic))||('task_hours' in spec&&!(Number.isInteger(spec.task_hours)&&spec.task_hours>=1&&spec.task_hours<=12))||!path.isAbsolute(spec.python)||!fs.existsSync(spec.python)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.project_id)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.operation_key))fail('CALLER_ENROLLMENT_INVALID');
  const route={computer_id:spec.bridge.computer_id,agent_id:spec.bridge.agent_id,project_id:spec.project_id,session_id:session};for(const v of Object.values(route))if(typeof v!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(v))fail('CALLER_ENROLLMENT_INVALID');
  const taskId=runtime+'-task-'+hash(JSON.stringify([spec.bridge.owner_id,spec.bridge.server_id,route,spec.operation_key]));
  const profile=hash(JSON.stringify([spec.bridge.owner_id,spec.bridge.server_id,spec.bridge.producer_id,route,spec.operation_key])),directory=path.join(base,'registrations',profile);
@@ -37,7 +37,7 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
  if(fs.existsSync(path.join(base,'active.json'))&&activeDirectory()!==directory){const previous=activeDirectory(),{config}=binding(previous);const probe=python(config.python,['-c',"import os,sys,json;sys.path.insert(0,sys.argv[1]);from context import load_context;c,j=load_context(os.environ['IO_AGENT_CONTEXT'],readonly=True);print(json.dumps({'pending':j.has_unsettled_questions(c['operation_id'])}));j.close()",here],{env:{...process.env,IO_AGENT_CONTEXT:path.join(previous,'context.json')}});if(probe.pending)fail('CALLER_PENDING_REBIND_DENIED');}
  if(!fs.existsSync(directory)){fs.mkdirSync(directory);
   const context={schema:1,runtime,caller:{session_id:session,cwd:workspace},journal:path.join(directory,'journal.sqlite'),binding:Object.fromEntries(['server_id','owner_id','producer_id','computer_id','agent_id'].map(k=>[k,spec.bridge[k]])),route,task_id:taskId,operation_id:'op-'+hash(JSON.stringify(taskId)),...('topic' in spec?{command:spec.topic}:{})};
-  const created=new Date(),event={schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),kind:'task',producer_id:spec.bridge.producer_id,created_at:created.toISOString(),expires_at:new Date(created.getTime()+3600000).toISOString(),body:{task_id:taskId,revision:1,route,command:spec.topic??taskCommand(runtime),state:'queued',allow_create_session:false}};
+  const created=new Date(),event={schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),kind:'task',producer_id:spec.bridge.producer_id,created_at:created.toISOString(),expires_at:new Date(created.getTime()+(spec.task_hours??1)*3600000).toISOString(),body:{task_id:taskId,revision:1,route,command:spec.topic??taskCommand(runtime),state:'queued',allow_create_session:false}};
   writeNew(path.join(directory,'host.json'),spec);writeNew(path.join(directory,'context.json'),context);writeNew(path.join(directory,'registration.json'),{event});
  }
  const {config,context}=binding(directory);if(JSON.stringify(config)!==JSON.stringify(spec)||context.task_id!==taskId)fail('CALLER_REGISTRATION_CONFLICT');
@@ -47,6 +47,29 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
  await withBridge(directory,async bridge=>{await bridge.pollOnce();await bridge.pollOnce();});
  const active=path.join(base,'active.json');if(!fs.existsSync(active)||readPrivateJson(active).profile!==profile){const partial=path.join(base,'active.partial');writeNew(partial,{schema:1,profile});fs.renameSync(partial,active);}
  return {registered:true,caller_verified:true,context_sha256:hash(JSON.stringify(context.caller)),task_id:taskId,runtime,creates_agent_session:false,...(runtime==='codex'?{creates_codex_session:false}:{})};
+}
+// One-time computer enrollment (2026-10-24, user): the computer holds one renewing device credential
+// (tools/collab/enroll-computer.mjs writes it), the phone pairs once, and each agent session only runs
+// `join` to put its own task on the phone. No connection file goes to the phone any more.
+export const deviceFile=(env=process.env)=>env.IO_AGENT_DEVICE_FILE||path.join(os.homedir(),'.turboio','agent-device.json');
+const JOIN_TASK_HOURS=12;
+async function join(value){
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python))))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
+ const file=deviceFile();let device;try{device=readPrivateJson(file,4096);}catch{fail('DEVICE_NOT_ENROLLED');}
+ if(device.role!=='agent'||typeof device.device_id!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(device.computer_id??''))fail('DEVICE_NOT_ENROLLED');
+ const python=value.python??process.env.IO_AGENT_PYTHON??path.join(workspace,'.runtime/hermes-agent/.venv/bin/python3'),base=location(),state=path.join(base,'join.json'),topic=value.topic??null;
+ let previous=null;try{previous=readPrivateJson(state);}catch{}
+ const reuse=previous&&previous.device_id===device.device_id&&previous.topic===topic&&Date.parse(previous.task_expires_at)>Date.now()+600000;
+ const key=reuse?previous.operation_key:'join-'+Date.now().toString(36);
+ const spec={bridge:{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
+  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
+  operation_key:key,python,task_hours:JOIN_TASK_HOURS,...(topic===null?{}:{topic})};
+ const joins=path.join(path.dirname(file),'joins');fs.mkdirSync(joins,{recursive:true,mode:0o700});
+ const specFile=path.join(joins,hash(JSON.stringify([base,key])).slice(0,32)+'.json');
+ if(!fs.existsSync(specFile))writeNew(specFile,spec);else if(!isDeepStrictEqual(readPrivateJson(specFile),spec))fail('CALLER_REGISTRATION_CONFLICT');
+ const registered=await register(specFile),expires=reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
+ if(!reuse){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
+ return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false};
 }
 // Glasses progress contract (2026-10-23, user: any agent handed this CLI must report every next step on the
 // glasses, and the agent itself can switch that off). `checkpoint` = what was just done + what comes next; it
@@ -89,8 +112,9 @@ async function configure(directory,value){
 }
 async function input(){let bytes=0,parts=[];for await(const part of process.stdin){bytes+=part.length;if(bytes>32768)fail('RUNTIME_CLI_FRAME_TOO_LARGE');parts.push(part);}try{return JSON.parse(Buffer.concat(parts).toString('utf8'));}catch{fail('RUNTIME_TOOL_ARGUMENT_INVALID');}}
 export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
-async function dispatch(action,args){if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
- if(action==='help'&&!args.length)return{commands:{ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+async function dispatch(action,args){if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
+ if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
+ if(action==='help'&&!args.length)return{commands:{join:'topic?, python?  (once per session; needs this computer enrolled)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
  if(action==='checkpoint')return checkpoint(directory,value);
  if(action==='config')return configure(directory,value);

@@ -30,3 +30,7 @@ CLI的离线ask返回错误时，`locally_stored=true`和`request_id`表明原�
 ## 每一步都向眼镜报告进度（用户2026-10-23要求）
 
 每完成一步或改变计划，调用 `cli.mjs checkpoint`，参数 `checkpoint_key / done / next`，可选 `next_checkin_minutes`（5–120，默认20）：`done` 写刚完成什么，`next` 写推荐的下一步，内容推送到眼镜。同一键重试必须保持原参数。每条命令回复都带 `progress`，`checkpoint_due=true` 时结束本轮前先报告。超过承诺的报到时间没有报告，服务器会自己在眼镜上提醒用户。用户要求不推送时调用 `config {"glasses_progress":false}`，恢复用 `true`。完整合同见 [AGENT-CONTRACT.md](../../questions/AGENT-CONTRACT.md)，`cli.mjs help` 打印同样规则。
+
+## 会话开始先 join（2026-10-24 起，一次配对）
+
+这台电脑已登记、手机已配对时，会话开始调用一次 `cli.mjs join`，参数 `{"topic":"一句话主题"}`，不要再生成或导入手机连接文件。返回 `DEVICE_NOT_ENROLLED` 时告诉用户需要先运行 `tools/collab/enroll-computer.mjs` 登记电脑。设备凭据自动续期，无需处理过期。

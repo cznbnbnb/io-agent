@@ -11,6 +11,12 @@ const ADMIN_ASSETS=new Map([
 ].map(([route,[file,type]])=>[route,{data:fs.readFileSync(new URL(file,import.meta.url)),type}]));
 
 function decoded(value){try{return decodeURIComponent(value);}catch{reject(400,'INVALID_QUERY');}}
+async function smallJson(req,observation,limit=8192){
+  if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type']??'')||req.headers['content-encoding'])reject(415,'UNSUPPORTED_MEDIA_TYPE');
+  const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;observation.request_bytes=size;if(size>limit)reject(413,'PAYLOAD_TOO_LARGE');chunks.push(chunk);}
+  let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}catch{reject(400,'INVALID_UNICODE');}
+  return parseStrict(text);
+}
 
 // P40 queue intake paths and their object kinds.
 const QUEUE_PATHS=new Map([['/v1/tasks','task'],['/v1/requests','request'],['/v1/answers','answer'],['/v1/messages','message'],['/v1/receipts','receipt']]);
@@ -36,13 +42,18 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         res.end(asset.data);return;
       }
       if(req.method==='GET'&&url.pathname==='/health'&&!url.search){send(200,{service:'turboio-materials',database_version:1});return;}
+      // One-time pairing code exchange: the only unauthenticated write (devices.mjs rate-limits it).
+      if(req.method==='POST'&&url.pathname==='/v1/pair'){
+        if(url.search||req.headers.authorization)reject(400,'INVALID_QUERY');observation.route='pair';
+        send(200,store.devices.pair(await smallJson(req,observation,1024)));return;
+      }
       // No credentials in query strings, duplicate Authorization or ambiguous queries.
       const headers=req.rawHeaders.filter((_,i)=>i%2===0).map(h=>h.toLowerCase());
       if(headers.filter(h=>h==='authorization').length!==1)reject(401,'UNAUTHENTICATED');
       const bearer=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.authorization??'');if(!bearer)reject(401,'UNAUTHENTICATED');
       const token=bearer[1],query={};
       observation.principal=store.auth(token);
-      const route=/^\/v1\/(identity|materials|material-events|changes|inbox|tasks|requests|answers|messages|receipts|events|watches)(?:\/|$)/.exec(url.pathname)?.[1];
+      const route=/^\/v1\/(identity|materials|material-events|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices)(?:\/|$)/.exec(url.pathname)?.[1];
       observation.route=route==='material-events'?'materials':route??'other';
       for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_QUERY');query[key]=value;}
       if(req.method==='GET'&&url.pathname==='/v1/operations/summary'){
@@ -56,6 +67,11 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       if(req.method==='GET'&&url.pathname==='/v1/identity'){
         if(url.search)reject(400,'INVALID_QUERY');send(200,store.identity(token));return;
       }
+      if(req.method==='POST'&&url.pathname==='/v1/pairings'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.createPairing(token,await smallJson(req,observation)));return;}
+      if(req.method==='POST'&&url.pathname==='/v1/credentials/refresh'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.refresh(token));return;}
+      if(req.method==='GET'&&url.pathname==='/v1/devices'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.list(token));return;}
+      const device=/^\/v1\/devices\/([^/]+)$/.exec(url.pathname);
+      if(device&&req.method==='DELETE'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.revokeBy(token,decoded(device[1])));return;}
       const watch=/^\/v1\/watches\/([^/]+)$/.exec(url.pathname);
       if(watch&&req.method==='GET'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.watchGet(token,decoded(watch[1])));return;}
       if(watch&&req.method==='PUT'){

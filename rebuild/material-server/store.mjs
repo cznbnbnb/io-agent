@@ -4,9 +4,10 @@ import path from 'node:path';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
+import {DeviceRegistry} from './devices.mjs';
 
 const SCOPES=new Set(['materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
-  'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read']);
+  'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
 const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
 const timestamp=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(s)&&Number.isFinite(Date.parse(s));
@@ -83,6 +84,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
+      this.devices=new DeviceRegistry(this);
     }catch(e){this.db.close();throw e;}
   }
   close(){this.db.close();}

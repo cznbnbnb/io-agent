@@ -48,10 +48,24 @@ export class BridgeClient{
       !Number.isFinite(Date.parse(credential.expires_at))||Date.parse(credential.expires_at)<=this.clock())fail('CREDENTIAL_EXPIRED_OR_INVALID',{permanent:true});
     return credential.token;
   }
+  // Paired device credentials (devices.mjs, 2026-10-24) renew in the background once past
+  // refresh_after: the file is replaced atomically, and a 409 means another process sharing the
+  // same file renewed first, so the file is read again. Renewal failure keeps a still-valid token.
+  async #renewed(){
+    const file=this.config.credential_file,credential=readPrivateJson(file,4096),token=this.token();
+    if(typeof credential.device_id!=='string'||!stamp(credential.refresh_after)||Date.parse(credential.refresh_after)>this.clock())return token;
+    try{
+      const {body}=await this.#send('POST','credentials/refresh','{}',token);
+      if(body?.device_id!==credential.device_id||body.producer_id!==this.config.producer_id||!/^[A-Za-z0-9_-]{43}$/.test(body.token??''))fail('INVALID_RESPONSE',{permanent:true});
+      const temporary=file+'.'+process.pid+'.renew';
+      fs.writeFileSync(temporary,JSON.stringify({...credential,...body})+'\n',{mode:0o600,flag:'wx'});fs.renameSync(temporary,file);
+      return body.token;
+    }catch(e){if(e?.status===409)return this.token();if(Date.parse(credential.expires_at)>this.clock())return token;throw e;}
+  }
   async #send(method,path,payload,tokenSnapshot=null){
-    const token=tokenSnapshot??this.token(),url=new URL(path,this.base);
+    const token=tokenSnapshot??await this.#renewed(),url=new URL(path,this.base);
     if(url.origin!==this.base.origin||!url.pathname.startsWith(this.base.pathname)||url.href.length>8192)fail('INVALID_QUERY',{permanent:true});
-    if(path!=='identity'&&token!==this.#boundToken){
+    if(path!=='identity'&&path!=='credentials/refresh'&&token!==this.#boundToken){
       const {body:identity}=await this.#send('GET','identity',undefined,token);
       if(identity?.schema_version!=='1.0'||['owner_id','producer_id','server_id'].some(k=>identity[k]!==this.config[k]))
         fail('IDENTITY_MISMATCH',{permanent:true});
@@ -109,6 +123,13 @@ export class BridgeClient{
   async object(kind,id){
     if(!READ_PATHS[kind]||typeof id!=='string'||!id||['.','..'].includes(id))fail('INVALID_QUERY',{permanent:true});
     return this.#object((await this.#send('GET',`${READ_PATHS[kind]}/${encodeURIComponent(id)}`)).body,kind,id);
+  }
+  /** Paired devices (computer credentials only): one-time phone code, list, unpair. */
+  async createPairing(label){return (await this.#send('POST','pairings',JSON.stringify({role:'phone',label}))).body;}
+  async devices(){return (await this.#send('GET','devices')).body;}
+  async unpair(deviceId){
+    if(typeof deviceId!=='string'||!/^[0-9a-f-]{36}$/.test(deviceId))fail('INVALID_QUERY',{permanent:true});
+    return (await this.#send('DELETE',`devices/${deviceId}`)).body;
   }
   /** Check-in watch of one task: GET reads it, PUT {enabled,next_checkin_at,note} replaces it (server watchdog). */
   async watch(taskId,input){

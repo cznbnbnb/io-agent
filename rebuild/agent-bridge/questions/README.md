@@ -59,3 +59,12 @@ JSON参数走stdin，UTF-8 JSON结果走stdout。配套说明已安装为`turboi
 ## 每一步的进度报告与服务器看门狗（2026-10-23）
 
 `checkpoint`（`checkpoint_key / done / next / next_checkin_minutes?`）把"已完成 + 下一步"作为进度通知推到眼镜，并在服务器 `PUT /v1/watches/<task_id>` 登记下次报到时间。服务器每分钟检查一次：已开启、超时 2 分钟以上、且任务仍有效的报到，由服务器自己生成一条进度通知（`producer_id=io-server-watchdog`，消息格式不变，手机不用改），每次报到只提醒一次。`config`（`glasses_progress / checkin_minutes`）由 Agent 端开关，关闭时同步关闭服务器报到。`help` 打印合同；`ask/wait/status/notify` 的回复带 `progress` 义务。合同全文：[AGENT-CONTRACT.md](AGENT-CONTRACT.md)。
+
+## 一次配对，不再导入连接文件（2026-10-24）
+
+- **电脑登记一次**：`node tools/collab/enroll-computer.mjs --computer-id io-mac-computer --label "Mac mini"` 通过运维 SSH 在服务器上调用 `cli.mjs enroll`，把这台电脑登记为用户账号（`turboio-user`）下的一台设备，凭据写进 `~/.turboio/agent-device.json`（0600，可用 `IO_AGENT_DEVICE_FILE` 改位置），不打印。
+- **手机配对一次**：`node rebuild/agent-bridge/device.mjs pair-phone "我的手机"` 生成一次性配对码（10 分钟、只能用一次），在手机上输入即可；服务器 `POST /v1/pair` 用码换手机凭据，错误码按 10 分钟窗口全局限 30 次。
+- **每个会话**：`echo '{"topic":"…"}' | node rebuild/agent-bridge/questions/cli.mjs join` 用设备凭据登记本会话任务（12 小时），手机侧那一条配对连接就能看到；同话题重复 `join` 复用原任务。
+- **后台续期**：设备凭据 24 小时，过了 `refresh_after`（一半时间）后 `BridgeClient` 在下次请求前调用 `POST /v1/credentials/refresh` 原地换新；旧凭据保留 5 分钟宽限，同一凭据只能续一次（并发时另一进程重读文件）。
+- **管理**：`device.mjs devices` 列出、`device.mjs unpair <device_id>` 吊销（吊销设备即作废它的所有凭据）；手机可自己解除配对。服务器管理员也可 `cli.mjs devices / unpair`。
+- 旧的 `register --config` + 手机导入连接文件只留给自动化测试。
