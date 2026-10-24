@@ -29,7 +29,7 @@
   "r3_or_r4_started": false,
   "current_caller": "caller603-20261023-codex; original live Codex conversation; short-lived and non-default",
   "remaining": [
-    "Recording interrupted by process death still requires a separately guarded device test.",
+    "Claude already verified basic recording process-death recovery on dev50. Only dev59 newly changed asynchronous completion ordering lacks targeted device evidence; do not reset the baseline acceptance.",
     "Quiet prompter/reconnect, phone competition, Bluetooth disconnect, full phone reboot and endurance remain open.",
     "Historical overnight stock foreground-location-service crashes need separate diagnosis."
   ],
@@ -84,5 +84,16 @@
     "head_preferences_restored": true,
     "server_answer_consumed": true,
     "human_response": "restart-ok"
-  }
+  },
+  "baseline_inherited": {
+    "claude_commit": "00e112c",
+    "source": "phone-r2-recovery-dev51-2026-10-23.json",
+    "prompter_process_restart": "passed on dev46",
+    "recording_process_restart": "passed on dev50",
+    "offline_submit_reconnect_once": "passed on dev51",
+    "already_in_codex_history": true,
+    "dev59_joint_tests": "regression of existing behavior; not first feature completion",
+    "dev59_specific_completion_order_device_verified": false
+  },
+  "interrupted_recording_device_verified_scope": "dev59 changed completion ordering only; baseline dev50 remains verified"
 }
