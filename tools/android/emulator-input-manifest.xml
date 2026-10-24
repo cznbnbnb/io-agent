@@ -30,5 +30,6 @@
  <instrumentation android:name="com.turboio.androidtests.OfficialMetadataProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.LifelogAudioMetadataProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.AlwaysOnAudioParserProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LifelogAudioArchiveProbe" android:targetPackage="com.rayneo.venus.pub" />
   <instrumentation android:name="com.turboio.androidtests.MaterialUpgradeProbe" android:targetPackage="com.rayneo.venus.pub" android:functionalTest="true" android:handleProfiling="false" />
 </manifest>

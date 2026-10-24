@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T12:46:32.156943+00:00",
+  "status": "durable_journal_verified_not_audio_delivery",
+  "scope": "Synthetic input only; real Mac/Android filesystem, independent JVM crash/recovery; no collector, actual audio, playback or server upload",
+  "jvm": {
+    "schema": 1,
+    "at": "2026-10-24T12:48:15.254Z",
+    "passed": true,
+    "checks": 93,
+    "real_process_halt_after_raw_fsync_exit": 17,
+    "separate_jvm_recovery_verified": true,
+    "scope": "Synthetic bytes and real filesystem/child JVM; no device, codec, capture, source linkage or server verification",
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+        "sha256": "aaa61c69149ddda081b5ad28bcabcae40b4e6883141e4db519411999c3ba82b9"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/AtomicDocument.java",
+        "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioArchiveTest.java",
+        "sha256": "3263aa1270dcd6d6f8c364183ce78101b1f47d5d24f73d499e46f525065a2026"
+      },
+      {
+        "path": "../../tools/android/test-lifelog-audio-archive.mjs",
+        "sha256": "a525bb0aa2fccaf6bcbb7da9e949d1817a53643110088cd14bd34d68071dd1a4"
+      }
+    ],
+    "temporary_fixture_removed": true
+  },
+  "native_failure": {
+    "error": "NoSuchFileException",
+    "passed": false,
+    "probe_id": "a6526161112b409ea63d2e13ff05a561",
+    "server_or_source_association_verified": false,
+    "synthetic_fixture_removed": false,
+    "synthetic_only": true,
+    "target_audio_read_or_capture": false,
+    "at": "2026-10-24T12:42:17.050869+00:00"
+  },
+  "native_failure_resolution": "Driver package cache path creation failed in target UID; target process isolated cache fixture succeeded and was removed. Earlier failure is not counted as archive checks.",
+  "driver_sha256": "5f62e9e7c26760b9654f2a767ef9ceab48f5043f9f1eb5765faa97236a9f5bb9",
+  "probe_source_sha256": "db557a12003df3fe56c5af81c3f234862945e4e97eb25462b75c1e22823e2beb",
+  "device": {
+    "product_unchanged": "dev76 /10498",
+    "driver_uninstalled": true,
+    "app_pid": "8492"
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-durable-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T13:16:31.471Z",
+    "requires_answer": false,
+    "message_id": "notice-40f377a622b0ef3a28728d58f5bd5565dfd1deb12ca668f145e31c9f2b49881e",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "not_verified": [
+    "Physical power loss on phone",
+    "Actual audio codec/channel/container and framing",
+    "Collector/manager total-capacity and segment lifecycle",
+    "Cross-batch continuity and physical recording completion",
+    "Account/taskId to conversation source association",
+    "72-hour remote storage/expiry and phone export",
+    "Authoritative deletion"
+  ],
+  "native_initial_pass": {
+    "checks": 89,
+    "passed": true,
+    "probe_id": "78feef004551404188655faaa4d512d0",
+    "server_or_source_association_verified": false,
+    "synthetic_fixture_removed": true,
+    "synthetic_only": true,
+    "target_audio_read_or_capture": false,
+    "at": "2026-10-24T12:44:01.133430+00:00"
+  },
+  "native_final": {
+    "checks": 93,
+    "passed": true,
+    "probe_id": "ecd8d4e613aa49fc8afa99be54f96e65",
+    "server_or_source_association_verified": false,
+    "synthetic_fixture_removed": true,
+    "synthetic_only": true,
+    "target_audio_read_or_capture": false,
+    "at": "2026-10-24T12:49:00.960313+00:00"
+  },
+  "closed_at": "2026-10-24T12:49:59.385622+00:00",
+  "device_lock_released": true
+}
