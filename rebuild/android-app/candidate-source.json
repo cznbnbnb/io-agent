@@ -726,7 +726,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "9136b6a64c3a043b32fed8cf73fb5b2081c080d80377a6947ec36f683c055a95"
+      "sha256": "2874993725ed02a37adfa1a8979a772fe9ca03326da9428e471701de5cc51d56"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
@@ -770,11 +770,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "1474ae889b626f24b8c919a1c32d3d2728fd3aa7d77a871f4cfe7c819739501a"
+      "sha256": "3b2dd3d5ddccfbc0530f38acaa725294af82edd675312b49915d7368a0e5fad4"
     }
   ],
-  "product_sha256": "44d9d033801387530f039a8e217be46f8c28e34633381da972460c2a84b3330e",
-  "addon_sha256": "fa0d2acb234d8a8731768f2cfd5f688d60ba8c036b8a62ab98c69f362a07bc47",
+  "product_sha256": "f45a9054829767d4dbdb277e61f1989d135068ec98d8180b5dbf48ece715429b",
+  "addon_sha256": "2838490d973532745e18fc03a9bcc94d564982864008976fe9e5f3c3c9302f0e",
   "host_dex_sha256": "d701e0d0bd2ce0aedbe5461f93c8a210afe6eea41c1b40649ee9c18bb06e60c5",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

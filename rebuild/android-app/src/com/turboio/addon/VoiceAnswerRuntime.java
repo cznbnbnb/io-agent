@@ -37,7 +37,7 @@ final class VoiceAnswerRuntime {
  private static final class Attempt {
   final String id;final VoiceAnswerJournal journal;final VoiceAnswerSession draft;
   volatile String binding="",request="",peer="",token="",note="",traced="";volatile long generation,captureOperation;
-  volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete;final AtomicBoolean arming=new AtomicBoolean();
+  volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
   volatile VoiceAnswerSession.StopProbe probe;volatile long recoveryFence;volatile boolean recovering;
@@ -138,7 +138,11 @@ final class VoiceAnswerRuntime {
    // Timing trace for the dictation-to-confirm delay (2026-10-23); states only, never the transcript.
    String trace="phase="+p+" note="+n+" save="+canSave+" clean="+isClean+" needs="+needs+" manifest="+a.manifestComplete+" ready="+(latest!=null&&latest.answerReady)+" released="+(latest!=null&&latest.released);if(!trace.equals(a.traced)){a.traced=trace;android.util.Log.i("TurboIOVoice","voice "+trace);}
    // The wearer sees the glasses recording view while capture runs; ordinary notifications wait (TaskAttention).
-   if(needs)TaskAttention.hold("voice",VoiceAnswerSession.CAPTURE_SECONDS*1000L+20000);else if(!"PREPARED".equals(phase))TaskAttention.release("voice");
+   // 2026-10-24 (device): releasing at REVIEW let a queued notice take the lens before the confirm card was
+   // offered. A saveable review keeps the lens once for the confirm offer (the card then holds "card").
+   if(needs)TaskAttention.hold("voice",VoiceAnswerSession.CAPTURE_SECONDS*1000L+20000);
+   else if("REVIEW".equals(phase)){if(canSave&&!a.reviewHeld){a.reviewHeld=true;TaskAttention.hold("voice",20000);}}
+   else if(!"PREPARED".equals(phase))TaskAttention.release("voice");
    if("PREPARED".equals(phase)&&!a.starting){
     publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,false,canSave,need,isClean));
     main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);if(!ready)android.util.Log.i("TurboIOVoice","handoff blocked attended="+attended()+" login="+Host107Login.loggedIn()+" card="+AgentCardRuntime.handoffBlockers(a.binding,a.request));io.execute(()->{boolean verified=readiness(link.peer);android.util.Log.i("TurboIOVoice","prepared check verified="+verified+" ready="+ready+" blocked="+blocked+" clean="+isClean+" owns="+owns(a)+" starting="+a.starting+" action="+action);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
