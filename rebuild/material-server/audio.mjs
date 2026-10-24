@@ -3,9 +3,10 @@ import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {canonical,sha,reject} from './json.mjs';
+import {AUDIO_DB_APP_ID,pruneExpiredAudio} from './audio-expiry.mjs';
 
 export const AUDIO_PART_BYTES=131072,AUDIO_MAX_BYTES=536870912,AUDIO_RETENTION_MS=72*3600000;
-const UPLOAD_MS=24*3600000,APP_ID=0x694f4175,HASH=/^[a-f0-9]{64}$/;
+const UPLOAD_MS=24*3600000,APP_ID=AUDIO_DB_APP_ID,HASH=/^[a-f0-9]{64}$/;
 const iso=n=>new Date(n).toISOString();
 const exact=(o,keys)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).sort().join()===keys.toSorted().join();
 const time=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(s)&&Number.isFinite(Date.parse(s));
@@ -140,9 +141,8 @@ export class AudioArchive {
     return {object_id:id,index,bytes:row.bytes,sha256:row.hash,part_sha256:block.hash,expires_at:iso(row.expires),data:Buffer.from(block.data).toString('base64')};
   });}
   pruneLocked(){
-    const now=this.store.clock();let objects=0,parts=0;
+    const now=this.store.clock();let {objects,parts}=pruneExpiredAudio(this.db,now);
     const expire=(row,state)=>{parts+=this.db.prepare('DELETE FROM audio_parts WHERE object_id=?').run(row.object_id).changes;this.db.prepare('UPDATE audio_objects SET state=? WHERE object_id=?').run(state,row.object_id);objects++;};
-    for(const row of this.db.prepare("SELECT object_id,state FROM audio_objects WHERE (state='stored' AND expires<=?) OR (state='uploading' AND upload_expires<=?)").all(now,now))expire(row,row.state==='stored'?'expired':'abandoned');
     for(const row of this.db.prepare("SELECT object_id,owner,material_id FROM audio_objects WHERE state IN ('uploading','stored')").all()){
       const head=this.store.db.prepare('SELECT deleted FROM materials WHERE owner=? AND id=?').get(row.owner,row.material_id);if(head?.deleted)expire(row,'withdrawn'); // Absence is not an authoritative deletion.
     }
