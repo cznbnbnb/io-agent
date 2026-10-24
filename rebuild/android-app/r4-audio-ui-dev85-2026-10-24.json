@@ -1,0 +1,315 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T22:43:06.375756+00:00",
+  "r3_percent": 100,
+  "r4_estimate_percent": 85,
+  "scope": "Installed dev85 foreground/account protection for audio settings; separate production audio service remains active, user audio remains unconfigured.",
+  "candidate": {
+    "version": "0.5.3-dev85",
+    "version_code": 10507,
+    "sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+    "bytes": 429801753,
+    "installed": true,
+    "source_files": 223,
+    "source_hashes_verified": true,
+    "delta": {
+      "baseline_sha256": "a4d690a193c807b347f9e59c25c6ae85e5d033835b0f8eb363da96d33b7f7f88",
+      "candidate_sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+      "apk_bytes": 429801753,
+      "delta_bytes": 1518917,
+      "commands": 8089,
+      "delta_sha256": "0979b690cf1f2469d5457dcea70c9a89b7eb050c5929735782b27cdc5708470b",
+      "reconstruction_hash_verified": true
+    },
+    "remote_delta": {
+      "baseline_sha256": "a4d690a193c807b347f9e59c25c6ae85e5d033835b0f8eb363da96d33b7f7f88",
+      "target_sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+      "delta_bytes": 1518917,
+      "remote_reconstruction_verified": true,
+      "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+      "verified_resume_offset": 0,
+      "chunks": [
+        {
+          "bytes": 262144,
+          "through": 262144,
+          "seconds": 6.785
+        },
+        {
+          "bytes": 262144,
+          "through": 524288,
+          "seconds": 4.899
+        },
+        {
+          "bytes": 262144,
+          "through": 786432,
+          "seconds": 5.11
+        },
+        {
+          "bytes": 262144,
+          "through": 1048576,
+          "seconds": 9.35
+        },
+        {
+          "bytes": 262144,
+          "through": 1310720,
+          "seconds": 4.323
+        },
+        {
+          "bytes": 208197,
+          "through": 1518917,
+          "seconds": 10.635
+        }
+      ],
+      "resume_seconds": 48.526,
+      "earlier_attempts": []
+    },
+    "audit": {
+      "schema": 1,
+      "host_dex_integrity": "passed",
+      "host_classes_retained": 10944,
+      "original_members_retained": 97781,
+      "explicit_wrappers": 9,
+      "runtime_tested": false
+    },
+    "stable_rollback": "dev76 /10498"
+  },
+  "behavior": [
+    "On stop clear visible connection controls and candidate; ignore old callbacks and cancel pending operations.",
+    "On resume or picker return revalidate the official account before reopening controls or reading a pending document URI.",
+    "File picker remains usable whether its result arrives before or after activity resume; account change discards pending URI.",
+    "Configuration save carries the UI-verified account; manual backup carries the viewed connection fingerprint.",
+    "Explicit enable resets unchecked on return or failed save, and failed save can reload and retry."
+  ],
+  "tests": {
+    "actual_workspace_with_synthetic_android_io": {
+      "passed": true,
+      "checks": 31,
+      "scope": "Real AudioWorkspace callbacks and controls; substituted Android widgets/lifecycle and runtime IO. No physical picker, Keystore or network proof.",
+      "sources": {
+        "rebuild/android-app/src/com/turboio/addon/AudioWorkspace.java": "db224507acd920bb8374f2fd5d9ce24d46e0b7e07d0b45da81d4187ec7a0e6e2",
+        "tools/android/AudioWorkspaceLifecycleTest.java": "c7e43a183ef126f0d39e1574bd71002108c25e69a60709462278caf27caf8a33"
+      },
+      "temporary_files_removed": true
+    },
+    "actual_runtime_with_synthetic_android_settings_and_http": {
+      "schema": 1,
+      "at": "2026-10-24T22:35:31.295Z",
+      "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
+      "device": false,
+      "network": false,
+      "real_queue_or_server_tested": false,
+      "passed": true,
+      "checks": 431,
+      "sources": [
+        {
+          "path": "src/com/turboio/addon/MaterialRuntime.java",
+          "sha256": "138425ddc215442bf985348d38a2820bef1ac048237db24089a0b00a87e2ff8a"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
+          "sha256": "536414c7c61531ba892b93b9dacea3b56b7b508d003a50b526f049da649358ae"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialCatalog.java",
+          "sha256": "7a5142492437dcc328b8eb119232cfc81b45ac0e7ecda0845c7854e72ce22b78"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
+          "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialOutbox.java",
+          "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+        },
+        {
+          "path": "src/com/turboio/addon/AtomicDocument.java",
+          "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialConfig.java",
+          "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialStorage.java",
+          "sha256": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialSettingsState.java",
+          "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialConnection.java",
+          "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialAccountBinding.java",
+          "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogMonthDiscovery.java",
+          "sha256": "c8d8430989e467213d8bb105cf1a8f6387cf134444ab7c8cd18f9033ccf22546"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogCalendar.java",
+          "sha256": "3b365adb2473d4820eb3adf408f47cdbfe783fe5dbd8f44a7c67792d6e9af032"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogCalendarRequest.java",
+          "sha256": "8209e9395ea52630dd3b0a8d853c380a4ca998a08ffdc899dec6939f30a667d0"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
+          "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
+          "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
+          "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
+          "sha256": "9726da370b53b054d5914d924c6d8194405278d028781a04d14f978399421476"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogJson.java",
+          "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
+        },
+        {
+          "path": "src/com/turboio/addon/WireJson.java",
+          "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+        },
+        {
+          "path": "src/com/turboio/addon/TaskWire.java",
+          "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+        },
+        {
+          "path": "src/com/turboio/addon/TaskConnection.java",
+          "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialWire.java",
+          "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioConfig.java",
+          "sha256": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioConnection.java",
+          "sha256": "01220ecaec22a5659b058d4b4f959076a6539935f24af8669bf7c1bcbab9e842"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioUploadWire.java",
+          "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+          "sha256": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioAutoSchedule.java",
+          "sha256": "488ed92f89c0dacc46a4c8f014518e0697d24163be3f1dc56f3f90395db9778f"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioSyncSession.java",
+          "sha256": "e2aac1cf74a48edab5e7e687a3543ed75fbc781619601c2d6896c9a87405a457"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
+          "sha256": "cead33e1d1866b2212ac0b90c317a954ff240a2fb57644212d5c28a1c605028a"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+          "sha256": "3e1a7e4b7607258b565a9c637da8bf31504f37d0e4901ece8783603c61949e4b"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+          "sha256": "9e198c951363b2419bf5a26f4f9193be5ff03afc92fcddbfaff9aa2ef80fe2ab"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioManager.java",
+          "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+          "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnWire.java",
+          "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
+        },
+        {
+          "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+          "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+        },
+        {
+          "path": "../../tools/android/MaterialMonthRuntimeTest.java",
+          "sha256": "ca724068a1d4676c9856998dac53921e5066a269ca291a874c20fdd248b8a2af"
+        },
+        {
+          "path": "../../tools/android/test-material-month-runtime.mjs",
+          "sha256": "3e371ceb3748b6c3feac5c5a7bfe076f1572006b77a5cc4535990492a4492c05"
+        }
+      ],
+      "temporary_classes_removed": true
+    },
+    "physical_unconfigured_ui": {
+      "at": "2026-10-24T22:40:51.212098+00:00",
+      "version": "0.5.3-dev85",
+      "installed_sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+      "normal_audio_settings_opened": true,
+      "audio_unconfigured": true,
+      "checkbox_default_unchecked": true,
+      "background_and_foreground_return": true,
+      "actual_system_picker_opened": true,
+      "picker_package": "com.android.fileexplorer",
+      "picker_cancel_return": true,
+      "checkbox_after_returns_unchecked": true,
+      "credentials_imported": false,
+      "audio_settings_saved": false,
+      "same_pid_across_picker_cancel": true,
+      "old_user_export_sha_unchanged": true,
+      "final_wakefulness": "Dozing",
+      "raw_audio_uploaded": false,
+      "user_document_contents_opened": false,
+      "probe_initial_assumption_corrected": "MIUI file chooser is com.android.fileexplorer; initial static package allowlist lacked it. Continued existing picker, no repeated installation."
+    }
+  },
+  "cleanup": {
+    "at": "2026-10-24T22:41:37.041019+00:00",
+    "installed_sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+    "remote_owned_stage_removed": true,
+    "old_signed_version_removed": "0.5.3-dev84",
+    "old_delta_removed": true,
+    "retained_apks": [
+      "artifacts/iO-Agent-Android-0.5.3-dev85.apk",
+      "artifacts/iO-Agent-Android-0.5.3-dev76.apk"
+    ],
+    "no_original_or_user_export_deleted": true
+  },
+  "device_lock_released": true,
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-ui-dev85-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T23:12:01.640Z",
+    "requires_answer": false,
+    "message_id": "notice-07c71bde68481013502b16dcfd1f368ca16476b53e6be784186976a7772adfe0",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "failures_retained": [
+    "Physical picker probe initially allowed only Android/Google DocumentsUI. Actual MIUI picker is com.android.fileexplorer; continued and cancelled the existing picker successfully without reinstalling or opening a document."
+  ],
+  "not_verified": [
+    "Actual positive phone Keystore/import, formally authorized raw upload/readback and configured account switching.",
+    "No real microphone input continuity or complete recording proof; no codec changes or repeat user listening test.",
+    "Remote phone download/export, A4/A5, authoritative vendor deletion and local GC remain unfinished.",
+    "Formal authorization remains text-only; no user raw upload or permission extension."
+  ]
+}
