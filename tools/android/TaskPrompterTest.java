@@ -89,6 +89,8 @@ public final class TaskPrompterTest {
   String did=start();NewsTele.control(6);yes(stops()==1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==0&&!NewsTele.active());frame("glasses",did,6,1,1);Handler.ready();yes(voice==0);
   // Normal wearer exit remains exactly once; foreign DID/peer cannot retire the owner.
   did=start();frame("other",did,6,1,1);frame("glasses","other",6,1,1);yes(NewsTele.active());frame("glasses",did,6,1,1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==1&&!NewsTele.active());
+  // Folding the temples (code 18) or any other non-long-press exit retires the manuscript without dictation.
+  for(int code:new int[]{18,0,-1}){did=start();frame("glasses",did,6,1,code);Handler.ready();yes(voice==0&&!NewsTele.active());}
   did=start();yes(!NewsTele.cancelTask("other"));yes(stops()==0);yes(NewsTele.cancelTask(did));yes(NewsTele.cancelTask(did));yes(stops()==1);frame("glasses",did,6,2,1);Handler.ready();yes(voice==0&&!NewsTele.active());
   // A scheduled timeout exits without creating an answer or starting voice.
   did=start();set("phase","playing");set("waiting",0);Handler.advance(30000);yes(stops()==1);frame("glasses",did,6,1,1);Handler.ready();yes(voice==0);

@@ -103,7 +103,9 @@ final class NewsTele {
   // Probe (2026-10-23, user wants a double head shake to exit the task prompter): any frame type the
   // prompter does not handle is logged for agent-question sessions only.
   if(onExit!=null&&!(e.type>=2&&e.type<=8||e.type==10))PrompterSharePort.trace("prompter probe type="+e.type+" json="+e.json.length());JSONObject j=new JSONObject(e.json);if(!did.equals(j.optString("did")))return;int action=j.optInt("action"),code=j.optInt("code",-1);PrompterSharePort.trace("prompter rx type="+e.type+" action="+action+" code="+code+" phase="+phase);
-  if(e.type==6&&(action==1||action==2&&code==1)){Runnable exited=action==1?onExit:null;if(action==1)send(6,new JSONObject().put("did",did).put("action",2).put("code",1));clear();note="眼镜已退出；新闻稿保留在手机";if(exited!=null)NativeTransfer.MAIN.post(exited);return;}
+  // 2026-10-24 (device): folding the temples also exits with code 18 while the lenses are off; only the
+  // wearer's long-press exit (code 1) opens the question's dictation, any other exit just retires it.
+  if(e.type==6&&(action==1||action==2&&code==1)){Runnable exited=action==1&&code==1?onExit:null;if(action==1)send(6,new JSONObject().put("did",did).put("action",2).put("code",1));clear();note=action==1&&code!=1?"眼镜非长按退出（code="+code+"）；不打开口述，问题保留在手机":"眼镜已退出；新闻稿保留在手机";if(exited!=null)NativeTransfer.MAIN.post(exited);return;}
   if(e.type==8&&action==1){send(8,new JSONObject().put("did",did).put("action",2).put("code",1));return;}
   if(e.type==2&&action==2&&waiting==2){if(j.has("total")&&j.optInt("total")!=text.length)return;if(code!=1&&code!=7){fail("眼镜拒绝准备（"+code+"）");return;}
    if(!fileStarted){if(code!=1){fail("未传稿即收到完成码");return;}fileStarted=true;phase="file";deadline=SystemClock.elapsedRealtime()+120000;note="文件信息已发送，按眼镜请求分块传稿";final PrompterFile.Outbound owner=file;sendFile(file.info(),ok->{if(file==owner&&!ok)fail("新闻稿文件信息未确认");});}

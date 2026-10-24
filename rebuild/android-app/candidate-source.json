@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "2f65058558acf6070f0736ec8abf17bf2d8d76fccde8f6a4c92ac65ecebcc1ce"
+      "sha256": "81c3d4d17067872dc6731fcac7b76bfd8277477f3fe2a9a6af4d3d825d15db23"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -770,11 +770,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "aba714a97bf1622bf21ff7acb67d0d1206af597ac4deca6c56abf910811f5349"
+      "sha256": "cd22ca26533ec1e6f1266b7f36d8938d2a29771f73763d34d4c717432e428a4d"
     }
   ],
-  "product_sha256": "558051a48b67460a8550f765b8995163d5d9e03503f9a8320ed65fe331914f33",
-  "addon_sha256": "f29fd1b3b68cebdd95dadff87869fd199c9b312c2a09191fb9b5f0613ca3b8f5",
+  "product_sha256": "6203d97acd725532d5fdc3e112a73da34157778478a22fed670d9eb32937fcbb",
+  "addon_sha256": "0d27793d37b9bcd3e67ceb37b87cc63e5709cf15b211e1f632766f7f05ac81d2",
   "host_dex_sha256": "2494fcd96d15b827ff4c72554dd341eba3047defe5d7c7239f47c82715de92fd",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
