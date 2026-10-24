@@ -10,7 +10,7 @@ final class TaskApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
  private final TaskConnection connection;private final Transport transport;
- private long nextCheck;private boolean running;
+ private long nextCheck,nextStatusCheck;private boolean running;
  String note="paused";
  TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
  static String encode(String value){try{return URLEncoder.encode(value,"UTF-8").replace("+","%20");}catch(Exception impossible){throw new IllegalStateException(impossible);}}
@@ -55,7 +55,15 @@ final class TaskApi {
    }
    String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
    if(inbox.status!=200){String code=error(inbox);if(inbox.status==410&&code.equals("CURSOR_RESET_REQUIRED"))mailbox.resetCursor(cursor);throw new IOException(code);}
-   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);return true;
+   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);
+   // One bounded status read per pump, after queue delivery/inbox work. Failure cannot undo a saved
+   // answer or starve incoming tasks; each route keeps its own cursor and status cooldown.
+   if(now>=nextStatusCheck){String request=mailbox.staleRequest(now);if(request!=null){
+    nextStatusCheck=now+3000;
+    try{Map<String,Object> fresh=detail("request",request);TaskWire.require(TaskWire.same(TaskWire.body(fresh).get("route"),connection.route()),"TASK_ROUTE_MISMATCH");mailbox.acceptDetail(fresh,now);}
+    catch(IOException|RuntimeException unavailable){nextStatusCheck=now+15000;note=safeError(unavailable);}
+   }}
+   return true;
   }catch(IOException|RuntimeException error){
    if(claim!=null){mailbox.finish(claim,0,new byte[0],now,0);note=requestStarted?"TRANSPORT_UNKNOWN":"REFRESH_UNAVAILABLE";}
    else note=safeError(error);

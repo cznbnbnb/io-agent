@@ -28,7 +28,7 @@ function binding(directory){const config=readLocal(path.join(directory,'host.jso
 function local(directory,action,input){const {config}=binding(directory);return python(config.python,[path.join(here,'tool.py'),action],{env:{...process.env,IO_AGENT_CONTEXT:path.join(directory,'context.json')},input:JSON.stringify(input)});}
 function delivery(directory,value,save=false){if(!value.answer)return false;const file=privatePath(privateRoot,path.join(directory,'delivered-'+hash(value.request_id)+'.json'),{allowMissing:true}),record={schema:1,request_id:value.request_id,answer_id:value.answer.answer_id,answer_sha256:hash(JSON.stringify(value.answer))};if(fs.existsSync(file)){if(!isDeepStrictEqual(readLocal(file),record))fail('CALLER_DELIVERY_CONFLICT');return true;}if(save){writeNew(file,record);return true;}return false;}
 async function activeTask(bridge,directory){const {context}=binding(directory),task=await bridge.client.object('task',context.task_id);if(!isDeepStrictEqual(task.body.route,context.route))fail('CALLER_TASK_ROUTE_MISMATCH');return ['queued','agent_received','running','waiting_answer'].includes(task.state)?null:task.state;}
-async function withBridge(directory,callback,deadline=Date.now()+30000){const {config}=binding(directory),adapter=new AdapterHost({command:config.python,args:['-I','-S','-B',path.join(here,'adapter.py'),'--config',path.join(directory,'context.json')],timeoutMs:15000,name:'existing-'+runtime+'-caller'});const fetchImpl=(url,options)=>fetch(url,{...options,signal:AbortSignal.any([options.signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))])});const bridge=new AgentBridge({config:config.bridge,adapter,stateFile:privatePath(privateRoot,path.join(directory,'bridge-state.json'),{allowMissing:true}),fetchImpl});try{await bridge.start();return await callback(bridge);}finally{await bridge.stop();}}
+async function withBridge(directory,callback,deadline=Date.now()+30000){const {config,context}=binding(directory),adapter=new AdapterHost({command:config.python,args:['-I','-S','-B',path.join(here,'adapter.py'),'--config',path.join(directory,'context.json')],timeoutMs:15000,name:'existing-'+runtime+'-caller'});const fetchImpl=(url,options)=>fetch(url,{...options,signal:AbortSignal.any([options.signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))])});const bridge=new AgentBridge({config:config.bridge,adapter,taskBinding:{task_id:context.task_id,route:context.route},stateFile:privatePath(privateRoot,path.join(directory,'bridge-state.json'),{allowMissing:true}),fetchImpl});try{await bridge.start();return await callback(bridge);}finally{await bridge.stop();}}
 // Optional conversation topic (2026-10-23, user): the wearer cannot see the asking chat, so the task
 // command carries a short one-line topic, shown in the phone task list and the prompter header.
 const topicValid=t=>typeof t==='string'&&t.length>=1&&t.length<=40&&t.trim()===t&&!/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(t);
@@ -47,7 +47,16 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
  const client=new BridgeClient(spec.bridge),identity=await client.identity();if(!identity.scopes?.includes('tasks:write'))fail('CALLER_TASK_PUBLISH_SCOPE_REQUIRED');
  const event=readLocal(path.join(directory,'registration.json')).event;
  try{await client.event(event.event_id,event);}catch(e){if(e.status!==404)throw e;await client.post('task',event);}
- await withBridge(directory,async bridge=>{await bridge.pollOnce();await bridge.pollOnce();});
+ // A formal shared owner may have many pages before this task. Do not report join ready until
+ // the registered caller's operation was actually admitted; retries keep the same task and cursor.
+ await withBridge(directory,async bridge=>{
+  for(let page=0;page<100;page++){
+   await bridge.pollOnce();
+   const ready=python(config.python,['-c',"import os,sys,json;sys.path.insert(0,sys.argv[1]);from context import load_context;c,j=load_context(os.environ['IO_AGENT_CONTEXT'],readonly=True);o=j.operation(c['operation_id']);print(json.dumps({'ready':o is not None and o['state']=='claimed'}));j.close()",here],{env:{...process.env,IO_AGENT_CONTEXT:path.join(directory,'context.json')}});
+   if(ready.ready){await bridge.flush();return;}
+  }
+  fail('CALLER_REGISTRATION_PENDING');
+ },Date.now()+60000);
  const active=privatePath(privateRoot,path.join(base,'active.json'),{allowMissing:true});if(!fs.existsSync(active)||readLocal(active).profile!==profile){const partial=path.join(base,'active.partial');writeNew(partial,{schema:1,profile});fs.renameSync(partial,active);}
  return {registered:true,caller_verified:true,context_sha256:hash(JSON.stringify(context.caller)),task_id:taskId,runtime,creates_agent_session:false,...(runtime==='codex'?{creates_codex_session:false}:{})};
 }
@@ -63,16 +72,24 @@ async function join(value){
  const python=value.python??process.env.IO_AGENT_PYTHON??path.join(workspace,'.runtime/hermes-agent/.venv/bin/python3'),base=location(),state=path.join(base,'join.json'),topic=value.topic??null;
  let previous=null;try{previous=readPrivateJson(state);}catch{}
  const reuse=previous&&previous.device_id===device.device_id&&previous.topic===topic&&Date.parse(previous.task_expires_at)>Date.now()+600000;
- const key=reuse?previous.operation_key:'join-'+Date.now().toString(36);
+ const joins=path.join(path.dirname(file),'joins');fs.mkdirSync(joins,{recursive:true,mode:0o700});
+ const pendingFile=path.join(joins,hash(base).slice(0,32)+'-pending.json');
+ const pending=fs.existsSync(pendingFile)?readPrivateJson(pendingFile):null;
+ const pendingLive=pending&&Date.parse(pending.task_expires_at)>Date.now()+600000;
+ if(pendingLive&&(pending.device_id!==device.device_id||pending.topic!==topic))fail('CALLER_PENDING_REBIND_DENIED');
+ const key=pendingLive?pending.operation_key:reuse?previous.operation_key:'join-'+crypto.randomUUID();
+ const expires=pendingLive?pending.task_expires_at:reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
  const spec={bridge:{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
   computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
   operation_key:key,python,task_hours:JOIN_TASK_HOURS,...(topic===null?{}:{topic})};
- const joins=path.join(path.dirname(file),'joins');fs.mkdirSync(joins,{recursive:true,mode:0o700});
  const specFile=path.join(joins,hash(JSON.stringify([base,key])).slice(0,32)+'.json');
  // The spec sits beside the device credential (outside the repository private root writeNew guards).
  if(!fs.existsSync(specFile)){const fd=fs.openSync(specFile,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(spec,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}else if(!isDeepStrictEqual(readPrivateJson(specFile),spec))fail('CALLER_REGISTRATION_CONFLICT');
- const registered=await register(specFile),expires=reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
- if(!reuse){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
+ // Persist the key before network I/O: a lost registration reply must resume the same task.
+ if(!pendingLive){const temporary=pendingFile+'.'+process.pid+'.partial';const fd=fs.openSync(temporary,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify({schema:1,operation_key:key,topic,device_id:device.device_id,task_expires_at:expires}));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(temporary,pendingFile);}
+ const registered=await register(specFile);
+ if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
+ fs.unlinkSync(pendingFile);
  return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false};
 }
 // Glasses progress contract (2026-10-23, user: any agent handed this CLI must report every next step on the

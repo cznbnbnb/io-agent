@@ -49,7 +49,8 @@ final class TaskPresentation {
    for(Map<String,Object> local:queuedTasks.values())rows.add(new Row(source,null,local));
    for(Object raw:source.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"request".equals(item.get("kind")))continue;
     Map<String,Object> body=TaskWire.body(item),parent=tasks.get(body.get("task_id"));
-    if(TaskWire.canAnswer(item,parent,now))questions.add(new Question(source,item,parent,answers.get(item.get("object_id")+"/"+item.get("revision"))));
+    Map<String,Object> local=answers.get(item.get("object_id")+"/"+item.get("revision"));
+    if(TaskWire.canAnswer(item,parent,now)&&!(local!=null&&"server_stored".equals(local.get("state"))&&!Boolean.TRUE.equals(local.get("needs_lookup"))))questions.add(new Question(source,item,parent,local));
    }
   }
   rows.sort(Comparator.comparingLong(Row::order).reversed().thenComparing(row->row.key));
@@ -66,6 +67,13 @@ final class TaskPresentation {
  }
  static String queueStatus(String phase){switch(phase){case "awaiting_refresh":return "答案已保存在本机，等待核对原问题";case "queued":return "已保存到本机，等待提交";case "sending":return "正在提交";case "server_stored":return "服务器已保存";case "reconcile":case "retry_wait":return "提交结果待核对";case "blocked":return "提交需要处理";case "expired":return "已过期，未继续提交";case "withdrawn_local":return "本机提交已撤回";default:return "等待提交状态更新";}}
  static String queueStatus(Map<String,Object> row){return Boolean.TRUE.equals(row.get("needs_lookup"))?"提交结果待核对":queueStatus((String)row.get("state"));}
+ static String questionStatus(Map<String,Object> request,Map<String,Object> parent,long now){
+  String state=(String)request.get("state");
+  if("answered".equals(state)||request.get("answer")!=null)return "已回答";
+  if("withdrawn".equals(state))return "已撤回";
+  if("expired".equals(state)||TaskWire.stamp(request.get("expires_at"))<=now)return "已过期";
+  return TaskWire.canAnswer(request,parent,now)?"等待回答":"当前不可回复";
+ }
  static String receipt(String stage){switch(stage){case "server_stored":return "服务器已保存";case "phone_received":return "手机已接收";case "glasses_displayed":return "眼镜已显示";case "user_answered":return "用户已回答";case "agent_received":return "电脑已接收";case "task_resumed":return "原任务已继续";case "task_completed":return "任务已完成";case "cancel_requested":return "已收到停止请求";case "cancelled":return "电脑已确认停止";case "failed":return "执行失败";case "expired":return "已过期";default:return "收到回执";}}
  private static Map<String,Object> event(Map<String,Object> local){return WireJson.map(WireJson.read(((String)local.get("payload")).getBytes(StandardCharsets.UTF_8)));}
  private static long stamp(Object value){try{return TaskWire.stamp(value);}catch(RuntimeException invalid){return 0;}}

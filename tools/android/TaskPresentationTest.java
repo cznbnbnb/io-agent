@@ -34,6 +34,20 @@ public final class TaskPresentationTest {
   check(new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,pending)),NOW+3600001).questions.isEmpty());
   Map<String,Object> blocked=queued("answer",answerBody,"blocked");TaskPresentation retriable=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,Arrays.asList(blocked))),NOW);check(!retriable.questions.get(0).queuedAnswer());
   blocked.put("needs_lookup",true);TaskPresentation uncertain=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,Arrays.asList(blocked))),NOW);check(uncertain.questions.get(0).queuedAnswer());check(TaskPresentation.queueStatus(uncertain.questions.get(0).localAnswer).equals("提交结果待核对"));
+  // An ACK is sufficient to remove the submitted answer from decisions, even before the old
+  // request's head status is re-read. Unknown delivery must remain visible instead.
+  Map<String,Object> accepted=queued("answer",answerBody,"server_stored");
+  check(new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,Arrays.asList(accepted))),NOW).questions.isEmpty());
+  accepted.put("needs_lookup",true);check(new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,Arrays.asList(accepted))),NOW).questions.size()==1);
+  Map<String,Object> otherAnswer=WireJson.map(WireJson.copy(answerBody));otherAnswer.put("request_revision",2);
+  check(new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,Arrays.asList(queued("answer",otherAnswer,"server_stored")))),NOW).questions.size()==1);
+  check(TaskPresentation.questionStatus(question,ta,NOW).equals("等待回答"));
+  check(TaskPresentation.questionStatus(question,ta,NOW+3600000).equals("已过期"));
+  Map<String,Object> answered=WireJson.map(WireJson.copy(question));answered.put("state","answered");
+  check(TaskPresentation.questionStatus(answered,ta,NOW+3600000).equals("已回答"));
+  check(new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,Arrays.asList(cached(ta),cached(answered)),Collections.emptyList())),NOW).questions.isEmpty());
+  Map<String,Object> withdrawn=WireJson.map(WireJson.copy(question));withdrawn.put("state","withdrawn");check(TaskPresentation.questionStatus(withdrawn,ta,NOW+3600000).equals("已撤回"));
+  check(TaskPresentation.questionStatus(question,stoppedParent,NOW).equals("当前不可回复"));
   check(TaskPresentation.receipt("server_stored").equals("服务器已保存"));check(!TaskPresentation.receipt("server_stored").contains("继续"));check(TaskPresentation.receipt("task_resumed").equals("原任务已继续"));
   System.out.println("Task presentation: "+checks+" checks passed (route isolation, durable queue deduplication, literal completion, pending answers, no invented receipt/state, immutable full text)");
  }

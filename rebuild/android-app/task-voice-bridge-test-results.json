@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T13:03:00.504Z",
+  "at": "2026-10-24T08:41:15.126Z",
   "assertions": 248,
   "scope": "Original-task voice preparation and complete answer through existing hub/mailbox, synthetic three routes and failures",
   "sources": [
@@ -74,7 +74,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+      "sha256": "7b6b8a91400910bdec0bf41385bb82d401bf83f0fa966603206175712d42dff7"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
@@ -82,11 +82,11 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
+      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+      "sha256": "82d42e4f402cf54ad0238725a83ceed3c78f1a85d29048b2566e595f8a6ff6fa"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",

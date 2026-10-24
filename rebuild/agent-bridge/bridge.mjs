@@ -19,11 +19,18 @@ const digest=(...parts)=>createHash('sha256').update(parts.join('\u0000')).diges
 export class AgentBridge{
   #client;#state=null;#adapter;#clock;#blocked=null;#lastSyncAt=null;#observed=new Set();#stateFile;
   #lease=null;#operation=null;#stopping=false;#stopPromise=null;#adapterStarted=false;
-  #requestLifecycle=false;
-  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch}={}){
+  #requestLifecycle=false;#taskBinding=null;
+  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch,taskBinding=null}={}){
     this.#client=new BridgeClient(config,{clock,fetchImpl});
     this.#adapter=adapter??{name:'observe-only',capabilities:{can_execute:false},onItem:()=>[],onAnswer:()=>[]};
     this.#clock=clock;this.#stateFile=stateFile??config?.state_file;
+    // An existing CLI caller may only narrow the shared device inbox to its verified original task.
+    if(taskBinding!==null){
+      if(typeof taskBinding.task_id!=='string'||!taskBinding.task_id||!taskBinding.route||
+        ['computer_id','agent_id','project_id','session_id'].some(k=>typeof taskBinding.route[k]!=='string'||!taskBinding.route[k])||
+        ['computer_id','agent_id'].some(k=>taskBinding.route[k]!==config[k]))throw new BridgeError('INVALID_CONFIG',{permanent:true});
+      this.#taskBinding=Object.freeze({task_id:taskBinding.task_id,route:Object.freeze({...taskBinding.route})});
+    }
     if(typeof this.#stateFile!=='string'||!this.#stateFile)throw new BridgeError('INVALID_CONFIG',{permanent:true});
   }
   get client(){return this.#client;}
@@ -288,7 +295,8 @@ export class AgentBridge{
       else this.#enqueueRequest(source,action);
     }if(runtimeEvent)this.#state.markRuntimeEvent(runtimeEvent);this.#state.save();}catch(error){this.#state.value=snapshot;throw error;}
   }
-  #matchesRoute(item){const route=item.body?.route;return route?.computer_id===this.#client.config.computer_id&&route?.agent_id===this.#client.config.agent_id;}
+  #matchesRoute(item){const route=item.body?.route,bound=this.#taskBinding;return route?.computer_id===this.#client.config.computer_id&&route?.agent_id===this.#client.config.agent_id&&
+    (!bound||item.body.task_id===bound.task_id&&['computer_id','agent_id','project_id','session_id'].every(k=>route[k]===bound.route[k]));}
   #validate(action){
     if(!action||typeof action.action!=='string')throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'action'});
     if(action.action==='task_state'){

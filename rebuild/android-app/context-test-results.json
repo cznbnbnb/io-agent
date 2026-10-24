@@ -1,8 +1,9 @@
 {
   "schema": 1,
-  "date": "2026-10-23T09:46:22.190Z",
+  "date": "2026-10-24T08:40:08.529Z",
   "kind": "JVM real durable stores/protocol fixtures and isolated synthetic transports; no physical-device or real Agent acceptance",
   "checks": "Task contexts: 59 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
+  "status_checks": "Task status: 35 checks passed (empty incremental inbox, accepted answer, restart, bounded refresh, route isolation, failed read, deadline)",
   "sources": [
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
@@ -22,7 +23,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "18793cd81c57b375ea23e921b5ad200433178170644642dbb6658a83b133b113"
+      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -30,15 +31,15 @@
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+      "sha256": "7b6b8a91400910bdec0bf41385bb82d401bf83f0fa966603206175712d42dff7"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+      "sha256": "82d42e4f402cf54ad0238725a83ceed3c78f1a85d29048b2566e595f8a6ff6fa"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "1e220ca0e66267f97eed622c670975a94c2d6eb31b77aceae06149a8e5dba14c"
+      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
     }
   ]
 }

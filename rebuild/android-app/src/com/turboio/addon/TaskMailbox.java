@@ -47,6 +47,19 @@ final class TaskMailbox implements AutoCloseable {
  synchronized List<Object> pending(){return rows(copy(),"outbox");}
  synchronized List<Object> objects(){return rows(copy(),"objects");}
  synchronized Map<String,Object> cached(String kind,String id){return find(rows(copy(),"objects"),kind,id);}
+ /** Inbox cursors advance over immutable events, not answers/receipts on an old request.
+  * Recheck one oldest unresolved request in this route; an expired copy needs one final read. */
+ synchronized String staleRequest(long now){
+  String selected=null;long oldest=Long.MAX_VALUE;
+  for(Object value:rows(state,"objects")){
+   Map<String,Object> cached=WireJson.map(value),item=WireJson.map(cached.get("item"));
+   if(!"request".equals(item.get("kind"))||!TaskWire.same(TaskWire.body(item).get("route"),connection.route())||!TaskWire.set("pending","presented").contains(item.get("state"))||item.get("answer")!=null)continue;
+   long checked=TaskWire.nonnegative(cached.get("detail_at")),expires=TaskWire.stamp(item.get("expires_at"));
+   if(checked>0&&(now-checked<15000||checked>=expires))continue;
+   if(checked<oldest){oldest=checked;selected=(String)item.get("object_id");}
+  }
+  return selected;
+ }
  private static Map<String,Object> find(List<Object> objects,String kind,String id){for(Object value:objects){Map<String,Object> cached=WireJson.map(value),item=WireJson.map(cached.get("item"));if(kind.equals(item.get("kind"))&&id.equals(item.get("object_id")))return cached;}return null;}
  private Map<String,Object> enqueue(String operation,String kind,Map<String,Object> body,long now,long expires,String phase)throws IOException{
   TaskWire.id(operation);TaskWire.body(kind,body);TaskWire.require(TaskWire.same(body.get("route"),connection.route()),"TASK_ROUTE_MISMATCH");
@@ -89,6 +102,7 @@ final class TaskMailbox implements AutoCloseable {
    TaskWire.require(TaskWire.same(TaskWire.body(prior).get("route"),TaskWire.body(item).get("route")),"TASK_ROUTE_MISMATCH");if(rev<before)return;
    if(rev==before){TaskWire.require(prior.get("event_id").equals(item.get("event_id"))&&prior.get("commit_seq").equals(item.get("commit_seq"))&&TaskWire.same(TaskWire.body(prior),TaskWire.body(item)),"TASK_REVISION_CONFLICT");
     if(detailAt==0||TaskWire.set("answered","withdrawn","expired").contains(prior.get("state"))){if(prior.get("receipts")!=null)item.put("receipts",prior.get("receipts"));if(prior.get("answer")!=null)item.put("answer",prior.get("answer"));if(TaskWire.set("answered","withdrawn","expired").contains(prior.get("state")))item.put("state",prior.get("state"));}
+    if(detailAt==0)detailAt=TaskWire.nonnegative(old.get("detail_at"));
    }
    rows(next,"objects").remove(old);
   }
