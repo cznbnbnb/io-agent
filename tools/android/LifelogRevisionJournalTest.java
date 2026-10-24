@@ -59,6 +59,34 @@ public final class LifelogRevisionJournalTest {
    yes(j.stageFresh(sources(grown),guard,q,now+4,skipped)==1&&skipped.isEmpty());yes(j.replay(guard,q)==3);
   }
   reject("MATERIAL_EVENT_BUDGET",()->MaterialWire.event(new byte[MaterialWire.MAX_EVENT_BYTES+1],c.producer));
+  // Server cancellation must match the exact local envelope. Exercise a crash
+  // after the replacement intent is fsynced but before it reaches the outbox.
+  File cancelledRoot=new File(root,"cancelled");String cancelledPayload;
+  MaterialSyncSessionTest.MemoryServer cancelServer=new MaterialSyncSessionTest.MemoryServer(c);MaterialApi cancelApi=new MaterialApi(c,cancelServer);
+  try(LifelogRevisionJournal j=new LifelogRevisionJournal(cancelledRoot,c,account.binding);MaterialOutbox q=new MaterialOutbox(cancelledRoot,c)){
+   j.stageFresh(sources(original),guard,q,now);j.replay(guard,q);Map<String,Object> row=WireJson.map(q.all().get(0));cancelledPayload=(String)row.get("payload");
+   yes(!cancelApi.cancelPending(q,(String)row.get("event_id"),now)&&cancelServer.posts==0); // Old service has no cancellation capability.
+   Map<String,Object> event=WireJson.map(WireJson.read(cancelledPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8))),proof=MaterialWire.cancellationIntent(event,(String)row.get("payload_sha256"));
+   proof.putAll(WireJson.object("schema_version","1.0","state","cancelled","owner_id",c.owner,"producer_id",c.producer,"server_id",c.server,"cancelled_at",TaskWire.now(now)));
+   for(String key:Arrays.asList("owner_id","producer_id","server_id","payload_sha256","event_id","idempotency_key","material_id")){
+    Map<String,Object> bad=new TreeMap<>(proof);bad.put(key,key.equals("payload_sha256")?String.join("",Collections.nCopies(64,"0")):"wrong");
+    reject("MATERIAL_CANCELLATION_MISMATCH",()->q.recordCancellation((String)row.get("event_id"),(String)row.get("payload_sha256"),bytes(bad)));yes("queued".equals(WireJson.map(q.all().get(0)).get("state")));
+   }
+   yes(q.recordCancellation((String)row.get("event_id"),(String)row.get("payload_sha256"),bytes(proof)));
+   yes(q.claimLookup((String)row.get("event_id"))==null&&q.claim(now,Collections.singleton("1.2"))==null);
+   yes(j.stageFresh(sources(renamed),guard,q,now+1)==1);yes("cancelled".equals(WireJson.map(q.all().get(0)).get("state")));
+  }
+  try(LifelogRevisionJournal j=new LifelogRevisionJournal(cancelledRoot,c,account.binding);MaterialOutbox q=new MaterialOutbox(cancelledRoot,c)){
+   yes(j.replay(guard,q)==1&&q.all().size()==1);Map<String,Object> row=WireJson.map(q.all().get(0));yes(MaterialWire.positive(row.get("revision"))==1&&"queued".equals(row.get("state"))&&WireJson.list(row.get("superseded")).size()==1);
+   q.enqueue(cancelledPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));yes(q.all().size()==1);yes(cancelApi.pump(q,now+2));yes(j.stageFresh(sources(renamed),guard,q,now+3)==0);
+   // Revision >1 cancellation keeps and uses its acknowledged base.
+   j.stageFresh(sources(original),guard,q,now+4);j.replay(guard,q);row=WireJson.map(q.all().get(1));Map<String,Object> event=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(java.nio.charset.StandardCharsets.UTF_8))),proof=MaterialWire.cancellationIntent(event,(String)row.get("payload_sha256"));proof.putAll(WireJson.object("schema_version","1.0","state","cancelled","owner_id",c.owner,"producer_id",c.producer,"server_id",c.server,"cancelled_at",TaskWire.now(now)));
+   yes(q.recordCancellation((String)row.get("event_id"),(String)row.get("payload_sha256"),bytes(proof)));yes(q.compact()==0);
+   Map<String,Object> corrected=WireJson.map(WireJson.copy(renamed));OfficialLifelogSnapshotTest.firstClip(corrected).put("content","有基准版本的最新正文");yes(j.stageFresh(sources(corrected),guard,q,now+5)==1);j.replay(guard,q);yes(cancelApi.pump(q,now+6));yes(q.all().size()==2&&MaterialWire.positive(WireJson.map(q.all().get(1)).get("revision"))==2);
+  }
+  // Existing dev72 journal schema 1 has no initials field. Preserve its payloads.
+  Path legacy=new File(root,"lifelog-revisions/"+c.binding()+"/"+account.binding+"/state.json").toPath();Map<String,Object> oldJournal=WireJson.map(WireJson.read(Files.readAllBytes(legacy)));oldJournal.put("schema",1);oldJournal.remove("initials");Files.write(legacy,bytes(oldJournal));
+  try(LifelogRevisionJournal j=new LifelogRevisionJournal(root,c,account.binding);MaterialOutbox q=new MaterialOutbox(root,c)){yes(j.replay(guard,q)==3&&q.all().size()==3);}
   System.out.println("Lifelog revision journal: "+checks+" assertions passed");
  }
 }

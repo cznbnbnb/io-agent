@@ -15,6 +15,16 @@
 
 所有上传入口要求 `materials:write`，临时块按 owner 与 producer 双重隔离。每份最多 8 MiB；每个 owner 同时最多 16 份未完成上传、预留总量最多 64 MiB；临时块 24 小时后过期，下一次 begin 清理。过期或撤销凭据不能续传。这里的临时块清理不删除已提交资料。
 
+## 未确认旧发送的撤销
+
+`material_cancel_v1` 是单独的服务能力。客户端每次先核对 identity，再 `POST /v1/material-cancellations`，请求仅含 `{event_id, idempotency_key, material_id, revision, payload_sha256, expires_at}`。哈希属于按既有 canonical JSON 编码的完整原事件；手机持久发送队列使用此编码。这里撤销的是尚未提交的发送，不是删除资料。
+
+同一 SQLite 写事务与正常提交竞争：原事件已存储时，核对事件、幂等键、完整哈希和资料修订后返回原回执；未提交时，在原有 events 表中保留不可覆盖的撤销证明，返回 `state=cancelled`、原意图、owner/producer/server 和确认时间。没有新的资料修订或 changes 条目。证明丢失时可用原 GET events 恢复，重复撤销幂等。
+
+凭据必须具有原 producer 的 `materials:write`。手机逐项核对证明后，才允许以新 event ID/幂等键替换同一待上传修订，保留旧哈希和证明。第 N 修订仍要求已确认的 N−1 基准；来源日志先保存新意图，再重放到队列。旧引导日志重放只命中别名，不复活旧正文。网络结果未知或服务不支持时保持原状态。
+
+撤销记录使用 `cancelled:` 非哈希摘要占住原 events 唯一键。新版返回 `MATERIAL_EVENT_CANCELLED`；旧服务即使不识别撤销协议，也会因幂等摘要或 event ID 冲突拒绝迟到旧事件。对应未提交分块在同一事务清除，释放预留空间；此后该 event ID 不可重新开始传输。已入库资料从不被这一接口删除。旧服务回退的完整演练仍属发布前置，不能只凭源码推断宣布通过。
+
 ## 完整回读
 
 支持该能力的电脑客户端向 materials、changes、详情请求传入 `content=reference`。超过 256 KiB 的条目变为 `{content_ref:{material_id, revision, bytes, sha256, part_bytes, parts}}`。再用 `GET /v1/material-content/<material_id>?revision=N&index=N` 拉取各块，校验每块和整体哈希、严格 UTF-8、JSON 及原 schema 后才向调用方返回完整原条目和来源引用。
@@ -27,4 +37,4 @@
 
 新增两张临时 SQLite 表，原资料/队列事务未迁移。正式发布包必须带 `material-transfer.mjs`，旧的历史打包清单不足以部署当前完整服务。手机写入超过旧版上限的事件后，dev72 回退会保守拒绝读取该日志，不能靠回退包清除状态；装机与真实资料上传前须完成容量兼容处理和部署演练。
 
-合成验证：Node 22.23.2 上 17 项分块/查询测试；Java 三进程分别模拟丢块回执、丢提交回执、重启对账，再上传增长后的同一资料修订并完整回读。未签发正式资料凭据，未上传真实智记。
+合成验证：最初 Node 22.23.2 上 17 项分块/查询测试；本次加入撤销后共 20 项通过；Java 三进程分别模拟丢块回执、丢提交回执、重启对账，再上传增长后的同一资料修订并完整回读。未签发正式资料凭据，未上传真实智记。

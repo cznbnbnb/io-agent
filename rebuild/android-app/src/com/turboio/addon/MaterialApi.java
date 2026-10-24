@@ -6,9 +6,9 @@ import java.io.*;import java.net.URLEncoder;import java.nio.charset.StandardChar
 final class MaterialApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
- private final MaterialConnection connection;private final Transport transport;private boolean running,transfers;String note="paused";
+ private final MaterialConnection connection;private final Transport transport;private boolean running,transfers,cancellations;String note="paused";
  MaterialApi(MaterialConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
- Set<String> preflight(long now,boolean requireVersion)throws IOException{MaterialWire.require(connection.expiresAt>now,"MATERIAL_IMPORT_EXPIRED");Response r=transport.exchange("/identity",null);if(r.status!=200)throw new IOException(r.status==401?"AUTH_REQUIRED":r.status==403?"FORBIDDEN":"MATERIAL_IDENTITY_UNAVAILABLE");Set<String> versions=connection.identity(r.body,now,requireVersion);Map<String,Object> identity=WireJson.map(WireJson.read(r.body));transfers=identity.get("capabilities") instanceof List&&WireJson.list(identity.get("capabilities")).contains("material_transfer_v1");return versions;}
+ Set<String> preflight(long now,boolean requireVersion)throws IOException{MaterialWire.require(connection.expiresAt>now,"MATERIAL_IMPORT_EXPIRED");Response r=transport.exchange("/identity",null);if(r.status!=200)throw new IOException(r.status==401?"AUTH_REQUIRED":r.status==403?"FORBIDDEN":"MATERIAL_IDENTITY_UNAVAILABLE");Set<String> versions=connection.identity(r.body,now,requireVersion);Map<String,Object> identity=WireJson.map(WireJson.read(r.body));transfers=identity.get("capabilities") instanceof List&&WireJson.list(identity.get("capabilities")).contains("material_transfer_v1");cancellations=identity.get("capabilities") instanceof List&&WireJson.list(identity.get("capabilities")).contains("material_cancel_v1");return versions;}
  synchronized boolean pump(MaterialOutbox outbox,long now)throws IOException{
   return pump(outbox,now,null);
  }
@@ -17,6 +17,13 @@ final class MaterialApi {
   try{preflight(now,true);claim=outbox.claimLookup(eventId);if(claim==null)return false;
    Response response=transport.exchange("/events/"+URLEncoder.encode(claim.eventId,"UTF-8").replace("+","%20"),null);if(outbox.finish(claim,response.status,response.body,now,response.retryAfter))outbox.repairTextRevision(claim,response.status,response.body,connection,now);claim=null;return true;
   }catch(IOException|RuntimeException failure){if(claim!=null)outbox.finish(claim,0,new byte[0],now,0);throw failure;}finally{running=false;}
+ }
+ synchronized boolean cancelPending(MaterialOutbox outbox,String eventId,long now)throws IOException{
+  MaterialWire.require(connection.binding().equals(outbox.binding()),"MATERIAL_TARGET_CHANGED");if(running)return false;running=true;
+  try{preflight(now,true);if(!cancellations)return false;Map<String,Object> row=outbox.pending(eventId);if(row==null)return false;if("cancelled".equals(row.get("state")))return true;
+   Map<String,Object> event=MaterialWire.event(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8),connection.producer);String hash=(String)row.get("payload_sha256");
+   Response response=transport.exchange("/material-cancellations",WireJson.bytes(MaterialWire.cancellationIntent(event,hash)));if(response.status!=200)throw new IOException("MATERIAL_CANCELLATION_UNAVAILABLE");return outbox.recordCancellation(eventId,hash,response.body);
+  }finally{running=false;}
  }
  synchronized boolean pump(MaterialOutbox outbox,long now,Set<String> allowedMaterials)throws IOException{
   MaterialWire.require(connection.binding().equals(outbox.binding()),"MATERIAL_TARGET_CHANGED");if(running)return false;running=true;MaterialOutbox.Claim claim=null;

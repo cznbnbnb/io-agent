@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T09:41:50.758Z",
+  "at": "2026-10-24T10:04:04.162Z",
   "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
   "device": false,
   "network": false,
@@ -26,7 +26,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "3fff228c7a9f08dff68299b5b935ceefafcc8bd75801d1d3b18f51524c582043"
+      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -90,7 +90,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
-      "sha256": "f887e33a1eb259bdf091ca301e68efcf08222c11cf0aa87bf55d6f303e68d863"
+      "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",

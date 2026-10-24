@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T09:42:34.371Z",
+  "at": "2026-10-24T10:04:05.351Z",
   "assertions": 22,
   "scope": "Synthetic normal refresh session, existing bootstrap migration, offline recovery, changed pending body protection and account fencing",
   "sources": [
@@ -49,7 +49,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "0c4841272ce4fa1d624aebe398100c92de6716d27cabea42d96654223137e916"
+      "sha256": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -57,11 +57,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "f5776f900feb33f69e90532d7bfc1cdf80c1ac9292bc49af7b66f55adcb5defa"
+      "sha256": "4452cf1d6e8b35c263edf74b947fc83bc338a6f3cde91e3dcce05412f878e36c"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
-      "sha256": "205a3f3d9a991ade63389193f286c8a553d22878765faeb67c9051d0e68e049b"
+      "sha256": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d"
     },
     {
       "path": "src/com/turboio/addon/MaterialTransfer.java",
@@ -77,7 +77,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
-      "sha256": "f887e33a1eb259bdf091ca301e68efcf08222c11cf0aa87bf55d6f303e68d863"
+      "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
     },
     {
       "path": "src/com/turboio/addon/MaterialConnection.java",
@@ -85,7 +85,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "3fff228c7a9f08dff68299b5b935ceefafcc8bd75801d1d3b18f51524c582043"
+      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -133,7 +133,7 @@
     },
     {
       "path": "../../tools/android/LifelogRevisionJournalTest.java",
-      "sha256": "ad87d6d72e32ecab017da02d0f20bf96730fdd00fd216113447fe45da7ff4998"
+      "sha256": "3251532a3eda65c221411f56a9048ac3f64f9e0909cdf019a08a8d159f29125c"
     },
     {
       "path": "../../tools/android/OfficialLifelogRefreshTest.java",

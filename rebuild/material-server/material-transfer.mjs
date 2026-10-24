@@ -2,8 +2,35 @@ import {canonical,sha,parseStrict,reject} from './json.mjs';
 
 export const PART_BYTES=131072,MAX_MATERIAL_BYTES=8388608;
 const HASH=/^[a-f0-9]{64}$/;
+const isHash=value=>typeof value==='string'&&HASH.test(value);
 const exact=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join()===keys.sort().join();
 const encode=item=>Buffer.from(canonical(item));
+/** Reserve an uncommitted envelope in the existing immutable event ledger.
+ * The non-hash digest also makes older service versions reject late delivery.
+ * This is not a material tombstone and never withdraws accepted source data. */
+export function cancelMaterial(store,token,value){
+  if(!exact(value,['event_id','idempotency_key','material_id','revision','payload_sha256','expires_at'])||
+    ['event_id','idempotency_key','material_id'].some(k=>typeof value[k]!=='string'||!value[k]||value[k].length>512)||
+    !Number.isSafeInteger(value.revision)||value.revision<1||!isHash(value.payload_sha256)||
+    typeof value.expires_at!=='string'||!Number.isFinite(Date.parse(value.expires_at)))reject(400,'INVALID_MATERIAL_CANCELLATION');
+  return store.tx(()=>{
+    const p=store.auth(token,'materials:write'),digest='cancelled:'+sha(canonical(value));
+    const prior=store.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?').get(p.owner,p.producer,value.idempotency_key);
+    if(prior){
+      if(prior.event_id!==value.event_id)reject(409,'IDEMPOTENCY_CONFLICT');
+      if((prior.digest.startsWith('cancelled:')?prior.digest!==digest:prior.digest!==value.payload_sha256))reject(409,'MATERIAL_CANCELLATION_CONFLICT');
+      const result=JSON.parse(prior.response);
+      if(result.material_id!==value.material_id||result.revision!==value.revision)reject(409,'MATERIAL_CANCELLATION_CONFLICT');
+      return result;
+    }
+    if(store.db.prepare('SELECT 1 FROM events WHERE owner=? AND event_id=?').get(p.owner,value.event_id))reject(409,'EVENT_ID_CONFLICT');
+    const result={schema_version:'1.0',state:'cancelled',...value,owner_id:p.owner,producer_id:p.producer,
+      server_id:store.db.prepare("SELECT value FROM meta WHERE key='server_id'").get().value,cancelled_at:new Date(store.clock()).toISOString()};
+    store.db.prepare('INSERT INTO events VALUES (?,?,?,?,?,?,?)').run(p.owner,p.producer,value.idempotency_key,value.event_id,digest,canonical(result),Date.parse(value.expires_at));
+    store.db.prepare('DELETE FROM material_uploads WHERE owner=? AND producer=? AND hash=? AND event_id=?').run(p.owner,p.producer,value.payload_sha256,value.event_id);
+    return result;
+  });
+}
 export function materialWire(item,mode){
   const bytes=encode(item);
   if(mode==='reference'&&bytes.length>262144)return {content_ref:{material_id:item.body.material_id,revision:item.body.revision,
@@ -27,7 +54,7 @@ export class MaterialTransfer {
   }
   principal(token){return this.store.auth(token,'materials:write');}
   row(p,hash){
-    if(!HASH.test(hash))reject(400,'INVALID_UPLOAD');
+    if(!isHash(hash))reject(400,'INVALID_UPLOAD');
     const row=this.db.prepare('SELECT * FROM material_uploads WHERE owner=? AND producer=? AND hash=?').get(p.owner,p.producer,hash);
     if(!row)reject(404,'UPLOAD_NOT_FOUND');
     if(row.expires<=this.store.clock())reject(410,'UPLOAD_EXPIRED');
@@ -39,8 +66,10 @@ export class MaterialTransfer {
   begin(token,value){
     const p=this.principal(token);
     if(!exact(value,['event_id','bytes','sha256'])||typeof value.event_id!=='string'||!value.event_id||value.event_id.length>512||
-      !HASH.test(value.sha256)||!Number.isSafeInteger(value.bytes)||value.bytes<1||value.bytes>MAX_MATERIAL_BYTES)reject(400,'INVALID_UPLOAD');
+      !isHash(value.sha256)||!Number.isSafeInteger(value.bytes)||value.bytes<1||value.bytes>MAX_MATERIAL_BYTES)reject(400,'INVALID_UPLOAD');
     return this.store.tx(()=>{
+      const cancelled=this.db.prepare('SELECT digest FROM events WHERE owner=? AND producer=? AND event_id=?').get(p.owner,p.producer,value.event_id);
+      if(cancelled?.digest.startsWith('cancelled:'))reject(409,'MATERIAL_EVENT_CANCELLED');
       this.db.prepare('DELETE FROM material_uploads WHERE expires<=?').run(this.store.clock());
       const prior=this.db.prepare('SELECT * FROM material_uploads WHERE owner=? AND producer=? AND hash=?').get(p.owner,p.producer,value.sha256);
       if(prior){if(prior.event_id!==value.event_id||prior.bytes!==value.bytes)reject(409,'UPLOAD_CONFLICT');return this.statusRow(prior);}
@@ -55,7 +84,7 @@ export class MaterialTransfer {
     const p=this.principal(token);
     return this.store.tx(()=>{
       const row=this.row(p,hash),parts=Math.ceil(row.bytes/PART_BYTES);
-      if(!Number.isSafeInteger(index)||index<0||index>=parts||!exact(value,['data','sha256'])||!HASH.test(value.sha256)||
+      if(!Number.isSafeInteger(index)||index<0||index>=parts||!exact(value,['data','sha256'])||!isHash(value.sha256)||
         typeof value.data!=='string'||value.data.length>Math.ceil(PART_BYTES/3)*4)reject(400,'INVALID_UPLOAD_PART');
       const bytes=Buffer.from(value.data,'base64');
       if(bytes.toString('base64')!==value.data||bytes.length!==Math.min(PART_BYTES,row.bytes-index*PART_BYTES)||sha(bytes)!==value.sha256)reject(400,'INVALID_UPLOAD_PART');

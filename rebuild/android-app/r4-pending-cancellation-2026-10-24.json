@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T10:09:01.826319+00:00",
+  "scope": "Uncertain pending lifelog upload cancellation and exact fresh replacement; synthetic data only",
+  "production_deployed": false,
+  "apk_built": false,
+  "phone_accessed": false,
+  "phone_current": "dev72 /10494",
+  "formal_credentials_issued": false,
+  "real_material_uploaded": false,
+  "node22": {
+    "version": "22.23.2",
+    "tests": 20,
+    "passed": 20,
+    "failed": 0,
+    "isolated_remote_tmp_removed": true
+  },
+  "java": {
+    "compiled_sources": 195,
+    "revision_journal_checks": 73,
+    "history_checks": 195,
+    "fresh_checks": 22,
+    "discovery_checks": 49,
+    "runtime_checks": 386,
+    "http_sqlite_committed_revisions": 16,
+    "cancellation_jvm_phases": [
+      "partial_reply_lost",
+      "cancellation_reply_lost",
+      "recover_and_replace_then_next_revision",
+      "repeat_without_extra_upload"
+    ],
+    "complete_readback_utterances": 96,
+    "between_journal_and_queue_crash_replay": true,
+    "old_service_no_cancel_capability_preserves_pending": true,
+    "old_outbox_schema_1_2_3_and_journal_schema_1_read": true
+  },
+  "remaining": [
+    "complete runtime package and service rollback rehearsal",
+    "new-format-compatible Android rollback before installation",
+    "real phone background recovery after remote debug reconnect",
+    "new limited grant before formal material credential renewal/upload",
+    "R4 original audio retention/export and authoritative deletion"
+  ],
+  "sources": {
+    "rebuild/android-app/src/com/turboio/addon/LifelogRevisionJournal.java": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88",
+    "rebuild/android-app/src/com/turboio/addon/MaterialApi.java": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d",
+    "rebuild/android-app/src/com/turboio/addon/MaterialHttp.java": "18becf11b237299b195915759f66f169fc94dcbea25629074c3cb12bd46d0d8d",
+    "rebuild/android-app/src/com/turboio/addon/MaterialOutbox.java": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207",
+    "rebuild/android-app/src/com/turboio/addon/MaterialSyncSession.java": "4452cf1d6e8b35c263edf74b947fc83bc338a6f3cde91e3dcce05412f878e36c",
+    "rebuild/android-app/src/com/turboio/addon/MaterialWire.java": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d",
+    "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+    "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+    "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+    "rebuild/material-server/tests/material-transfer.test.mjs": "51b51bf93dabbe4b9333203ac7519c46ab5f48dbc880b87eb37ced947b1daf63",
+    "tools/android/LifelogRevisionJournalTest.java": "3251532a3eda65c221411f56a9048ac3f64f9e0909cdf019a08a8d159f29125c",
+    "tools/android/MaterialFreshHttpTest.java": "2a3c35a2c66242aaa55d3b3abb7269d57bb76b8cc7dac1a1bec27529e1cf64e8",
+    "tools/android/MaterialRenewalTest.java": "d6963f15a255a632eadde5352efc5a359117c96fa8df79638ce1d852ec695912",
+    "tools/android/test-material.mjs": "78abfcd66d68cb0a59306f7c886dab2f3b1f541724e8ad4c1bd54ff439eb71fc",
+    "tools/android/MaterialCancellationHttpTest.java": "23ce20b6727769c983343d9870686aab1594c3343247b2c844226496ceba9351"
+  }
+}

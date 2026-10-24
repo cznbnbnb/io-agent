@@ -39,6 +39,13 @@ final class MaterialWire {
   }
   if(b.get("operation").equals("delete"))require(utterances.isEmpty()&&speakers.isEmpty()&&full.get("text").equals(""),"MATERIAL_TOMBSTONE_INVALID");
  }
+ static Map<String,Object> cancellationIntent(Map<String,Object> event,String hash){Map<String,Object> body=WireJson.map(event.get("body"));return WireJson.object("event_id",event.get("event_id"),"idempotency_key",event.get("idempotency_key"),"material_id",body.get("material_id"),"revision",body.get("revision"),"payload_sha256",hash,"expires_at",event.get("expires_at"));}
+ static void cancellation(Map<String,Object> proof,Map<String,Object> event,String hash,MaterialConnection connection){
+  require(hash!=null&&hash.matches("[a-f0-9]{64}"),"MATERIAL_CANCELLATION_MISMATCH");
+  BoundedJson.keys(proof,"schema_version","state","event_id","idempotency_key","material_id","revision","payload_sha256","expires_at","owner_id","producer_id","server_id","cancelled_at");
+  require("1.0".equals(proof.get("schema_version"))&&"cancelled".equals(proof.get("state"))&&connection.owner.equals(proof.get("owner_id"))&&connection.producer.equals(proof.get("producer_id"))&&connection.server.equals(proof.get("server_id")),"MATERIAL_CANCELLATION_MISMATCH");
+  for(Map.Entry<String,Object> field:cancellationIntent(event,hash).entrySet())require(field.getValue().equals(proof.get(field.getKey())),"MATERIAL_CANCELLATION_MISMATCH");time(proof.get("cancelled_at"));
+ }
  static void ack(Map<String,Object> ack,Map<String,Object> event){
   Map<String,Object> b=WireJson.map(event.get("body")),r=WireJson.map(ack.get("receipt"));
   require("1.2".equals(ack.get("schema_version"))&&event.get("event_id").equals(ack.get("event_id"))&&b.get("material_id").equals(ack.get("material_id"))&&positive(b.get("revision"))==positive(ack.get("revision")),"MATERIAL_ACK_MISMATCH");positive(ack.get("commit_seq"));time(ack.get("stored_at"));id(r.get("receipt_id"));

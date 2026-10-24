@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {randomUUID} from 'node:crypto';
-import {MaterialStore} from '../store.mjs';import {listen} from '../http.mjs';import {sha} from '../json.mjs';
+import {MaterialStore} from '../store.mjs';import {listen} from '../http.mjs';import {sha,canonical} from '../json.mjs';
 import {PART_BYTES} from '../material-transfer.mjs';import {MaterialQueryClient} from '../query/client.mjs';
 const sample=JSON.parse(fs.readFileSync(new URL('../../../docs/contracts/material-v1.1.json',import.meta.url))).events[2];
 function event(text='合成全文🙂。'.repeat(90000)){
@@ -14,9 +14,40 @@ function setup(t){
  return{dir,writer,get store(){return store;},setTime(n){now=n;},restart(){store.close();store=new MaterialStore(file,{clock:()=>now});}};
 }
 const code=s=>e=>e.code===s;
-function plan(e){const bytes=Buffer.from(JSON.stringify(e));return {bytes,manifest:{event_id:e.event_id,bytes:bytes.length,sha256:sha(bytes)}};}
+function plan(e){const bytes=Buffer.from(canonical(e));return {bytes,manifest:{event_id:e.event_id,bytes:bytes.length,sha256:sha(bytes)}};}
 function part(p,index){const b=p.bytes.subarray(index*PART_BYTES,(index+1)*PART_BYTES);return{data:b.toString('base64'),sha256:sha(b)};}
 function upload(f,e){const p=plan(e),id=p.manifest.sha256;f.store.transfer.begin(f.writer.token,p.manifest);for(let i=0;i<Math.ceil(p.bytes.length/PART_BYTES);i++)f.store.transfer.put(f.writer.token,id,i,part(p,i));return {p,id,result:f.store.transfer.finalize(f.writer.token,id)};}
+function cancellation(e){return {event_id:e.event_id,idempotency_key:e.idempotency_key,material_id:e.body.material_id,revision:e.body.revision,payload_sha256:plan(e).manifest.sha256,expires_at:e.expires_at};}
+
+test('atomic cancellation fences late original uploads without deleting material; replacement and replay survive restart',t=>{
+ const f=setup(t),old=event('outdated'),request=cancellation(old),proof=f.store.cancelMaterial(f.writer.token,request);
+ assert.equal(proof.state,'cancelled');assert.equal(f.store.ceiling('owner'),0);f.restart();assert.deepEqual(f.store.event(f.writer.token,old.event_id),proof);
+ assert.deepEqual(f.store.cancelMaterial(f.writer.token,request),proof);assert.throws(()=>f.store.submit(f.writer.token,old),code('MATERIAL_EVENT_CANCELLED'));
+ assert.throws(()=>f.store.submit(f.writer.token,{...old,event_id:randomUUID()}),code('MATERIAL_EVENT_CANCELLED'));
+ assert.throws(()=>f.store.submit(f.writer.token,{...old,idempotency_key:randomUUID()}),code('EVENT_ID_CONFLICT'));
+ assert.throws(()=>f.store.cancelMaterial(f.writer.token,{...request,payload_sha256:'1'.repeat(64)}),code('MATERIAL_CANCELLATION_CONFLICT'));
+ const fresh=event('latest complete text');assert.equal(f.store.submit(f.writer.token,fresh).status,201);assert.equal(f.store.ceiling('owner'),1);
+ assert.equal(f.store.get(f.writer.token,fresh.body.material_id).body.full_text.text,'latest complete text');assert.deepEqual(f.store.cancelMaterial(f.writer.token,request),proof);
+});
+
+test('cancellation of an already committed event returns its receipt; partial transfer cancellation blocks finalize',t=>{
+ const f=setup(t),accepted=event('accepted'),ack=f.store.submit(f.writer.token,accepted).body;
+ assert.deepEqual(f.store.cancelMaterial(f.writer.token,cancellation(accepted)),ack);assert.throws(()=>f.store.cancelMaterial(f.writer.token,{...cancellation(accepted),payload_sha256:'0'.repeat(64)}),code('MATERIAL_CANCELLATION_CONFLICT'));assert.equal(f.store.ceiling('owner'),1);
+ const pending=event();Object.assign(pending.body,{revision:2,base_revision:1,text_revision:2});const p=plan(pending),id=p.manifest.sha256;
+ f.store.transfer.begin(f.writer.token,p.manifest);for(let i=0;i<Math.ceil(p.bytes.length/PART_BYTES);i++)f.store.transfer.put(f.writer.token,id,i,part(p,i));
+ f.store.cancelMaterial(f.writer.token,cancellation(pending));assert.equal(f.store.db.prepare('SELECT COUNT(*) n FROM material_uploads WHERE hash=?').get(id).n,0);assert.throws(()=>f.store.transfer.finalize(f.writer.token,id),code('UPLOAD_NOT_FOUND'));assert.throws(()=>f.store.transfer.begin(f.writer.token,plan(pending).manifest),code('MATERIAL_EVENT_CANCELLED'));assert.equal(f.store.ceiling('owner'),1);
+ const read=f.store.mint({owner:'owner',producer:'reader',scopes:['materials:read']});assert.throws(()=>f.store.cancelMaterial(read.token,cancellation(pending)),code('FORBIDDEN'));
+ const other=f.store.mint({owner:'owner',producer:'other-phone',scopes:['materials:write']});assert.throws(()=>f.store.cancelMaterial(other.token,cancellation(pending)),code('EVENT_ID_CONFLICT'));
+ f.store.revoke(f.writer.token_id);assert.throws(()=>f.store.cancelMaterial(f.writer.token,cancellation(pending)),code('UNAUTHENTICATED'));
+});
+
+test('real concurrent HTTP commit and cancellation select one durable outcome',async t=>{
+ const f=setup(t),server=await listen(f.store);t.after(()=>new Promise(r=>server.close(r)));const base=`http://127.0.0.1:${server.address().port}/v1/`;
+ const e=event('race');const post=(url,body)=>fetch(base+url,{method:'POST',headers:{Authorization:'Bearer '+f.writer.token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const [cancel,commit]=await Promise.all([post('material-cancellations',cancellation(e)),post('material-events',e)]);assert.equal(cancel.status,200);const result=await cancel.json();
+ if(result.state==='cancelled'){assert.equal(commit.status,409);assert.equal(f.store.ceiling('owner'),0);}else{assert.equal(commit.status,201);assert.deepEqual(await commit.json(),result);assert.equal(f.store.ceiling('owner'),1);}
+ assert.deepEqual(await (await post('material-cancellations',cancellation(e))).json(),result);
+});
 
 test('partial fragments are invisible; restart resumes exact chunks and commit returns one immutable receipt',t=>{
  const f=setup(t),e=event(),p=plan(e),id=p.manifest.sha256;

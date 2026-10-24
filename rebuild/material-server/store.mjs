@@ -5,7 +5,7 @@ import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
-import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES} from './material-transfer.mjs';
+import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 
 const SCOPES=new Set(['materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
@@ -125,7 +125,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1'],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1','material_cancel_v1'],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -136,6 +136,7 @@ export class MaterialStore {
     const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(p.owner);
     return {server_time:iso(this.clock()),owner_id:p.owner,queue,receipts,materials,recent};
   }
+  cancelMaterial(token,value){return cancelMaterial(this,token,value);}
   submit(token,event){return this.#submit(token,event,MAX_BODY);}
   submitAssembled(token,event){return this.#submit(token,event,MAX_MATERIAL_BYTES);}
   #submit(token,event,budget){
@@ -148,7 +149,7 @@ export class MaterialStore {
       if(Date.parse(event.created_at)>now+300000||Date.parse(event.created_at)>=Date.parse(event.expires_at))reject(400,'INVALID_TIME_RANGE');
       const digest=sha(encoded),prior=this.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?')
         .get(p.owner,p.producer,event.idempotency_key);
-      if(prior){if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
+      if(prior){if(prior.digest.startsWith('cancelled:'))reject(409,'MATERIAL_EVENT_CANCELLED');if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
       if(this.db.prepare('SELECT 1 FROM events WHERE owner=? AND event_id=?').get(p.owner,event.event_id))reject(409,'EVENT_ID_CONFLICT');
       const bodyHash=sha(canonical(b));
       const existing=this.db.prepare('SELECT * FROM revisions WHERE owner=? AND id=? AND revision=?').get(p.owner,b.material_id,b.revision);

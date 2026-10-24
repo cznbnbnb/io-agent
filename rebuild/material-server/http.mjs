@@ -82,6 +82,10 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));}catch{reject(400,'INVALID_UNICODE');}
         send(200,store.watchSet(token,decoded(watch[1]),parseStrict(text)));return;
       }
+      if(req.method==='POST'&&url.pathname==='/v1/material-cancellations'){
+        observation.route='materials';if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'materials:write');
+        send(200,store.cancelMaterial(token,await smallJson(req,observation)));return;
+      }
       if(req.method==='POST'&&url.pathname==='/v1/material-uploads'){
         if(url.search)reject(400,'INVALID_QUERY');store.auth(token,'materials:write');
         send(200,store.transfer.begin(token,await smallJson(req,observation)));return;

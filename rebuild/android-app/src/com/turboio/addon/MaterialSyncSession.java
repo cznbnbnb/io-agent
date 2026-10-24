@@ -86,9 +86,9 @@ final class MaterialSyncSession {
    catch(IllegalArgumentException pending){
     if(!"LIFELOG_PENDING_REVISION_CHANGED".equals(pending.getMessage()))throw pending;
     Set<String> currentIds=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)currentIds.add(value.materialId(config.account));int budget=0;
-    for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(currentIds.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state"))&&budget++<16){admit();api.reconcileOnly(outbox,(String)row.get("event_id"),System.currentTimeMillis());}}
-    // A confirmed stored predecessor permits the next revision. Unknown or
-    // absent predecessors still stop here; no stale POST is used to satisfy CAS.
+    for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(currentIds.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state"))&&!"cancelled".equals(row.get("state"))&&budget++<16){admit();api.reconcileOnly(outbox,(String)row.get("event_id"),System.currentTimeMillis());admit();api.cancelPending(outbox,(String)row.get("event_id"),System.currentTimeMillis());}}
+    // A stored predecessor permits the next revision. A verified cancellation
+    // permits replacement at the same revision; unknown outcomes still stop.
     status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized);
    }
    revisions.replay(this::admit,outbox);
