@@ -1,3 +1,17 @@
+## [codex] 2026-10-24 独立 UID 真机原音核心链路通过，等待正式原音授权
+
+**手机仍 dev86 /10508，稳定回退 dev76；R3 100%，R4 约 90%（估算）。** 无新产品 APK 或服务器代码发布；fetch 后 Claude 仍 `96b1dbb`。新增一次性独立诊断包（24780 字节、debuggable=false、仅 INTERNET 权限、target 为自身），从现装 dev86 的 ClassLoader 直接调用原字节码。运行 UID10359 与产品 UID10315 不同；所有 Context/文件/Keystore 都属于诊断包，不读官方登录或修改产品配置，不启动采音/播放。
+
+**真实 Android 四进程 Keystore**：保存/重启读回/保存中断/恢复共26项通过，生成的 AES key 不可导出；在 pending 意图刷盘后注入 guard 异常，再 force-stop、从新 PID 读回，确认不能恢复旧 enabled 配置，随后恢复 disabled 成功。这不是物理掉电或磁盘满模拟。
+
+**真实手机 TLS→原生解码→ZIP**：复用同一生产器，用独立15分钟 `caller688-audio-20261024-codex` 发布仅两帧已知静音的封存 IOARAW01；Mac 生产 AudioHttp/Outbox 上传并独立全文回读。469字节临时 reader 登记交给诊断包，原音读取身份核验后存入真实 Keystore，并删除明文；新进程加载该加密连接（enabled=false），调用现装 AudioReadHttp、AudioDownloads、AudioRemoteExport 和 Host107OpusFileDecoder/原厂 JNI，实际校验、远程只读解析、导出两帧/1920 samples/一段，两个阶段另19项通过。共六个独立 PID/45项。ZIP为1963字节，SHA `79e3430db76e92703c4c33d6059b798ba0da366e2fc9fb6cba9f1153adda40ea`；仅拉回这份已知合成 ZIP，独立 CRC/索引/来源回执/Opus字节及 FFmpeg 单声道48kHz/1920 samples、无 token 检查通过，没有读用户原音到 Mac，也没有建立原件命名空间。
+
+收尾已核实：合成文字墓碑/原音读410 MATERIAL_DELETED、音频 withdrawn/零剩余分块、三角色撤销/公网401、两端凭据和原合成事件/明文登记文件清理；诊断包卸载，自己哈希核对过的本地 APK/编译/合成导出暂存移除。原 Download 用户导出 SHA 保持。初次诊断签名检查按 manifest minSdk29 未检查 v2，改用既有产品显式 minSdk24 检查后重建；源码不变，未在失败时装机。收尾断言误把 error 对象当字符串，但墓碑和410已成功；未重复提交或重签，独立SQL复查清理通过，失败保留。共享本地链路回归生产器9/导出69/控制器22/撤销4及独立 ZIP/解码通过。
+
+**正式原音授权题已通过当前真实对话 CLI 入库**：`codex-r4-formal-audio-grant-20261024`，request `req-f6cc599aff50b96e53ff9b6ed0613cb84bcf33683b05ad079331b57be1fa1946`，期限 `2026-10-25T00:42:57.437Z`；最近 wait 为 pending，无答案。请求仅手机24小时 audio:write/read、现有资料服务器、已保存及新增的已关联原音、每份固定72小时；不授权删除或额外开启录音。继续时持设备锁 wait 同一 request，不重新发题/改路由/延长期限。只有真实允许选项及附加原话确认后才签发正式原音凭据；当前产品仍未配置原音，正式文字授权不扩权。
+
+下一项：获得授权后从正常产品设置导入/绑定、验证真实被动原音自动上传和正常保存器导出；等待时可继续 A4/A5 与原厂权威删除来源/收口方案。独立 UID 的真实核心证明不等于产品 UID/正常保存器正向完成。A4/A5、持续性、权威删除和回执后原件清理仍开放，不提前关闭 R4。当前源码/构建来源与229份候选来源保持，未重开 R2/Hermes。设备锁本批收尾释放；正常提交推送本分支、不合 main。[本批证据](../../rebuild/android-app/r4-audio-phone-isolation-2026-10-24.json)。
+
 ## [codex] 2026-10-24 dev86 远程原音导出入口已装，公网读恢复通过
 
 **手机 dev86 /10508，稳定回退 dev76 /10498；R3 100%、R4 约 85%保持。** `3e84ba4` 的只读原始封包和 ZIP 导出已推送并进入本包；229 份候选来源/哈希、签名、原厂 DEX/既有受控路由保留检查通过。新无线地址身份与现装 dev85 SHA 先核对，只传 **1,535,301 字节**差异；每块/累计、手机重建及现装完整 SHA 一致：`700d0faae8284a5b1899acfa00044d5e477833fa654b09da21e30f8bc56baa29`。未全量传 APK、清资料、改安全权限或开启录音。
