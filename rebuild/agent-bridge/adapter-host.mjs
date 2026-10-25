@@ -42,6 +42,8 @@ export class AdapterHost{
     if(!capabilities||typeof capabilities!=='object'||Array.isArray(capabilities)||typeof capabilities.can_execute!=='boolean'||
       capabilities.async_events!==undefined&&typeof capabilities.async_events!=='boolean'||
       capabilities.admission_probe_v1!==undefined&&typeof capabilities.admission_probe_v1!=='boolean'||
+      capabilities.control_intake_probe_v1!==undefined&&typeof capabilities.control_intake_probe_v1!=='boolean'||
+      capabilities.task_session_control_v1!==undefined&&typeof capabilities.task_session_control_v1!=='boolean'||
       capabilities.answer_intake_probe_v1!==undefined&&typeof capabilities.answer_intake_probe_v1!=='boolean'){
       this.#fault('ADAPTER_PROTOCOL');await this.stop();throw new BridgeError('ADAPTER_PROTOCOL',{permanent:true,detail:'capabilities'});
     }
@@ -74,6 +76,14 @@ export class AdapterHost{
       this.#fault('ADAPTER_PROTOCOL');throw new BridgeError('ADAPTER_PROTOCOL',{permanent:true});
     }
     return frame.answer_intake;
+  }
+  async inspectControlIntake(value){
+    const frame=await this.#send({type:'control_intake_probe',...value});
+    if(this.#failureCode)throw new BridgeError(this.#failureCode,{permanent:true});
+    if(!frame.control_intake||typeof frame.control_intake!=='object'||Array.isArray(frame.control_intake)){
+      this.#fault('ADAPTER_PROTOCOL');throw new BridgeError('ADAPTER_PROTOCOL',{permanent:true});
+    }
+    return frame.control_intake;
   }
   async pollEvents(){
     const frame=await this.#send({type:'events',limit:20});

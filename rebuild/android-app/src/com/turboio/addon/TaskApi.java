@@ -10,14 +10,17 @@ final class TaskApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
  private final TaskConnection connection;private final Transport transport;
- private long nextCheck,nextStatusCheck;private boolean running,inboxCurrent;
+ private long nextCheck,nextStatusCheck;private boolean running,inboxCurrent,sessionControl;
  boolean inboxCurrent(){return inboxCurrent;}
+ boolean sessionControl(){return sessionControl;}
  String note="paused";
  TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
  static String encode(String value){try{return URLEncoder.encode(value,"UTF-8").replace("+","%20");}catch(Exception impossible){throw new IllegalStateException(impossible);}}
  static String error(Response response){try{Map<String,Object> value=WireJson.map(WireJson.read(response.body)),e=WireJson.map(value.get("error"));String code=(String)e.get("code");if(code!=null&&code.matches("[A-Z][A-Z0-9_]{0,63}"))return code;}catch(RuntimeException ignored){}return response.status==401?"AUTH_REQUIRED":response.status==403?"FORBIDDEN":"TASK_UNAVAILABLE";}
  void preflight(long now)throws IOException{
-  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);sessionControl=false;if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+  Object capabilities=WireJson.map(WireJson.read(result.body)).get("capabilities");
+  sessionControl=capabilities instanceof List&&WireJson.list(capabilities).contains("task_session_control_v1");
  }
  private Map<String,Object> detail(String kind,String id)throws IOException{
   TaskWire.require(TaskWire.set("task","request","message").contains(kind)&&!TaskWire.set(".","..").contains(TaskWire.id(id)),"TASK_QUERY_INVALID");
@@ -42,6 +45,16 @@ final class TaskApi {
    claim=mailbox.claim(now);
    if(claim!=null){
     Map<String,Object> event=claim.event(),b=TaskWire.body(event);
+    if(claim.action.equals("send")&&event.get("kind").equals("task")&&b.containsKey("control")){
+     String rejection=sessionControl?"":"TASK_CONTROL_UNSUPPORTED";
+     if(rejection.isEmpty()){
+      Map<String,Object> task=detail("task",(String)b.get("task_id"));mailbox.acceptDetail(task,now);
+      if(!TaskControl.current(b,task))rejection="TASK_CONTROL_STALE";
+     }
+     if(!rejection.isEmpty()){
+      mailbox.finish(claim,409,WireJson.bytes(WireJson.object("schema_version","1.0","error",WireJson.object("code",rejection,"retryable",false))),now,0);claim=null;note=rejection;return true;
+     }
+    }
     // A queued answer is checked again immediately before the first actual POST.
     if(claim.action.equals("send")&&event.get("kind").equals("answer")){
      Map<String,Object> request=detail("request",(String)b.get("request_id")),parent=detail("task",(String)b.get("task_id"));

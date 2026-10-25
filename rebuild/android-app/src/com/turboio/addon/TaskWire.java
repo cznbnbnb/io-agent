@@ -7,13 +7,15 @@ import java.util.*;
 
 /** Existing v1 task/request/answer protocol. No platform calls or implicit session. */
 final class TaskWire {
- static final Set<String> TASK_STATES=set("queued","agent_received","running","waiting_answer","cancel_requested","cancelled","completed","failed","expired","execution_unknown");
+ static final Set<String> TASK_STATES=set("queued","agent_received","running","waiting_answer","cancel_requested","cancelled","completed","failed","expired","execution_unknown","stop_requested","stop_unconfirmed","stopped","resume_requested");
+ static final Set<String> EXECUTION_PHASES=set("queued","sending","accepted","running","result_pending","stop_requested","stop_unconfirmed","outcome_unknown","completed","failed","stopped","cancelled","expired");
  static final Set<String> REQUEST_STATES=set("pending","presented","answered","withdrawn","expired");
  static final Set<String> ACTIVE_TASKS=set("queued","agent_received","running","waiting_answer");
  static Set<String> set(String...values){return new HashSet<>(Arrays.asList(values));}
  static void require(boolean valid,String code){WireJson.require(valid,code);}
  static String text(Object value,int max,boolean empty){require(value instanceof String,"TASK_TEXT_INVALID");String s=(String)value;require((empty||!s.isEmpty())&&s.codePointCount(0,s.length())<=max,"TASK_TEXT_INVALID");return s;}
  static String id(Object value){return text(value,512,false);}
+ static String uuid(Object value){String s=text(value,36,false);require(s.matches("(?i)[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}"),"TASK_UUID_INVALID");return s;}
  static long positive(Object value){require(value instanceof Long||value instanceof Integer,"TASK_NUMBER_INVALID");long n=((Number)value).longValue();require(n>0&&n<=9007199254740991L,"TASK_NUMBER_INVALID");return n;}
  static long nonnegative(Object value){require(value instanceof Long||value instanceof Integer,"TASK_NUMBER_INVALID");long n=((Number)value).longValue();require(n>=0&&n<=9007199254740991L,"TASK_NUMBER_INVALID");return n;}
  static long stamp(Object value){return TaskConnection.stamp(value);}
@@ -36,7 +38,7 @@ final class TaskWire {
   switch(kind){
    case "task":
     require(TASK_STATES.contains(b.get("state"))&&Boolean.FALSE.equals(b.get("allow_create_session")),"TASK_BODY_INVALID");
-    text(b.get("command"),65536,false);break;
+    text(b.get("command"),65536,false);if(b.containsKey("execution"))execution(b.get("execution"));if(b.containsKey("control"))control(b.get("control"));taskExecution(b);break;
    case "request":
     id(b.get("task_id"));require(REQUEST_STATES.contains(b.get("state"))&&set("choice","free_text").contains(b.get("mode")),"TASK_REQUEST_INVALID");
     text(b.get("question"),4096,false);if(b.get("runtime_request_id")!=null)id(b.get("runtime_request_id"));
@@ -51,6 +53,34 @@ final class TaskWire {
    case "receipt":receipt(b);break;
    default:throw new IllegalArgumentException("TASK_KIND_INVALID");
   }
+ }
+ static Map<String,Object> execution(Object value){
+  Map<String,Object> e=WireJson.map(value);BoundedJson.keys(e,"command_id","turn_id","phase");uuid(e.get("command_id"));
+  if(e.get("turn_id")!=null)text(e.get("turn_id"),160,false);require(EXECUTION_PHASES.contains(e.get("phase")),"TASK_EXECUTION_INVALID");return e;
+ }
+ private static void taskExecution(Map<String,Object> b){
+  String state=(String)b.get("state");boolean extended=b.containsKey("execution")||b.containsKey("control")||set("stop_requested","stop_unconfirmed","stopped","resume_requested").contains(state);
+  if(!extended)return;require(b.containsKey("execution")&&!state.equals("queued"),"TASK_EXECUTION_INVALID");Map<String,Object> e=execution(b.get("execution"));String phase=(String)e.get("phase");boolean valid;
+  switch(state){
+   case "agent_received":valid=set("queued","sending","accepted").contains(phase)&&e.get("turn_id")==null;break;
+   case "running":valid=set("running","result_pending").contains(phase);break;
+   case "waiting_answer":valid=phase.equals("running");break;
+   case "execution_unknown":valid=phase.equals("outcome_unknown");break;
+   case "stop_requested":valid=set("running","stop_requested").contains(phase);break;
+   case "stop_unconfirmed":valid=set("stop_unconfirmed","outcome_unknown").contains(phase);break;
+   case "stopped":case "resume_requested":valid=phase.equals("stopped");break;
+   case "cancel_requested":valid=set("queued","sending","accepted","running","result_pending","outcome_unknown").contains(phase);break;
+   default:valid=state.equals(phase);
+  }
+  require(valid,"TASK_EXECUTION_INVALID");if(set("running","result_pending","stop_requested","stop_unconfirmed","stopped","completed").contains(phase))require(e.get("turn_id") instanceof String,"TASK_EXECUTION_INVALID");
+ }
+ static Map<String,Object> control(Object value){
+  Map<String,Object> c=WireJson.map(value);String kind=id(c.get("kind"));require(set("stop","resume").contains(kind),"TASK_CONTROL_INVALID");
+  if(kind.equals("resume"))BoundedJson.keys(c,"control_id","kind","expected_command_id","expected_turn_id","expires_at","text");
+  else BoundedJson.keys(c,"control_id","kind","expected_command_id","expected_turn_id","expires_at");
+  uuid(c.get("control_id"));uuid(c.get("expected_command_id"));text(c.get("expected_turn_id"),160,false);stamp(c.get("expires_at"));
+  if(kind.equals("resume")){String text=text(c.get("text"),32768,false);require(!text.trim().isEmpty()&&text.getBytes(StandardCharsets.UTF_8).length<=32768,"TASK_CONTROL_TEXT_INVALID");}
+  return c;
  }
  static void receipt(Map<String,Object> r){
   id(r.get("receipt_id"));id(r.get("subject_id"));positive(r.get("subject_revision"));id(r.get("actor_id"));id(r.get("related_event_id"));

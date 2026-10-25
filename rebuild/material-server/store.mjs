@@ -23,11 +23,22 @@ const WATCH_ACTIVE=['queued','agent_received','running','waiting_answer'];
 const TASK_TRANSITIONS={
   queued:['agent_received','cancel_requested','expired','failed','execution_unknown'],
   agent_received:['running','waiting_answer','cancel_requested','completed','failed','expired','execution_unknown'],
-  running:['waiting_answer','cancel_requested','completed','failed','expired','execution_unknown'],
-  waiting_answer:['running','cancel_requested','completed','failed','expired','execution_unknown'],
+  running:['waiting_answer','cancel_requested','completed','failed','expired','execution_unknown','stop_requested'],
+  waiting_answer:['running','cancel_requested','completed','failed','expired','execution_unknown','stop_requested'],
   cancel_requested:['cancelled','completed','failed','execution_unknown'],
   execution_unknown:['agent_received','running','waiting_answer','completed','failed','cancelled'],
+  stop_requested:['stop_unconfirmed','stopped','completed','failed','execution_unknown','running'],
+  stop_unconfirmed:['stop_requested','stopped','completed','failed','execution_unknown'],
+  stopped:['resume_requested'],
+  resume_requested:['agent_received','stopped','failed','expired','execution_unknown'],
   cancelled:[],completed:[],failed:[],expired:[]};
+const TASK_CONTROL_STATES=new Set(['stop_requested','stop_unconfirmed','stopped','resume_requested']);
+const TASK_EXECUTION_PHASES={agent_received:['queued','sending','accepted'],running:['running','result_pending'],waiting_answer:['running'],
+  execution_unknown:['outcome_unknown'],stop_requested:['running','stop_requested'],stop_unconfirmed:['stop_unconfirmed','outcome_unknown'],
+  stopped:['stopped'],resume_requested:['stopped'],completed:['completed'],failed:['failed'],cancelled:['cancelled'],expired:['expired'],
+  cancel_requested:['queued','sending','accepted','running','result_pending','outcome_unknown']};
+const TASK_CLOSED_TO_ANSWERS=new Set(['cancel_requested','cancelled','completed','failed','expired','execution_unknown',...TASK_CONTROL_STATES]);
+const equalOptional=(a,b)=>canonical(a??null)===canonical(b??null);
 const REQUEST_PUBLISH={pending:['presented','withdrawn','expired'],presented:['pending','withdrawn','expired'],
   answered:[],withdrawn:[],expired:[]};
 // A client may only report the stages its own identity can observe. server_stored
@@ -129,7 +140,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -310,22 +321,85 @@ export class MaterialStore {
       const digest=sha(encoded),prior=this.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?').get(p.owner,p.producer,event.idempotency_key);
       if(prior){if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
       if(this.db.prepare('SELECT 1 FROM events WHERE owner=? AND event_id=?').get(p.owner,event.event_id))reject(409,'EVENT_ID_CONFLICT');
-      const objectId=this.queueObjectId(kind,b),stored=this.queueApply(p.owner,kind,objectId,event,now);
+      const objectId=this.queueObjectId(kind,b),stored=this.queueApply(p.owner,kind,objectId,event,now,p);
       const response=stored.duplicate??this.queueReceipt(event,kind,objectId,stored.revision,stored.seq,stored.storedAt);
       this.saveEvent(p,event,digest,response);
       return {status:stored.duplicate?200:201,body:response};
     });
   }
-  queueApply(owner,kind,objectId,event,now){
+  queueTaskControl(owner,b,prior,principal,now,event){
+    if(!prior){if(b.execution||b.control)reject(409,'TASK_CONTROL_INVALID');return;}
+    // Full task revisions cannot replace the original user instruction or
+    // silently move a stopped command to another native session.
+    if(b.command!==prior.command||b.allow_create_session!==prior.allow_create_session)reject(409,'TASK_COMMAND_IMMUTABLE');
+    const extended=Boolean(b.execution||prior.execution||b.control||prior.control||TASK_CONTROL_STATES.has(b.state));
+    if(!extended)return; // Keep the existing pre-extension task protocol.
+    const agent=Boolean(principal&&JSON.parse(principal.scopes).includes('receipts:agent'));
+    const ex=b.execution,old=prior.execution,control=b.control;
+    if(!ex||!TASK_EXECUTION_PHASES[b.state]?.includes(ex.phase))reject(409,'TASK_EXECUTION_INVALID');
+    if(['running','result_pending','stop_requested','stop_unconfirmed','stopped','completed'].includes(ex.phase)&&!ex.turn_id)
+      reject(409,'TASK_EXECUTION_INVALID');
+    if(['queued','sending','accepted'].includes(ex.phase)&&ex.turn_id!==null)reject(409,'TASK_EXECUTION_INVALID');
+    if(ex.turn_id!==null&&!ex.turn_id.trim())reject(409,'TASK_EXECUTION_INVALID');
+    const newControl=!equalOptional(control,prior.control);
+    if(newControl){
+      if(!control||!old||!equalOptional(ex,old))reject(409,'TASK_CONTROL_INVALID');
+      if(control.expected_command_id!==old.command_id||control.expected_turn_id!==old.turn_id)reject(409,'TASK_CONTROL_STALE');
+      const stop=control.kind==='stop';
+      if(stop ? !(['running','waiting_answer'].includes(prior.state)&&old.phase==='running'&&b.state==='stop_requested') :
+        !(prior.state==='stopped'&&old.phase==='stopped'&&b.state==='resume_requested'))reject(409,'TASK_CONTROL_STALE');
+      if(Date.parse(control.expires_at)<=now)reject(410,'CONTROL_EXPIRED');
+      if(Date.parse(control.expires_at)>Date.parse(event.expires_at))reject(400,'TASK_CONTROL_DEADLINE_INVALID');
+      if(!stop&&(!control.text.trim()||Buffer.byteLength(control.text)>32768))reject(400,'TASK_CONTROL_TEXT_INVALID');
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.control.control_id')=? LIMIT 1").get(owner,control.control_id))
+        reject(409,'TASK_CONTROL_ID_CONFLICT');
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.execution.command_id')=? LIMIT 1").get(owner,control.control_id))
+        reject(409,'TASK_CONTROL_ID_CONFLICT');
+      return; // A request never changes execution evidence.
+    }
+    if(!agent)reject(403,'FORBIDDEN');
+    if(TASK_CONTROL_STATES.has(b.state)&&!control)reject(409,'TASK_CONTROL_INVALID');
+    if(b.state==='resume_requested'&&(control.kind!=='resume'||control.expected_command_id!==ex.command_id||control.expected_turn_id!==ex.turn_id))
+      reject(409,'TASK_CONTROL_INVALID');
+    if(old){
+      if(ex.command_id!==old.command_id){
+        if(prior.state!=='resume_requested'||control?.kind!=='resume'||b.state!=='agent_received'||
+          control.expected_command_id!==old.command_id||control.expected_turn_id!==old.turn_id||old.phase!=='stopped'||
+          ex.command_id!==control.control_id||ex.turn_id!==null)reject(409,'TASK_EXECUTION_REBIND');
+      }else if(old.turn_id!==null&&old.turn_id!==ex.turn_id)reject(409,'TASK_EXECUTION_REBIND');
+      // A requested resume stays bound to the stopped command until a new
+      // independently identified command is accepted by the original host.
+      if(prior.state==='resume_requested'&&b.state==='agent_received'&&ex.command_id===old.command_id)
+        reject(409,'TASK_EXECUTION_REBIND');
+    }
+    if(!old||ex.command_id!==old.command_id){
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.execution.command_id')=? LIMIT 1").get(owner,ex.command_id))
+        reject(409,'TASK_EXECUTION_ID_CONFLICT');
+    }
+    if(['stop_requested','stop_unconfirmed','stopped'].includes(b.state)){
+      // A resume rejected before dispatch may return to its original stopped
+      // command; all other stop states must describe the current stop target.
+      if(control.kind!=='stop'&&!(b.state==='stopped'&&prior.state==='resume_requested'&&equalOptional(ex,old)))reject(409,'TASK_CONTROL_INVALID');
+      if(control.expected_command_id!==ex.command_id||control.expected_turn_id!==ex.turn_id)reject(409,'TASK_CONTROL_STALE');
+    }
+    if(prior.state==='stop_requested'&&b.state==='running'&&Date.parse(control.expires_at)>now)
+      reject(409,'TASK_CONTROL_PENDING');
+  }
+  queueApply(owner,kind,objectId,event,now,principal=null){
     const b=event.body,route=canonical(b.route??null),head=this.queueHead(owner,kind,objectId);
     if(kind==='task'||kind==='request'||kind==='message'){
       if(head&&head.route!==route)reject(409,'ROUTE_MISMATCH');
       if(!head&&b.revision!==1)reject(409,'REVISION_CONFLICT',{current_revision:0});
       if(kind==='task'&&!head&&b.state!=='queued')reject(409,'STATE_CONFLICT',{current_state:null});
+      if(kind==='task'&&!head)this.queueTaskControl(owner,b,null,principal,now,event);
       if(head){
         if(b.revision!==head.revision+1)reject(409,'REVISION_CONFLICT',{current_revision:head.revision});
         const prior=JSON.parse(this.queueRevision(owner,kind,objectId,head.revision).body);
-        if(kind==='task'&&!TASK_TRANSITIONS[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
+        if(kind==='task'){
+          const sameExtended=b.state===head.state&&Boolean(prior.execution)&&!['completed','failed','cancelled','expired','stopped'].includes(b.state);
+          if(!sameExtended&&!TASK_TRANSITIONS[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
+          this.queueTaskControl(owner,b,prior,principal,now,event);
+        }
         if(kind==='request'){
           if(!REQUEST_PUBLISH[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
           if(prior.task_id!==b.task_id)reject(409,'ROUTE_MISMATCH');
@@ -359,7 +433,7 @@ export class MaterialStore {
       if(b.task_id!==body.task_id)reject(409,'ROUTE_MISMATCH');
       const task=this.queueHead(owner,'task',body.task_id);if(!task)reject(404,'TASK_NOT_FOUND');
       if(task.route!==route)reject(409,'ROUTE_MISMATCH');
-      if(['cancel_requested','cancelled','completed','failed','expired','execution_unknown'].includes(task.state))reject(409,'TASK_CLOSED');
+      if(TASK_CLOSED_TO_ANSWERS.has(task.state))reject(409,'TASK_CLOSED');
       if(b.option_id!==null&&!body.options.some(o=>o.option_id===b.option_id))reject(400,'INVALID_OPTIONS');
       if(b.option_id===null&&!b.text.trim())reject(400,'INVALID');
     }else if(kind==='receipt'){
@@ -423,7 +497,7 @@ export class MaterialStore {
       if(['pending','presented'].includes(head.state)){
         const row=this.queueRevision(p.owner,'request',requestId,head.revision),body=JSON.parse(row.body);
         const task=this.queueHead(p.owner,'task',body.task_id);if(!task||task.route!==head.route)reject(409,'ROUTE_MISMATCH');
-        const closed=['cancel_requested','cancelled','completed','failed','expired','execution_unknown'].includes(task.state);
+        const closed=TASK_CLOSED_TO_ANSWERS.has(task.state);
         const state=closed?'withdrawn':row.expires<=now?'expired':null;
         if(state){
           // Like answer acceptance, closure is a server-owned fact about this

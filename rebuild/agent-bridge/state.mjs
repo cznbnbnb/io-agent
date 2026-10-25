@@ -14,7 +14,7 @@ export class BridgeState{
   #writeGuard=null;
   constructor(file,value){
     this.file=file;this.value=value;
-    for(const key of ['runtime_sources','runtime_events','intake_reconciliations','answer_intake_reconciliations']){
+    for(const key of ['runtime_sources','runtime_events','intake_reconciliations','answer_intake_reconciliations','control_intake_reconciliations']){
       if(value[key]===undefined)value[key]={};
       if(!map(value[key]))throw new BridgeError('STATE_CORRUPT',{permanent:true});
     }
@@ -34,7 +34,7 @@ export class BridgeState{
     return new BridgeState(file,value);
   }
   bind(identity){
-    const empty=this.value.cursor===null&&['outbox','handled','answers','requests','dispatches','runtime_sources','runtime_events','intake_reconciliations','answer_intake_reconciliations'].every(k=>Object.keys(this.value[k]).length===0);
+    const empty=this.value.cursor===null&&['outbox','handled','answers','requests','dispatches','runtime_sources','runtime_events','intake_reconciliations','answer_intake_reconciliations','control_intake_reconciliations'].every(k=>Object.keys(this.value[k]).length===0);
     if(this.value.binding&&JSON.stringify(this.value.binding)!==JSON.stringify(identity)||!this.value.binding&&!empty)
       throw new BridgeError('STATE_IDENTITY_MISMATCH',{permanent:true});
     this.value.binding=structuredClone(identity);this.value.schema_version=SCHEMA;
@@ -73,6 +73,13 @@ export class BridgeState{
     this.value.dispatches[key]={state:'responded',actions:structuredClone(actions)};
     this.value.answer_intake_reconciliations[key]={at:new Date().toISOString(),operation_id:proof.operation_id,
       request_id:proof.request.object_id,answer_digest:proof.answer_digest,source_digest:runtimeDigest(proof.request)};
+    this.save();
+  }
+  confirmControlIntake(key,proof){
+    if(this.value.dispatches[key]?.state!=='prepared')throw new BridgeError('DISPATCH_NOT_PREPARED',{permanent:true});
+    if(Object.keys(this.value.control_intake_reconciliations).length>=MAX_LEDGER)throw new BridgeError('RUNTIME_LEDGER_FULL',{permanent:true});
+    this.value.dispatches[key]={state:'responded',actions:[]};
+    this.value.control_intake_reconciliations[key]={at:new Date().toISOString(),control_id:proof.control_id,source_digest:runtimeDigest(proof.source)};
     this.save();
   }
   runtimeEventSeen(event){
@@ -115,7 +122,7 @@ export class BridgeState{
   }
   // Questions this program asked and is still waiting on (glasses.get_reply).
   requests(){return this.value.requests;}
-  trackRequest(id,revision){this.value.requests={...this.value.requests,[id]:{revision,asked_at:new Date().toISOString()}};}
+  trackRequest(id,revision,execution){this.value.requests={...this.value.requests,[id]:{...this.value.requests[id],revision,asked_at:new Date().toISOString(),...(execution?{execution:structuredClone(execution)}:{})}};}
   untrackRequest(id){delete this.value.requests[id];}
   #prune(ledger){
     const keys=Object.keys(ledger);

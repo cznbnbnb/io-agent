@@ -23,7 +23,10 @@ export function runtimeEventBatch(value){
     if(!object(event)||Object.keys(event).some(key=>!['event_id','delivery_id','actions'].includes(key))||
       typeof event.event_id!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(event.event_id)||
       typeof event.delivery_id!=='string'||!event.delivery_id||event.delivery_id.length>1024||
-      !Array.isArray(event.actions)||event.actions.length>20||ids.has(event.event_id))invalid();
+      // One complete 1 MiB native result may need ~28 JSON-safe chunks. Keep
+      // result plus completion atomic in the journal; network writes remain
+      // individual bounded envelopes. The stdio host has its own frame limit.
+      !Array.isArray(event.actions)||event.actions.length>64||ids.has(event.event_id))invalid();
     ids.add(event.event_id);
   }
   return value;

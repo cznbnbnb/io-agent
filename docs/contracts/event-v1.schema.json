@@ -411,7 +411,11 @@
             "completed",
             "failed",
             "expired",
-            "execution_unknown"
+            "execution_unknown",
+            "stop_requested",
+            "stop_unconfirmed",
+            "stopped",
+            "resume_requested"
           ]
         },
         "command": {
@@ -421,6 +425,12 @@
         },
         "allow_create_session": {
           "const": false
+        },
+        "execution": {
+          "$ref": "#/$defs/taskExecution"
+        },
+        "control": {
+          "$ref": "#/$defs/taskControl"
         }
       },
       "required": [
@@ -573,6 +583,110 @@
         "text",
         "input_source",
         "raw_action"
+      ]
+    },
+    "taskExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$"
+        },
+        "turn_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "phase": {
+          "enum": [
+            "queued",
+            "sending",
+            "accepted",
+            "running",
+            "result_pending",
+            "stop_requested",
+            "stop_unconfirmed",
+            "outcome_unknown",
+            "stopped",
+            "completed",
+            "failed",
+            "cancelled",
+            "expired"
+          ]
+        }
+      },
+      "required": [
+        "command_id",
+        "turn_id",
+        "phase"
+      ]
+    },
+    "taskControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$"
+        },
+        "kind": {
+          "enum": [
+            "stop",
+            "resume"
+          ]
+        },
+        "expected_command_id": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$"
+        },
+        "expected_turn_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        }
+      },
+      "required": [
+        "control_id",
+        "kind",
+        "expected_command_id",
+        "expected_turn_id",
+        "expires_at"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "resume"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
       ]
     }
   },

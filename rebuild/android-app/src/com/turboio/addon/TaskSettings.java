@@ -82,7 +82,9 @@ final class TaskSettings {
    if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(p.connection.expiresAt<=now&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
    if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
    if(next.profiles.size()>=TaskProfiles.MAX)break;
-   TaskProfiles.Profile selected=next.selected();next=next.upsert(c,true,now,selected==null||selected.connection.expiresAt<=now||!selected.enabled);
+   // Discovery never substitutes another session for an explicit default, even when
+   // that default is paused or expired. Only an empty registry needs an initial choice.
+   TaskProfiles.Profile selected=next.selected();next=next.upsert(c,true,now,selected==null);
   }
   if(Arrays.equals(next.encode(),current.encode()))return false;write(next);return true;
  }}

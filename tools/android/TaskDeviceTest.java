@@ -45,6 +45,10 @@ public final class TaskDeviceTest {
    task("t4","waiting_answer",route("s4")),task("t5","running",other),WireJson.object("kind","message","object_id","m","state","stored","body",WireJson.object("route",route("s5"))))));
   List<Map<String,Object>> routes=TaskDevice.openRoutes(page);
   yes(routes.size()==2&&routes.get(0).get("session_id").equals("s1")&&routes.get(1).get("session_id").equals("s4"));
+  for(String state:Arrays.asList("stop_requested","stop_unconfirmed","stopped","resume_requested","execution_unknown","cancel_requested")){
+   List<Map<String,Object>> discovered=TaskDevice.openRoutes(WireJson.object("items",Arrays.asList(task("control-task",state,route("original-session")))));
+   yes(discovered.size()==1&&discovered.get(0).get("session_id").equals("original-session"));
+  }
   System.out.println("task device: "+checks+" checks passed");
  }
 }

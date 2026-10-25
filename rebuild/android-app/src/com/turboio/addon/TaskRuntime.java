@@ -14,7 +14,7 @@ final class TaskRuntime {
   Snapshot(TaskHub hub,String note){this(hub,note,"","");}
   Snapshot(TaskHub hub,String note,String device,String pairing){
    this.note=note;this.device=device;this.pairing=pairing;contexts=hub==null?Collections.emptyList():hub.views();TaskProfiles.Profile p=hub==null?null:hub.profiles().selected();binding=p==null?"":p.binding;saved=p==null?null:new TaskSettings.Saved(p.connection,p.enabled);
-   List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"pending",v.pending,"objects",v.objects));
+   List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"session_control",v.sessionControl,"pending",v.pending,"objects",v.objects));
    fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing)));
   }
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
@@ -90,6 +90,10 @@ final class TaskRuntime {
  private void bound(String binding){TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
  void detail(String binding,String kind,String id,Result result){work(()->{bound(binding);hub.detail(binding,kind,id,System.currentTimeMillis());},result);}
  void delegate(String binding,String operation,String command,Result result){work(()->{bound(binding);hub.delegate(binding,operation,command,System.currentTimeMillis());},result);schedule();}
+ void taskControl(String binding,String operation,String task,Map<String,Object> expected,String kind,String text,long expires,Result result){
+  final Map<String,Object> frozen=WireJson.map(WireJson.copy(expected));
+  work(()->{bound(binding);hub.control(binding,operation,task,frozen,kind,text,System.currentTimeMillis(),expires);},result);schedule();
+ }
  void answer(String binding,String operation,String request,long revision,Object option,String text,Result result){work(()->{bound(binding);hub.answer(binding,operation,request,revision,option,text,System.currentTimeMillis());},result);schedule();}
  void answerGlasses(String binding,String operation,String request,long revision,Object option,String text,String fingerprint,Result result){work(()->{bound(binding);hub.answerGlasses(binding,operation,request,revision,option,text,fingerprint,System.currentTimeMillis());},result);schedule();}
  void prepareVoice(String binding,String requestId,long revision,String fingerprint,VoiceAnswerSession draft,Result result){work(()->{bound(binding);hub.prepareVoice(binding,requestId,revision,fingerprint,draft,System.currentTimeMillis());},result);}

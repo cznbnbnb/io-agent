@@ -7,8 +7,8 @@ import java.util.*;
 final class TaskHub implements AutoCloseable {
  interface Factory {TaskApi.Transport create(TaskConnection connection)throws Exception;}
  static final class View {
-  final TaskProfiles.Profile profile;final boolean inboxCurrent;final String binding,note;final List<Object> pending,objects;
-  View(Channel c){inboxCurrent=c.api!=null&&c.api.inboxCurrent();profile=c.profile;binding=profile.binding;note=c.note;pending=c.mailbox==null?Collections.emptyList():c.mailbox.pending();List<Object> visible=new ArrayList<>();if(c.mailbox!=null)for(Object raw:c.mailbox.objects())if(TaskWire.same(TaskWire.body(WireJson.map(WireJson.map(raw).get("item"))).get("route"),profile.connection.route()))visible.add(raw);objects=Collections.unmodifiableList(visible);}
+  final TaskProfiles.Profile profile;final boolean inboxCurrent,sessionControl;final String binding,note;final List<Object> pending,objects;
+  View(Channel c){inboxCurrent=c.api!=null&&c.api.inboxCurrent();sessionControl=c.api!=null&&c.api.sessionControl();profile=c.profile;binding=profile.binding;note=c.note;pending=c.mailbox==null?Collections.emptyList():c.mailbox.pending();List<Object> visible=new ArrayList<>();if(c.mailbox!=null)for(Object raw:c.mailbox.objects())if(TaskWire.same(TaskWire.body(WireJson.map(WireJson.map(raw).get("item"))).get("route"),profile.connection.route()))visible.add(raw);objects=Collections.unmodifiableList(visible);}
   Map<String,Object> item(String kind,String id){for(Object raw:objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(kind.equals(item.get("kind"))&&id.equals(item.get("object_id")))return item;}return null;}
  }
  private static final class Channel {
@@ -35,6 +35,11 @@ final class TaskHub implements AutoCloseable {
  void pump(long now){for(Channel c:channels.values())if(c.profile.enabled&&c.api!=null){try{c.api.pump(c.mailbox,now);c.note=c.api.note;}catch(Exception failure){c.note=TaskApi.safeError(failure);}}}
  void detail(String binding,String kind,String id,long now)throws IOException{Channel c=channel(binding,true);Map<String,Object> fresh=c.api.refresh(c.mailbox,kind,id,now);TaskWire.require(TaskWire.same(TaskWire.body(fresh).get("route"),c.profile.connection.route()),"TASK_ROUTE_MISMATCH");c.note="received";}
  void delegate(String binding,String operation,String command,long now)throws IOException{Channel c=channel(binding,true);c.mailbox.delegate(operation,command,now,now+3600000);c.note="queued";}
+ void control(String binding,String operation,String task,Map<String,Object> expected,String kind,String text,long now,long expires)throws IOException{
+  Channel c=channel(binding,true);TaskWire.require(c.api.sessionControl(),"TASK_CONTROL_UNSUPPORTED");
+  TaskWire.require(c.profile.connection.expiresAt>now,"TASK_IMPORT_EXPIRED");
+  c.mailbox.control(operation,task,expected,kind,text,now,expires);c.note="queued";
+ }
  void answer(String binding,String operation,String request,long revision,Object option,String text,long now)throws IOException{Channel c=channel(binding,true);c.mailbox.draftAnswer(operation,request,revision,option,text,now);c.note="awaiting_refresh";}
  void answerGlasses(String binding,String operation,String request,long revision,Object option,String text,String fingerprint,long now)throws IOException{Channel c=channel(binding,true);c.mailbox.draftAnswer(operation,request,revision,option,text,"glasses_semantic",fingerprint,now);c.note="awaiting_refresh";}
  private Map<String,Object> voiceRequest(Channel c,String id,long revision,String fingerprint,long now)throws IOException{

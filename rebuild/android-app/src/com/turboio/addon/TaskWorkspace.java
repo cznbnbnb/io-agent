@@ -23,6 +23,15 @@ final class TaskWorkspace {
   case "FORBIDDEN":case "TASK_PHONE_SCOPE_REQUIRED":return "连接权限不足，请核对电脑登记";
   case "TASK_IDENTITY_MISMATCH":case "TASK_EXPIRY_MISMATCH":return "连接身份或期限不匹配";
   case "TASK_TARGET_CHANGED":return "目标连接已变化，请重新打开这条任务";
+  case "TASK_CONTROL_UNSUPPORTED":return "当前连接尚未确认支持任务打断与继续，请刷新连接";
+  case "TASK_CONTROL_NOT_READY":return "原任务当前不能执行此操作，请刷新任务状态";
+  case "TASK_CONTROL_STALE":case "TASK_EXECUTION_CHANGED":case "REVISION_CONFLICT":return "原任务或执行轮次已变化，请重新查看；未改投其他任务";
+  case "TASK_CONTROL_ALREADY_SAVED":return "这项操作已经保存在本机，请查看提交状态";
+  case "TASK_CONTROL_TEXT_INVALID":return "继续指示不能为空，且不能超过 32 KB，请缩短后重试";
+  case "TASK_EXPIRY_INVALID":case "CONTROL_EXPIRED":return "这项操作已过期，未继续执行；请查看原任务后重新操作";
+  case "TASK_OPERATION_CONFLICT":return "这项操作已绑定原内容，请查看提交状态后重新操作";
+  case "TASK_CONTROL_ID_CONFLICT":case "TASK_EXECUTION_ID_CONFLICT":case "TASK_CONTROL_INVALID":case "TASK_EXECUTION_INVALID":case "TASK_EXECUTION_REBIND":return "任务执行信息不匹配，未继续发送，请刷新原任务";
+  case "TASK_CONTROL_PENDING":return "原任务正在处理停止请求，暂不能继续";
   case "TASK_ROUTE_MISMATCH":return "返回内容与原会话不匹配，未提交答案";
   case "REQUEST_CLOSED":case "TASK_REQUEST_CLOSED":return "原问题已结束或版本已变化";
   case "TASK_REQUEST_CHANGED":return "问题内容已变化，请重新查看";
@@ -38,6 +47,7 @@ final class TaskWorkspace {
   case "agent_received":return "电脑已接收";case "running":return "正在执行";case "waiting_answer":return "等待回答";
   case "completed":return "已完成";case "failed":return "执行失败";case "execution_unknown":return "执行结果待核对";
   case "cancel_requested":return "已请求停止";case "cancelled":return "已停止";
+  case "stop_requested":return "正在停止，等待电脑确认";case "stop_unconfirmed":return "停止尚未确认，暂不能继续";case "stopped":return "已停止，可追加指示继续";case "resume_requested":return "继续指示已收到，等待电脑执行";
   case "reconcile":return "正在核对上次提交";case "TASK_IMPORT_UNAVAILABLE":return "没有可读取的登记文件，请从电脑重新提供";
   case "TASK_KEY_UNAVAILABLE":case "TASK_CONFIG_INVALID":return "本机连接无法读取，请重新登记";
   case "TASK_CONFIG_SAVE_FAILED":return "连接未能保存，请重试";
@@ -105,7 +115,7 @@ final class TaskWorkspace {
  // Folding is local view state; bumping it makes the next read re-render even if the data did not change.
  private static int foldVersion;
  private static void removeButton(Activity a,LinearLayout section,TaskRuntime runtime,String binding,Runnable refresh){EditorialUI.button(a,section,"移除已到期会话",false,()->new android.app.AlertDialog.Builder(a).setTitle("移除已到期会话？").setMessage("只移除这条登记，腾出名额；本机队列和已提交答案记录仍保留。需要时可重新登记同一会话。").setNegativeButton("取消",null).setPositiveButton("移除",(dialog,which)->runtime.remove(binding,(state,code)->{if(!code.isEmpty())notice(a,label(code));refresh.run();})).show());}
- private static final Set<String> OPEN_TASK=TaskWire.set("queued","agent_received","running","waiting_answer","cancel_requested");
+ private static final Set<String> OPEN_TASK=TaskWire.set("queued","agent_received","running","waiting_answer","cancel_requested","execution_unknown","stop_requested","stop_unconfirmed","stopped","resume_requested");
  /** Objects still needing attention: answerable questions, unfinished tasks and messages of those tasks. */
  private static List<Object> openObjects(TaskHub.View context,long now){
   List<Object> out=new ArrayList<>();

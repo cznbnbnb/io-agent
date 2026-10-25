@@ -2,6 +2,7 @@ import path from 'node:path';
 import {AgentBridge} from './bridge.mjs';
 import {AdapterHost} from './adapter-host.mjs';
 import {BridgeError,readPrivateJson} from './client.mjs';
+import {createNativeBridgeAdapter} from './hosts/native-config.mjs';
 
 // Local run entry. With no adapter_command the program only observes: it never
 // claims a task it cannot execute. A runtime adapter (P42) is a separate process
@@ -29,7 +30,7 @@ try{
   }else{
     if(config.adapter_command!==undefined&&(!Array.isArray(config.adapter_command)||!config.adapter_command.length||
       config.adapter_command.some(value=>typeof value!=='string'||!value)))fail('INVALID_ADAPTER_COMMAND');
-    const adapter=config.adapter_command?new AdapterHost({command:config.adapter_command[0],args:config.adapter_command.slice(1),
+    const adapter=config.native_runtime!==undefined?createNativeBridgeAdapter(config,{configDirectory:path.dirname(filename)}):config.adapter_command?new AdapterHost({command:config.adapter_command[0],args:config.adapter_command.slice(1),
       timeoutMs:config.adapter_timeout_ms??15000}):silentAdapter;
     const bridge=new AgentBridge({config,adapter,stateFile});
     try{

@@ -61,7 +61,7 @@ final class TaskDevice {
  static List<Map<String,Object>> openRoutes(Map<String,Object> page){
   List<Map<String,Object>> out=new ArrayList<>();Set<String> seen=new HashSet<>();
   for(Object raw:WireJson.list(page.get("items"))){
-   Map<String,Object> item=WireJson.map(raw);if(!"task".equals(item.get("kind"))||!TaskWire.set("queued","agent_received","running","waiting_answer").contains(item.get("state")))continue;
+   Map<String,Object> item=WireJson.map(raw);if(!"task".equals(item.get("kind"))||!TaskWire.set("queued","agent_received","running","waiting_answer","execution_unknown","cancel_requested","stop_requested","stop_unconfirmed","stopped","resume_requested").contains(item.get("state")))continue;
    Map<String,Object> route=TaskWire.route(TaskWire.body(item).get("route"));boolean usable=true;
    for(Object part:route.values())usable&=part instanceof String&&((String)part).matches("[A-Za-z0-9_.-]{1,128}");
    if(usable&&seen.add(new String(WireJson.bytes(route),StandardCharsets.UTF_8)))out.add(route);

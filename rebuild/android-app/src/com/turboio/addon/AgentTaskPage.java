@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.*;
 import java.util.*;
 
-/** Task tab backed by the existing route-bound runtime. UI drafts never enter its queue. */
+/** Task tab backed by the original route-bound runtime. Only explicit submission queues a draft. */
 final class AgentTaskPage {
  private final Activity activity;
  private final Runnable openConnections;
@@ -22,6 +22,7 @@ final class AgentTaskPage {
  private final TaskRuntime.Result observer;
  private final Map<String,Integer> listPositions=new HashMap<>();
  private final List<AgentUI.Screen> forms=new ArrayList<>();
+ private final Set<String> submittingControls=new HashSet<>();
  private TaskRuntime.Snapshot snapshot;
  private TaskPresentation presentation;
  private ScrollView taskScroll;
@@ -93,7 +94,7 @@ final class AgentTaskPage {
   LinearLayout card=AgentUI.column(activity);card.setPadding(0,AgentUI.dp(activity,14),0,AgentUI.dp(activity,12));
   LinearLayout summary=AgentUI.column(activity);TextView title=AgentUI.text(activity,row.title(),15,AgentUI.INK);title.setMaxLines(2);title.setEllipsize(android.text.TextUtils.TruncateAt.END);summary.addView(title);
   AgentUI.gap(activity,summary,4);summary.addView(AgentUI.text(activity,TaskPresentation.source(row.profile),12,AgentUI.MUTED));AgentUI.gap(activity,summary,6);summary.addView(AgentUI.text(activity,"• "+TaskPresentation.status(row)+"   ›",12,AgentUI.MUTED));summary.setFocusable(true);summary.setContentDescription(row.title()+"，"+TaskPresentation.status(row)+"，查看任务");summary.setOnClickListener(v->openDetails(row));card.addView(summary);
-  if(row.active())card.addView(link(hasInstruction(row)?"查看本机指示草稿":"暂停并指示",()->instruction(row)));
+  controls(card,row);
   parent.addView(card);View divider=new View(activity);divider.setBackgroundColor(0x224b725e);parent.addView(divider,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,1)));
  }
  private void delegate(){
@@ -126,7 +127,7 @@ final class AgentTaskPage {
   if(!row.profile.enabled||row.profile.connection.expiresAt<=System.currentTimeMillis())status.addView(AgentUI.text(activity,row.profile.enabled?"连接已到期，以上为最近收到的任务状态。":"连接已暂停，以上为最近收到的任务状态。暂停连接不会停止电脑任务。",13,AgentUI.MUTED));
   if(row.local!=null){status.addView(AgentUI.text(activity,TaskPresentation.queueStatus(row.local),13,AgentUI.MUTED));if(!"".equals(row.local.get("error")))status.addView(AgentUI.text(activity,TaskWorkspace.label((String)row.local.get("error")),13,AgentUI.MUTED));}
   for(TaskPresentation.Question question:presentation.questions)if(question.binding.equals(row.binding)&&question.taskId.equals(row.id))questionCard(content,question);
-  if(row.active())AgentUI.button(activity,content,"暂停并追加指示",false,()->instruction(row));
+  controls(content,row);
   String draft=instructions().getString(instructionKey(row),"");if(!draft.isEmpty()){LinearLayout saved=AgentUI.card(activity,content);saved.addView(AgentUI.text(activity,"本机指示草稿 · 未发送",14,AgentUI.ACCENT));full(saved,draft,15);}
   TaskHub.View context=snapshot.context(row.binding);List<Map<String,Object>> messages=new ArrayList<>(),previousQuestions=new ArrayList<>();if(context!=null)for(Object raw:context.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!row.id.equals(TaskWire.body(item).get("task_id")))continue;if("message".equals(item.get("kind")))messages.add(item);else if("request".equals(item.get("kind"))&&!TaskWire.canAnswer(item,row.item,System.currentTimeMillis()))previousQuestions.add(item);}
   if(!previousQuestions.isEmpty()){AgentUI.gap(activity,content,18);content.addView(AgentUI.text(activity,"往来问题",16,AgentUI.INK));for(Map<String,Object> request:previousQuestions){LinearLayout card=AgentUI.card(activity,content);card.addView(AgentUI.text(activity,TaskPresentation.questionStatus(request,row.item,System.currentTimeMillis()),12,AgentUI.MUTED));full(card,(String)TaskWire.body(request).get("question"),15);if(request.get("answer")!=null){AgentUI.gap(activity,card,12);card.addView(AgentUI.text(activity,"你的完整回复",12,AgentUI.ACCENT));Map<String,Object> answer=WireJson.map(request.get("answer"));full(card,answerText(request,TaskWire.body(answer)),15);receiptLines(card,answer);}receiptLines(card,request);}}
@@ -141,14 +142,63 @@ final class AgentTaskPage {
  private void receiptLines(LinearLayout parent,Map<String,Object> item){if(item.get("receipts")==null)return;for(Object raw:WireJson.list(item.get("receipts"))){Map<String,Object> receipt=WireJson.map(raw);parent.addView(AgentUI.text(activity,"• "+TaskPresentation.receipt((String)receipt.get("stage")),13,AgentUI.MUTED));}}
  private SharedPreferences instructions(){return activity.getSharedPreferences("io_agent_task_instruction_drafts_v1",Context.MODE_PRIVATE);}
  private static String instructionKey(TaskPresentation.Row row){return TaskWire.hash(row.key.getBytes(java.nio.charset.StandardCharsets.UTF_8));}
- private boolean hasInstruction(TaskPresentation.Row row){return !instructions().getString(instructionKey(row),"").isEmpty();}
+ private void controls(LinearLayout parent,TaskPresentation.Row row){
+  if(row.control!=null){parent.addView(AgentUI.text(activity,TaskPresentation.controlStatus(row.control),12,AgentUI.MUTED));if(!"".equals(row.control.get("error")))parent.addView(AgentUI.text(activity,TaskWorkspace.label((String)row.control.get("error")),12,AgentUI.MUTED));}
+  String kind=TaskControl.eligible(row.item,"stop")?"stop":TaskControl.eligible(row.item,"resume")?"resume":"";
+  if(kind.isEmpty()){
+   if(TaskWire.set("stop_requested","stop_unconfirmed","resume_requested").contains(row.state))parent.addView(AgentUI.text(activity,row.state.equals("resume_requested")?"已保存继续指示，等待原电脑开始下一轮。":"等待原电脑确认，确认停止后才可追加指示继续。",12,AgentUI.MUTED));
+   else if(TaskWire.set("running","waiting_answer").contains(row.state)&&!row.body.containsKey("execution")){TextView unavailable=AgentUI.button(activity,parent,"打断任务",false,()->{});unavailable.setEnabled(false);unavailable.setAlpha(.45f);parent.addView(AgentUI.text(activity,"此任务尚未提供原会话执行信息，暂不能在手机打断。",12,AgentUI.MUTED));}
+   return;
+  }
+  TaskHub.View source=snapshot==null?null:snapshot.context(row.binding);
+  if(source!=null&&TaskControl.pending(source.pending,row.item,kind)!=null)return;
+  TextView button=AgentUI.button(activity,parent,kind.equals("stop")?"打断任务":"追加指示并继续",false,()->{
+   if(kind.equals("stop"))submitControl(row,"stop","",null,null);else instruction(row);
+  });
+  boolean available=source!=null&&source.sessionControl&&row.profile.enabled&&row.profile.connection.expiresAt>System.currentTimeMillis()&&!submittingControls.contains(row.key+"/"+kind);
+  button.setEnabled(available);button.setAlpha(available?1f:.45f);
+  if(!available)parent.addView(AgentUI.text(activity,source!=null&&!source.sessionControl?"当前连接尚未确认支持此功能，刷新后再试。":!row.profile.enabled?"恢复原连接后可操作。":"原连接暂不可用，请查看连接。",12,AgentUI.MUTED));
+ }
  private void instruction(TaskPresentation.Row row){
-  AgentUI.Screen form=new AgentUI.Screen(activity,"暂停并追加指示");track(form);form.body.addView(AgentUI.text(activity,row.title(),18,AgentUI.INK));AgentUI.gap(activity,form.body,12);
-  form.body.addView(AgentUI.text(activity,"当前连接尚未提供任务暂停能力。下面的指示只保存到手机；任务不会因此暂停，也不会自动发送或另建任务。返回时也会保留本机草稿。",15,AgentUI.MUTED));AgentUI.gap(activity,form.body,14);
-  EditText edit=AgentUI.input(activity);edit.setTextColor(AgentUI.INK);edit.setHintTextColor(AgentUI.MUTED);edit.setHint("写下希望调整的内容，回电脑处理时继续使用");edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);edit.setMinLines(4);edit.setFilters(new InputFilter[]{new InputFilter.LengthFilter(65536)});edit.setText(instructions().getString(instructionKey(row),""));form.body.addView(edit,new LinearLayout.LayoutParams(-1,-2));
-  AgentUI.gap(activity,form.body,14);form.body.addView(AgentUI.text(activity,"请回到 "+row.profile.connection.computer+" 的 "+row.profile.connection.agent+"，在工作区「"+row.profile.connection.project+"」找到原任务操作。",14,AgentUI.MUTED));
-  AgentUI.button(activity,form.body,"保存到本机",true,()->{if(instructions().edit().putString(instructionKey(row),edit.getText().toString()).commit()){form.dialog.dismiss();render();AgentUI.notice(activity,"指示已保存在本机。尚未发送，电脑任务未暂停。");}else AgentUI.notice(activity,"草稿未能保存，请保留当前文字后重试。");});
-  form.dialog.setOnDismissListener(d->{instructions().edit().putString(instructionKey(row),edit.getText().toString()).apply();if(alive())render();});
+  if(!TaskControl.eligible(row.item,"resume"))return;
+  AgentUI.Screen form=new AgentUI.Screen(activity,"追加指示并继续");track(form);form.body.addView(AgentUI.text(activity,row.title(),18,AgentUI.INK));AgentUI.gap(activity,form.body,12);
+  form.body.addView(AgentUI.text(activity,"原任务已停止。指示将回到 "+TaskPresentation.source(row.profile)+" 的原会话，沿用当前任务。",15,AgentUI.MUTED));AgentUI.gap(activity,form.body,14);
+  EditText edit=AgentUI.input(activity);edit.setTextColor(AgentUI.INK);edit.setHintTextColor(AgentUI.MUTED);edit.setHint("写下调整要求，例如：先整理结论，再补充依据");edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);edit.setMinLines(4);edit.setFilters(new InputFilter[]{new InputFilter.LengthFilter(32768)});edit.setText(instructions().getString(instructionKey(row),""));form.body.addView(edit,new LinearLayout.LayoutParams(-1,-2));
+  boolean[] sent={false};edit.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){}public void afterTextChanged(android.text.Editable text){if(!sent[0])instructions().edit().putString(instructionKey(row),text.toString()).apply();}});
+  AgentUI.gap(activity,form.body,14);form.body.addView(AgentUI.text(activity,"草稿自动保存在本机。提交后若断网，会核对原任务再发送；不会转交其他会话。",13,AgentUI.MUTED));
+  TextView[] submit={null};submit[0]=AgentUI.button(activity,form.body,"按此继续",true,()->{
+   edit.setEnabled(false);submit[0].setEnabled(false);
+   submitControl(row,"resume",edit.getText().toString(),()->{sent[0]=true;instructions().edit().remove(instructionKey(row)).commit();form.dialog.dismiss();},()->{edit.setEnabled(true);submit[0].setEnabled(true);});
+  });
+  form.dialog.setOnDismissListener(d->{if(!sent[0])instructions().edit().putString(instructionKey(row),edit.getText().toString()).apply();if(alive())render();});
+ }
+ private void submitControl(TaskPresentation.Row row,String kind,String text,Runnable saved,Runnable failed){
+  String flight=row.key+"/"+kind;if(!submittingControls.add(flight)){if(failed!=null)failed.run();return;}
+  try{
+   TaskHub.View source=snapshot.context(row.binding);TaskWire.require(source!=null&&source.sessionControl,"TASK_CONTROL_UNSUPPORTED");
+   TaskWire.require(source.profile.enabled,"TASK_PAUSED");
+   Map<String,Object> expected=TaskWire.execution(row.body.get("execution")),current=source.item("task",row.id);
+   TaskWire.require(TaskControl.eligible(current,kind)&&TaskWire.same(expected,TaskWire.body(current).get("execution")),"TASK_CONTROL_STALE");
+   TaskWire.require(TaskControl.pending(source.pending,current,kind)==null,"TASK_CONTROL_ALREADY_SAVED");
+   String key="control/"+TaskWire.hash((row.key+"/"+kind+"/"+expected.get("command_id")+"/"+expected.get("turn_id")).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+   long now=System.currentTimeMillis(),expires=now+(kind.equals("stop")?60000:600000);String operation=UUID.randomUUID().toString();
+   String previous=instructions().getString(key,"");
+   if(!previous.isEmpty()){
+    Map<String,Object> draft=WireJson.map(WireJson.read(previous.getBytes(java.nio.charset.StandardCharsets.UTF_8)));boolean recorded=false;
+    for(Object raw:source.pending)if(draft.get("operation").equals(WireJson.map(raw).get("operation_id")))recorded=true;
+    // A previous callback may have been lost. Reuse its operation if it has not yet
+    // appeared in the durable mailbox; once recorded, pending() above owns its fate.
+    if(!recorded&&text.equals(draft.get("text"))&&TaskWire.stamp(draft.get("expires_at"))>now){operation=TaskWire.uuid(draft.get("operation"));expires=TaskWire.stamp(draft.get("expires_at"));}
+   }
+   TaskControl.update(current,expected,operation,kind,text,now,expires);
+   Map<String,Object> draft=WireJson.object("operation",operation,"text",text,"expires_at",TaskWire.now(expires));
+   TaskWire.require(instructions().edit().putString(key,new String(WireJson.bytes(draft),java.nio.charset.StandardCharsets.UTF_8)).commit(),"TASK_CONFIG_SAVE_FAILED");
+   runtime.taskControl(row.binding,operation,row.id,expected,kind,text,expires,(updated,error)->{
+    submittingControls.remove(flight);if(!alive())return;snapshot=updated;
+    if(error.isEmpty()){if(saved!=null)saved.run();AgentUI.notice(activity,kind.equals("stop")?"打断请求已保存在本机，等待电脑确认停止。":"继续指示已保存在本机，等待原电脑接收。");}
+    else{if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(error));}render();
+   });
+  }catch(Exception invalid){submittingControls.remove(flight);if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(TaskApi.safeError(invalid)));}
  }
  private static String answerText(Map<String,Object> request,Map<String,Object> answer){StringBuilder text=new StringBuilder();if(answer.get("option_id")!=null)for(Object raw:WireJson.list(TaskWire.body(request).get("options"))){Map<String,Object> option=WireJson.map(raw);if(answer.get("option_id").equals(option.get("option_id")))text.append(option.get("label")).append("\n");}text.append((String)answer.get("text"));return text.toString();}
 }

@@ -62,6 +62,14 @@ test('answer intake probe uses matched read-only frames and a boolean capability
   t.after(()=>malformed.stop());await assert.rejects(malformed.start(),e=>e.code==='ADAPTER_PROTOCOL');
 });
 
+test('control intake probe uses matched read-only frames and a boolean capability',async t=>{
+  const host=new AdapterHost({command:process.execPath,args:[fixtureAdapter,'control-intake-probe'],timeoutMs:1500});
+  t.after(()=>host.stop());await host.start();assert.equal(host.capabilities.control_intake_probe_v1,true);
+  assert.deepEqual(await host.inspectControlIntake({delivery_id:'item:task:original:4',source:{}}),{status:'not_proven'});
+  const malformed=new AdapterHost({command:process.execPath,args:[fixtureAdapter,'bad-control-intake-capability'],timeoutMs:1500});
+  t.after(()=>malformed.stop());await assert.rejects(malformed.start(),e=>e.code==='ADAPTER_PROTOCOL');
+});
+
 test('a runtime adapter process drives real queue writes through the durable outbox',async t=>{
   const f=await setup(t);
   f.submit('task',withBody(bodies.task,{task_id:'task-1'}));

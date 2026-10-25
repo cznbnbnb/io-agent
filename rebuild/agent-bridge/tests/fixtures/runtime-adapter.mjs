@@ -9,11 +9,13 @@ const reply=frame=>process.stdout.write(JSON.stringify(frame)+'\n');
 readline.createInterface({input:process.stdin}).on('line',line=>{
   const frame=JSON.parse(line);
   if(frame.type==='hello')return reply({id:frame.id,ok:true,
-    capabilities:{can_execute:mode!=='observe',runtime:'reference-test',mode,child_pid:process.pid,async_events:['async','admission-probe','answer-intake-probe'].includes(mode),graceful_shutdown:mode==='graceful',
+    capabilities:{can_execute:mode!=='observe',runtime:'reference-test',mode,child_pid:process.pid,async_events:['async','admission-probe','answer-intake-probe','control-intake-probe'].includes(mode),graceful_shutdown:mode==='graceful',
+      control_intake_probe_v1:mode==='bad-control-intake-capability'?'yes':mode==='control-intake-probe',
       admission_probe_v1:mode==='bad-admission-capability'?'yes':mode==='admission-probe',
       answer_intake_probe_v1:mode==='bad-answer-intake-capability'?'yes':mode==='answer-intake-probe'}});
   if(mode==='admission-probe'&&frame.type==='admission_probe')return reply({id:frame.id,ok:true,admission:{status:'not_proven'}});
   if(mode==='answer-intake-probe'&&frame.type==='answer_intake_probe')return reply({id:frame.id,ok:true,answer_intake:{status:'not_proven'}});
+  if(mode==='control-intake-probe'&&frame.type==='control_intake_probe')return reply({id:frame.id,ok:true,control_intake:{status:'not_proven'}});
   if(mode==='graceful'&&frame.type==='shutdown'){
     setTimeout(()=>{import('node:fs').then(fs=>{fs.writeFileSync(process.argv[3],'cleanup-confirmed');reply({id:frame.id,ok:true});process.exit(0);});},100);
     return;

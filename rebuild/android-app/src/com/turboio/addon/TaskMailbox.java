@@ -72,6 +72,19 @@ final class TaskMailbox implements AutoCloseable {
   TaskWire.require(!TaskWire.text(command,65536,false).trim().isEmpty(),"TASK_COMMAND_INVALID");
   return enqueue(operation,"task",WireJson.object("task_id","task-android-"+TaskWire.hash((binding+"/"+operation).getBytes(StandardCharsets.UTF_8)),"revision",1,"route",connection.route(),"state","queued","command",command,"allow_create_session",false),now,expires,"queued");
  }
+ synchronized Map<String,Object> control(String operation,String taskId,Map<String,Object> expected,String kind,String text,long now,long expires)throws IOException{
+  TaskWire.uuid(operation);TaskWire.id(taskId);TaskWire.execution(expected);TaskWire.require(TaskWire.set("stop","resume").contains(kind),"TASK_CONTROL_INVALID");
+  // Reconcile an already durable control before consulting a newer task state.
+  // Repeated callbacks retain the original bytes, expiry and expected turn.
+  for(Object raw:rows(state,"outbox")){Map<String,Object> row=WireJson.map(raw);if(!operation.equals(row.get("operation_id")))continue;
+   Map<String,Object> event=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8)));
+   TaskWire.require("task".equals(event.get("kind"))&&TaskControl.sameIntent(TaskWire.body(event),taskId,expected,operation,kind,text),"TASK_OPERATION_CONFLICT");return WireJson.map(WireJson.copy(row));
+  }
+  Map<String,Object> cached=cached("task",taskId);TaskWire.require(cached!=null,"TASK_REFRESH_REQUIRED");
+  Map<String,Object> task=TaskWire.object(cached.get("item"));TaskWire.require(TaskWire.same(TaskWire.body(task).get("route"),connection.route()),"TASK_ROUTE_MISMATCH");
+  TaskWire.require(TaskControl.pending(rows(state,"outbox"),task,kind)==null,"TASK_CONTROL_ALREADY_SAVED");
+  return enqueue(operation,"task",TaskControl.update(task,expected,operation,kind,text,now,expires),now,expires,"queued");
+ }
  synchronized Map<String,Object> draftAnswer(String operation,String requestId,long revision,Object option,String text,long now)throws IOException{
   return draftAnswer(operation,requestId,revision,option,text,"phone",null,now);
  }

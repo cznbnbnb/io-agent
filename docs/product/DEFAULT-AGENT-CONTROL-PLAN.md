@@ -4,6 +4,11 @@
 
 ## 2026-10-25 执行记录
 
+- 下一步接线顺序已只读核对：先做真实 session 能力目录/心跳和默认登记，再在原厂助手启动前接 KEY wake gate；采集/确认需要独立委托 owner，不能伪造问答 request。任务完成需单条 task/command 摘要，不能让每个 result 分片变成提词器。当前 KEY 与双击固件对应仍待真机。
+- 最新接线：native-runtime 现在可把云端新 queued 任务送进显式绑定的原 session，完整结果分片回原任务；CLI 已接 native_runtime 配置。增加服务器 execution/control 合同与手机独立“打断任务”、真实 stopped 后“追加指示并继续”。控制耐久接收、重启只对账、能力门禁、停止与结果竞态、分片延期屏障、旧答案不旁路继续均有真实本机 HTTP/SQLite 覆盖。手机为 JVM/源码验证，尚未部署或装机。
+- 默认连接修复：新发现的 session 不再替换已暂停/到期的显式默认。尚需把原生宿主登记到一次配对会话目录、公布 CLI 默认选择，并将独立 AgentDelegateSession core 接入眼镜真实 wake/采音/确认。通用 descendantsStopped 仍 false，不能宣称任意真实任务停止后已可继续。
+- 原先“下一批接 AgentBridge/手机”已由本批源码推进；下一批解决真实 session 注册与停止证据，再完成眼镜入口及正常手机验收。已装 dev92、待装 dev93 性能候选、稳定回退76不变；不把下面的历史状态当作当前接线缺口。
+
 - 最新：用户「执行」后已实现并运行两条官方接入候选，95 项定向检查通过。Codex 同一共享服务器/thread 的入队、精确打断、终端停止、原上下文继续通过，包含命令启动约 0.05 秒即打断和先运行约 3 秒两种检查。Claude 2.1.308 临时 Mod 在同一隔离 session 中唤醒、回执、Bash 转后台后的精确 TaskStop、子进程退出及再次继续均通过。测试结束后仅清理本轮进程/插件，Codex 测试 thread 已归档。[合成会话真实引擎证据](../../rebuild/agent-bridge/hosts/native-session-live-proof-2026-10-25.json)。
 - 本批保留失败与修复：Claude 自发 prompt 跳过自身 prompt.submit hook，按认证派发记录及完整原生 wrapper 绑定；原生 abort 将 Bash 转后台，新增按 tool_use_id 和结构化 backgroundTaskId 的 TaskStop，不按文本猜 ID。Codex 代码模式子工具需实时原生 item 事件补充历史，再与当前终端表双匹配。轮次完成但最终结果未到时，控制器保留 result_pending，不提前上报完成。
 - 阶段 1 的隔离引擎核心路径已通过，完整阶段仍开放：原 Desktop 的加载/显示、用户 Stop gate 的实际行为和通用受控任务停止证据尚待接入。生产适配器仍保留 descendantsStopped:false；不能用一个已知测试 PID 的退出替代任意任务的停止证明。原生已入队任务的执行时期限/取消也未交付，能力字段明确标注。手机/眼镜未改，dev92 / dev93 待装候选保持。

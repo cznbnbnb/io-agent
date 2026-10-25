@@ -1,3 +1,15 @@
+## [codex] 2026-10-25 原生任务桥、服务器控制与手机打断/继续源码接通
+
+用户「执行」后的第二批：仅 Codex 工作区，fetch 已完成，Claude 仍96b1dbb已合。未触碰设备、问答通道或现用聊天；眼镜 watch 保持关闭。公网未部署、未打 APK/装机：已验dev92、待装dev93性能候选及稳定回退76不变。现有 dev93 编译/安装暂存未覆盖。
+
+新增 native-runtime 与 CLI `native_runtime` 显式配置，把新 queued 任务耐久接到已绑定的原 Claude/Codex session；原生 host 仍不自动创建/resume 聊天。结果完整分片回原任务，停止/继续沿同 task 与精确 command/turn。服务器增加 `task_session_control_v1`、execution/control 和停止状态；手机新增独立“打断任务”，仅实际 stopped 后可追加指示继续，原草稿保留。离线/丢回执不重复执行，切换默认不改投，自动发现新 session 不替换暂停/到期的显式默认。
+
+联调修了手机控制与电脑多修订 CAS 竞争、旧答案旁路继续、结果失败却先显示完成、控制过期无回传、已完成目标被迟到 stop 重发 completion、超长/空白任务阻塞整条连接。原事件字节保持，明确拒绝后的完成事实重建保留最新 control；长结果按 JSON 编码大小及字符双限分片，任一片延迟时同任务完成/回执等待。initial/control intake 均有只读恢复证明，未知执行不重发。
+
+验证：电脑 bridge58/AdapterHost14/CLI3/native-runtime26/真实HTTP集成9/多修订CAS1 项通过；服务控制10+旧队列/问题生命周期22+合同5通过。手机 control88/context59/status35/presentation37/delegate577/device28 检查通过。236份全来源在独立临时目录 Java8 + Android36/D8 通过，DEX SHA `1263abd420cdf251a7d5cbde2ffb0c4164d7a4ae2381ce0d9064d5a625c0fffd`，临时输出已清；这是源码/合成宿主证据，不是手机或真实 Agent 本轮端到端。真实引擎证明继续引用371cbac前批。当前Node24，目标Node22未另跑。[本批证据](../../rebuild/agent-bridge/hosts/native-task-integration-proof-2026-10-25.json)、[配置与边界](../../rebuild/agent-bridge/hosts/README.md)、[控制合同](../contracts/task-session-control-v1.md)。
+
+总目标仍未完成。生产宿主 `descendantsStopped:false` 保持，单个测试PID退出不替代任意派生工作停止；原生已排队输入的执行期限/取消也未交付。下一步先做真实原生 session 能力目录/心跳和 CLI 默认目标登记：现有 join/openRoutes 仅派生问答连接，不能冒充可执行宿主。随后接独立双击 wake gate、采音 owner/释放证明、委托确认与按 task/command 去重的单条完成摘要；现有 result 分片不会直接进眼镜 notice。KEY 与固件双击对应仍待真机，不用晚到的 NLP hook 假装阻止原厂已执行。Mac解锁/新无线地址的既有问题仍待答复，不重复催问；继续可独立开发项。正常提交推送本分支、不合 main，不重开R2/Hermes/删除同步。
+
 ## [codex] 2026-10-25 官方原会话接入候选：两种引擎隔离执行、停止与继续通过
 
 用户「执行」后完成电脑端候选；fetch 后 Claude 仍96b1dbb已合，全部改动位于 Codex 工作区。没有全局安装插件、修改模型/账号配置或操作现用聊天；手机、眼镜、问答通道未使用，watch保持关闭。手机已验dev92、待装性能候选dev93、稳定回退76不变。
