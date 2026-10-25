@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T02:13:10.095022+00:00",
+  "passed": true,
+  "scope": "Pinned dev89 exact-key read-only deletion-ledger metadata audit, not a deletion adapter or authoritative empty deletion set. Product remains dev89/10511.",
+  "r3_percent": 100,
+  "r4_estimate_percent": 90,
+  "product_unchanged": {
+    "version": "0.5.3-dev89",
+    "version_code": 10511,
+    "sha256": "3529b0db32c118b8a9624d9f81b3149f7b3bc0e328f7a9f2a069b92ae9c20b09",
+    "candidate_sources": 231,
+    "new_product_apk_or_server_release": false
+  },
+  "claude_branch_checked": "96b1dbb",
+  "phone_audit": {
+    "probe_id": "105f82714ae23b8772bb371d31268758",
+    "passed": true,
+    "product": "dev89 /10511",
+    "state_unchanged": true,
+    "credentials_or_text_exported": false,
+    "mutations_attempted": false,
+    "request_attempts": 0,
+    "audit": {
+      "deletion_preferences": [
+        {
+          "key": "flutter.recording_deletion_ledger_v1",
+          "present": false
+        },
+        {
+          "key": "recording_deletion_ledger_v1",
+          "present": false
+        }
+      ],
+      "global_preferences_account_ownership_unverified": true,
+      "deletion_is_authoritative": false,
+      "normal_activity_started": false,
+      "cache_or_log_scan": false,
+      "source_ids_or_content_exported": false,
+      "mutations_attempted": false,
+      "probe_explicit_http_requests": 0
+    }
+  },
+  "driver_build": {
+    "at": "2026-10-25T02:02:42.550513+00:00",
+    "apk_sha256": "ef07582d9441be31a1d11989f1fb5e41722e59dcf2ad4c2ac4021267cdb57cff",
+    "apk_bytes": 274636,
+    "source_sha256": "87744840d2561b99052b83ce5a12520609fdb03c72769fc2b26b5d84b6dfa06c",
+    "builder_sha256": "6ae0cb297f04cf94ab321e72f064d2d7a2fc8b329a030504ac97b323e9fa979e",
+    "manifest_sha256": "b9600b6881d244ee88596a95b8c78d1c5f3ecb068645c69385cf32b104f6baa2",
+    "product_sha256": "3529b0db32c118b8a9624d9f81b3149f7b3bc0e328f7a9f2a069b92ae9c20b09",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "mode": "deletion-ledger",
+    "purpose": "Exact two preference keys only; no normal Activity launch/cache/log/HTTP/audio read or deletion",
+    "wait_for_existing_headless_boot_ms": 15000
+  },
+  "first_driver_build": {
+    "at": "2026-10-25T02:00:19.710420+00:00",
+    "apk_sha256": "a3db8d74b2a546ffc8bb105cbc5572b578aded5af21ceb9093c456b335bd37d8",
+    "apk_bytes": 274636,
+    "source_sha256": "59629b8b0b2cfb58e9f998565a48625b90540c4835e0f19b2f7e1afb2a6e3360",
+    "builder_sha256": "6ae0cb297f04cf94ab321e72f064d2d7a2fc8b329a030504ac97b323e9fa979e",
+    "manifest_sha256": "b9600b6881d244ee88596a95b8c78d1c5f3ecb068645c69385cf32b104f6baa2",
+    "product_sha256": "3529b0db32c118b8a9624d9f81b3149f7b3bc0e328f7a9f2a069b92ae9c20b09",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "mode": "deletion-ledger",
+    "purpose": "Exact two preference keys only; no normal Activity launch/cache/log/HTTP/audio read or deletion"
+  },
+  "public_pinned_tree": {
+    "at": "2026-10-25T02:04:07.310703+00:00",
+    "url": "https://api.github.com/repos/Turbo1123/Turbo-IO/git/trees/f57cc82d0c810435653b684fbdd8c07c533a012f?recursive=1",
+    "commit": "f57cc82d0c810435653b684fbdd8c07c533a012f",
+    "truncated": false,
+    "files": 4444,
+    "dart_files": 0,
+    "deletion_ledger_paths": [],
+    "tree_sha256": "0050ed47abdc3fa86833bc322ac714570710f2413d46a84c551e231e81d6d762",
+    "only_public_git_metadata_read": true
+  },
+  "conclusions": [
+    "Neither flutter.recording_deletion_ledger_v1 nor recording_deletion_ledger_v1 is present in the checked FlutterSharedPreferences snapshot. No ownership, committed, pending or rollback schema was observed.",
+    "Absence of both global keys is not an authoritative empty deletion set, proof of no historical deletion, or permission to delete current materials.",
+    "The pinned public repository tree is complete and has zero Dart files; it does not provide the referenced ledger implementation. This does not claim that no source exists elsewhere.",
+    "Formal text-only approval does not authorize real audio upload/read or deletion. The original audio question is expired without an answer; no duplicate question or credential was created."
+  ],
+  "audio_permission_terminal_record": {
+    "state": "expired",
+    "request_id": "req-f6cc599aff50b96e53ff9b6ed0613cb84bcf33683b05ad079331b57be1fa1946",
+    "expires_at": "2026-10-25T00:42:57.437Z",
+    "answer": null,
+    "caller_verified": true,
+    "network_checked": false
+  },
+  "bottleneck_notice": {
+    "message_id": "notice-85a2204589af189e1ca6b4052ae00ba8cca4c2828c0eb30321cff4bcbab53057",
+    "server_stored": true,
+    "caller_verified": true,
+    "requires_answer": false,
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "progress": {
+      "glasses_progress": true,
+      "checkpoint_due": false,
+      "next_checkin_at": "2026-10-25T02:25:10.448Z",
+      "rule": "每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；默认推送到眼镜。"
+    }
+  },
+  "completion_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-delete-ledger-audit-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T02:40:03.958Z",
+    "requires_answer": false,
+    "message_id": "notice-4a3cbaba76678f45a863cbf5a580203c7995a9160326c69f5865738630949b82",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "current_task_watch": {
+    "at": "2026-10-25T02:10:38.289Z",
+    "task_id": "codex-task-2dfaa9459810661d2ef4dca6f8688c4c9f1149d479b9c8c37860434260d1eba9",
+    "caller_verified": true,
+    "before_enabled": true,
+    "after_enabled": false,
+    "next_checkin_at": null,
+    "glasses_progress_policy_unchanged": true,
+    "only_current_task_watch_changed": true
+  },
+  "cleanup": {
+    "at": "2026-10-25T02:08:32.081773+00:00",
+    "driver_uninstalled": true,
+    "own_derived_driver_stage_removed": true,
+    "derived_bytes_removed": 2558862,
+    "product_sha256_unchanged": true,
+    "protected_user_export_sha256_unchanged": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+    "normal_start_pid": 12552,
+    "returned_home_and_screen_off": true,
+    "no_explicit_capture_delete_or_upload_command": true
+  },
+  "blocker_audit": {
+    "same_external_condition_observed_in_three_consecutive_goal_turns": [
+      "r4-audio-a4-dev88-2026-10-24.json: formal original-audio permission absent; authoritative deletion incomplete",
+      "r4-audio-source-end-dev89-2026-10-24.json: same permission/source gates remain while independent source-end implementation completed",
+      "this audit: exact keys absent, pinned source unavailable, audio request still expired/unanswered"
+    ],
+    "completed_independent_work": "A4/A5 raw producer/export support and ordered source-boundary closure delivered in dev88/dev89; current read-only investigation completed.",
+    "external_inputs_required": [
+      "Explicit authorization of the prepared 24-hour real phone audio read/write test in the existing material space, fixed 72-hour object expiry, no new capture or delete permission.",
+      "A verified original deletion contract/source or existing deletion receipt with account binding, success/rollback semantics and target identity."
+    ],
+    "no_actual_audio_upload_delete_or_sample_creation_to_bypass_inputs": true,
+    "r4_not_completed_or_descoped": true,
+    "goal_status_to_apply_after_commit": "blocked"
+  },
+  "failure_history": [
+    "First exact-key diagnostic ran before the existing eight-second headless secure-store initialization and returned OFFICIAL_LOGIN_REQUIRED before a preference snapshot. Its state_unchanged=false means no snapshot proof, not a confirmed mutation.",
+    "Added a bounded 15-second wait to the diagnostic, rebuilt/replaced only the owned diagnostic and reran once; current account/unchanged snapshot checks passed. Product startup and account guards were not changed.",
+    "Web open could not retrieve the public GitHub API tree; bounded unauthenticated primary GitHub metadata retrieval succeeded, with truncated=false and pinned commit/SHA verified."
+  ],
+  "source_hashes": {
+    "tools/android/OfficialMetadataProbe.java": "87744840d2561b99052b83ce5a12520609fdb03c72769fc2b26b5d84b6dfa06c"
+  },
+  "authorization_reference": {
+    "file": "AGENTS.md",
+    "line": 38,
+    "exact_restriction": "仅文字，不扩大到原音或删除，不是无限期签发授权。"
+  },
+  "device_lock_release": {
+    "state": "free"
+  },
+  "not_verified_or_incomplete": [
+    "Normal real-audio automatic upload/read/export without a new explicit grant.",
+    "Observed A4 cache profile/continuity and safe older-task cached capture with no matching active native task context.",
+    "Authoritative original deletions, account-scoped committed/rollback handling, and receipt-gated source cleanup."
+  ],
+  "historical_dev6_inventory_mode_guard_retained": true,
+  "historical_dev6_inventory_mode_rerun": false
+}
