@@ -1,0 +1,299 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T00:52:19.198552+00:00",
+  "passed": true,
+  "scope": "dev87 same-task empty A5 control handling; isolated loopback upload/read/export and installed Android own-UID SDK/native synthetic local export. No real-user audio upload or A4 proof.",
+  "product": {
+    "version": "0.5.3-dev87",
+    "version_code": 10509,
+    "sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "bytes": 429822233,
+    "signature_v2": true,
+    "signature_v3": true,
+    "installed": true,
+    "installed_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b"
+  },
+  "candidate_sources": 230,
+  "claude_branch_checked": "96b1dbb",
+  "r3_percent": 100,
+  "r4_estimate_percent": 90,
+  "original_host": {
+    "version": "1.0.7",
+    "code": 230,
+    "source_apk_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+    "a5_exit_branch": "com/rayneo/rayneo_venus_sdk_plugin/e.smali:2632-2805",
+    "a4_cache_branch": "com/rayneo/rayneo_venus_sdk_plugin/e.smali:2806-2880",
+    "cached_bytes_append": "o8/e.smali:164-354",
+    "a5_exit_does_not_prove_complete_audio": true,
+    "a4_append_and_opus_extension_do_not_establish_framing": true
+  },
+  "behavior": {
+    "known_a3_and_same_task_empty_a5_original_bytes_preserved": true,
+    "unknown_protocol_metadata_or_audio_stays_local": true,
+    "control_records_not_audio_frames": true,
+    "control_only_journal_no_fake_upload_job_or_error": true,
+    "no_deletion_or_completeness_inference": true
+  },
+  "host_a5": {
+    "passed": true,
+    "control_parser_checks": 28,
+    "producer_checks": 9,
+    "receiver_checks": 77,
+    "restore_checks": 22,
+    "prior_committed_a5_refusal_reproduced": true,
+    "baseline_source_hashes": {
+      "rebuild/android-app/src/com/turboio/addon/LifelogAudioSource.java": "a56421bd94973c30e1a4d4bf29bf646a8be027a1c5b47d0aac6e57eba5f4bd11",
+      "rebuild/android-app/src/com/turboio/addon/LifelogAudioExport.java": "2d1a901a50b72f703d3073cabc30567230aa9c0076ad5468c7d2f9e4d93c7353",
+      "rebuild/android-app/src/com/turboio/addon/LifelogAudioPayloads.java": "cead33e1d1866b2212ac0b90c317a954ff240a2fb57644212d5c28a1c605028a",
+      "rebuild/android-app/src/com/turboio/addon/AudioSyncSession.java": "e2aac1cf74a48edab5e7e687a3543ed75fbc781619601c2d6896c9a87405a457"
+    },
+    "independent_decoded_samples48": 1920,
+    "original_namespace_unchanged": true,
+    "all_duplicate_sources_validated": true,
+    "fixed_receipt_unchanged": true,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 2
+  },
+  "host_a3_regression": {
+    "passed": true,
+    "producer_checks": 9,
+    "receiver_checks": 76,
+    "restore_checks": 22,
+    "independent_decoded_samples48": 1920,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 2
+  },
+  "a5_negative_variants": [
+    "different_task",
+    "nonempty_data",
+    "unknown_protobuf",
+    "wrong_version",
+    "unknown_json",
+    "coerced_rc"
+  ],
+  "upload_regression": {
+    "passed": true,
+    "unit_assertions": 70,
+    "producer_raw_envelope_exact_original_bytes": true,
+    "producer_copy_and_publish_process_halt_recovery": true,
+    "automatic_session_queue_before_network_crash_recovered": true,
+    "automatic_source_cursor_and_permission_gating": true
+  },
+  "local_export_regression": {
+    "passed": true,
+    "checks": 37
+  },
+  "diagnostic_build": {
+    "schema": 1,
+    "at": "2026-10-25T00:47:06.201Z",
+    "package": "com.turboio.audioprobe.codex",
+    "label": "iO Agent audio validation",
+    "instrumentation": "com.turboio.audioprobe.AudioPhoneIsolationProbe",
+    "target_package": "com.turboio.audioprobe.codex",
+    "debuggable": false,
+    "permissions": [
+      "android.permission.INTERNET"
+    ],
+    "no_record_audio_permission": true,
+    "apk_sha256": "a773c37dd2e6fa771ba0afb8d27453ed976a321d0e59384d43f7e42f5c6ed142",
+    "apk_bytes": 28876,
+    "source_sha256": "b3fdb104f020ed08e2a823e1f7a8a4f0f732984dcf76a7a4e8d36a1607c2e521",
+    "builder_sha256": "8dd4acd1704f4569cf42eb4f514838f718380f54109f798765985a90ba3b40ac",
+    "manifest_sha256": "8656b948af1260a8c251c5ca3229d90f796b9069726ab0dfa92148b440c46e45",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "product_bytecode_expected_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b"
+  },
+  "diagnostic_install": {
+    "installed": true,
+    "apk_sha256": "a773c37dd2e6fa771ba0afb8d27453ed976a321d0e59384d43f7e42f5c6ed142",
+    "own_install_confirmed": 1,
+    "product_apk_unchanged": true
+  },
+  "phone_sdk": {
+    "mode": "a5-sdk",
+    "pid": 14593,
+    "own_uid": 10360,
+    "product_uid": 10315,
+    "isolated_uid": true,
+    "installed_product_bytecode": true,
+    "actual_vendor_protobuf_and_dto": true,
+    "a5_variants": 4,
+    "sdk_dispatch_called": false,
+    "exit_is_not_completeness_evidence": true,
+    "checks": 24,
+    "passed": true,
+    "microphone_started": false,
+    "playback_started": false,
+    "official_account_read": false,
+    "product_settings_accessed": false
+  },
+  "phone_native_local_export": {
+    "mode": "a5-export",
+    "pid": 14717,
+    "own_uid": 10360,
+    "product_uid": 10315,
+    "isolated_uid": true,
+    "installed_product_bytecode": true,
+    "output_sha256": "4084c75f83e1a72ce3beacca49fd5265ae52a6e32f9f8be1e43ab2f3e7a03fbc",
+    "output_bytes": 1596,
+    "frames": 2,
+    "samples48": 1920,
+    "parts": 1,
+    "control_batches": 1,
+    "native_product_decoder_factories": 1,
+    "original_unchanged": true,
+    "recording_complete": false,
+    "network_used": false,
+    "checks": 12,
+    "passed": true,
+    "microphone_started": false,
+    "playback_started": false,
+    "official_account_read": false,
+    "product_settings_accessed": false
+  },
+  "independent_phone_zip": {
+    "zip_sha256": "4084c75f83e1a72ce3beacca49fd5265ae52a6e32f9f8be1e43ab2f3e7a03fbc",
+    "bytes": 1596,
+    "crc_passed": true,
+    "exact_three_entries": true,
+    "index_controls": 1,
+    "index_source_batches": 3,
+    "decoded_samples48": 1920,
+    "recording_complete": false,
+    "local_only": true,
+    "only_known_synthetic_zip_pulled": true,
+    "no_user_audio_pulled": true
+  },
+  "diagnostic_cleanup": {
+    "diagnostic_package_removed": true,
+    "product_apk_unchanged": true
+  },
+  "delta": {
+    "baseline_sha256": "700d0faae8284a5b1899acfa00044d5e477833fa654b09da21e30f8bc56baa29",
+    "target_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "delta_bytes": 1539397,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 7.911
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 6.358
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 4.587
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 5.79
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 5.813
+      },
+      {
+        "bytes": 228677,
+        "through": 1539397,
+        "seconds": 4.002
+      }
+    ],
+    "resume_seconds": 39.955,
+    "earlier_attempts": []
+  },
+  "postinstall": {
+    "product_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "product_pid_after_normal_launch": 13270,
+    "returned_background_screen_off": true,
+    "diagnostic_package_removed": true,
+    "own_remote_delta_stage_removed": true,
+    "protected_user_export_sha256": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+    "user_export_unchanged": true,
+    "data_cleared": false,
+    "explicit_microphone_or_playback_request": false
+  },
+  "retention": {
+    "kept_signed_product_apks": [
+      "iO-Agent-Android-0.5.3-dev76.apk",
+      "iO-Agent-Android-0.5.3-dev87.apk"
+    ],
+    "stable_rollback_version": "0.5.3-dev76",
+    "current_installed_version": "0.5.3-dev87",
+    "known_dev86_apk_removed": true,
+    "own_local_delta_removed": true,
+    "own_probe_compiled_stage_and_synthetic_zip_removed": true,
+    "small_logs_and_evidence_retained": true,
+    "released_bytes": 431500750
+  },
+  "authorization": {
+    "existing_text_grant_not_extended": true,
+    "real_audio_grant_obtained": false,
+    "request_id": "req-f6cc599aff50b96e53ff9b6ed0613cb84bcf33683b05ad079331b57be1fa1946",
+    "state": "expired",
+    "expires_at": "2026-10-25T00:42:57.437Z",
+    "answer": null,
+    "same_request_only_no_reissue": true,
+    "formal_audio_upload_not_attempted": true
+  },
+  "bottleneck_notice": {
+    "message_id": "notice-1d3353abf8badd94f89783b0cc42cde569dc6a2a6473f4b5d262e7ac8c0499a6",
+    "server_stored": true,
+    "caller_verified": true,
+    "requires_answer": false,
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "progress": {
+      "glasses_progress": true,
+      "checkpoint_due": false,
+      "next_checkin_at": "2026-10-25T00:47:54.053Z",
+      "rule": "每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；默认推送到眼镜。"
+    }
+  },
+  "completion_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-a5-dev87-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T01:21:04.192Z",
+    "requires_answer": false,
+    "message_id": "notice-8464eb659e48d5b5a81b03e7e864310bb08fb47da93dfd0c6530d00d3381ee01",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "not_verified": [
+    "A4 cached audio framing and complete-original export",
+    "normal product UI positive remote A5 export or real-user automatic backup",
+    "continuous capture and subjective listening",
+    "account-bound authoritative stock deletion feed and receipt-based local cleanup"
+  ],
+  "failure_history": [
+    "Negative fixtures first reused one source namespace and correctly hit AUDIO_MANAGER_REPLAY_CONFLICT; isolated each variant without weakening replay checks, then passed.",
+    "Default Node24 invocation stopped at pinned-Node22 guard before tests; known Node22 rerun passed.",
+    "Lock release succeeded with state=free; a post-release assertion expected released. Read-only status confirmed free, without repeating release."
+  ],
+  "source_hashes": {
+    "rebuild/android-app/src/com/turboio/addon/AlwaysOnAudioControl.java": "a7f5d3e16bcad79c171ee2c10b05b4bc6ff391a654e5a6c2f0855509c91b3a45",
+    "rebuild/android-app/src/com/turboio/addon/AudioSyncSession.java": "cf15606c2d8153cdb904be923e3365e4b7dbdc2466958af7477a5f14ae69c7b9",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioPayloads.java": "02061e23803e4d4f208a5d4fadfb6f29b5d783ec2b053fa17ea2f81258afa946",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioSource.java": "4eb74d2357d56d63f8e50bee1c2ab6a2f1cfcc100ea48385fb08eb996df4dabf",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioExport.java": "4bb313531df6c2f59b9165a19a5677c0a33ed0e03e8de8cdecae97cc9f69c010",
+    "tools/android/AlwaysOnAudioControlTest.java": "2d5530b882cf5c990274c57fd356a132b442c9eab2ebb7d689d1317b6f59ada9",
+    "tools/android/RemoteAudioExportTest.java": "aa28c48be5f92d1f1e9dec920c47572e98e90251b7ce9841fb57ce0194078e49",
+    "tools/android/test-audio-remote-export.mjs": "725244aecbd20d87c901472d6b9b431c66f5c15d57f320ea9ee1928683f3efe0",
+    "tools/android/AudioPhoneIsolationProbe.java": "b3fdb104f020ed08e2a823e1f7a8a4f0f732984dcf76a7a4e8d36a1607c2e521",
+    "tools/android/run-audio-phone-probe.py": "21bb53c7dd33ea0afb6f6ce70cd1801f33dffd09763bf3c90df7429cbb6c1447"
+  },
+  "device_lock_release": {
+    "state": "free"
+  }
+}

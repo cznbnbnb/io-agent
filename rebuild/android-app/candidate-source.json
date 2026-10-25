@@ -329,6 +329,10 @@
       "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
     },
     {
+      "path": "src/com/turboio/addon/AlwaysOnAudioControl.java",
+      "sha256": "a7f5d3e16bcad79c171ee2c10b05b4bc6ff391a654e5a6c2f0855509c91b3a45"
+    },
+    {
       "path": "src/com/turboio/addon/AlwaysOnWire.java",
       "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
     },
@@ -374,7 +378,7 @@
     },
     {
       "path": "src/com/turboio/addon/AudioSyncSession.java",
-      "sha256": "e2aac1cf74a48edab5e7e687a3543ed75fbc781619601c2d6896c9a87405a457"
+      "sha256": "cf15606c2d8153cdb904be923e3365e4b7dbdc2466958af7477a5f14ae69c7b9"
     },
     {
       "path": "src/com/turboio/addon/AudioUploadOutbox.java",
@@ -534,7 +538,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioExport.java",
-      "sha256": "2d1a901a50b72f703d3073cabc30567230aa9c0076ad5468c7d2f9e4d93c7353"
+      "sha256": "4bb313531df6c2f59b9165a19a5677c0a33ed0e03e8de8cdecae97cc9f69c010"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioHealth.java",
@@ -558,7 +562,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
-      "sha256": "cead33e1d1866b2212ac0b90c317a954ff240a2fb57644212d5c28a1c605028a"
+      "sha256": "02061e23803e4d4f208a5d4fadfb6f29b5d783ec2b053fa17ea2f81258afa946"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioRemoteSource.java",
@@ -570,7 +574,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioSource.java",
-      "sha256": "a56421bd94973c30e1a4d4bf29bf646a8be027a1c5b47d0aac6e57eba5f4bd11"
+      "sha256": "4eb74d2357d56d63f8e50bee1c2ab6a2f1cfcc100ea48385fb08eb996df4dabf"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -602,7 +606,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialAudioExport.java",
-      "sha256": "8f8cc8e31a50cc76922d82ae525ef8912729c26144c35a62cf3a6e76af080410"
+      "sha256": "77c4478aea6f3394c6cfb3c77bf00ae1cb3eac631c6076daecaa8e4fdfb45257"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
@@ -914,11 +918,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "3dacc68433fe33d76eab4097cbe0f897d41da522f77a1136735ff9d1d2139bd1"
+      "sha256": "eece736e9cc5f1d1b650391d75189d4e3263360f584120547710c8eaea948175"
     }
   ],
-  "product_sha256": "22511a66a8b7e4f50c354ad62e29a1f893e550d37fc4e74ad201497369934b34",
-  "addon_sha256": "d224c1693dfedc39286ad7b5523d04174ef70d37b46940e221d4163c83139955",
+  "product_sha256": "51e59721df87bdbf9cf4835836e1e01097d809f35f774e9f844ac2a12d93aa33",
+  "addon_sha256": "9d607e5a91bd992b35c183da5bfe01e810ba85406b0db9a45e612c36fd08736b",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

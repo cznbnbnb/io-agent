@@ -8,7 +8,7 @@ PKG = 'com.turboio.audioprobe.codex'
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['install', 'seed', 'reload', 'fence', 'recover', 'import', 'export', 'cleanup'])
+    parser.add_argument('mode', choices=['install', 'seed', 'reload', 'fence', 'recover', 'import', 'export', 'a5-sdk', 'a5-export', 'cleanup'])
     parser.add_argument('--serial', required=True)
     parser.add_argument('--serial-sha256', required=True)
     parser.add_argument('--fixture-ms', type=int)
