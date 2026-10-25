@@ -124,7 +124,23 @@ function turnsOf(state){
     const history=state.turnHistory.history;
     requireValue(object(history?.entitiesByKey)&&Array.isArray(history.islands),'CODEX_DESKTOP_STATE_UNSUPPORTED');
     const turns=history.islands.flatMap(island=>island.entries.map(entry=>history.entitiesByKey[entry.value]));
-    requireValue(turns.every(object),'CODEX_DESKTOP_STATE_UNCERTAIN');return turns;
+    requireValue(turns.every(object),'CODEX_DESKTOP_STATE_UNCERTAIN');
+    // Native q(state) merges canonical history with the live legacy overlay.
+    // Dropping the overlay can hide an in-flight or newly accepted turn. We
+    // conservatively retain inProgress and reject conflicting terminal data.
+    const merged=[...turns],positions=new Map();
+    const key=turn=>turn.turnId!=null?`turn:${turn.turnId}`:turn.params?.clientUserMessageId!=null?`message:${turn.params.clientUserMessageId}`:null;
+    for(let index=0;index<merged.length;index++){const id=key(merged[index]);if(id!==null){requireValue(!positions.has(id),'CODEX_DESKTOP_STATE_UNCERTAIN');positions.set(id,index);}}
+    for(const overlay of state.turns??[]){
+      requireValue(object(overlay),'CODEX_DESKTOP_STATE_UNCERTAIN');const id=key(overlay),index=id===null?undefined:positions.get(id);
+      if(index===undefined){if(id!==null)positions.set(id,merged.length);merged.push(overlay);continue;}
+      const existing=merged[index],a=existing.params?.clientUserMessageId,b=overlay.params?.clientUserMessageId;
+      requireValue(a==null||b==null||a===b,'CODEX_DESKTOP_OPERATION_AMBIGUOUS');
+      const active=existing.status==='inProgress'||overlay.status==='inProgress';
+      requireValue(active||existing.status===overlay.status,'CODEX_DESKTOP_STATE_UNCERTAIN');
+      merged[index]={...existing,...overlay,status:active?'inProgress':overlay.status,params:{clientUserMessageId:b??a??null}};
+    }
+    return merged;
   }
   if(Array.isArray(state.turns))return state.turns;
   throw new DesktopError('CODEX_DESKTOP_STATE_UNSUPPORTED');
@@ -136,13 +152,16 @@ function projectHistory(history){
   return{entitiesByKey:Object.fromEntries(entries.map(([key,turn])=>[key,projectTurn(turn)])),islands:structuredClone(history.islands)};
 }
 function projectState(state){
-  return{id:state.id,cwd:state.cwd??null,threadRuntimeStatus:state.threadRuntimeStatus??null,turns:Array.isArray(state.turns)?state.turns.map(projectTurn):[],
+  return{id:state.id,cwd:state.cwd??null,threadRuntimeStatus:state.threadRuntimeStatus??null,resumeState:state.resumeState??null,
+    unconfirmedTurnSubmissions:Array.isArray(state.unconfirmedTurnSubmissions)?state.unconfirmedTurnSubmissions.map(projectSubmission):[],turns:Array.isArray(state.turns)?state.turns.map(projectTurn):[],
     ...(state.turnHistory?.kind==='canonical'?{turnHistory:{kind:'canonical',history:projectHistory(state.turnHistory.history)}}:{})};
 }
+function projectSubmission(submission){return{terminal:submission?.terminal??null};}
 const SKIP=Symbol('irrelevant');
 function projectPatch(parts,value){
   if(parts.length===0)return projectState(value);
-  if(parts[0]==='id'||parts[0]==='cwd'||parts[0]==='threadRuntimeStatus')return value;
+  if(['id','cwd','threadRuntimeStatus','resumeState'].includes(parts[0]))return value;
+  if(parts[0]==='unconfirmedTurnSubmissions')return parts.length===1?value.map(projectSubmission):parts.length===2?projectSubmission(value):parts.length===3&&parts[2]==='terminal'?value:SKIP;
   let rest;
   if(parts[0]==='turns'){
     if(parts.length===1)return value.map(projectTurn);if(parts.length===2)return projectTurn(value);rest=parts.slice(2);
@@ -168,7 +187,7 @@ export function applyMetadataPatches(state,patches){
     // the removed transcript or an invented replacement object.
     let value;
     if(patch.op==='remove'){
-      const relevant=parts.length===0||['id','cwd','threadRuntimeStatus'].includes(parts[0])||parts[0]==='turns'&&(parts.length<=2||['status','turnId'].includes(parts[2])||parts[2]==='params'&&(parts.length===3||parts[3]==='clientUserMessageId'))||parts[0]==='turnHistory'&&(parts.length<=2||parts[2]==='islands'||parts[2]==='entitiesByKey'&&(parts.length<=4||['status','turnId'].includes(parts[4])||parts[4]==='params'&&(parts.length===5||parts[5]==='clientUserMessageId')));
+      const relevant=parts.length===0||['id','cwd','threadRuntimeStatus','resumeState'].includes(parts[0])||parts[0]==='unconfirmedTurnSubmissions'&&(parts.length<=2||parts.length===3&&parts[2]==='terminal')||parts[0]==='turns'&&(parts.length<=2||['status','turnId'].includes(parts[2])||parts[2]==='params'&&(parts.length===3||parts[3]==='clientUserMessageId'))||parts[0]==='turnHistory'&&(parts.length<=2||parts[2]==='islands'||parts[2]==='entitiesByKey'&&(parts.length<=4||['status','turnId'].includes(parts[4])||parts[4]==='params'&&(parts.length===5||parts[5]==='clientUserMessageId')));
       if(!relevant)continue;
     }else{value=projectPatch(parts,patch.value);if(value===SKIP)continue;}
     if(parts.length===0){requireValue(patch.op!=='remove','CODEX_DESKTOP_PATCH_INVALID');state=value;continue;}
@@ -187,15 +206,30 @@ export function summarizeState(state,conversationId){
   const running=turns.filter(turn=>turn?.status==='inProgress');
   requireValue(running.length<=1,'CODEX_DESKTOP_STATE_UNCERTAIN');
   const active=running[0]??null,latest=turns.at(-1)??null;
-  return {conversationId,busy:active!==null||state.threadRuntimeStatus?.type==='active',activeTurnId:active?.turnId??null,
+  // Even terminal-marked unconfirmed submissions remain fenced by the native
+  // owner's O_(state) until reconciliation removes them. A resuming owner is
+  // also not idle merely because its first turn has not appeared yet.
+  return {conversationId,busy:active!==null||state.threadRuntimeStatus?.type==='active'||state.resumeState==='resuming'||(state.unconfirmedTurnSubmissions?.length??0)>0,activeTurnId:active?.turnId??null,
     latestTurnId:latest?.turnId??null,latestStatus:latest?.status??null,
     // Metadata only; transcript and user inputs are never returned by status.
     workspace:state.cwd??null,loadedTurns:turns.length};
 }
 
+// Pure receipt validation for a future verified idle-only admission endpoint.
+// It does not enable delivery. A transport success without a native turn is
+// still an unknown outcome, never proof that a user message was accepted.
+export function validateStartReceipt(reply){
+  const turn=reply?.result?.result?.turn;
+  if(!object(turn)||typeof turn.id!=='string'||!turn.id.trim()||turn.id.length>160||!['inProgress','completed','failed','interrupted'].includes(turn.status))throw new DesktopError('CODEX_DESKTOP_START_RECEIPT_INVALID',{outcomeUnknown:true});
+  return{turnId:turn.id,status:turn.status};
+}
+
+const CAPABILITIES=Object.freeze({atomic_idle_start:false,exact_turn_interrupt:true});
+
 export class CodexDesktopSession {
   #channel;#owner;#snapshotPromise=null;#state=null;#stateError=null;#revision=-1;#unlisten=null;#snapshotReject=null;#snapshotTimer=null;
   constructor(channel,conversationId){requireValue(uuid(conversationId),'CODEX_DESKTOP_SESSION_INVALID');this.#channel=channel;this.conversationId=conversationId;}
+  get capabilities(){return CAPABILITIES;}
   static async connect(conversationId,{socketPath=path.join(os.homedir(),'.codex/ipc/ipc.sock'),asar,timeoutMs=5000}={}){
     verifyDesktopBuild(asar);const channel=await new DesktopChannel(socketPath,{timeoutMs}).connect();
     try{return await new CodexDesktopSession(channel,conversationId).attach();}catch(error){channel.close();throw error;}
@@ -245,14 +279,10 @@ export class CodexDesktopSession {
   }
   async start({text,clientUserMessageId}){
     requireValue(typeof text==='string'&&text.trim()&&Buffer.byteLength(text)<=32768&&uuid(clientUserMessageId),'CODEX_DESKTOP_INPUT_INVALID');
-    requireValue(!(await this.status()).busy,'CODEX_DESKTOP_BUSY');
-    const reply=await this.#channel.request('thread-follower-start-turn',{
-      conversationId:this.conversationId,
-      turnStart:{request:{threadId:this.conversationId,input:[{type:'text',text,text_elements:[]}],clientUserMessageId},context:{inheritThreadSettings:true,useUserMessageAdmission:false}}
-    },{targetClientId:this.#owner,mutation:true});
-    // Acceptance is not completion. The caller must persist this operation ID
-    // before sending and reconcile its native turn before publishing results.
-    return {accepted:true,clientUserMessageId,receipt:reply.result.result};
+    // Neither start-turn nor user-message admission supplies an atomic
+    // idle-only fence. A desktop user can start a turn after any status check,
+    // and native turn/start may steer that turn. No override is provided.
+    throw new DesktopError('CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED');
   }
   async interrupt(expectedTurnId){
     requireValue(typeof expectedTurnId==='string'&&expectedTurnId.length>0&&expectedTurnId.length<=160,'CODEX_DESKTOP_TURN_INVALID');

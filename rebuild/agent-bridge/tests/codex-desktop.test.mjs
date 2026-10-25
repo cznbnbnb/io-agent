@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import {randomUUID} from 'node:crypto';
-import {DesktopChannel,CodexDesktopSession,applyMetadataPatches,summarizeState,verifyDesktopBuild} from '../hosts/codex-desktop.mjs';
+import {DesktopChannel,CodexDesktopSession,applyMetadataPatches,summarizeState,validateStartReceipt,verifyDesktopBuild} from '../hosts/codex-desktop.mjs';
 
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const THREAD='10000000-0000-4000-8000-000000000001',OWNER='20000000-0000-4000-8000-000000000002',CLIENT='30000000-0000-4000-8000-000000000003';
@@ -27,7 +27,6 @@ async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true}={
         if(frame.method==='initialize')reply({clientId:CLIENT});
         else if(frame.method==='thread-owner-discovery')reply({supportsUntrustedAppInput:true});
         else if(frame.method==='thread-follower-read-model-settings')reply({settings:{model:'unchanged',resumeState:'resumed'}});
-        else if(frame.method==='thread-follower-start-turn')reply({result:{turn:{id:'native-turn'}}});
         else if(frame.method==='thread-follower-interrupt-turn')reply({ok:true,interruptedTurnId:frame.params.expectedTurnId});
       }else if(frame.type==='broadcast'&&frame.params.following){snapshots++;broadcast(socket,{type:'snapshot',revision,conversationState:current});}
     }});
@@ -57,6 +56,37 @@ test('canonical timeline order takes precedence over empty legacy turns',()=>{
   assert.throws(()=>summarizeState({...canonical,id:randomUUID()},THREAD),{code:'CODEX_DESKTOP_SESSION_MISMATCH'});
 });
 
+test('canonical history includes the live overlay and cannot hide pending native turns',()=>{
+  const id=randomUUID(),canonical={...state(),turnHistory:{kind:'canonical',history:{entitiesByKey:{a:turn('old','completed')},islands:[{entries:[{value:'a'}]}]}}};
+  const combined={...canonical,turns:[turn('new','inProgress',id)]};
+  assert.equal(summarizeState(combined,THREAD).busy,true);
+  assert.equal(summarizeState(combined,THREAD).activeTurnId,'new');
+  assert.equal(summarizeState(combined,THREAD).latestTurnId,'new');
+  const duplicate={...canonical,turns:[turn('old','inProgress',id)]};
+  assert.equal(summarizeState(duplicate,THREAD).busy,true);assert.equal(summarizeState(duplicate,THREAD).loadedTurns,1);
+  assert.throws(()=>summarizeState({...canonical,turns:[turn('old','failed')]},THREAD),{code:'CODEX_DESKTOP_STATE_UNCERTAIN'});
+});
+
+test('resuming and unconfirmed submissions remain busy through projected patches',async t=>{
+  const f=await fixture(t,{initial:{...state(),resumeState:'resuming'}});
+  assert.equal((await f.session.status()).busy,true);
+  f.patch([{op:'replace',path:['resumeState'],value:'resumed'},{op:'add',path:['unconfirmedTurnSubmissions'],value:[{terminal:false,input:'private pending prompt'}]}]);
+  assert.equal((await f.session.status()).busy,true);
+  assert(!JSON.stringify(await f.session.snapshot()).includes('private pending prompt'));
+  f.patch([{op:'replace',path:['unconfirmedTurnSubmissions',0,'terminal'],value:true}]);
+  assert.equal((await f.session.status()).busy,true,'unknown submission remains fenced until removed');
+  f.patch([{op:'remove',path:['unconfirmedTurnSubmissions',0]}]);
+  assert.equal((await f.session.status()).busy,false);
+});
+
+test('canonical and legacy operation mappings merge or fail closed on disagreement',async t=>{
+  const id=randomUUID(),canonical={...state([turn('one','inProgress',id)]),turnHistory:{kind:'canonical',history:{entitiesByKey:{a:turn('one','inProgress')},islands:[{entries:[{value:'a'}]}]}}};
+  const f=await fixture(t,{initial:canonical});
+  assert.deepEqual(await f.session.inspectOperation(id),{found:true,turnId:'one',status:'inProgress'});
+  f.patch([{op:'replace',path:['turnHistory','history','entitiesByKey','a','params','clientUserMessageId'],value:randomUUID()}]);
+  await assert.rejects(async()=>f.session.status(),{code:'CODEX_DESKTOP_OPERATION_AMBIGUOUS'});
+});
+
 test('metadata projection follows real revision patches without retaining transcript',async t=>{
   const f=await fixture(t,{initial:state([turn('one','inProgress')])});await f.session.status();
   f.patch([{op:'add',path:['turns',0,'items',1],value:{text:'another sensitive result'}},{op:'replace',path:['turns',0,'status'],value:'completed'},{op:'replace',path:['threadRuntimeStatus','type'],value:'idle'}]);
@@ -79,16 +109,28 @@ test('wrong-owner snapshots are ignored, missing revisions invalidate actionabil
   await assert.rejects(async()=>f.session.interrupt('one'),{code:'CODEX_DESKTOP_STATE_GAP'});assert(!f.messages.some(v=>v.method==='thread-follower-interrupt-turn'));
 });
 
-test('input goes once to original owner and inherits existing permissions/model',async t=>{
-  const f=await fixture(t);const id=randomUUID();assert.equal((await f.session.start({text:'Only answer this isolated test.',clientUserMessageId:id})).accepted,true);
-  const sent=f.messages.filter(v=>v.method==='thread-follower-start-turn');assert.equal(sent.length,1);assert.equal(sent[0].version,2);assert.equal(sent[0].params.conversationId,THREAD);
-  assert.deepEqual(sent[0].params.turnStart,{request:{threadId:THREAD,input:[{type:'text',text:'Only answer this isolated test.',text_elements:[]}],clientUserMessageId:id},context:{inheritThreadSettings:true,useUserMessageAdmission:false}});
+test('input stays disabled until native atomic idle-only admission is verified',async t=>{
+  const f=await fixture(t),id=randomUUID();
+  assert.deepEqual(f.session.capabilities,{atomic_idle_start:false,exact_turn_interrupt:true});
+  assert.throws(()=>{f.session.capabilities.atomic_idle_start=true;},TypeError);
+  await assert.rejects(f.session.start({text:'Only answer this isolated test.',clientUserMessageId:id}),{code:'CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED'});
+  await Promise.all([1,2].map(()=>assert.rejects(f.session.start({text:'simultaneous caller',clientUserMessageId:randomUUID()}),{code:'CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED'})));
+  assert(!f.messages.some(v=>v.method==='thread-follower-start-turn'));
   assert(!f.messages.some(v=>/resume|approval|permissions/.test(v.method)));
+  await assert.rejects(f.session.start({text:'',clientUserMessageId:id}),{code:'CODEX_DESKTOP_INPUT_INVALID'});
+});
+
+test('empty, malformed or unknown start receipts never count as acceptance',()=>{
+  const good={result:{result:{turn:{id:'native-turn',status:'inProgress'}}}};
+  assert.deepEqual(validateStartReceipt(good),{turnId:'native-turn',status:'inProgress'});
+  for(const bad of [{},{result:{}},{result:{result:{}}},{result:{result:{turn:{id:'',status:'inProgress'}}}},{result:{result:{turn:{id:'native-turn',status:'unknown'}}}}]){
+    assert.throws(()=>validateStartReceipt(bad),error=>error.code==='CODEX_DESKTOP_START_RECEIPT_INVALID'&&error.outcomeUnknown===true);
+  }
 });
 
 test('ordinary input while busy sends nothing and stale interrupt cannot affect new turn',async t=>{
   const f=await fixture(t,{initial:state([turn('new','inProgress')])});
-  await assert.rejects(f.session.start({text:'queued elsewhere',clientUserMessageId:randomUUID()}),{code:'CODEX_DESKTOP_BUSY'});
+  await assert.rejects(f.session.start({text:'queued elsewhere',clientUserMessageId:randomUUID()}),{code:'CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED'});
   assert.deepEqual(await f.session.interrupt('old'),{requested:false,expectedTurnId:'old',reason:'turn_no_longer_active'});
   assert(!f.messages.some(v=>['thread-follower-start-turn','thread-follower-interrupt-turn'].includes(v.method)));
 });
@@ -112,16 +154,16 @@ test('a delayed older snapshot cannot replace the active turn',async t=>{
   await assert.rejects(async()=>f.session.status(),{code:'CODEX_DESKTOP_STATE_GAP'});
 });
 
-test('lost start reply is unknown; it is not retried or reported as complete',async t=>{
-  const f=await fixture(t,{handler:({frame,socket})=>{if(frame.method==='thread-follower-start-turn'){socket.destroy();return true;}}});
-  await assert.rejects(f.session.start({text:'one request',clientUserMessageId:randomUUID()}),e=>e.code==='CODEX_DESKTOP_DISCONNECTED'&&e.outcomeUnknown===true);
-  assert.equal(f.messages.filter(v=>v.method==='thread-follower-start-turn').length,1);await assert.rejects(async()=>f.session.status(),{code:'CODEX_DESKTOP_DISCONNECTED'});
+test('lost interrupt reply is unknown; it is not retried or reported as stopped',async t=>{
+  const f=await fixture(t,{initial:state([turn('one','inProgress')]),handler:({frame,socket})=>{if(frame.method==='thread-follower-interrupt-turn'){socket.destroy();return true;}}});
+  await assert.rejects(f.session.interrupt('one'),e=>e.code==='CODEX_DESKTOP_DISCONNECTED'&&e.outcomeUnknown===true);
+  assert.equal(f.messages.filter(v=>v.method==='thread-follower-interrupt-turn').length,1);await assert.rejects(async()=>f.session.status(),{code:'CODEX_DESKTOP_DISCONNECTED'});
 });
 
 test('timeout does not retry, and operation absent from loaded history stays unknown',async t=>{
-  const f=await fixture(t,{timeoutMs:80,handler:({frame})=>frame.method==='thread-follower-start-turn'});const id=randomUUID();
-  await assert.rejects(f.session.start({text:'lost acknowledgement',clientUserMessageId:id}),e=>e.code==='CODEX_DESKTOP_REPLY_TIMEOUT'&&e.outcomeUnknown===true);
-  assert.deepEqual(await f.session.inspectOperation(id),{found:false,outcomeUnknown:true});assert.equal(f.messages.filter(v=>v.method==='thread-follower-start-turn').length,1);
+  const f=await fixture(t,{initial:state([turn('one','inProgress')]),timeoutMs:80,handler:({frame})=>frame.method==='thread-follower-interrupt-turn'});const id=randomUUID();
+  await assert.rejects(f.session.interrupt('one'),e=>e.code==='CODEX_DESKTOP_REPLY_TIMEOUT'&&e.outcomeUnknown===true);
+  assert.deepEqual(await f.session.inspectOperation(id),{found:false,outcomeUnknown:true});assert.equal(f.messages.filter(v=>v.method==='thread-follower-interrupt-turn').length,1);
 });
 
 test('oversized frame and prototype patch fail closed without mutating global prototypes',async t=>{

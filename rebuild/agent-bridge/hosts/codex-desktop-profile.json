@@ -17,6 +17,11 @@
       "path": ".vite/build/application-network-startup-BG13czUt.js",
       "bytes": 292827,
       "sha256": "90db83017c05bf247b53a09bb04a3312e0003259c56144535b09805085b16a6c"
+    },
+    {
+      "path": ".vite/build/conversation-turn-mutations-DZp-AgIY.js",
+      "bytes": 53115,
+      "sha256": "f386be772ed58985a666ec48ded161be66cf8d3df0389f09fe622a0bbf40b170"
     }
   ],
   "versions": {

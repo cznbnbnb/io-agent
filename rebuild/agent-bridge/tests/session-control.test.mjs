@@ -1,0 +1,131 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {SessionControl} from '../hosts/session-control.mjs';
+
+function fixture(t){
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'native-session-control-')),stateFile=path.join(directory,'state.json');
+  let now=Date.parse('2026-10-25T00:00:00.000Z');
+  const binding={server_id:'synthetic-server',owner_id:'synthetic-owner',host_kind:'codex',workspace:directory,
+    route:{computer_id:'synthetic-mac',agent_id:'synthetic-codex',project_id:'synthetic-project',session_id:randomUUID()}};
+  const calls=[],turns=new Map();let counter=0;
+  const host={conversationId:binding.route.session_id,capabilities:{atomic_idle_start:true,exact_turn_interrupt:true},busy:false,proof:null,
+    async status(){return{conversationId:this.conversationId,workspace:binding.workspace,busy:this.busy};},
+    async start(args){calls.push(args);const saved=JSON.parse(fs.readFileSync(stateFile,'utf8')).native_control;
+      assert(Object.values(saved.commands).some(c=>c.phase==='sending'&&c.client_user_message_id===args.clientUserMessageId),'write-ahead intent must precede input');
+      const turn={found:true,turnId:`synthetic-turn-${++counter}`,status:'inProgress'};turns.set(args.clientUserMessageId,turn);return{accepted:true,clientUserMessageId:args.clientUserMessageId};},
+    async inspectOperation(id){return structuredClone(turns.get(id)??{found:false,outcomeUnknown:true});},
+    async interrupt(turnId){calls.push({interrupt:turnId});return{requested:true,expectedTurnId:turnId,confirmedStopped:false};},
+    async inspectStop(){return this.proof;}};
+  const controllers=[];
+  const f={directory,stateFile,binding,host,calls,turns,open(){const q=SessionControl.open({stateFile,binding,host,clock:()=>now});controllers.push(q);return q;},
+    command(patch={}){return{command_id:randomUUID(),task_id:`synthetic-${randomUUID()}`,route:binding.route,text:'Synthetic input only',expires_at:new Date(now+60000).toISOString(),...patch};},
+    setTime(v){now=v;},deadline(){return now+60000;}};
+  t.after(async()=>{for(const c of controllers)await c.close();fs.rmSync(directory,{recursive:true,force:true});});return f;
+}
+async function running(f,q,input=f.command()){
+  q.enqueue(input);await q.tick();await q.tick();assert.equal(q.list().at(-1).phase,'running');return{input,turn:[...f.turns.values()].at(-1)};
+}
+
+test('exact binding, command id and original task identity survive reopen without duplicate input',async t=>{
+  const f=fixture(t);let q=f.open();const input=f.command();q.enqueue(input);q.enqueue({...input});
+  assert.throws(()=>q.enqueue({...input,text:'changed'}),{code:'SESSION_COMMAND_CONFLICT'});
+  assert.throws(()=>q.enqueue(f.command({task_id:input.task_id})),{code:'SESSION_TASK_ALREADY_ADMITTED'});
+  assert.throws(()=>q.enqueue(f.command({route:{...f.binding.route,session_id:randomUUID()}})),{code:'SESSION_COMMAND_INVALID'});
+  await q.tick();await q.close();q=f.open();q.enqueue(input);await q.tick();
+  assert.equal(f.calls.length,1);assert.equal(q.list()[0].phase,'running');assert(!('text'in q.list()[0]));
+});
+test('busy native session queues, explicit unknown host idle capability never sends',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());f.host.busy=true;await q.tick();assert.equal(q.list()[0].reason,'waiting_for_idle');
+  f.host.busy=false;f.host.capabilities.atomic_idle_start=false;await q.tick();assert.equal(q.list()[0].reason,'host_idle_admission_unverified');assert.equal(f.calls.length,0);
+});
+test('one flight per session excludes concurrent ticks and enqueues during host await',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());let release;const status=f.host.status;
+  f.host.status=()=>new Promise(resolve=>{release=()=>resolve(status.call(f.host));});const pending=q.tick();
+  await assert.rejects(q.tick(),{code:'SESSION_CONTROL_BUSY'});assert.throws(()=>q.enqueue(f.command()),{code:'SESSION_CONTROL_BUSY'});release();await pending;
+  assert.equal(f.calls.length,1);
+});
+test('lost start reply and partial history absence fence following commands across restart and expiry',async t=>{
+  const f=fixture(t);let q=f.open();const first=f.command(),second=f.command(),deadline=f.deadline();q.enqueue(first);q.enqueue(second);
+  const start=f.host.start;f.host.start=async function(args){await start.call(this,args);throw Object.assign(new Error('synthetic-lost'),{code:'CODEX_DESKTOP_REPLY_TIMEOUT',outcomeUnknown:true});};
+  await q.tick();assert.equal(q.list()[0].phase,'outcome_unknown');const original=[...f.turns.entries()][0];f.turns.clear();await q.close();q=f.open();
+  f.setTime(deadline+1);await q.tick();assert.equal(q.list()[0].phase,'outcome_unknown');assert.equal(q.list()[1].phase,'expired');assert.equal(f.calls.length,1);
+  f.turns.set(...original);await q.tick();assert.equal(q.list()[0].phase,'running');assert.equal(f.calls.length,1);
+});
+test('native terminal completion advances queue only on the following tick without reading other transcript',async t=>{
+  const f=fixture(t),q=f.open(),{turn}=await running(f,q);q.enqueue(f.command());turn.status='completed';await q.tick();
+  assert.equal(q.list()[0].phase,'completed');assert.equal(f.calls.length,1);await q.tick();assert.equal(f.calls.length,2);assert(!('result'in q.list()[0]));
+});
+test('queued cancellation and expired input never call the host; expiry rechecked after status await',async t=>{
+  const f=fixture(t),q=f.open();const first=f.command(),second=f.command();q.enqueue(first);q.enqueue(second);q.cancelQueued(first.command_id);
+  const deadline=f.deadline();f.host.status=async()=>{f.setTime(deadline+1);return{conversationId:f.host.conversationId,workspace:f.binding.workspace,busy:false};};
+  await q.tick();assert.deepEqual(q.list().map(c=>c.phase),['cancelled','expired']);assert.equal(f.calls.length,0);
+});
+test('workspace mismatch waits and never silently starts in another project',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());f.host.status=async()=>({conversationId:f.host.conversationId,workspace:'/different',busy:false});
+  await q.tick();assert.equal(q.list()[0].reason,'SESSION_HOST_MISMATCH');assert.equal(f.calls.length,0);
+});
+test('stop acknowledgement is not stopped; exact native terminal and descendant proof permit one same-session resume',async t=>{
+  const f=fixture(t),q=f.open(),{input,turn}=await running(f,q),control={control_id:randomUUID(),command_id:input.command_id,expected_turn_id:turn.turnId};
+  assert.throws(()=>q.cancelQueued(input.command_id),{code:'SESSION_COMMAND_ALREADY_DISPATCHED'});
+  await q.requestStop(control);assert.equal(q.list()[0].phase,'stop_requested');await q.requestStop(control);assert.equal(f.calls.filter(c=>c.interrupt).length,1);
+  assert.throws(()=>q.enqueue(f.command({task_id:input.task_id,resume_of:input.command_id})),{code:'SESSION_RESUME_NOT_READY'});
+  turn.status='interrupted';await q.tick();assert.equal(q.list()[0].phase,'stop_unconfirmed');
+  f.host.proof={conversationId:randomUUID(),turnId:turn.turnId,terminal:true,descendantsStopped:true};await q.tick();assert.equal(q.list()[0].phase,'stop_unconfirmed');
+  f.host.proof.conversationId=f.host.conversationId;await q.tick();assert.equal(q.list()[0].phase,'stopped');
+  const resume=f.command({task_id:input.task_id,resume_of:input.command_id,text:'Synthetic continuation'});q.enqueue(resume);q.enqueue(resume);
+  assert.throws(()=>q.enqueue(f.command({task_id:input.task_id,resume_of:input.command_id})),{code:'SESSION_RESUME_NOT_READY'});
+  await q.tick();assert.equal(f.calls.filter(c=>c.text).length,2);assert.equal(q.list()[1].route.session_id,input.route.session_id);
+});
+test('stale/duplicate interrupt cannot stop a replacement turn and lost receipt is never re-sent',async t=>{
+  const f=fixture(t);let q=f.open();const{input,turn}=await running(f,q);
+  await assert.rejects(q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:'stale'}),{code:'SESSION_STOP_STALE'});
+  const interrupt=f.host.interrupt;f.host.interrupt=async function(id){await interrupt.call(this,id);throw{code:'CODEX_DESKTOP_REPLY_TIMEOUT'};};
+  const control={control_id:randomUUID(),command_id:input.command_id,expected_turn_id:turn.turnId};await q.requestStop(control);await q.close();q=f.open();
+  await q.requestStop(control);await q.tick();assert.equal(f.calls.filter(c=>c.interrupt).length,1);
+  turn.status='completed';await q.tick();assert.equal(q.list()[0].phase,'completed');assert.equal(q.list()[0].reason,'completed_before_stop');
+  await assert.rejects(q.requestStop({...control,control_id:randomUUID()}),{code:'SESSION_STOP_STALE'});
+});
+test('cancelled or expired never-sent continuation can be replaced after reopen',async t=>{
+  const f=fixture(t);let q=f.open();const{input,turn}=await running(f,q);turn.status='interrupted';
+  f.host.proof={conversationId:f.host.conversationId,turnId:turn.turnId,terminal:true,descendantsStopped:true};await q.tick();
+  const first=f.command({task_id:input.task_id,resume_of:input.command_id});q.enqueue(first);q.cancelQueued(first.command_id);await q.close();q=f.open();
+  const second=f.command({task_id:input.task_id,resume_of:input.command_id});q.enqueue(second);f.setTime(Date.parse(second.expires_at)+1);await q.tick();await q.close();q=f.open();
+  q.enqueue(f.command({task_id:input.task_id,resume_of:input.command_id}));await q.tick();assert.equal(f.calls.filter(c=>c.text).length,2);
+  assert.deepEqual(q.list().map(c=>c.phase),['stopped','cancelled','expired','accepted']);await q.close();q=f.open();assert.equal(q.list().length,4);
+});
+test('invalid receipt and remapped native operation do not unblock input',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());f.host.start=async()=>({accepted:true,clientUserMessageId:randomUUID()});await q.tick();
+  assert.equal(q.list()[0].phase,'outcome_unknown');await q.tick();assert.equal(q.list()[0].reason,'native_operation_not_proven');
+  f.host.inspectOperation=async()=>({found:true,turnId:'first',status:'inProgress'});await q.tick();
+  f.host.inspectOperation=async()=>({found:true,turnId:'second',status:'completed'});await assert.rejects(q.tick(),{code:'SESSION_NATIVE_TURN_CONFLICT'});assert.equal(q.list()[0].phase,'running');
+});
+test('failed fsync/rename before dispatch poisons controller and no host mutation follows',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());const original=fs.renameSync,canonical=fs.realpathSync(f.stateFile);
+  t.mock.method(fs,'renameSync',(from,to)=>{if(to===canonical)throw Object.assign(new Error('synthetic-disk'),{code:'ENOSPC'});return original(from,to);});
+  await assert.rejects(q.tick(),{code:'ENOSPC'});assert.equal(f.calls.length,0);await assert.rejects(q.tick(),{code:'SESSION_STORAGE_UNCERTAIN'});
+});
+test('session-wide OS ownership prevents a second ledger from bypassing single-flight',async t=>{
+  const f=fixture(t);f.open();assert.throws(()=>SessionControl.open({stateFile:path.join(f.directory,'other.json'),binding:f.binding,host:f.host}),{code:'BRIDGE_IN_USE'});
+});
+test('hard process death after native send preserves ambiguous intent and releases OS lock without replay',async t=>{
+  const f=fixture(t),input=f.command(),moduleUrl=new URL('../hosts/session-control.mjs',import.meta.url).href;
+  const code=`import {SessionControl} from ${JSON.stringify(moduleUrl)};const binding=${JSON.stringify(f.binding)},input=${JSON.stringify(input)};
+    const host={conversationId:binding.route.session_id,capabilities:{atomic_idle_start:true},status:async()=>({conversationId:binding.route.session_id,workspace:binding.workspace,busy:false}),start:async()=>{setInterval(()=>{},1000);process.stdout.write('native-send\\n');await new Promise(()=>{});}};
+    const q=SessionControl.open({stateFile:${JSON.stringify(f.stateFile)},binding,host,clock:()=>${Date.parse('2026-10-25T00:00:00.000Z')}});q.enqueue(input);await q.tick();`;
+  const child=spawn(process.execPath,['--input-type=module','-e',code],{stdio:['ignore','pipe','pipe']});let errors='';child.stderr.on('data',b=>errors+=b);
+  const done=once(child,'exit');t.after(()=>{if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');});
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('synthetic child startup timeout')),5000);child.stdout.once('data',()=>{clearTimeout(timer);resolve();});child.once('exit',()=>{clearTimeout(timer);reject(new Error(errors));});child.once('error',reject);});
+  child.kill('SIGKILL');const exit=await done;assert.equal(exit[1],'SIGKILL');const q=f.open();await q.tick();assert.equal(q.list()[0].phase,'outcome_unknown');assert.equal(f.calls.length,0);
+});
+test('corrupt journal and identity replacement stop rather than recreate the queue',async t=>{
+  const f=fixture(t),q=f.open();q.enqueue(f.command());await q.close();
+  assert.throws(()=>SessionControl.open({stateFile:f.stateFile,binding:{...f.binding,owner_id:'another'},host:f.host}),{code:'STATE_IDENTITY_MISMATCH'});
+  const value=JSON.parse(fs.readFileSync(f.stateFile,'utf8'));value.native_control.order.push(randomUUID());fs.writeFileSync(f.stateFile,JSON.stringify(value));
+  assert.throws(()=>f.open(),{code:'SESSION_STATE_CORRUPT'});assert.equal(f.calls.length,0);
+});

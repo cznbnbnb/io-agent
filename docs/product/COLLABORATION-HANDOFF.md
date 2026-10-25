@@ -1,3 +1,13 @@
+## [codex] 2026-10-25 耐久会话队列与主动口述草稿；原生下发仍未接通
+
+本批仅 Codex 工作区，Claude 分支仍 96b1dbb 已合且无新提交。复核确认 Codex 普通 turn/start 可把输入 steer 到当前任务，先查 idle 不能消除桌面并发输入竞态；整队列覆盖也无 CAS。已禁用 start，无绕过开关。已安装 CLI 有 thread/queue/add，但原持有者的安全调用入口未打通。Claude Desktop 外部原会话控制仍未发现可支持通路，不冒充内部 caller 或另起 resume。两项是技术接入阻塞，已向当前真实任务 CLI notify，server_stored/caller_verified，未声称镜片已显示。原会话元信息本批只读复核：60 轮、17,863 字节，未输入或打断。
+
+新增 SessionControl 复用 BridgeState/进程锁：固定会话及工作区，先落盘后发送，未知回执/重启不重发；精确轮次停止回执与退出证据分开。未取得子任务退出证明时不准继续。已发操作过期仍对账；未发的继续取消/过期可重新填写。32 项电脑端测试通过，包括真实测试子进程 SIGKILL 恢复；当前 Node v24.14.0，未在项目目标 Node22 另跑。控制器尚未接服务器/手机，结果提取未实现。
+
+新增独立 AgentDelegateSession core，固定默认 binding/route/operation，60 秒截止后接受已采音的 ASR 尾句，再等待可信采集释放输入进入确认；确认与既有 TaskMailbox 按完整事件对账，未知入队不重发。未发确认可取消，终态可归零，新草稿拒绝旧回调。Java8 编译及 577 项检查通过；测试采集/停止事件为合成，邮箱为实际持久化。原厂 KEY/退出已静态定位，但当前固件双击映射和原厂 AI→录音资源切换未验；未接 wake、录音、卡片，不伪造问答 request。详见 [本批证据](../../rebuild/agent-bridge/hosts/session-control-proof-2026-10-25.json)、[宿主说明](../../rebuild/agent-bridge/hosts/README.md)。
+
+手机仍以 dev92 为已验证基线；dev93 性能候选及约 1.55 MB 差异未安装，保持原签名/来源，不包含本批未接线 core；稳定回退76。旧端口离线，Mac 锁定及临时测试聊天授权仍待用户已有问题答复，不重复发问、不新建聊天。下一项先解决原持有者安全队列准入，随后隔离运行→停止→继续验收，再接产品。设备锁已释放；本批正常提交推送，不合 main。R2/Hermes/删除同步范围不变。
+
 ## [codex] 2026-10-25 Codex 原会话状态适配基础；执行与打断仍待隔离验收
 
 性能修复 `fa6547d` 已推送，手机仍是已验证的 dev92；dev93 候选及约1.55MB差异待新无线地址，稳定回退76不变。当前新增文件只在 `rebuild/agent-bridge/hosts`、定向测试和只读探针，不触碰 Claude 工作区或 Android 现有候选来源。

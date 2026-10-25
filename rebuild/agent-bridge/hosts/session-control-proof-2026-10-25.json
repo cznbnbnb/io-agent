@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T08:02:08.638562+00:00",
+  "scope": "Development foundation only; no production dispatch, device actions or new APK build in this batch",
+  "tests": {
+    "node_runtime": "v24.14.0",
+    "codex_desktop": 17,
+    "session_control": 15,
+    "android_delegate_checks": 577,
+    "android_compile": "javac --release 8",
+    "node22_tested": false,
+    "coverage": [
+      "actual isolated Unix sockets with synthetic owner",
+      "real fsync/atomic state and SQLite OS locks",
+      "actual SIGKILL after synthetic native-send intent; recovery without resend",
+      "same-session resume and cancellation/expiry replacement",
+      "synthetic capture/ASR events with real TaskMailbox",
+      "timeout tail-text drain before confirmed capture release",
+      "fixed default route and stale callback fencing",
+      "unknown mailbox admission is not replayed"
+    ]
+  },
+  "real_desktop_read_only": {
+    "at": "2026-10-25T07:51:24.082Z",
+    "current_thread_sha256": "a7966c8f4a2c37e5b1889c0ac2ed4e80022bfafc21b4d88a4000098f66dba1b2",
+    "busy": true,
+    "active_turn_known": true,
+    "loaded_turns": 60,
+    "metadata_bytes": 17863,
+    "input_sent": false,
+    "interrupt_sent": false,
+    "installed_source_profile_verified": true
+  },
+  "production_capabilities": {
+    "codex_atomic_idle_start": false,
+    "codex_exact_turn_interrupt_request": true,
+    "codex_child_stop_proof": false,
+    "claude_original_session_control": false,
+    "phone_session_dispatch_integrated": false,
+    "glasses_wake_integrated": false,
+    "final_result_extraction": false
+  },
+  "phone": {
+    "last_verified_installed": "dev92 /10514",
+    "material_performance_candidate": "dev93 /10515, not installed",
+    "delta_bytes": 1547589,
+    "new_delegate_core_in_dev93": false,
+    "needs_current_wireless_adb_endpoint": true
+  },
+  "sources": [
+    {
+      "path": "rebuild/agent-bridge/hosts/codex-desktop.mjs",
+      "sha256": "d4bfb45a9f67f56bd302662185435ba6baf413ddc057d5f78b49c3e50478d24d"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/codex-desktop-profile.json",
+      "sha256": "6f4ffdf87f2ed8c5649e03e01f754f4a4354595a94afd2a0817b1637aabbc9b6"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/session-control.mjs",
+      "sha256": "87fa72f07322caab05a3bc81ede6b7bd777227a2ad0d4657ae31514676317628"
+    },
+    {
+      "path": "rebuild/agent-bridge/tests/codex-desktop.test.mjs",
+      "sha256": "09c4fe724a518c45a09ab650de8f12847800f38e5d093354ace192b569ceba39"
+    },
+    {
+      "path": "rebuild/agent-bridge/tests/session-control.test.mjs",
+      "sha256": "a7fcc4c68f585d37c426f53c20addb96b6c1f68d971f7e0a839321d39754928d"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AgentDelegateSession.java",
+      "sha256": "632f07c8d7a6ce56c0c8ed472230c52c14e583e9e38e42f0daf7021889c1598f"
+    },
+    {
+      "path": "tools/android/AgentDelegateSessionTest.java",
+      "sha256": "ca07fb61beb4daa8d8a0c54b39c83a5875a70d692aafe3f2f2b25cd549cc6ce4"
+    },
+    {
+      "path": "tools/android/test-agent-delegate.mjs",
+      "sha256": "deb704c240e717757019c3cad43679971b7ee8be60c754875f0361057cc4dd8b"
+    }
+  ],
+  "glasses_static_sources": {
+    "actual_gesture_mapping_verified": false,
+    "capture_started": false,
+    "files": [
+      {
+        "path": "rebuild/android-app/build/host-107/smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/e.smali",
+        "line": 3972,
+        "note": "AssistantMsg type 1 -> WakeBean rc/mode/linkType; type 8 is inbound exit, type 7 outbound exit",
+        "sha256": "a1e864e729bd095b89b47c82489e03d915e559af56fa51f027f1c2d1f52ec1bf"
+      },
+      {
+        "path": "rebuild/android-app/build/host-107/smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/o.smali",
+        "line": 68,
+        "note": "rc 3 = KEY; does not prove current hardware double-tap mapping",
+        "sha256": "01d47ebb9c0fa846c644b6bff68b63960e20bb6c35523c0273361b819b8745db"
+      },
+      {
+        "path": "rebuild/android-app/build/host-107/smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/d.smali",
+        "line": 122,
+        "note": "exit rc 6 = TP_DOUBLE_TAP_EXIT",
+        "sha256": "5be0d349716482f1cad97d7a3188ad4b9a9ce736a9416c1986f4e7347d73b996"
+      },
+      {
+        "path": "rebuild/android-app/build/host-107/smali_classes2/t8/b$b.smali",
+        "line": 3759,
+        "note": "stock audio arbitration precedes onWake and stock assistant startup",
+        "sha256": "8e5108b3802ae51814daba2749555ec5dcbb0c8ce570f08543997573844b6ed1"
+      }
+    ],
+    "integration_boundary": "Do not intercept SHARED_AUDIO or lifelog wake. Freeze delegate target, stop/release stock assistant with actual evidence before using existing bounded recording engine; do not invent a server request."
+  }
+}
