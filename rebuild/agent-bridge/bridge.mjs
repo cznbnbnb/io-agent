@@ -3,6 +3,7 @@ import {BridgeClient,BridgeError} from './client.mjs';
 import {BridgeState} from './state.mjs';
 import {BridgeRunLock} from './run-lock.mjs';
 import {runtimeEventBatch,runtimeDigest,runtimeSource,runtimeAnswer} from './runtime-events.mjs';
+import {SessionDirectoryPublisher} from './session-directory.mjs';
 
 // P41 connection program: outbound-only. It polls the durable inbox, hands items to
 // a runtime adapter and writes only what that adapter really accepted. Every write
@@ -21,7 +22,7 @@ const digest=(...parts)=>createHash('sha256').update(parts.join('\u0000')).diges
 export class AgentBridge{
   #client;#state=null;#adapter;#clock;#blocked=null;#lastSyncAt=null;#observed=new Set();#stateFile;
   #lease=null;#operation=null;#stopping=false;#stopPromise=null;#adapterStarted=false;
-  #requestLifecycle=false;#taskBinding=null;#sessionControl=false;
+  #requestLifecycle=false;#taskBinding=null;#sessionControl=false;#directory=null;
   constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch,taskBinding=null}={}){
     this.#client=new BridgeClient(config,{clock,fetchImpl});
     this.#adapter=adapter??{name:'observe-only',capabilities:{can_execute:false},onItem:()=>[],onAnswer:()=>[]};
@@ -66,9 +67,10 @@ export class AgentBridge{
   stop(){
     if(this.#stopPromise)return this.#stopPromise;
     this.#stopping=true;
+    const directoryStop=this.#directory?.stop();this.#directory=null;
     this.#stopPromise=(async()=>{
       try{
-        await this.#operation?.catch(()=>{});
+        await Promise.all([this.#operation?.catch(()=>{}),directoryStop]);
         if(this.#adapterStarted&&typeof this.#adapter.stop==='function')await this.#adapter.stop();
         this.#adapterStarted=false;this.#state=null;this.#lease?.release();this.#lease=null;
       }finally{this.#stopping=false;this.#stopPromise=null;}
@@ -123,6 +125,15 @@ export class AgentBridge{
       this.#lease.assertHeld();this.#state=state;
       this.#state.serverId=server_id;this.#state.save();
       this.#blocked=this.#state.value.blocked??null;
+      if(!this.#stopping&&identity.capabilities?.includes('agent_session_directory_v1')&&typeof this.#adapter.readinessSnapshot==='function'){
+        const readiness={readinessSnapshot:async options=>{
+          const snapshot=await this.#adapter.readinessSnapshot(options);
+          let reason=this.#blocked?'bridge_blocked':this.#stopping?'bridge_stopping':this.#adapter.capabilities?.unavailable?'adapter_unavailable':this.#adapter.capabilities?.can_execute!==true?'adapter_observe_only':null;
+          try{this.#lease?.assertHeld();if(!this.#lease||!this.#state)reason='bridge_unavailable';}catch{reason='bridge_lock_lost';}
+          return reason?{...snapshot,sessions:snapshot.sessions.map(s=>({...s,can_execute:false,exact_turn_interrupt:false,atomic_queue_append:false,reason}))}:snapshot;
+        }};
+        this.#directory=new SessionDirectoryPublisher({client:this.#client,adapter:readiness,clock:this.#clock});this.#directory.start();
+      }
       return this.status();
     }catch(error){
       this.#state=null;
@@ -134,7 +145,8 @@ export class AgentBridge{
     return {server_id:this.#state?.serverId??null,producer_id:this.#client.config.producer_id,owner_id:this.#client.config.owner_id,
       started:Boolean(this.#state),stopping:this.#stopping,owns_run:Boolean(this.#lease),cursor:this.#state?.cursor??null,last_sync_at:this.#lastSyncAt,observed_tasks:this.#observed.size,
       pending:Object.keys(this.#state?.outbox()??{}).length,blocked:this.#blocked,adapter:this.#adapter.name??'custom',
-      can_execute:this.#adapter.capabilities?.can_execute===true};
+      can_execute:this.#adapter.capabilities?.can_execute===true,
+      session_directory:this.#directory?.status()??{supported:false,publishing:false}};
   }
   async #pollOnce(){
     if(!this.#state)throw new BridgeError('NOT_STARTED',{permanent:true});

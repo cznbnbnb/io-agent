@@ -2,13 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {BridgeError,readPrivateJson} from '../client.mjs';
 import {runtimeDigest} from '../runtime-events.mjs';
+import {directoryRoute,directoryLabel} from '../session-directory.mjs';
 import {NativeRuntimeAdapter} from './native-runtime.mjs';
 import {CodexAppServerSession} from './codex-app-server.mjs';
 import {createClaudeModBroker} from './claude-mod/broker.mjs';
 
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const need=(v,code='INVALID_NATIVE_CONFIG')=>{if(!v)throw new BridgeError(code,{permanent:true});};
-const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
 const hostCapabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,exact_turn_interrupt:true,final_result_evidence:true,native_queue_expiry:false});
 
 /** Explicit, local host binding. No session discovery, creation, resume, model
@@ -24,10 +24,11 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
   const resolve=v=>path.resolve(configDirectory,v);
   const stateFile=resolve(native.state_file),keys=new Set(),directories=new Set();
   const entries=native.sessions.map(s=>{
-    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','endpoint','auth_file','broker_directory'].includes(k))&&
-      ['codex','claude'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&object(s.route)&&
-      Object.keys(s.route).length===4&&['computer_id','agent_id','project_id','session_id'].every(k=>typeof s.route[k]==='string'&&s.route[k]&&s.route[k].length<=256)&&
-      uuid(s.route.session_id)&&s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id);
+    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','auth_file','broker_directory'].includes(k))&&
+      ['codex','claude'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&directoryRoute(s.route)&&
+      s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id);
+    const label=typeof s.label==='string'?s.label.trim():s.label;
+    need(label===undefined||typeof s.label==='string'&&!/[\u0000-\u001f\u007f]/.test(s.label)&&directoryLabel(label));
     const key=runtimeDigest(s.route);need(!keys.has(key));keys.add(key);
     let workspace;try{workspace=fs.realpathSync(resolve(s.workspace));need(fs.statSync(workspace).isDirectory());}catch{need(false);}
     const binding={server_id:config.server_id,owner_id:config.owner_id,host_kind:s.host_kind,workspace,route:structuredClone(s.route)};
@@ -39,11 +40,11 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
       need(!url.username&&!url.password&&!url.hash&&!url.search&&
         (url.protocol==='unix:'&&!url.hostname&&path.isAbsolute(url.pathname)&&url.pathname!=='/'&&s.auth_file===undefined||
          url.protocol==='ws:'&&['127.0.0.1','[::1]'].includes(url.hostname)&&url.port));
-      return{binding,endpoint:s.endpoint,authFile:s.auth_file?resolve(s.auth_file):null};
+      return{binding,label,endpoint:s.endpoint,authFile:s.auth_file?resolve(s.auth_file):null};
     }
     need(typeof s.broker_directory==='string'&&s.broker_directory&&s.endpoint===undefined&&s.auth_file===undefined);
     const directory=resolve(s.broker_directory);need(!directories.has(directory));directories.add(directory);
-    return{binding,directory};
+    return{binding,label,directory};
   });
   let runtime=null,closers=[],bindings=[];
   const adapter={
@@ -61,16 +62,29 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
             const get=()=>attempt??=(async()=>{
               let bearerToken;
               if(e.authFile){const auth=readPrivateJson(e.authFile);need(object(auth)&&Object.keys(auth).length===1&&typeof auth.token==='string'&&auth.token,'INVALID_NATIVE_AUTH');bearerToken=auth.token;}
-              return connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,...(bearerToken?{bearerToken}:{})});
+              return connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,metadataOnly:true,...(bearerToken?{bearerToken}:{})});
             })();
             host={conversationId:e.binding.route.session_id,capabilities:hostCapabilities};
-            for(const method of ['status','start','inspectOperation','interrupt','inspectStop'])host[method]=async(...args)=>(await get())[method](...args);
+            for(const method of ['status','start','inspectOperation','interrupt','inspectStop','readiness'])host[method]=async(...args)=>{
+              const connected=await get();need(typeof connected[method]==='function','NATIVE_RUNTIME_READINESS_UNSUPPORTED');return connected[method](...args);
+            };
             closers.push(async()=>{if(attempt)try{await (await attempt).close();}catch{}});
           }else{
             const broker=await createClaudeBroker({directory:e.directory,binding:e.binding,clock});
-            host=broker.host;closers.push(()=>broker.close());
+            host=broker.host;
+            // The Mod broker's status reads only the exact bound plugin's
+            // local heartbeat. On load its conservative busy=true has no
+            // turn identity yet; do not present that as observed active work.
+            host.readiness=async()=>{
+              const status=await broker.host.status();
+              return{conversationId:status.conversationId,workspace:status.workspace,
+                busy:status.busy===true&&!status.activeTurnId?null:status.busy,
+                canExecute:true,reason:status.busy===true&&!status.activeTurnId?'CLAUDE_MOD_BUSY_UNKNOWN':null};
+            };
+            closers.push(()=>broker.close());
           }
-          bindings.push({binding:e.binding,host});
+          // Display metadata is not part of the durable task/route identity.
+          bindings.push({binding:e.binding,label:e.label,host});
         }
         runtime=new NativeRuntimeAdapter({stateFile,bindings,clock});await runtime.start();return adapter.capabilities;
       }catch(error){await adapter.stop();throw error;}
@@ -81,7 +95,7 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
       runtime=null;closers=[];bindings=[];if(failure)throw failure;
     }
   };
-  for(const method of ['onItem','onAnswer','onRequestClosed','inspectAdmission','inspectControlIntake','pollEvents','acknowledgeEvents'])
+  for(const method of ['onItem','onAnswer','onRequestClosed','inspectAdmission','inspectControlIntake','pollEvents','acknowledgeEvents','readinessSnapshot'])
     adapter[method]=(...args)=>{need(runtime,'NATIVE_CONFIG_NOT_STARTED');return runtime[method](...args);};
   return adapter;
 }

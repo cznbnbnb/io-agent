@@ -14,7 +14,7 @@ final class AgentConnectionsPage {
 
  private static final class Page {
   final Activity activity;final String mode,binding;final TaskRuntime runtime;final AgentUI.Screen screen;
-  TaskRuntime.Snapshot snapshot;String last="",choice="",feedback="";boolean closed,busy,history,choiceMade;
+  TaskRuntime.Snapshot snapshot;String last="",choice="",feedback="";boolean closed,busy,history,choiceMade;long choiceRevision;
   final TaskRuntime.Result observer=this::accept;
   Page(Activity activity,String mode,String binding){
    this.activity=activity;this.mode=mode;this.binding=binding;runtime=TaskRuntime.get(activity);
@@ -22,7 +22,7 @@ final class AgentConnectionsPage {
   }
   void open(){
    screen.body.addView(AgentUI.text(activity,"正在读取已登记连接…",15,AgentUI.MUTED));
-   screen.dialog.setOnDismissListener(dialog->{closed=true;runtime.unobserve(observer);});runtime.observe(activity,observer);
+   screen.dialog.setOnDismissListener(dialog->{closed=true;runtime.unobserve(observer);});runtime.observe(activity,observer);runtime.readDirectory((state,error)->{if(visible())accept(state,error);});
   }
   boolean visible(){return !closed&&screen.dialog.isShowing()&&!activity.isFinishing()&&!activity.isDestroyed();}
   void accept(TaskRuntime.Snapshot state,String error){
@@ -69,6 +69,7 @@ final class AgentConnectionsPage {
   }
   void renderList(){
    pairingCard();
+   AgentUI.button(activity,screen.body,"选择默认 Agent 与工作区",false,()->defaults(activity));
    screen.body.addView(AgentUI.text(activity,"每条连接都保留自己的任务和回复。暂停连接会暂停手机交换消息，电脑上的任务不会因此暂停。",14,AgentUI.MUTED));
    List<TaskHub.View> expired=new ArrayList<>();int shown=0;long now=System.currentTimeMillis();
    for(TaskHub.View view:snapshot.contexts){if(view.profile.connection.expiresAt<=now)expired.add(view);else{connectionCard(view);shown++;}}
@@ -82,7 +83,7 @@ final class AgentConnectionsPage {
   }
   void connectionCard(TaskHub.View view){
    TaskConnection connection=view.profile.connection;LinearLayout card=AgentUI.card(activity,screen.body);
-   card.addView(AgentUI.text(activity,connection.agent+(view.binding.equals(snapshot.binding)?" · 默认":""),18,AgentUI.INK));
+   card.addView(AgentUI.text(activity,connection.agent+(view.binding.equals(snapshot.defaultBinding)?" · 默认":""),18,AgentUI.INK));
    card.addView(AgentUI.text(activity,connection.computer+" · "+connection.project,14,AgentUI.MUTED));
    String topic=topic(view);if(!topic.isEmpty()){TextView text=AgentUI.text(activity,topic,15,AgentUI.INK);text.setMaxLines(2);text.setEllipsize(android.text.TextUtils.TruncateAt.END);card.addView(text);}
    AgentUI.gap(activity,card,10);card.addView(AgentUI.text(activity,status(view),13,AgentUI.MUTED));
@@ -96,7 +97,7 @@ final class AgentConnectionsPage {
    field(card,"Agent",connection.agent);field(card,"电脑",connection.computer);field(card,"工作区",connection.project);field(card,"登记会话",connection.session);
    String topic=topic(view);if(!topic.isEmpty())field(card,"任务主题",topic);
    field(card,"连接状态",status(view));field(card,"登记有效期",date(connection.expiresAt));
-   field(card,"默认目标",binding.equals(snapshot.binding)?"当前默认 Agent 与工作区":"未设为默认");
+   field(card,"默认目标",binding.equals(snapshot.defaultBinding)?"当前默认 Agent 与工作区":"未设为默认");
    screen.body.addView(AgentUI.text(activity,"默认用于之后的新任务。已有问题的回复始终回到它原来的 Agent 和会话。",14,AgentUI.MUTED));
    if(expired){
     AgentUI.button(activity,screen.body,"重新登记连接",true,()->register(binding));
@@ -107,42 +108,48 @@ final class AgentConnectionsPage {
      if(view.profile.enabled)runtime.pause(binding,callback);else runtime.resume(binding,callback);
     });toggle.setEnabled(!busy);
     screen.body.addView(AgentUI.text(activity,"暂停连接不会暂停电脑正在执行的任务。要调整任务，请在任务详情中操作。",13,AgentUI.MUTED));
-    if(!binding.equals(snapshot.binding)){
+    if(!binding.equals(snapshot.defaultBinding)){
      TextView select=AgentUI.button(activity,screen.body,"设为默认 Agent 与工作区",false,()->{
-      busy=true;feedback="正在保存默认目标…";render();runtime.select(binding,(state,error)->done(state,error,"已设为默认 Agent 与工作区。"));
-     });select.setEnabled(!busy);
+      long expected=snapshot.directory.defaultRevision();busy=true;feedback="正在保存默认目标…";render();runtime.setDefault(connection.route(),expected,(state,error)->done(state,error,"默认设置已核对，以当前显示为准。"));
+     });select.setEnabled(!busy&&snapshot.pendingDefault==null&&snapshot.directory!=null&&snapshot.directory.gate(connection.route(),TaskSessionDirectory.elapsed()).isEmpty());
     }
     TextView edit=AgentUI.button(activity,screen.body,"更新登记文件",false,()->register(binding));edit.setEnabled(!busy);
    }
-   if(expired&&!binding.equals(snapshot.binding))AgentUI.button(activity,screen.body,"移除已到期登记",false,()->AgentUI.confirm(activity,"移除这条登记？","只移除已到期连接，已有任务和回复记录继续保留。",()->{
+   if(expired&&!binding.equals(snapshot.defaultBinding)&&!binding.equals(snapshot.binding))AgentUI.button(activity,screen.body,"移除已到期登记",false,()->AgentUI.confirm(activity,"移除这条登记？","只移除已到期连接，已有任务和回复记录继续保留。",()->{
     busy=true;runtime.remove(binding,(state,error)->{if(error.isEmpty())screen.dialog.dismiss();else done(state,error,"");});
    }));
   }
   void renderDefaults(){
-   screen.body.addView(AgentUI.text(activity,"选择已登记的 Agent 和工作区，作为之后新任务的默认目标。每个选项仍绑定电脑登记的原会话。",14,AgentUI.MUTED));
-   if(!choiceMade)choice=snapshot.binding;
-   if(snapshot.contexts.isEmpty()){
-    screen.body.addView(AgentUI.text(activity,"先登记一个电脑连接，再设置默认目标。",16,AgentUI.INK));
-    AgentUI.button(activity,screen.dock,"添加电脑连接",true,()->register(null));return;
+   screen.body.addView(AgentUI.text(activity,"手机和电脑 CLI 共用这个默认目标。临时选择其他会话下发任务，不会修改默认；原问题始终回到原会话。",14,AgentUI.MUTED));
+   TaskSessionDirectory directory=snapshot.directory;
+   LinearLayout current=AgentUI.card(activity,screen.body);current.addView(AgentUI.text(activity,"当前默认目标",14,AgentUI.MUTED));
+   TaskSessionDirectory.Entry selected=directory==null?null:directory.find(snapshot.defaultRoute);
+   String currentText=snapshot.defaultRoute==null?"尚未设置":selected==null?snapshot.defaultRoute.get("agent_id")+" · "+snapshot.defaultRoute.get("computer_id")+"\n会话 · "+snapshot.defaultRoute.get("session_id"):selected.display();
+   current.addView(AgentUI.text(activity,currentText,16,AgentUI.INK));if(!snapshot.defaultStatus.isEmpty())current.addView(AgentUI.text(activity,TaskWorkspace.label(snapshot.defaultStatus),13,AgentUI.MUTED));
+   if(!snapshot.directoryNote.isEmpty())screen.body.addView(AgentUI.text(activity,TaskWorkspace.label(snapshot.directoryNote),14,AgentUI.ACCENT));
+   TextView refresh=AgentUI.button(activity,screen.body,"刷新真实会话",false,()->{busy=true;runtime.readDirectory((state,error)->done(state,error,"会话状态已更新。"));});refresh.setEnabled(!busy);
+   if(snapshot.device.isEmpty()){AgentUI.button(activity,screen.dock,"完成手机配对",true,()->show(activity));return;}
+   if(snapshot.pendingDefault!=null){
+    screen.body.addView(AgentUI.text(activity,"上次默认设置的结果尚未核对。重试会保留同一操作，不会覆盖后来在其他设备设置的默认。",14,AgentUI.MUTED));
+    TextView retry=AgentUI.button(activity,screen.body,"重试上次保存",true,()->{busy=true;runtime.retryDefault((state,error)->done(state,error,"默认设置已核对，以当前显示为准。"));});retry.setEnabled(!busy);
    }
+   if(directory==null||directory.sessions.isEmpty()){screen.body.addView(AgentUI.text(activity,"暂无已连接的真实会话。请在电脑的目标 Claude 或 Codex 会话启动原生连接；仅登记问答不会出现在此列表。",15,AgentUI.MUTED));return;}
+   if(!choiceMade){choice=snapshot.defaultRoute==null?"":TaskSessionDirectory.routeKey(snapshot.defaultRoute);choiceRevision=directory.defaultRevision();}
    RadioGroup options=new RadioGroup(activity);options.setOrientation(LinearLayout.VERTICAL);screen.body.addView(options);
-   boolean any=false;long now=System.currentTimeMillis();
-   for(TaskHub.View view:snapshot.contexts){
-    TaskConnection connection=view.profile.connection;boolean expired=connection.expiresAt<=now;
-    if(expired&&!view.binding.equals(snapshot.binding))continue;
-    RadioButton option=new RadioButton(activity);option.setId(android.view.View.generateViewId());option.setTag(view.binding);option.setTextColor(AgentUI.INK);option.setTextSize(15);option.setButtonTintList(ColorStateList.valueOf(AgentUI.ACCENT));
-    option.setText(connection.agent+" · "+connection.computer+"\n工作区："+connection.project+"\n"+(topic(view).isEmpty()?"登记会话："+connection.session:topic(view))+"\n"+status(view));
-    option.setPadding(0,AgentUI.dp(activity,12),0,AgentUI.dp(activity,12));options.addView(option,new RadioGroup.LayoutParams(-1,-2));option.setChecked(view.binding.equals(choice));option.setEnabled(!expired&&!busy);if(!expired)any=true;
+   long now=TaskSessionDirectory.elapsed();
+   for(TaskSessionDirectory.Entry entry:directory.sessions){
+    RadioButton option=new RadioButton(activity);option.setId(android.view.View.generateViewId());option.setTag(entry.key);option.setTextColor(AgentUI.INK);option.setTextSize(15);option.setButtonTintList(ColorStateList.valueOf(AgentUI.ACCENT));
+    option.setText(entry.display()+"\n"+entry.status(now));option.setPadding(0,AgentUI.dp(activity,12),0,AgentUI.dp(activity,12));options.addView(option,new RadioGroup.LayoutParams(-1,-2));option.setChecked(entry.key.equals(choice));option.setEnabled(!busy&&snapshot.pendingDefault==null&&entry.gate(now).isEmpty());
    }
-   if(!any)screen.body.addView(AgentUI.text(activity,"已登记连接均已到期，请先重新登记。",14,AgentUI.MUTED));
-   screen.body.addView(AgentUI.text(activity,"暂停的默认连接会保持暂停，不会自动改用其他 Agent。默认目标也为后续眼镜主动唤起预留。",13,AgentUI.MUTED));
+   screen.body.addView(AgentUI.text(activity,"默认离线、忙碌或连接暂停时会保留原目标，不会改投其他会话。",13,AgentUI.MUTED));
    TextView save=AgentUI.button(activity,screen.dock,"保存默认目标",true,()->{
-    TaskHub.View target=snapshot.context(choice);
-    if(target==null||target.profile.connection.expiresAt<=System.currentTimeMillis()){feedback="请选择仍有效的已登记连接。";redraw();return;}
-    busy=true;feedback="正在保存默认目标…";render();runtime.select(choice,(state,error)->done(state,error,"默认 Agent 与工作区已保存。"));
-   });TaskHub.View target=snapshot.context(choice);save.setEnabled(!busy&&target!=null&&target.profile.connection.expiresAt>now);
-   options.setOnCheckedChangeListener((group,id)->{RadioButton selected=group.findViewById(id);if(selected!=null){choice=(String)selected.getTag();choiceMade=true;save.setEnabled(!busy);}});
+    TaskSessionDirectory.Entry target=chosen();if(target==null||!target.gate(TaskSessionDirectory.elapsed()).isEmpty())return;
+    long expected=choiceRevision;busy=true;feedback="正在保存默认目标…";render();runtime.setDefault(target.route,expected,(state,error)->{choiceMade=false;done(state,error,"默认设置已核对，以当前显示为准。");});
+   });TaskSessionDirectory.Entry target=chosen();save.setEnabled(!busy&&snapshot.pendingDefault==null&&target!=null&&target.gate(now).isEmpty());
+   options.setOnCheckedChangeListener((group,id)->{RadioButton option=group.findViewById(id);if(option!=null){choice=(String)option.getTag();choiceMade=true;choiceRevision=snapshot.directory.defaultRevision();save.setEnabled(!busy&&snapshot.pendingDefault==null);}});
+   if(snapshot.defaultRoute!=null){TextView clear=AgentUI.button(activity,screen.body,"清除默认目标",false,()->{long expected=snapshot.directory.defaultRevision();busy=true;runtime.setDefault(null,expected,(state,error)->{choiceMade=false;done(state,error,"默认设置已核对，以当前显示为准。");});});clear.setEnabled(!busy&&snapshot.pendingDefault==null);}
   }
+  TaskSessionDirectory.Entry chosen(){if(snapshot.directory!=null)for(TaskSessionDirectory.Entry entry:snapshot.directory.sessions)if(entry.key.equals(choice))return entry;return null;}
   void field(LinearLayout parent,String label,String value){parent.addView(AgentUI.text(activity,label,12,AgentUI.MUTED));TextView text=AgentUI.text(activity,value,16,AgentUI.INK);text.setTextIsSelectable(true);parent.addView(text);AgentUI.gap(activity,parent,12);}
  }
  private static String status(TaskHub.View view){

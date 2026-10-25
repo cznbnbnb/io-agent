@@ -89,6 +89,33 @@ test('connects a private Unix official endpoint and only reads the explicitly lo
   assert(f.calls.every(m=>['initialize','initialized','thread/loaded/list','thread/read','thread/turns/list'].includes(m.method)));
 });
 
+test('metadata-only connect and readiness never query turns, items, queues or dialogue history',async t=>{
+  const f=await fixture(t);f.preview='Private conversation preview';
+  const session=await CodexAppServerSession.connect(f.threadId,{endpoint:f.endpoint,workspace:f.directory,metadataOnly:true});
+  t.after(()=>session.close());
+  let status=await session.readiness();assert.equal(status.busy,false);assert.equal(status.canExecute,true);
+  f.status='active';status=await session.readiness();assert.equal(status.busy,true);assert.equal(status.canExecute,true);
+  f.status='systemError';status=await session.readiness();assert.equal(status.busy,null);assert.equal(status.canExecute,false);assert.equal(status.reason,'CODEX_APP_SERVER_SYSTEM_ERROR');
+  assert(!JSON.stringify(status).includes('Private conversation'));
+  assert(f.calls.every(m=>['initialize','initialized','thread/loaded/list','thread/read'].includes(m.method)));
+  assert(f.calls.filter(m=>m.method==='thread/read').every(m=>m.params.includeTurns===false));
+  f.loaded=false;await assert.rejects(session.readiness(),{code:'CODEX_APP_SERVER_THREAD_NOT_LOADED'});
+  f.loaded=true;f.cwd='/different';await assert.rejects(session.readiness(),{code:'CODEX_APP_SERVER_WORKSPACE_MISMATCH'});
+  f.cwd=f.directory;f.canAcceptDirectInput=false;await assert.rejects(session.readiness(),{code:'CODEX_APP_SERVER_THREAD_UNSUPPORTED'});
+});
+
+test('metadata-only attachment retains normal execution checks when a later task is explicitly dispatched',async t=>{
+  const f=await fixture(t),session=await CodexAppServerSession.connect(f.threadId,{endpoint:f.endpoint,workspace:f.directory,metadataOnly:true});
+  t.after(()=>session.close());
+  const input=f.input();
+  const [metadata,status,receipt]=await Promise.all([session.readiness(),session.status(),session.start(input)]);
+  assert.equal(metadata.canExecute,true);assert.equal(status.busy,false);assert.equal(receipt.accepted,true);
+  assert.equal(f.calls.filter(m=>m.method==='thread/queue/add').length,1);
+  assert(f.calls.some(m=>m.method==='thread/turns/list'),'execution retains the original status/history fence');
+  assert.equal((await session.inspectOperation(input.clientUserMessageId)).status,'queued');
+  assert(!f.calls.some(m=>['thread/start','thread/resume','turn/start'].includes(m.method)));
+});
+
 test('busy input appends atomically to the native queue with the original stable ID, never turn/start',async t=>{
   const f=await fixture(t),session=await f.session(),input=f.input();f.status='active';f.turns=[{id:randomUUID(),status:'inProgress',items:[]}];
   const receipt=await session.start(input);assert.equal(receipt.accepted,true);assert.equal(receipt.clientUserMessageId,input.clientUserMessageId);
@@ -183,15 +210,20 @@ test('lost interrupt receipt is not resent',async t=>{
 });
 
 test('loopback transport handles fragmented responses, ping and unrelated server approvals without answering them',async t=>{
-  const f=await fixture(t,{transport:'tcp'}),channel=await f.connect();let notification;
-  channel.listen(message=>{if(message.method==='item/commandExecution/requestApproval')notification=message;});
+  const f=await fixture(t,{transport:'tcp'}),channel=await f.connect();let receive;
+  const notification=new Promise(resolve=>{receive=resolve;});
+  channel.listen(message=>{if(message.method==='item/commandExecution/requestApproval')receive(message);});
   f.overrides.set('synthetic/fragment',message=>{
     const bytes=Buffer.from(JSON.stringify({id:message.id,result:{text:'分片成功'}})),at=bytes.length-4;
     f.socket.write(frame(bytes.subarray(0,at),{fin:false}));f.socket.write(frame('ping',{opcode:9}));f.socket.write(frame(bytes.subarray(at),{opcode:0}));
     f.socket.write(frame({id:'native-approval',method:'item/commandExecution/requestApproval',params:{threadId:randomUUID()}}));return undefined;
   });
   assert.deepEqual(await channel.request('synthetic/fragment'),{text:'分片成功'});
-  await new Promise(resolve=>setImmediate(resolve));assert.equal(notification?.id,'native-approval');
+  // Approval is a later TCP frame, not necessarily the next event-loop tick.
+  let timer;try{
+    const received=await Promise.race([notification,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('native approval notification timed out')),300);})]);
+    assert.equal(received.id,'native-approval');
+  }finally{clearTimeout(timer);}
   assert(!f.calls.some(m=>m.id==='native-approval'));
 });
 

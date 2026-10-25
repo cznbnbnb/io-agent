@@ -52,6 +52,7 @@ final class TaskSettings {
    if(!Arrays.equals(loadAll().encode(),plain))throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");
   }finally{Arrays.fill(plain,(byte)0);if(legacy!=null)Arrays.fill(legacy,(byte)0);}
  }
+ void saveQuestion(TaskConnection connection,boolean enabled)throws Exception{synchronized(LOCK){TaskProfiles current=loadAll();write(current.upsert(connection,enabled,System.currentTimeMillis(),current.selected()==null));}}
  void save(TaskConnection connection,boolean enabled)throws Exception{save(connection,enabled,true);}
  void save(TaskConnection connection,boolean enabled,boolean makeDefault)throws Exception{synchronized(LOCK){write(loadAll().upsert(connection,enabled,System.currentTimeMillis(),makeDefault));}}
  /** Identity was checked for this exact registry. Do not restore stale tokens or
@@ -69,18 +70,31 @@ final class TaskSettings {
  TaskDevice loadDevice()throws Exception{synchronized(LOCK){String text=prefs.getString(DEVICE,null);if(text==null)return null;byte[] plain=open(text,DEVICE_AAD,16384);try{return TaskDevice.decode(plain);}finally{Arrays.fill(plain,(byte)0);}}}
  void saveDevice(TaskDevice device)throws Exception{synchronized(LOCK){byte[] plain=device.encode();try{if(!prefs.edit().putString(DEVICE,seal(plain,DEVICE_AAD)).commit())throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");}finally{Arrays.fill(plain,(byte)0);}}}
  void clearDevice(){synchronized(LOCK){prefs.edit().remove(DEVICE).commit();}}
+ private static final String DIRECTORY="session_directory_v1",DEFAULT_REQUEST="session_default_request_v1";
+ private static final byte[] DIRECTORY_AAD="io-agent/session-directory/1".getBytes(StandardCharsets.UTF_8),DEFAULT_AAD="io-agent/default-request/1".getBytes(StandardCharsets.UTF_8);
+ TaskSessionDirectory loadDirectory(TaskDevice d)throws Exception{synchronized(LOCK){String value=prefs.getString(DIRECTORY,null);if(value==null)return null;byte[] bytes=open(value,DIRECTORY_AAD,1048576);try{return TaskSessionDirectory.cached(bytes,d.server,d.owner);}finally{Arrays.fill(bytes,(byte)0);}}}
+ void saveDirectory(TaskSessionDirectory directory)throws Exception{synchronized(LOCK){TaskWire.require(prefs.edit().putString(DIRECTORY,seal(directory.encode(),DIRECTORY_AAD)).commit(),"TASK_CONFIG_SAVE_FAILED");}}
+ Map<String,Object> defaultRequest(TaskDevice d)throws Exception{synchronized(LOCK){String value=prefs.getString(DEFAULT_REQUEST,null);if(value==null)return null;byte[] bytes=open(value,DEFAULT_AAD,8192);try{Map<String,Object> saved=WireJson.map(WireJson.read(bytes));if(!d.server.equals(saved.get("server"))||!d.owner.equals(saved.get("owner"))||!d.deviceId.equals(saved.get("device")))return null;Map<String,Object> request=WireJson.map(saved.get("request"));BoundedJson.keys(request,"request_id","expected_revision","route");TaskSessionDirectory.uuid(request.get("request_id"));TaskWire.nonnegative(request.get("expected_revision"));if(request.get("route")!=null)TaskSessionDirectory.route(request.get("route"));return request;}finally{Arrays.fill(bytes,(byte)0);}}}
+ void saveDefaultRequest(TaskDevice d,Map<String,Object> request)throws Exception{synchronized(LOCK){byte[] bytes=WireJson.bytes(WireJson.object("server",d.server,"owner",d.owner,"device",d.deviceId,"request",request));TaskWire.require(prefs.edit().putString(DEFAULT_REQUEST,seal(bytes,DEFAULT_AAD)).commit(),"TASK_CONFIG_SAVE_FAILED");}}
+ void clearDefaultRequest()throws Exception{synchronized(LOCK){TaskWire.require(prefs.edit().remove(DEFAULT_REQUEST).commit(),"TASK_CONFIG_SAVE_FAILED");}}
+ /** Only explicit picker/default use materializes a directory target. Never evict
+  * a question connection or an unsubmitted UI draft to fit a new session. */
+ boolean ensureSession(TaskDevice device,Map<String,Object> route,long now)throws Exception{synchronized(LOCK){
+  TaskSessionDirectory.route(route);TaskProfiles current=loadAll();TaskConnection connection=device.derive(route,now);
+  for(TaskProfiles.Profile p:current.profiles)if(p.binding.equals(connection.binding())){if(p.connection.token().equals(device.token))return false;write(current.upsert(connection,p.enabled,now,false));return true;}
+  TaskWire.require(current.profiles.size()<TaskProfiles.MAX,"TASK_PROFILES_FULL");write(current.upsert(connection,true,now,current.selected()==null));return true;
+ }}
  void pauseDevice(TaskDevice device)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll();long now=System.currentTimeMillis();for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&p.enabled)next=next.enabled(p.binding,false,now);write(next);}}
  /** Adds connections for newly joined sessions and moves every derived connection to the device's
-  * current token in one write. A full registry first drops an expired registration, then the oldest
-  * idle derived session; the default target and connections with unsent answers are kept. */
+  * current token in one write. Discovery never evicts a connection: absent outgoing rows cannot
+  * prove that unanswered questions or UI drafts are disposable. Capacity is reported explicitly. */
  boolean syncDevice(TaskDevice device,List<Map<String,Object>> routes,Set<String> busy,long now)throws Exception{synchronized(LOCK){
   TaskProfiles current=loadAll(),next=current;
   for(TaskProfiles.Profile p:current.profiles)if(device.owns(p.connection)&&!p.connection.token().equals(device.token))next=next.upsert(device.derive(p.connection.route(),now),p.enabled,now,false);
   for(Map<String,Object> route:routes){
    TaskConnection c=device.derive(route,now);boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
-   // Expired imported registrations go first, then the oldest idle derived session.
-   if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(p.connection.expiresAt<=now&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
-   if(next.profiles.size()>=TaskProfiles.MAX)for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&!p.binding.equals(next.selected)&&!busy.contains(p.binding)){next=next.drop(p.binding);break;}
+   // A mailbox's absence of outgoing rows does not prove that its questions or
+   // UI drafts are disposable. Capacity is explicit; discovery never evicts.
    if(next.profiles.size()>=TaskProfiles.MAX)break;
    // Discovery never substitutes another session for an explicit default, even when
    // that default is paused or expired. Only an empty registry needs an initial choice.

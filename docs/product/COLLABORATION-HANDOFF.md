@@ -1,3 +1,17 @@
+## [codex] 2026-10-25 真实 session 目录、共享默认与手机选择接线
+
+用户「执行」后的第三批；仅 Codex 工作区。Claude 仍96b1dbb已合。未使用设备、问答通道或用户现用聊天；进度 watch 保持关闭。公网未部署、未打包或安装：已装dev92、待装dev93性能候选和回退76不变，共享构建暂存未修改。
+
+服务器新增 agent_session_directory_v1：配对电脑固定 owner/device/producer/route/工作区，60秒租约及代次/序号防旧写覆盖。电脑只探测宿主元信息，每15秒发布；停机仅release，晚探测/旧ready不续命。CLI sessions/set-default/clear-default 与手机共享默认使用耐久CAS原请求、严格ACK及新GET；鉴权失败保留待对账。手机选具体session，临时选择不改默认；实际发送前重新核对，深睡租约用elapsedRealtime，缓存冷启离线；目录满不淘汰旧连接/草稿，旧问答继续收发。
+
+测试：服务器目录18、客户端/发布器/CLI19、readiness13、native-runtime26、native bridge9、CLI3通过；Android directory123/control88/context59/status35通过。238份全来源在唯一临时目录Java8+Android36/D8通过，DEX SHAc79205890a4b7d6f5a3c249442cd10d0624255f8173561da71b3771c64ff0b5e，输出已清。Node24.14.0，未另跑目标22。[证据](../../rebuild/agent-bridge/hosts/session-directory-proof-2026-10-25.json)、[合同](../contracts/agent-session-directory-v1.md)。
+
+补齐共享默认语义：主动委托prepare必须传明确binding与能力，不读取旧问答selected；585项草稿检查通过。新增尚未接线Host107WakeGateCore，14场景/387断言覆盖真实来源作用域、冻结默认、并发单claim、MAIN交接、提交前释放后单次fallback、提交后只清理和换peer/epoch两道防旧回调；不证明真实麦克风释放。新增tools/android/check-sources.mjs复用唯一临时目录全编，不覆写共享stage。完成摘要仅保存[未实施提案](../contracts/task-completion-summary-proposal.md)。
+
+另做一次隔离真实Codex队列测试：指定非队首B后B完成，A在34毫秒后自动执行；因此queue/start不是只恢复单条，生产不调用startQueued。临时thread已归档、进程/目录已清，失败前次保留。[证据](../../rebuild/agent-bridge/hosts/codex-queue-selection-proof-2026-10-25.json)。生产descendantsStopped仍false，未放宽停止门禁；用户关于“当前轮次已停是否允许明确继续”的单次异步选择尚待答复。
+
+下一步继续眼镜前置wake/独立录音/确认；当前仅静态定位原入站KEY，mock共用回调、SDK非MAIN、原厂退出并非音频释放证明，不能据此开麦。完成摘要另需完整结果清单和持久去重，不能逐result分片投放。既有Mac解锁/新无线地址问题不重复催问。正常提交推送本分支，不合main；三项总目标仍开放。
+
 ## [codex] 2026-10-25 原生任务桥、服务器控制与手机打断/继续源码接通
 
 用户「执行」后的第二批：仅 Codex 工作区，fetch 已完成，Claude 仍96b1dbb已合。未触碰设备、问答通道或现用聊天；眼镜 watch 保持关闭。公网未部署、未打 APK/装机：已验dev92、待装dev93性能候选及稳定回退76不变。现有 dev93 编译/安装暂存未覆盖。

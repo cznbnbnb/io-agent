@@ -56,8 +56,9 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       const bearer=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.authorization??'');if(!bearer)reject(401,'UNAUTHENTICATED');
       const token=bearer[1],query={};
       observation.principal=store.auth(token);
-      const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices)(?:\/|$)/.exec(url.pathname)?.[1];
-      observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':route??'other';
+      const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices|agent-sessions|agent-default)(?:\/|$)/.exec(url.pathname)?.[1];
+      observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':
+        ['agent-sessions','agent-default'].includes(route)?'other':route??'other';
       for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_QUERY');query[key]=value;}
       if(req.method==='GET'&&url.pathname==='/v1/operations/summary'){
         observation.principal=null; // 管理页面刷新不计入设备转发流量。
@@ -73,6 +74,9 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       if(req.method==='POST'&&url.pathname==='/v1/pairings'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.createPairing(token,await smallJson(req,observation)));return;}
       if(req.method==='POST'&&url.pathname==='/v1/credentials/refresh'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.refresh(token));return;}
       if(req.method==='GET'&&url.pathname==='/v1/devices'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.list(token));return;}
+      if(req.method==='GET'&&url.pathname==='/v1/agent-sessions'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.agentSessions.list(token));return;}
+      if(req.method==='POST'&&url.pathname==='/v1/agent-sessions'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.agentSessions.publish(token,await smallJson(req,observation)));return;}
+      if(req.method==='PUT'&&url.pathname==='/v1/agent-default'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.agentSessions.setDefault(token,await smallJson(req,observation)));return;}
       const device=/^\/v1\/devices\/([^/]+)$/.exec(url.pathname);
       if(device&&req.method==='DELETE'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.revokeBy(token,decoded(device[1])));return;}
       const watch=/^\/v1\/watches\/([^/]+)$/.exec(url.pathname);

@@ -40,7 +40,9 @@ const host = await CodexAppServerSession.connect(nativeThreadId, {
 });
 ```
 
-`start` 调用 `thread/queue/add`，固定 UUID 消息标识；按原生 userMessage.clientId 对账，排队项尚无 turnId，不捏造轮次。`startQueued` 只显式启动本实例已记录的原 queueId，原生拒绝忙碌，不以 turn/start 替代。中断后 `terminateTurnTerminals` 仅操作原终态 turn 的命令：历史或实时原生 item/started/completed 提供 item/process 关联，再与当前 backgroundTerminals 双重匹配；代码模式子工具可能不出现在历史重建结果中。停止意图只发一次，未知不重发；回执保留来源，仍不把 terminated:true 当作所有派生进程退出。
+`start` 调用 `thread/queue/add`，固定 UUID 消息标识；按原生 userMessage.clientId 对账，排队项尚无 turnId，不捏造轮次。`startQueued` 指定本实例已记录的原 queueId 为首先启动的项，原生拒绝忙碌，不以 turn/start 替代。**它同时恢复后续队列执行，不是单任务隔离继续。** 2026-10-25 隔离实测：指定非队头 B，B 完成 34 ms 后原队头 A 自动启动，两项均完成，只有一次 queue/start。[证据](./codex-queue-selection-proof-2026-10-25.json)。该 helper 尚未接入生产 runtime；单项测试不能替代多项副作用验证。
+
+中断后 `terminateTurnTerminals` 仅操作原终态 turn 的命令：历史或实时原生 item/started/completed 提供 item/process 关联，再与当前 backgroundTerminals 双重匹配；代码模式子工具可能不出现在历史重建结果中。停止意图只发一次，未知不重发；回执保留来源，仍不把 terminated:true 当作所有派生进程退出。
 
 真实安装的 alpha 声明了分页 item API，但实际返回“不支持”；适配器仅对精确原生错误回退到同一 thread/read。新空 thread 的 not materialized 也仅在载入、空闲且确无历史时接受，通用失败不解释为空历史。
 
@@ -69,6 +71,7 @@ node tools/collab/verify-claude-mod.mjs --live --claude /absolute/path/to/claude
     "state_file": "native/runtime.json",
     "sessions": [{
       "host_kind": "codex",
+      "label": "本周讨论整理",
       "workspace": "/absolute/original/workspace",
       "route": {
         "computer_id": "registered-computer",
@@ -82,11 +85,27 @@ node tools/collab/verify-claude-mod.mjs --live --claude /absolute/path/to/claude
 }
 ```
 
-Codex 必须由原持有者提供已运行的共享 app-server，原 thread 已载入。允许显式 loopback WebSocket；若服务器要求 bearer，配置 `auth_file` 指向仅含 `token` 的私有 JSON，不放 argv。首次任务才连接；一次连接失败或断开后不暗中重建宿主，需恢复原端点后重启桥接。`status` 仍纯本地，不连接宿主或读令牌。
+`label` 可选，用作手机显示的会话主题；去首尾空格后最多 64 个 UTF-16 单元、256 字节且不含控制符。未设置时显示 project_id。它不参与任务身份；修改后重启桥接，在新 acquire 时生效。route 前三项使用 1–128 位字母、数字、下划线、点或短横线；session_id 为小写标准 UUID。非法单项不会阻断其他会话续租。
+
+Codex 必须由原持有者提供已运行的共享 app-server，原 thread 已载入。允许显式 loopback WebSocket；若服务器要求 bearer，配置 `auth_file` 指向仅含 `token` 的私有 JSON，不放 argv。目录首次探测或首个任务时连接；元数据探测不读取历史轮次，不提交输入。一次连接失败或断开后不暗中重建宿主，需恢复原端点后重启桥接。`status` 仍纯本地，不连接宿主或读令牌。
 
 Claude 条目改用 `host_kind:"claude"` 和 `broker_directory:"native/claude-session"`，不带 endpoint/auth_file。启动桥接仅建立本地认证 broker，并在该私有目录生成临时 plugin；须由**对应原 session**按 [Mod 加载说明](./claude-mod/README.md)加载。此入口不会自动新建/resume session、安装全局插件、换模型或启动另一个 Claude 进程；未连接时任务只在本地等待。每个私有 bridge 配置只服务同一 computer/agent，session 集最多 32 个，不能和 `adapter_command` 同时设置。
 
-桥接、runtime、SessionControl 三层账本必须一起保留。切换 route 集会拒绝沿用旧 cursor，避免新增 session 的旧任务被跳过；动态 session 发现、一次配对后自动登记这些宿主，以及 CLI 默认目标发布仍待接入。不能删除账本“修复”未知执行，也不能拿旧问答连接的已运行任务当作新任务执行。
+桥接、runtime、SessionControl 三层账本必须一起保留。切换 route 集会拒绝沿用旧 cursor，避免新增 session 的旧任务被跳过。显式配置的原生宿主经一次配对身份登记目录；不扫描或自动接管其他会话。不能删除账本“修复”未知执行，也不能拿旧问答连接的已运行任务当作新任务执行。
+
+### 会话目录与共享默认
+
+新服务声明 `agent_session_directory_v1` 后，native bridge 独立发布已验证的 session 元信息。每 15 秒探测，服务端租约 60 秒；目录只展示真实宿主的绑定、工作区、忙闲和能力。一次探测最多 5 秒、4 路并发；准备发送时超过 15 秒的观察不能续租。宿主断开、控制器失锁、Bridge 阻塞都不会继续声称可执行。租约网络失败不阻塞既有问答和结果发送，退出只释放本实例租约，不停止原聊天。
+
+问答 CLI 的 `join` 不会变成可执行 session，也不会自动设置默认。目录发布须用已配对电脑凭据，旧临时 mint 凭据不能冒充在线宿主。CLI 与手机共享 owner 下同一明确的四项 route；离线、过期或撤销后保留默认，不改投其他会话。
+
+```sh
+node rebuild/agent-bridge/cli.mjs sessions --config /absolute/private/bridge.json
+node rebuild/agent-bridge/cli.mjs set-default --config /absolute/private/bridge.json --session 10000000-0000-4000-8000-000000000001
+node rebuild/agent-bridge/cli.mjs clear-default --config /absolute/private/bridge.json
+```
+
+上面的 UUID 仅为格式示例。设默认仅选择该配置 computer/agent 下已存在且可执行的精确 session；三个命令均不会启动模型适配器。默认修改先保存独立私有 CAS 意图，丢回执后重用同一请求，不能覆盖另一设备后来保存的默认。原 ACK 和当前默认分别返回；凭据失效保留待对账记录。[接口合同](../../../docs/contracts/agent-session-directory-v1.md)。
 
 ### 手机控制与传输边界
 
@@ -94,4 +113,4 @@ Claude 条目改用 `host_kind:"claude"` 和 `broker_directory:"native/claude-se
 
 手机控制与电脑状态并发时，明确被服务拒绝的旧状态按新 control 精确收口，完成事实以新 revision 保留新 control，不更改已发送事件。已接受旧答案保留历史，停止后或命令变更后不再投递执行。结果先按 JSON 编码大小与字符双限拆分（240 KiB / 65536 字符），完整结果与完成状态同一耐久 runtime event，最多 64 actions；任一分片延迟时，同任务后续正文/完成/回执等待。其它任务可继续。
 
-原生完整结果上限 1 MiB；native runtime 走同进程适配。原有 `AdapterHost` 的 stdio 帧上限仍 1 MiB，不用于转运这里的超长多分片事件。手机入口仍从已登记任务派生会话，尚无完整原生 session 注册表。生产宿主继续保留 `descendantsStopped:false`；本机合成宿主的 stop→resume 检查不代表正式任意任务已能确认停止。公网尚未部署，本批未安装 Android 包。
+原生完整结果上限 1 MiB；native runtime 走同进程适配。原有 `AdapterHost` 的 stdio 帧上限仍 1 MiB，不用于转运这里的超长多分片事件。原问答连接与原生目录分别保留，目录过期不会封住旧问题的回答。生产宿主继续保留 `descendantsStopped:false`；本机合成宿主的 stop→resume 检查不代表正式任意任务已能确认停止。`startQueued` 仍只供有界验证，产品尚未接耐久队列启动；不能把脚本显式启动称为产品自动恢复。公网尚未部署，本批未安装 Android 包。

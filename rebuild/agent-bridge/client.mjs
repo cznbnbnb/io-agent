@@ -127,6 +127,10 @@ export class BridgeClient{
   /** Paired devices (computer credentials only): one-time phone code, list, unpair. */
   async createPairing(label){return (await this.#send('POST','pairings',JSON.stringify({role:'phone',label}))).body;}
   async devices(){return (await this.#send('GET','devices')).body;}
+  /** Native session metadata only; these endpoints never send model input. */
+  async agentSessions(){return (await this.#send('GET','agent-sessions')).body;}
+  async publishAgentSession(input){return (await this.#send('POST','agent-sessions',JSON.stringify(input))).body;}
+  async setAgentDefault(input){return (await this.#send('PUT','agent-default',JSON.stringify(input))).body;}
   async unpair(deviceId){
     if(typeof deviceId!=='string'||!/^[0-9a-f-]{36}$/.test(deviceId))fail('INVALID_QUERY',{permanent:true});
     return (await this.#send('DELETE',`devices/${deviceId}`)).body;

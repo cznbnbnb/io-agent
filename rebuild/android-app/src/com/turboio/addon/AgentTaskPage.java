@@ -74,7 +74,7 @@ final class AgentTaskPage {
   body.addView(tabs);taskScroll=new ScrollView(activity);taskScroll.setFillViewport(true);taskScroll.setNestedScrollingEnabled(true);LinearLayout list=AgentUI.column(activity);taskScroll.addView(list);body.addView(taskScroll,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,248)));
   List<TaskPresentation.Row> rows=presentation.filter(filter);if(rows.isEmpty()){TextView empty=AgentUI.text(activity,"completed".equals(filter)?"还没有已完成的任务":"暂无任务",14,AgentUI.MUTED);empty.setGravity(Gravity.CENTER);list.addView(empty,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,240)));}else for(TaskPresentation.Row row:rows)taskRow(list,row);
   AgentUI.gap(activity,body,14);TextView note=AgentUI.text(activity,"每个回复，都会回到发起它的原任务。",12,AgentUI.MUTED);note.setGravity(Gravity.CENTER);body.addView(note);
-  create.setText(snapshot.saved==null?"＋ 添加电脑连接":"＋ 交给 Agent 一件事");
+  create.setText("＋ 交给 Agent 一件事");
   final ScrollView currentList=taskScroll;final int inner=listPositions.containsKey(filter)?listPositions.get(filter):0;
   scroll.post(()->{if(alive()){scroll.scrollTo(0,position);if(currentList==taskScroll)currentList.scrollTo(0,inner);}});
   if(detail!=null&&detail.dialog.isShowing()){TaskPresentation.Row row=presentation.find(detailKey);if(row!=null)renderDetails(row);}
@@ -98,8 +98,8 @@ final class AgentTaskPage {
   parent.addView(card);View divider=new View(activity);divider.setBackgroundColor(0x224b725e);parent.addView(divider,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,1)));
  }
  private void delegate(){
-  if(snapshot==null||snapshot.saved==null){openConnections.run();return;}
-  AgentUI.Screen form=TaskWorkspace.delegate(activity,runtime,snapshot.binding,this::refresh);track(form);
+  if(snapshot==null)return;
+  AgentUI.Screen form=TaskWorkspace.delegate(activity,runtime,snapshot.defaultBinding,this::refresh);track(form);
  }
  private void openQuestion(TaskPresentation.Question question){
   if(question.queuedAnswer()||!question.available(System.currentTimeMillis())){

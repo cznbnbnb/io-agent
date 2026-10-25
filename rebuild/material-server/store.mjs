@@ -5,6 +5,7 @@ import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
+import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
 
@@ -97,7 +98,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.devices=new DeviceRegistry(this);this.transfer=new MaterialTransfer(this);
+      this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -140,7 +141,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){

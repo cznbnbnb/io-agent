@@ -34,7 +34,12 @@ final class TaskHub implements AutoCloseable {
  }
  void pump(long now){for(Channel c:channels.values())if(c.profile.enabled&&c.api!=null){try{c.api.pump(c.mailbox,now);c.note=c.api.note;}catch(Exception failure){c.note=TaskApi.safeError(failure);}}}
  void detail(String binding,String kind,String id,long now)throws IOException{Channel c=channel(binding,true);Map<String,Object> fresh=c.api.refresh(c.mailbox,kind,id,now);TaskWire.require(TaskWire.same(TaskWire.body(fresh).get("route"),c.profile.connection.route()),"TASK_ROUTE_MISMATCH");c.note="received";}
- void delegate(String binding,String operation,String command,long now)throws IOException{Channel c=channel(binding,true);c.mailbox.delegate(operation,command,now,now+3600000);c.note="queued";}
+ void delegate(String binding,String operation,String command,long now)throws IOException{Channel c=channel(binding,true);TaskSessionDirectory.command(command);
+  // Existing operations reconcile their exact bytes even when the target is now offline.
+  boolean saved=false;for(Object raw:c.mailbox.pending())if(operation.equals(WireJson.map(raw).get("operation_id")))saved=true;
+  if(!saved)c.api.directory(now).requireExecutable(c.profile.connection.route(),TaskSessionDirectory.elapsed());
+  c.mailbox.delegate(operation,command,now,now+3600000);c.note="queued";
+ }
  void control(String binding,String operation,String task,Map<String,Object> expected,String kind,String text,long now,long expires)throws IOException{
   Channel c=channel(binding,true);TaskWire.require(c.api.sessionControl(),"TASK_CONTROL_UNSUPPORTED");
   TaskWire.require(c.profile.connection.expiresAt>now,"TASK_IMPORT_EXPIRED");

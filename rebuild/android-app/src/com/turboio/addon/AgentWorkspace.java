@@ -40,7 +40,7 @@ final class AgentWorkspace {
   AgentUI.row(a,settingsBody,"雷鸟 iO",NativeTransfer.connected().isEmpty()?"眼镜尚未连接":"眼镜已连接","",()->GlassesConnectionUI.show(a));
   LinearLayout connection=AgentUI.card(a,settingsBody);int enabled=0;if(snapshot!=null)for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled&&c.profile.connection.expiresAt>System.currentTimeMillis())enabled++;
   AgentUI.row(a,connection,"电脑连接","",snapshot==null?"读取中":enabled+" 个已启用",()->AgentConnectionsPage.show(a));AgentUI.divider(a,connection);
-  String target=snapshot==null||snapshot.saved==null?"尚未设置":snapshot.saved.connection.agent+" / "+snapshot.saved.connection.project;
+  String target="尚未设置";if(snapshot!=null&&snapshot.defaultRoute!=null){TaskSessionDirectory.Entry entry=snapshot.directory.find(snapshot.defaultRoute);target=entry==null?snapshot.defaultRoute.get("agent_id")+" / "+snapshot.defaultRoute.get("project_id"):entry.label+" / "+entry.workspace;if(!snapshot.defaultStatus.isEmpty())target+=" · 暂不可用";}
   AgentUI.row(a,connection,"默认 Agent 与工作区",target,"",()->AgentConnectionsPage.defaults(a));AgentUI.divider(a,connection);
   AgentUI.row(a,connection,"眼镜提醒","",AgentCardRuntime.enabled()?"已开启":"已关闭",this::reminders);AgentUI.divider(a,connection);
   AgentUI.row(a,connection,"资料同步","开关与同步方式","",()->AgentMaterialPage.settings(a));

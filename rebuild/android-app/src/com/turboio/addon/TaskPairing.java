@@ -24,6 +24,16 @@ final class TaskPairing {
   if(r.status==410)throw new IOException("CURSOR_RESET_REQUIRED");if(r.status!=200)throw new IOException(r.status==401?"PAIRING_REVOKED":error(r));
   return WireJson.map(WireJson.read(r.body));
  }
+ static TaskSessionDirectory directory(TaskDevice d,long now)throws IOException{
+  TaskWire.require(d.expiresAt>now,"PAIRING_EXPIRED");TaskApi.Response identity=exchange("GET",d.base+"identity",d.token,null);if(identity.status!=200)throw new IOException(error(identity));
+  Map<String,Object> who=WireJson.map(WireJson.read(identity.body));TaskWire.require("1.0".equals(who.get("schema_version"))&&d.owner.equals(who.get("owner_id"))&&d.server.equals(who.get("server_id"))&&d.producer.equals(who.get("producer_id"))&&d.expiresAt==TaskWire.stamp(who.get("expires_at")),"DIRECTORY_IDENTITY_MISMATCH");
+  Object scopes=who.get("scopes");TaskWire.require(scopes instanceof java.util.List&&WireJson.list(scopes).containsAll(TaskConnection.SCOPES),"TASK_PHONE_SCOPE_REQUIRED");
+  Object caps=who.get("capabilities");TaskWire.require(caps instanceof java.util.List&&WireJson.list(caps).contains(TaskSessionDirectory.CAPABILITY),"DIRECTORY_UNSUPPORTED");
+  long start=TaskSessionDirectory.elapsed();TaskApi.Response reply=exchange("GET",d.base+"agent-sessions",d.token,null);long end=TaskSessionDirectory.elapsed();if(reply.status!=200)throw new IOException(error(reply));return TaskSessionDirectory.fresh(reply.body,d.server,d.owner,start,end);
+ }
+ static Map<String,Object> setDefault(TaskDevice d,Map<String,Object> request)throws IOException{
+  TaskApi.Response reply=exchange("PUT",d.base+"agent-default",d.token,WireJson.bytes(request));if(reply.status!=200)throw new IOException(error(reply));return TaskSessionDirectory.defaultAck(reply.body,d.server,d.owner,request);
+ }
  static void unpair(TaskDevice d)throws IOException{
   TaskApi.Response r=exchange("DELETE",d.base+"devices/"+d.deviceId,d.token,null);
   if(r.status!=200&&r.status!=401)throw new IOException(error(r));

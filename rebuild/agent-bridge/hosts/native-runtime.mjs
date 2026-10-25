@@ -5,13 +5,12 @@ import {BridgeError} from '../client.mjs';
 import {BridgeState} from '../state.mjs';
 import {BridgeRunLock} from '../run-lock.mjs';
 import {runtimeDigest,runtimeSource,runtimeEventBatch} from '../runtime-events.mjs';
+import {directoryRoute as validRoute,directoryLabel} from '../session-directory.mjs';
 import {SessionControl} from './session-control.mjs';
 
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
 const identifier=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v);
-const routeKeys=['computer_id','agent_id','project_id','session_id'];
-const validRoute=v=>object(v)&&Object.keys(v).length===4&&routeKeys.every(k=>typeof v[k]==='string'&&v[k]&&v[k].length<=256)&&uuid(v.session_id);
 const own=(o,k)=>Object.hasOwn(o,k)?o[k]:undefined;
 const normalizedSource=s=>Object.fromEntries(['kind','object_id','revision','body','expires_at','command_expires_at'].filter(k=>s[k]!==undefined).map(k=>[k,s[k]]));
 const operationId=task=>'op-'+runtimeDigest(task);
@@ -61,19 +60,20 @@ function resultActions(op,c){
  * all bounded message fragments plus the final state/receipt (<=64 actions). */
 export class NativeRuntimeAdapter{
   name='native-session-runtime';
-  #config;#clock;#state;#lease;#controllers=new Map();#busy=false;#started=false;#poisoned=false;#stopping=false;#operation;
+  #config;#clock;#state;#lease;#controllers=new Map();#busy=false;#started=false;#poisoned=false;#stopping=false;#operation;#readinessInFlight=new Map();#snapshot;#generation=0;
   constructor({stateFile,bindings,clock=Date.now}={}){
     need(typeof stateFile==='string'&&path.isAbsolute(stateFile)&&Array.isArray(bindings)&&bindings.length>0&&bindings.length<=32&&typeof clock==='function','NATIVE_RUNTIME_CONFIG_INVALID');
     const keys=new Set(),sessions=new Set();
     this.#config=bindings.map(entry=>{
       const b=entry?.binding;
       need(object(b)&&validRoute(b.route)&&['codex','claude'].includes(b.host_kind)&&typeof b.server_id==='string'&&b.server_id&&typeof b.owner_id==='string'&&b.owner_id&&typeof b.workspace==='string'&&path.isAbsolute(b.workspace),'NATIVE_RUNTIME_BINDING_INVALID');
+      need(entry.label===undefined||directoryLabel(entry.label),'NATIVE_RUNTIME_BINDING_INVALID');
       need(entry.host?.conversationId===b.route.session_id&&['status','start','inspectOperation'].every(k=>typeof entry.host[k]==='function'),'NATIVE_RUNTIME_HOST_MISMATCH');
       const key=runtimeDigest(b.route),session=`${b.host_kind}:${b.route.session_id}`;
       need(!keys.has(key)&&!sessions.has(session),'NATIVE_RUNTIME_BINDING_DUPLICATE');keys.add(key);sessions.add(session);
       const controlStateFile=entry.controlStateFile??path.join(stateFile+'.sessions',key+'.json');
       need(typeof controlStateFile==='string'&&path.isAbsolute(controlStateFile)&&path.resolve(controlStateFile)!==path.resolve(stateFile),'NATIVE_RUNTIME_CONFIG_INVALID');
-      return{key,binding:structuredClone(b),host:entry.host,controlStateFile};
+      return{key,binding:structuredClone(b),label:entry.label,host:entry.host,controlStateFile};
     }).sort((a,b)=>a.key.localeCompare(b.key));
     need(this.#config.every(e=>e.binding.server_id===this.#config[0].binding.server_id&&e.binding.owner_id===this.#config[0].binding.owner_id),'NATIVE_RUNTIME_BINDING_INVALID');
     this.stateFile=stateFile;this.#clock=clock;
@@ -81,6 +81,62 @@ export class NativeRuntimeAdapter{
   get capabilities(){return capabilities;}
   get routeBindingDigest(){return runtimeDigest(this.#config.map(e=>e.binding));}
   acceptsRoute(route){return validRoute(route)&&this.#config.some(e=>equal(e.binding.route,route));}
+  /** Read-only directory observation, independent of the task dispatch lock.
+   * The budget bounds the whole snapshot, not each of up to 32 bindings.
+   * Timed-out calls retain their slots until they actually settle: repeated
+   * heartbeats cannot create an unbounded pile of probes on a stuck host.
+   * No status fallback is allowed; some hosts read full history in status(). */
+  async readinessSnapshot({timeoutMs=5000}={}){
+    this.#check();need(Number.isSafeInteger(timeoutMs)&&timeoutMs>=10&&timeoutMs<=10000,'NATIVE_RUNTIME_READINESS_TIMEOUT_INVALID');
+    if(!this.#snapshot)this.#snapshot=this.#readinessSnapshot(timeoutMs).finally(()=>{this.#snapshot=null;});
+    return structuredClone(await this.#snapshot);
+  }
+  async #readinessSnapshot(timeoutMs){
+    const until=performance.now()+timeoutMs,generation=this.#generation,sessions=new Array(this.#config.length);let next=0;
+    const unavailable=(e,reason,availability='offline')=>({route:structuredClone(e.binding.route),host_kind:e.binding.host_kind,workspace:e.binding.workspace,
+      ...(e.label===undefined?{}:{label:e.label}),
+      availability,busy:null,can_execute:false,exact_turn_interrupt:false,descendants_proof:false,atomic_queue_append:false,native_queue_expiry:false,reason});
+    const probe=async e=>{
+      if(typeof e.host.readiness!=='function')return unavailable(e,'NATIVE_RUNTIME_READINESS_UNSUPPORTED','unknown');
+      let pending=this.#readinessInFlight.get(e.key);
+      if(!pending){
+        if(performance.now()>=until)return unavailable(e,'NATIVE_RUNTIME_READINESS_TIMEOUT');
+        if(this.#readinessInFlight.size>=4)return unavailable(e,'NATIVE_RUNTIME_READINESS_CAPACITY','unknown');
+        pending={expired:false,promise:Promise.resolve().then(()=>e.host.readiness()).then(status=>({status}),error=>({error}))};
+        this.#readinessInFlight.set(e.key,pending);
+        void pending.promise.then(()=>{if(this.#readinessInFlight.get(e.key)===pending)this.#readinessInFlight.delete(e.key);});
+      }
+      // A previous heartbeat's timed-out request is not a fresh observation.
+      // Keep its slot, discard its late reply, then allow a new probe next time.
+      if(pending.expired)return unavailable(e,'NATIVE_RUNTIME_READINESS_TIMEOUT');
+      let timer;
+      const response=await Promise.race([pending.promise,new Promise(resolve=>{timer=setTimeout(()=>{
+        pending.expired=true;resolve({error:new NativeRuntimeError('NATIVE_RUNTIME_READINESS_TIMEOUT')});
+      },Math.max(0,until-performance.now()));})]).finally(()=>clearTimeout(timer));
+      if(response.error)return unavailable(e,safeCode(response.error),response.error.code==='NATIVE_RUNTIME_READINESS_UNSUPPORTED'?'unknown':'offline');
+      const status=response.status;
+      if(!object(status)||status.conversationId!==e.binding.route.session_id||status.workspace!==e.binding.workspace)return unavailable(e,'NATIVE_RUNTIME_READINESS_IDENTITY_MISMATCH');
+      if(!(status.busy===null||typeof status.busy==='boolean')||typeof status.canExecute!=='boolean')return unavailable(e,'NATIVE_RUNTIME_READINESS_INVALID');
+      const nativeQueue=e.host.capabilities?.atomic_queue_append===true;
+      return{...unavailable(e,null),availability:'online',busy:status.busy,
+        can_execute:status.canExecute&&(nativeQueue||e.host.capabilities?.atomic_idle_start===true&&status.busy===false),
+        exact_turn_interrupt:e.host.capabilities?.exact_turn_interrupt===true,atomic_queue_append:nativeQueue,
+        reason:status.reason==null?null:safeCode({code:status.reason})};
+    };
+    const worker=async()=>{while(next<this.#config.length){const index=next++;sessions[index]=await probe(this.#config[index]);}};
+    await Promise.all(Array.from({length:Math.min(4,this.#config.length)},worker));
+    // A concurrent stop or lost journal lock must not publish a fresh online
+    // lease after this runtime has stopped owning the configured routes.
+    this.#check();need(generation===this.#generation,'NATIVE_RUNTIME_NOT_STARTED');
+    // A healthy native process does not repair a poisoned controller journal
+    // or restore its ownership. Check all controller leases *after* the async
+    // probes, so one slow host cannot hide a peer's intervening lock loss.
+    for(let i=0;i<sessions.length;i++)if(sessions[i].availability==='online')try{
+      const controller=this.#controllers.get(this.#config[i].key);
+      need(controller,'NATIVE_RUNTIME_CONTROLLER_UNAVAILABLE');controller.list();
+    }catch(error){sessions[i]={...sessions[i],can_execute:false,exact_turn_interrupt:false,atomic_queue_append:false,reason:safeCode(error)};}
+    return{schema_version:1,observed_at:new Date(this.#clock()).toISOString(),sessions};
+  }
   #check(){need(this.#started&&!this.#stopping,'NATIVE_RUNTIME_NOT_STARTED');need(!this.#poisoned,'NATIVE_RUNTIME_STORAGE_UNCERTAIN');this.#lease.assertHeld();}
   get #journal(){return this.#state.value.native_runtime;}
   #save(){try{need(Buffer.byteLength(JSON.stringify(this.#state.value))<=MAX_STATE,'NATIVE_RUNTIME_STATE_LIMIT');this.#state.save();}catch(error){this.#poisoned=true;throw error;}}
@@ -104,7 +160,7 @@ export class NativeRuntimeAdapter{
         const known=new Set(this.#journal.order.flatMap(id=>Object.keys(this.#journal.operations[id].commands)));
         need(controller.list().every(c=>known.has(c.command_id)),'NATIVE_RUNTIME_COMMAND_ORPHAN');
       }
-      this.#save();this.#started=true;return this.capabilities;
+      this.#save();this.#generation++;this.#started=true;return this.capabilities;
     }catch(error){for(const c of this.#controllers.values())await c.close();this.#controllers.clear();this.#lease.release();this.#lease=null;this.#state=null;throw error;}
   }
   #validateJournal(){
@@ -278,7 +334,7 @@ export class NativeRuntimeAdapter{
   onAnswer(){throw new NativeRuntimeError('NATIVE_RUNTIME_ANSWER_UNSUPPORTED');}
   onRequestClosed(){return[];}
   async stop(){
-    if(!this.#lease)return;this.#stopping=true;
+    if(!this.#lease)return;this.#generation++;this.#stopping=true;
     try{await this.#operation?.catch(()=>{});for(const c of this.#controllers.values())await c.close();this.#controllers.clear();this.#lease.release();this.#lease=null;this.#state=null;this.#started=false;}
     finally{this.#stopping=false;}
   }

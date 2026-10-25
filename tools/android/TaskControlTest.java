@@ -10,7 +10,7 @@ public final class TaskControlTest {
  static void no(Run run)throws Exception{checks++;try{run.run();}catch(IllegalArgumentException|IllegalStateException|IOException expected){return;}throw new AssertionError("expected rejection "+checks);}
  static Map<String,Object> copy(Map<String,Object> v){return WireJson.map(WireJson.copy(v));}
  static String uuid(int n){return String.format(Locale.ROOT,"10000000-0000-4000-8000-%012d",n);}
- static TaskConnection connection(String session){Map<String,Object> v=TaskConnectionTest.sample();v.put("session_id",session);v.put("expires_at",TaskWire.now(NOW+86400000));return TaskConnection.parse(WireJson.bytes(v),NOW);}
+ static TaskConnection connection(String session){Map<String,Object> v=TaskConnectionTest.sample();v.put("session_id",UUID.nameUUIDFromBytes(session.getBytes(StandardCharsets.UTF_8)).toString());v.put("expires_at",TaskWire.now(NOW+86400000));return TaskConnection.parse(WireJson.bytes(v),NOW);}
  static Map<String,Object> execution(int command,String turn,String phase){return WireJson.object("command_id",uuid(command),"turn_id",turn,"phase",phase);}
  static Map<String,Object> task(TaskConnection c,String state,String phase,int rev){
   Map<String,Object> body=WireJson.object("task_id","original-task","revision",rev,"route",c.route(),"command","原始完整指令\n不能改写","state",state,"allow_create_session",false,"execution",execution(1,"turn-exact",phase));return item(body,rev);
@@ -25,7 +25,8 @@ public final class TaskControlTest {
   TaskApi.Response ok(Object body){return new TaskApi.Response(200,WireJson.bytes(body),0);}
   public TaskApi.Response exchange(String path,byte[] payload)throws IOException{
    if(offline)throw new java.net.ConnectException("offline");
-   if(path.equals("/identity")){Map<String,Object> identity=WireJson.object("schema_version","1.0","owner_id",c.owner,"producer_id",c.producer,"server_id",c.server,"expires_at",c.expires,"scopes",new ArrayList<>(TaskConnection.SCOPES));if(advertised!=null)identity.put("capabilities",advertised);else if(capability)identity.put("capabilities",Arrays.asList("task_session_control_v1"));return ok(identity);}
+   if(path.equals("/identity")){Map<String,Object> identity=WireJson.object("schema_version","1.0","owner_id",c.owner,"producer_id",c.producer,"server_id",c.server,"expires_at",c.expires,"scopes",new ArrayList<>(TaskConnection.SCOPES));if(advertised!=null)identity.put("capabilities",advertised);else if(capability)identity.put("capabilities",Arrays.asList("task_session_control_v1",TaskSessionDirectory.CAPABILITY));return ok(identity);}
+   if(path.equals("/agent-sessions"))return ok(TaskDirectoryTest.directory(c));
    if(path.startsWith("/tasks/")&&payload==null){reads++;return ok(task);}
    if(path.startsWith("/events/")){lookups++;return saved==null?new TaskApi.Response(404,error("EVENT_NOT_FOUND"),0):ok(ack(saved));}
    if(path.equals("/tasks")&&payload!=null){posts++;saved=WireJson.map(WireJson.read(payload));if(loseAck)throw new java.net.SocketTimeoutException("lost response");return new TaskApi.Response(201,WireJson.bytes(ack(saved)),0);}

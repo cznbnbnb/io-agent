@@ -1,8 +1,10 @@
 import path from 'node:path';
 import {AgentBridge} from './bridge.mjs';
 import {AdapterHost} from './adapter-host.mjs';
-import {BridgeError,readPrivateJson} from './client.mjs';
+import {BridgeClient,BridgeError,readPrivateJson} from './client.mjs';
 import {createNativeBridgeAdapter} from './hosts/native-config.mjs';
+import {validateDirectory} from './session-directory.mjs';
+import {setDirectoryDefault} from './directory-default.mjs';
 
 // Local run entry. With no adapter_command the program only observes: it never
 // claims a task it cannot execute. A runtime adapter (P42) is a separate process
@@ -13,9 +15,9 @@ const fail=(code,detail=null)=>{throw new BridgeError(code,{permanent:true,detai
 
 try{
   const [action,...args]=process.argv.slice(2),options={};
-  if(!['once','run','status'].includes(action)||args.length%2)fail('INVALID_ARGUMENTS');
+  if(!['once','run','status','sessions','set-default','clear-default'].includes(action)||args.length%2)fail('INVALID_ARGUMENTS');
   for(let index=0;index<args.length;index+=2){
-    if(args[index]!=='--config'||Object.hasOwn(options,'config')||args[index+1]===undefined)fail('INVALID_ARGUMENTS');
+    if(!['--config',...(action==='set-default'?['--session']:[])].includes(args[index])||Object.hasOwn(options,args[index].slice(2))||args[index+1]===undefined)fail('INVALID_ARGUMENTS');
     options[args[index].slice(2)]=args[index+1];
   }
   if(options.config===undefined)fail('EXPLICIT_CONFIG_REQUIRED');
@@ -23,7 +25,23 @@ try{
   if(typeof config?.credential_file==='string'&&!path.isAbsolute(config.credential_file))
     config.credential_file=path.resolve(path.dirname(filename),config.credential_file);
   const stateFile=path.resolve(path.dirname(filename),config.state_file??'./bridge-state.json');
-  if(action==='status'){
+  if(['sessions','set-default','clear-default'].includes(action)){
+    const client=new BridgeClient(config),identity=await client.identity();
+    if(['server_id','owner_id','producer_id'].some(k=>identity[k]!==config[k]))fail('IDENTITY_MISMATCH');
+    if(!identity.capabilities?.includes('agent_session_directory_v1'))fail('SERVER_SESSION_DIRECTORY_UNSUPPORTED');
+    if(action==='sessions')process.stdout.write(JSON.stringify({ok:true,...validateDirectory(await client.agentSessions(),config)})+'\n');
+    else{
+      let route=null;
+      if(action==='set-default'){
+        if(typeof options.session!=='string'||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(options.session))fail('EXPLICIT_SESSION_REQUIRED');
+        const directory=validateDirectory(await client.agentSessions(),config);
+        const entries=directory.sessions.filter(s=>s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id&&s.route.session_id===options.session);
+        if(entries.length!==1)fail('DEFAULT_SESSION_NOT_UNIQUE');route=entries[0].route;
+      }
+      const result=await setDirectoryDefault({client,stateFile:stateFile+'.default-operation.json',route});
+      process.stdout.write(JSON.stringify({ok:true,...result})+'\n');
+    }
+  }else if(action==='status'){
     // A status query never authenticates, starts an adapter or saves a ledger.
     const bridge=new AgentBridge({config,stateFile});
     process.stdout.write(JSON.stringify({ok:true,...bridge.inspectLocalStatus()})+'\n');

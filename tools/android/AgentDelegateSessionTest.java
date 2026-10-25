@@ -26,7 +26,7 @@ public final class AgentDelegateSessionTest {
  }
  static final TaskConnection CODEX=connection("codex","existing-codex"),CLAUDE=connection("claude","existing-claude");
  static TaskProfiles profiles(){return TaskProfiles.empty().upsert(CODEX,true,NOW).upsert(CLAUDE,true,NOW,false);}
- static AgentDelegateSession prepared(Memory memory)throws Exception{AgentDelegateSession s=new AgentDelegateSession(memory);yes(s.healthy()&&s.phase().equals("IDLE"));yes(s.prepare(profiles(),NOW));return s;}
+ static AgentDelegateSession prepared(Memory memory)throws Exception{AgentDelegateSession s=new AgentDelegateSession(memory);yes(s.healthy()&&s.phase().equals("IDLE"));yes(s.prepare(profiles(),NOW,CODEX.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));return s;}
  static AgentDelegateSession review(Memory memory)throws Exception{
   AgentDelegateSession s=prepared(memory);String op=s.operation();yes(s.begin(op,1000));yes(s.transcript(op,1,TEXT,1001));yes(s.stop(op,2000,false));yes(s.needsCaptureRelease());yes(s.captureReleased(op));yes(s.phase().equals("REVIEW")&&!s.needsCaptureRelease());return s;
  }
@@ -36,7 +36,7 @@ public final class AgentDelegateSessionTest {
  }
  static void frozenTarget(File root)throws Exception{
   Memory memory=new Memory();AgentDelegateSession s=review(memory);String op=s.operation();TaskProfiles changed=profiles().select(CLAUDE.binding());
-  yes(!s.prepare(changed,NOW+1)&&op.equals(s.operation()));yes(!s.begin(op,3000));
+  yes(!s.prepare(changed,NOW+1,CLAUDE.binding(),AgentDelegateSession.TargetStatus.AVAILABLE)&&op.equals(s.operation()));yes(!s.begin(op,3000));
   String saved=new String(WireJson.bytes(memory.value),StandardCharsets.UTF_8);yes(!saved.contains(CODEX.token())&&!saved.contains("token_id")&&!saved.contains("request_id"));
   Map<String,Object> exposed=map(s.snapshot());map(map(exposed.get("target")).get("route")).put("session_id","wrong");yes(TaskWire.same(map(map(s.snapshot()).get("target")).get("route"),CODEX.route()));
   yes(s.confirm(changed,op,s.reviewFingerprint(),NOW+2,AgentDelegateSession.TargetStatus.BUSY));
@@ -88,7 +88,7 @@ public final class AgentDelegateSessionTest {
    rejects("DELEGATE_TARGET_OFFLINE",()->s.enqueue(s.operation(),box,profiles(),NOW+1,AgentDelegateSession.TargetStatus.OFFLINE));rejects("TASK_PAUSED",()->s.enqueue(s.operation(),box,paused,NOW+2,AgentDelegateSession.TargetStatus.AVAILABLE));yes(box.pending().isEmpty()&&s.phase().equals("SUBMITTING"));
    rejects("DELEGATE_COMMAND_EXPIRED",()->s.enqueue(s.operation(),box,profiles(),NOW+3600000,AgentDelegateSession.TargetStatus.AVAILABLE));yes(box.pending().isEmpty());
   }
-  AgentDelegateSession noDefault=new AgentDelegateSession(new Memory());rejects("DELEGATE_DEFAULT_MISSING",()->noDefault.prepare(TaskProfiles.empty(),NOW));rejects("TASK_PAUSED",()->noDefault.prepare(paused,NOW));yes(noDefault.phase().equals("IDLE"));
+  AgentDelegateSession noDefault=new AgentDelegateSession(new Memory());rejects("DELEGATE_DEFAULT_MISSING",()->noDefault.prepare(TaskProfiles.empty(),NOW,"",AgentDelegateSession.TargetStatus.AVAILABLE));rejects("TASK_PAUSED",()->noDefault.prepare(paused,NOW,CODEX.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));yes(noDefault.phase().equals("IDLE"));
  }
  static void cancellationAndRecovery(File root)throws Exception{
   for(String phase:Arrays.asList("PREPARED","LISTENING","STOPPING","REVIEW")){
@@ -153,25 +153,25 @@ public final class AgentDelegateSessionTest {
    try(TaskMailbox box=new TaskMailbox(new File(root,"cancel-unsent-"+reason+"-"+restart),CODEX)){
     AgentDelegateSession original=s;rejects(error,()->original.enqueue(op,box,targets,wall,status));yes(box.pending().isEmpty()&&Boolean.FALSE.equals(map(s.snapshot()).get("admission_attempted")));
     if(restart)s=new AgentDelegateSession(memory);yes(s.phase().equals("SUBMITTING")&&s.operation().equals(op));yes(s.stop(op,0,true));yes(s.phase().equals("CANCELLED")&&s.text().equals(TEXT));Map<String,Object> cancelled=map(s.snapshot());yes(TaskWire.nonnegative(cancelled.get("confirmed_at"))==0&&TaskWire.nonnegative(cancelled.get("expires_at"))==0&&"".equals(cancelled.get("confirmed_fingerprint")));
-    yes(s.clearFinished(op));yes(s.prepare(profiles().select(CLAUDE.binding()),NOW+2));yes(!op.equals(s.operation())&&box.pending().isEmpty());AgentDelegateSession current=s;rejects("DELEGATE_OPERATION_CHANGED",()->current.enqueue(op,box,profiles(),NOW+3,AgentDelegateSession.TargetStatus.AVAILABLE));
+    yes(s.clearFinished(op));yes(s.prepare(profiles().select(CLAUDE.binding()),NOW+2,CLAUDE.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));yes(!op.equals(s.operation())&&box.pending().isEmpty());AgentDelegateSession current=s;rejects("DELEGATE_OPERATION_CHANGED",()->current.enqueue(op,box,profiles(),NOW+3,AgentDelegateSession.TargetStatus.AVAILABLE));
    }
   }
  }
  static void lifecycleReset(File root)throws Exception{
   Memory memory=new Memory();AgentDelegateSession s=prepared(memory);String old=s.operation();yes(!s.clearFinished(old));yes(s.begin(old,1000));yes(!s.clearFinished(old));yes(s.transcript(old,1,TEXT,1001));yes(s.stop(old,1002,true));yes(!s.clearFinished(old));
   s=new AgentDelegateSession(memory);yes(s.phase().equals("RECOVERY")&&!s.clearFinished(old));yes(s.captureReleased(old));yes(s.clearFinished(old));yes(s.phase().equals("IDLE")&&s.operation().isEmpty()&&s.text().isEmpty()&&!s.needsCaptureRelease());
-  TaskProfiles changed=profiles().select(CLAUDE.binding());yes(s.prepare(changed,NOW+1));String next=s.operation();yes(!next.equals(old));AgentDelegateSession current=s;
+  TaskProfiles changed=profiles().select(CLAUDE.binding());yes(s.prepare(changed,NOW+1,CLAUDE.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));String next=s.operation();yes(!next.equals(old));AgentDelegateSession current=s;
   rejects("DELEGATE_OPERATION_CHANGED",()->current.transcript(old,2,"stale",1003));rejects("DELEGATE_OPERATION_CHANGED",()->current.captureReleased(old));rejects("DELEGATE_OPERATION_CHANGED",()->current.stop(old,1004,true));rejects("DELEGATE_OPERATION_CHANGED",()->current.confirm(profiles(),old,"stale",NOW+1,AgentDelegateSession.TargetStatus.AVAILABLE));rejects("DELEGATE_OPERATION_CHANGED",()->current.clearFinished(old));
   rejects("DELEGATE_OPERATION_CHANGED",()->current.finalTranscript(old,2,"旧录音的末尾",1003));
   yes(s.begin(next,2000));yes(s.transcript(next,1,"新任务",2001));yes(s.stop(next,2002,false));yes(s.captureReleased(next));yes(!s.clearFinished(next));String fp=s.reviewFingerprint();yes(s.confirm(changed,next,fp,NOW+2,AgentDelegateSession.TargetStatus.AVAILABLE));yes(!s.clearFinished(next));
   try(TaskMailbox box=new TaskMailbox(new File(root,"next-lifecycle"),CLAUDE)){
    rejects("DELEGATE_OPERATION_CHANGED",()->current.enqueue(old,box,changed,NOW+3,AgentDelegateSession.TargetStatus.AVAILABLE));yes(box.pending().isEmpty());
-   Map<String,Object> row=s.enqueue(s.operation(),box,changed,NOW+3,AgentDelegateSession.TargetStatus.AVAILABLE);yes(TaskWire.same(TaskWire.body(event(row)).get("route"),CLAUDE.route()));yes(s.clearFinished(next));yes(s.phase().equals("IDLE")&&box.pending().size()==1);yes(s.prepare(profiles(),NOW+4));yes(!s.operation().equals(next));
+   Map<String,Object> row=s.enqueue(s.operation(),box,changed,NOW+3,AgentDelegateSession.TargetStatus.AVAILABLE);yes(TaskWire.same(TaskWire.body(event(row)).get("route"),CLAUDE.route()));yes(s.clearFinished(next));yes(s.phase().equals("IDLE")&&box.pending().size()==1);yes(s.prepare(profiles(),NOW+4,CODEX.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));yes(!s.operation().equals(next));
    rejects("DELEGATE_OPERATION_CHANGED",()->current.confirm(changed,next,fp,NOW+5,AgentDelegateSession.TargetStatus.AVAILABLE));rejects("DELEGATE_OPERATION_CHANGED",()->current.clearFinished(next));yes(box.pending().size()==1);
   }
   for(boolean committed:new boolean[]{false,true}){
    Memory broken=new Memory();AgentDelegateSession cancel=prepared(broken);String op=cancel.operation();yes(cancel.stop(op,0,true));broken.failPhase="IDLE";broken.failAfterCommit=committed;
-   rejects("SYNTHETIC_SAVE_LOST",()->cancel.clearFinished(op));yes(!cancel.healthy());rejects("DELEGATE_STORE_UNCERTAIN",()->cancel.prepare(changed,NOW+1));AgentDelegateSession restored=new AgentDelegateSession(broken);yes(restored.phase().equals(committed?"IDLE":"CANCELLED"));if(!committed)yes(restored.clearFinished(op));yes(restored.prepare(changed,NOW+2)&&!restored.operation().equals(op));
+   rejects("SYNTHETIC_SAVE_LOST",()->cancel.clearFinished(op));yes(!cancel.healthy());rejects("DELEGATE_STORE_UNCERTAIN",()->cancel.prepare(changed,NOW+1,CLAUDE.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));AgentDelegateSession restored=new AgentDelegateSession(broken);yes(restored.phase().equals(committed?"IDLE":"CANCELLED"));if(!committed)yes(restored.clearFinished(op));yes(restored.prepare(changed,NOW+2,CLAUDE.binding(),AgentDelegateSession.TargetStatus.AVAILABLE)&&!restored.operation().equals(op));
   }
  }
  static void saveFailuresAndDisk(File root)throws Exception{
@@ -182,7 +182,7 @@ public final class AgentDelegateSessionTest {
   }
   File file=new File(root,"durable/draft.json");String operation;
   try(AtomicDocument disk=new AtomicDocument(file)){
-   AgentDelegateSession s=new AgentDelegateSession(new AgentDelegateSession.Store(){public Object read()throws Exception{return disk.read();}public void save(Object next)throws Exception{disk.save(next);}});yes(s.prepare(profiles(),NOW));operation=s.operation();yes(s.begin(operation,100));yes(s.transcript(operation,1,TEXT,101));yes(s.stop(operation,102,false));yes(s.captureReleased(operation));
+   AgentDelegateSession s=new AgentDelegateSession(new AgentDelegateSession.Store(){public Object read()throws Exception{return disk.read();}public void save(Object next)throws Exception{disk.save(next);}});yes(s.prepare(profiles(),NOW,CODEX.binding(),AgentDelegateSession.TargetStatus.AVAILABLE));operation=s.operation();yes(s.begin(operation,100));yes(s.transcript(operation,1,TEXT,101));yes(s.stop(operation,102,false));yes(s.captureReleased(operation));
   }
   try(AtomicDocument disk=new AtomicDocument(file)){
    AgentDelegateSession s=new AgentDelegateSession(new AgentDelegateSession.Store(){public Object read()throws Exception{return disk.read();}public void save(Object next)throws Exception{disk.save(next);}});yes(s.phase().equals("REVIEW")&&s.operation().equals(operation)&&s.text().equals(TEXT));
@@ -193,7 +193,7 @@ public final class AgentDelegateSessionTest {
  static void envelopeAndRace(File root)throws Exception{
   AgentDelegateSession over=review(new Memory());String overOp=over.operation();char[] escaped=new char[65536];Arrays.fill(escaped,'\u0000');yes(over.edit(overOp,new String(escaped)));
   // NUL-only text trims empty: include visible content, then verify the actual wire limit.
-  escaped[0]='a';yes(over.edit(overOp,new String(escaped)));String visibleFingerprint=over.reviewFingerprint();rejects("TASK_EVENT_BUDGET",()->over.confirm(profiles(),overOp,visibleFingerprint,NOW,AgentDelegateSession.TargetStatus.AVAILABLE));yes(over.phase().equals("REVIEW"));
+  escaped[0]='a';yes(over.edit(overOp,new String(escaped)));String visibleFingerprint=over.reviewFingerprint();rejects("DIRECTORY_COMMAND_TOO_LARGE",()->over.confirm(profiles(),overOp,visibleFingerprint,NOW,AgentDelegateSession.TargetStatus.AVAILABLE));yes(over.phase().equals("REVIEW"));
   AgentDelegateSession s=review(new Memory());String op=s.operation(),fp=s.reviewFingerprint();File dir=new File(root,"race");List<Throwable> failures=Collections.synchronizedList(new ArrayList<>());
   try(TaskMailbox box=new TaskMailbox(dir,CODEX)){
    Runnable repeat=()->{try{for(int i=0;i<5;i++){s.confirm(profiles(),op,fp,NOW,AgentDelegateSession.TargetStatus.AVAILABLE);s.enqueue(s.operation(),box,profiles(),NOW+1,AgentDelegateSession.TargetStatus.AVAILABLE);}}catch(Throwable failure){failures.add(failure);}};
@@ -202,8 +202,21 @@ public final class AgentDelegateSessionTest {
   AgentDelegateSession nearExpiry=review(new Memory());long admitted=CODEX.expiresAt-1000;yes(nearExpiry.confirm(profiles(),nearExpiry.operation(),nearExpiry.reviewFingerprint(),admitted,AgentDelegateSession.TargetStatus.AVAILABLE));
   try(TaskMailbox box=new TaskMailbox(new File(root,"near-expiry"),CODEX)){Map<String,Object> e=event(nearExpiry.enqueue(nearExpiry.operation(),box,profiles(),admitted+1,AgentDelegateSession.TargetStatus.AVAILABLE));yes(TaskWire.stamp(e.get("expires_at"))==CODEX.expiresAt&&TaskWire.stamp(e.get("created_at"))==admitted);}
  }
+ static void explicitSharedDefault()throws Exception{
+  AgentDelegateSession missing=new AgentDelegateSession(new Memory());
+  rejects("DELEGATE_DEFAULT_MISSING",()->missing.prepare(profiles(),NOW,"",AgentDelegateSession.TargetStatus.AVAILABLE));
+  rejects("DELEGATE_TARGET_OFFLINE",()->missing.prepare(profiles(),NOW,CLAUDE.binding(),AgentDelegateSession.TargetStatus.OFFLINE));
+  rejects("DELEGATE_TARGET_UNSUPPORTED",()->missing.prepare(profiles(),NOW,CLAUDE.binding(),null));
+  yes(missing.phase().equals("IDLE"));
+  // The old question profile still selects Codex, but this explicit shared
+  // default is Claude. Preparing must neither change nor follow old selection.
+  TaskProfiles oldSelection=profiles();yes(oldSelection.selected().binding.equals(CODEX.binding()));
+  yes(missing.prepare(oldSelection,NOW,CLAUDE.binding(),AgentDelegateSession.TargetStatus.BUSY));
+  yes(TaskWire.same(map(map(missing.snapshot()).get("target")).get("route"),CLAUDE.route()));
+  yes(oldSelection.selected().binding.equals(CODEX.binding()));
+ }
  public static void main(String[] args)throws Exception{
-  File root=new File(args[0]);frozenTarget(root);captureBoundaries();finalDrain();unavailableTargets(root);cancellationAndRecovery(root);admissionRecovery(root);attemptJournal(root);unsentCancellation(root);lifecycleReset(root);saveFailuresAndDisk(root);envelopeAndRace(root);
+  File root=new File(args[0]);explicitSharedDefault();frozenTarget(root);captureBoundaries();finalDrain();unavailableTargets(root);cancellationAndRecovery(root);admissionRecovery(root);attemptJournal(root);unsentCancellation(root);lifecycleReset(root);saveFailuresAndDisk(root);envelopeAndRace(root);
   // Check the exact cutoff boundary and preserve its unfinished text for review.
   AgentDelegateSession s=prepared(new Memory());String op=s.operation();yes(s.begin(op,1000));yes(s.transcript(op,1,"截止前尚未说完😀",60999));yes(!s.transcript(op,2,"晚到内容",61000));yes(s.phase().equals("STOPPING")&&s.needsCaptureRelease());yes(s.captureReleased(op));yes(s.phase().equals("REVIEW")&&s.text().equals("截止前尚未说完😀"));
   System.out.println("Agent delegate draft: "+checks+" checks passed (synthetic capture events, real durable mailbox; no device or host execution)");

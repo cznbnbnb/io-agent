@@ -102,8 +102,7 @@ final class AgentMaterialPage {
   if(closed||suspended||openingDelegate)return;openingDelegate=true;long request=revision;TaskRuntime tasks=TaskRuntime.get(activity);
   tasks.read((state,error)->{openingDelegate=false;if(closed||suspended||request!=revision||!owner.dialog.isShowing())return;
    if(!error.isEmpty()){AgentUI.notice(activity,TaskWorkspace.label(error));return;}
-   if(state.saved==null){AgentUI.confirm(activity,"先连接一个 Agent","添加电脑连接后，就可以选择 Agent 并填写基于这份资料的任务要求。",()->AgentConnectionsPage.show(activity));return;}
-   TaskWorkspace.delegateMaterial(activity,tasks,state.binding,entry,catalog.account,this::refresh);
+   TaskWorkspace.delegateMaterial(activity,tasks,state.defaultBinding,entry,catalog.account,this::refresh);
   });
  }
  private void export(MaterialCatalog catalog,MaterialCatalog.Entry entry){MaterialDocument.Format[] formats=MaterialDocument.Format.values();String[] labels=new String[formats.length];for(int i=0;i<labels.length;i++)labels[i]=formats[i].label;AlertDialog dialog=AgentUI.alert(activity).setTitle("导出文档到手机").setItems(labels,(choice,which)->MaterialDocumentExport.save(activity,catalog.account,entry,formats[which])).setNegativeButton("取消",null).show();trackSensitive(dialog);}

@@ -8,16 +8,23 @@ import java.util.concurrent.*;
 
 /** One IO owner for registered targets. Every answer action carries its original target binding. */
 final class TaskRuntime {
+ static {TaskSessionDirectory.elapsedClock(SystemClock::elapsedRealtime);}
  interface Result {void done(Snapshot snapshot,String error);}
  static final class Snapshot {
   final TaskSettings.Saved saved;final String binding,note,fingerprint,device,pairing;final List<TaskHub.View> contexts;
+  final TaskSessionDirectory directory;final String directoryNote,defaultBinding,defaultStatus,directoryProducer;final Map<String,Object> defaultRoute,pendingDefault;
   Snapshot(TaskHub hub,String note){this(hub,note,"","");}
-  Snapshot(TaskHub hub,String note,String device,String pairing){
+  Snapshot(TaskHub hub,String note,String device,String pairing){this(hub,note,device,pairing,null,"DIRECTORY_REFRESH_REQUIRED",null,"");}
+  Snapshot(TaskHub hub,String note,String device,String pairing,TaskSessionDirectory directory,String directoryNote,Map<String,Object> pendingDefault,String directoryProducer){
    this.note=note;this.device=device;this.pairing=pairing;contexts=hub==null?Collections.emptyList():hub.views();TaskProfiles.Profile p=hub==null?null:hub.profiles().selected();binding=p==null?"":p.binding;saved=p==null?null:new TaskSettings.Saved(p.connection,p.enabled);
+   this.directory=directory;this.directoryNote=directoryNote;this.directoryProducer=directoryProducer;this.pendingDefault=pendingDefault==null?null:WireJson.map(WireJson.copy(pendingDefault));defaultRoute=directory==null?null:directory.defaultRoute();defaultBinding=bindingFor(defaultRoute);
+   TaskHub.View chosen=context(defaultBinding);defaultStatus=directory==null?"DIRECTORY_REFRESH_REQUIRED":defaultRoute==null?"DIRECTORY_DEFAULT_MISSING":chosen!=null&&!chosen.profile.enabled?"TASK_PAUSED":chosen==null&&directory.gate(defaultRoute,TaskSessionDirectory.elapsed()).isEmpty()?"TASK_PROFILES_FULL":directory.gate(defaultRoute,TaskSessionDirectory.elapsed());
    List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"session_control",v.sessionControl,"pending",v.pending,"objects",v.objects));
-   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing)));
+   List<Object> directoryRows=new ArrayList<>();if(directory!=null)for(TaskSessionDirectory.Entry e:directory.sessions)directoryRows.add(WireJson.object("route",e.route,"label",e.label,"status",e.status(TaskSessionDirectory.elapsed()),"generation",e.generation));
+   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing,"directory",directoryRows,"directory_note",directoryNote,"default",directory==null?null:directory.defaultTarget,"default_status",defaultStatus,"default_pending",this.pendingDefault)));
   }
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
+  String bindingFor(Map<String,Object> route){if(route!=null)for(TaskHub.View v:contexts)if(directory!=null&&v.profile.connection.producer.equals(directoryProducer)&&v.profile.connection.server.equals(directory.server)&&v.profile.connection.owner.equals(directory.owner)&&TaskWire.same(v.profile.connection.route(),route))return v.binding;return "";}
  }
  private static TaskRuntime instance;
  private final Context app;private final TaskSettings settings;
@@ -26,6 +33,7 @@ final class TaskRuntime {
  private final Map<Result,Activity> observers=new LinkedHashMap<>();
  private final Map<String,TaskHttp> transports=new ConcurrentHashMap<>();private final Set<String> enabled=ConcurrentHashMap.newKeySet();
  private volatile TaskDevice device;private volatile String pairing="";private long nextDiscovery;private boolean deviceLoaded;
+ private TaskSessionDirectory directory;private String directoryNote="DIRECTORY_REFRESH_REQUIRED";private long nextDirectory;private Map<String,Object> pendingDefault;
  private TaskHub hub;private String note="paused";private volatile boolean visible=true;
  private boolean initialized,ticking;private volatile long generation;
  private TaskRuntime(Context context,Activity activity){
@@ -46,7 +54,7 @@ final class TaskRuntime {
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
  private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
- private Snapshot snapshot(){TaskDevice d=device;return new Snapshot(hub,note,d==null?"":d.preview(),pairing);}
+ private Snapshot snapshot(){TaskDevice d=device;return new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);}
  private void cancelAll(){for(TaskHttp t:transports.values())t.cancel();}
  private void load()throws Exception{
   if(initialized)return;TaskProfiles profiles=settings.loadAll();final long boundGeneration=generation;enabled.clear();for(TaskProfiles.Profile p:profiles.profiles)if(p.enabled)enabled.add(p.binding);
@@ -55,12 +63,41 @@ final class TaskRuntime {
    public void cancel(){http.cancel();}
   };});
   note=profiles.profiles.isEmpty()?"unconfigured":"contexts_ready";initialized=true;
+  if(!deviceLoaded){device=settings.loadDevice();deviceLoaded=true;if(device!=null){try{directory=settings.loadDirectory(device);}catch(Exception invalid){directory=null;directoryNote=TaskApi.safeError(invalid);}try{pendingDefault=settings.defaultRequest(device);}catch(Exception invalid){directoryNote=TaskApi.safeError(invalid);}}}
  }
  private interface Work {void run()throws Exception;}
  private void work(Work work,Result result){io.execute(()->{String error="";try{load();work.run();}catch(Exception failure){error=TaskApi.safeError(failure);note=error;}Snapshot state=snapshot();publish(state);String code=error;if(result!=null)main.post(()->result.done(state,code));});}
  void read(Result result){work(()->{},result);schedule();}
  void reload(Result result){AgentCardRuntime.pause(null);generation++;cancelAll();work(()->{if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
- void select(String binding,Result result){work(()->{settings.select(binding);hub.apply(settings.loadAll());note="contexts_ready";},result);}
+ /** Retained for old callers; the current authoritative revision is still CAS checked. */
+ void select(String binding,Result result){work(()->{TaskWire.require(directory!=null,"DIRECTORY_REFRESH_REQUIRED");setDefaultInternal(hub.view(binding).profile.connection.route(),directory.defaultRevision());},result);}
+ void readDirectory(Result result){work(()->{refreshDirectory(System.currentTimeMillis());},result);schedule();}
+ void ensureTarget(Map<String,Object> route,Result result){final Map<String,Object> frozen=TaskSessionDirectory.route(route);work(()->{
+  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(directory!=null&&directory.find(frozen)!=null,"DIRECTORY_TARGET_MISSING");
+  if(settings.ensureSession(device,frozen,System.currentTimeMillis()))rebuild();
+ },result);}
+ void setDefault(Map<String,Object> route,long expectedRevision,Result result){final Map<String,Object> frozen=route==null?null:TaskSessionDirectory.route(route);work(()->setDefaultInternal(frozen,expectedRevision),result);schedule();}
+ void retryDefault(Result result){work(()->{TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");Map<String,Object> request=settings.defaultRequest(device);TaskWire.require(request!=null,"DIRECTORY_DEFAULT_MISSING");setDefaultInternal(request.get("route")==null?null:TaskSessionDirectory.route(request.get("route")),TaskWire.nonnegative(request.get("expected_revision")));},result);}
+ private void setDefaultInternal(Map<String,Object> route,long expectedRevision)throws Exception{
+  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(device.expiresAt>System.currentTimeMillis(),"PAIRING_EXPIRED");
+  Map<String,Object> request=settings.defaultRequest(device);
+  if(request==null){refreshDirectory(System.currentTimeMillis());TaskWire.require(directory.defaultRevision()==expectedRevision,"DEFAULT_REVISION_CONFLICT");if(route!=null){directory.requireExecutable(route,TaskSessionDirectory.elapsed());if(settings.ensureSession(device,route,System.currentTimeMillis()))rebuild();}
+   request=WireJson.object("request_id",UUID.randomUUID().toString(),"expected_revision",expectedRevision,"route",route);settings.saveDefaultRequest(device,request);
+  }else TaskWire.require(TaskWire.same(request.get("route"),route)&&TaskWire.nonnegative(request.get("expected_revision"))==expectedRevision,"DIRECTORY_DEFAULT_PENDING");
+  pendingDefault=request;
+  try{
+   Map<String,Object> ack=TaskPairing.setDefault(device,request);
+   // Replay ACKs describe the original write. Only a new GET updates the shown default.
+   refreshDirectory(System.currentTimeMillis());TaskWire.require(directory.defaultRevision()>=TaskWire.nonnegative(ack.get("revision")),"DIRECTORY_DEFAULT_STALE");
+   settings.clearDefaultRequest();pendingDefault=null;
+  }catch(Exception failure){if(TaskSessionDirectory.defaultFailureResolved(failure.getMessage())){settings.clearDefaultRequest();pendingDefault=null;}throw failure;}
+ }
+ private void refreshDirectory(long now)throws Exception{
+  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
+  try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;directoryNote="";nextDirectory=now+15000;
+   Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
+  }catch(Exception failure){directoryNote=TaskApi.safeError(failure);nextDirectory=now+15000;throw failure;}
+ }
  void pause(String binding,Result result){
   AgentCardRuntime.pause(binding);
   enabled.remove(binding);TaskHttp t=transports.get(binding);if(t!=null)t.cancel();
@@ -84,7 +121,7 @@ final class TaskRuntime {
  }
  /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
   * hub, whose channel set must match the profiles; mailbox files stay on disk. */
- void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
+ void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{TaskWire.require(!binding.equals(snapshot().defaultBinding),"TASK_TARGET_SELECTED");settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
  // An expired stock access token is not a paused connection; the stock App refreshes it on its next request.
  void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
  private void bound(String binding){TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
@@ -118,16 +155,18 @@ final class TaskRuntime {
   boolean changed=settings.syncDevice(seen,routes,busy,now);
   if(seen!=d){settings.saveDevice(seen);device=seen;}
   if(changed)rebuild();
+  if(hub.profiles().profiles.size()>=TaskProfiles.MAX)for(Map<String,Object> route:routes){boolean found=false;for(TaskProfiles.Profile p:hub.profiles().profiles)if(TaskWire.same(p.connection.route(),route))found=true;if(!found){pairing="TASK_PROFILES_FULL";break;}}
+  if(now>=nextDirectory)try{refreshDirectory(now);}catch(Exception failure){directoryNote=TaskApi.safeError(failure);}
  }
  private void rebuild()throws Exception{generation++;cancelAll();if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();}
  void pair(String code,Result result){work(()->{
   TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");long now=System.currentTimeMillis();
-  TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;pairing="";nextDiscovery=0;device(now);note="contexts_ready";
+  TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;directory=null;pendingDefault=null;pairing="";nextDiscovery=0;nextDirectory=0;device(now);note="contexts_ready";
  },result);schedule();}
  /** Unpairs this phone on the server, forgets the credential and pauses the derived connections. */
  void unpairDevice(Result result){work(()->{
   TaskDevice d=settings.loadDevice();if(d!=null){TaskPairing.unpair(d);settings.clearDevice();settings.pauseDevice(d);}
-  device=null;deviceLoaded=true;pairing="";rebuild();note="contexts_ready";
+  device=null;deviceLoaded=true;directory=null;pendingDefault=null;settings.clearDefaultRequest();directoryNote="DIRECTORY_PAIRING_REQUIRED";pairing="";rebuild();note="contexts_ready";
  },result);}
  private final Runnable tick=()->{
   if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});

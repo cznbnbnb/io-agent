@@ -101,10 +101,15 @@ final class AgentDelegateSession {
 
  /** Capture the selected target once. Repeated wakes must reuse this owner, not
   * create new sessions. No credentials are copied into the draft. */
- synchronized boolean prepare(TaskProfiles profiles,long wall)throws Exception{
+ synchronized boolean prepare(TaskProfiles profiles,long wall,String defaultBinding,TargetStatus status)throws Exception{
   requireHealthy();if(!"IDLE".equals(string("phase")))return false;
-  TaskWire.positive(wall);TaskProfiles.Profile selected=profiles.selected();TaskWire.require(selected!=null,"DELEGATE_DEFAULT_MISSING");
+  // The authoritative shared default is separate from the old question profile
+  // selection. The runtime supplies the exact binding after a fresh directory
+  // check; never infer it from the most recently imported/selected question.
+  TaskWire.positive(wall);TaskWire.require(profiles!=null&&defaultBinding!=null&&!defaultBinding.isEmpty(),"DELEGATE_DEFAULT_MISSING");
+  TaskProfiles.Profile selected=profiles.get(defaultBinding);
   TaskWire.require(selected.enabled,"TASK_PAUSED");TaskWire.require(selected.connection.expiresAt>wall,"TASK_IMPORT_EXPIRED");
+  TaskWire.require(status==TargetStatus.AVAILABLE||status==TargetStatus.BUSY,status==TargetStatus.OFFLINE?"DELEGATE_TARGET_OFFLINE":"DELEGATE_TARGET_UNSUPPORTED");
   Map<String,Object> next=empty();next.put("phase","PREPARED");next.put("target",target(selected.connection));next.put("operation","agent-delegate-"+UUID.randomUUID().toString().replace("-",""));save(next);return true;
  }
  /** Called only when the real capture adapter has armed its independent cutoff. */
@@ -180,6 +185,7 @@ final class AgentDelegateSession {
   owned(operation);TaskWire.require(fingerprint(state).equals(expectedFingerprint),"DELEGATE_REVIEW_CHANGED");
   if(TaskWire.set("SUBMITTING","QUEUED").contains(string("phase")))return true;
   TaskWire.require("REVIEW".equals(string("phase"))&&!flag("capture_pending")&&!string("text").trim().isEmpty(),"DELEGATE_NOT_REVIEWABLE");
+  TaskSessionDirectory.command(string("text"));
   TaskWire.positive(wall);TaskConnection connection=available(profiles,wall,status);Map<String,Object> next=copy();next.put("phase","SUBMITTING");next.put("confirmed_at",wall);next.put("expires_at",Math.min(Math.addExact(wall,COMMAND_MILLIS),connection.expiresAt));next.put("confirmed_fingerprint",expectedFingerprint);save(next);return true;
  }
  /** Local mailbox admission only, never a computer/server receipt. A lost result

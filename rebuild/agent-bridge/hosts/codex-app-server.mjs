@@ -186,9 +186,10 @@ export class CodexAppServerSession {
     if(typeof channel.listen==='function')this.#unlisten=channel.listen(message=>this.#observeNativeItem(message));
   }
   get capabilities(){return capabilities;}
-  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages}={}){
+  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages,metadataOnly=false}={}){
+    need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
     const channel=await new CodexAppServerChannel(endpoint,{timeoutMs,bearerToken}).connect();
-    try{return await new CodexAppServerSession(channel,conversationId,{workspace,maxPages}).attach();}catch(error){channel.close();throw error;}
+    try{return await new CodexAppServerSession(channel,conversationId,{workspace,maxPages}).attach({metadataOnly});}catch(error){channel.close();throw error;}
   }
   #check(){need(!this.#closed,'CODEX_APP_SERVER_CLOSED');}
   #observeNativeItem(message){
@@ -219,7 +220,10 @@ export class CodexAppServerSession {
     }
     throw new CodexAppServerError('CODEX_APP_SERVER_HISTORY_LIMIT');
   }
-  async attach(){await this.status();return this;}
+  async attach({metadataOnly=false}={}){
+    need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
+    if(metadataOnly)await this.readiness();else await this.status();return this;
+  }
   async #metadata(){
     this.#check();
     const loaded=await this.#pages('thread/loaded/list',{},values=>{need(values.every(id),'CODEX_APP_SERVER_HISTORY_INVALID');return values.includes(this.conversationId);});
@@ -274,6 +278,16 @@ export class CodexAppServerSession {
     const turns=await this.#turns(),active=turns.filter(t=>t.status==='inProgress');
     need(active.length<=1,'CODEX_APP_SERVER_ACTIVE_TURN_AMBIGUOUS');
     return{conversationId:this.conversationId,workspace:this.#workspace,busy:thread.status.type!=='idle'||active.length>0,activeTurnId:active[0]?.id??null,nativeStatus:thread.status.type};
+  }
+  async readiness(){
+    // Directory probes must not enter turns/items pagination or its full
+    // history fallback. Native metadata may include a preview; neither retain
+    // it nor return it. Execution still uses status()'s stronger turn fence.
+    const thread=await this.#metadata(),nativeStatus=thread.status.type;
+    return{conversationId:this.conversationId,workspace:this.#workspace,
+      busy:nativeStatus==='systemError'?null:nativeStatus==='active',
+      canExecute:nativeStatus!=='systemError',nativeStatus,
+      reason:nativeStatus==='systemError'?'CODEX_APP_SERVER_SYSTEM_ERROR':null};
   }
   async #items(turnId){
     if(this.#legacyItems)return(await this.#legacyHistory()).filter(t=>!turnId||t.id===turnId).flatMap(t=>t.items.map(item=>({turnId:t.id,item})));
@@ -398,9 +412,11 @@ export class CodexAppServerSession {
       const fresh=(await this.#queue()).filter(q=>q.clientUserMessageId===clientUserMessageId);
       need(fresh.length===1&&fresh[0].id===observed.queueId&&digest(inputText(fresh[0].input)??'')===original.digest,'CODEX_APP_SERVER_QUEUE_CHANGED');
       attempt.queueId=observed.queueId;attempt.sent=true;
-      // Selecting an explicit submission prevents the native method from
-      // starting somebody else's queue head. The native method rejects busy;
-      // unlike turn/start, it cannot steer a racing user turn.
+      // The explicit submission selects the first turn, but the native queue
+      // may then drain other people's queued inputs automatically (live proof:
+      // codex-queue-selection-proof-2026-10-25.json). This helper is not wired
+      // into production resume. Busy rejection avoids turn/start's steer race;
+      // it does not make this an isolated single-operation continuation.
       const reply=await this.#channel.request('thread/queue/start',{threadId:this.conversationId,queuedSubmissionId:attempt.queueId},{mutation:true});
       const started=turn(reply?.turn);
       attempt.receipt={requested:true,clientUserMessageId,queueId:attempt.queueId,turnId:started.id,confirmedStarted:false};

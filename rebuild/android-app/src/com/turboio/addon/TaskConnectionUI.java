@@ -8,7 +8,7 @@ final class TaskConnectionUI {
  private static final Handler MAIN=new Handler(Looper.getMainLooper());
  private static final ExecutorService IO=Executors.newSingleThreadExecutor(),CANCEL=Executors.newFixedThreadPool(2);
  private final Activity activity;private final Runnable saved;private final TaskSettings store;private final Object guard=new Object();private final String sourceBinding;
- private AgentUI.Screen screen;private TextView status,preview,saveButton;private CheckBox enabled,makeDefault;
+ private AgentUI.Screen screen;private TextView status,preview,saveButton;private CheckBox enabled;
  private TaskConnection candidate;private File delivery;private byte[] deliveryBytes;
  private volatile long generation;private volatile boolean closed;private volatile TaskHttp pending;
  private final Application.ActivityLifecycleCallbacks lifecycle=new Application.ActivityLifecycleCallbacks(){
@@ -24,10 +24,7 @@ final class TaskConnectionUI {
   AgentUI.button(activity,screen.body,"读取电脑登记文件",false,this::loadDelivery);
   if(sourceBinding!=null)AgentUI.button(activity,screen.body,"读取这条已保存连接",false,this::loadSaved);
   enabled=new CheckBox(activity);enabled.setText("启用这条电脑连接");enabled.setTextColor(AgentUI.INK);enabled.setButtonTintList(android.content.res.ColorStateList.valueOf(AgentUI.ACCENT));enabled.setChecked(false);screen.body.addView(enabled);
-  makeDefault=new CheckBox(activity);makeDefault.setText("设为默认 Agent 与工作区");makeDefault.setTextColor(AgentUI.INK);makeDefault.setButtonTintList(android.content.res.ColorStateList.valueOf(AgentUI.ACCENT));screen.body.addView(makeDefault);
-  try{boolean first=store.loadAll().profiles.isEmpty();makeDefault.setChecked(first);if(first)screen.body.addView(AgentUI.text(activity,"首个连接需要一个默认目标。后续新增连接时，由你决定是否替换默认。",13,AgentUI.MUTED));}
-  catch(Exception error){status.setText(errorLabel(TaskApi.safeError(error)));}
-  screen.body.addView(AgentUI.text(activity,"工作区沿用电脑登记的项目。更改默认只影响之后的新任务，不会改变已有问题的回复去向。",13,AgentUI.MUTED));
+  screen.body.addView(AgentUI.text(activity,"登记文件用于原任务问答，不会修改共享默认。新委托的目标请到「默认 Agent 与工作区」选择已连接的真实会话。",13,AgentUI.MUTED));
   saveButton=AgentUI.button(activity,screen.body,"保存连接",true,this::save);
   ((Application)activity.getApplication()).registerActivityLifecycleCallbacks(lifecycle);
   screen.dialog.setOnDismissListener(dialog->{closed=true;cancel();((Application)activity.getApplication()).unregisterActivityLifecycleCallbacks(lifecycle);});
@@ -49,15 +46,15 @@ final class TaskConnectionUI {
  private void loadUri(Uri uri){parse(()->{InputStream in=activity.getContentResolver().openInputStream(uri);if(in==null)throw new IOException("TASK_IMPORT_UNAVAILABLE");return read(in);},null);}
  private void loadDelivery(){File internal=new File(activity.getFilesDir(),"connection-import/task-connection.json"),external=activity.getExternalFilesDir(null);File file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/task-connection.json");if(file==null){status.setText("电脑登记目录暂不可用，请选择登记文件。");return;}parse(()->read(new FileInputStream(file)),file);}
  private void loadSaved(){parse(()->{TaskProfiles profiles=store.loadAll();TaskProfiles.Profile value=sourceBinding==null?profiles.selected():profiles.get(sourceBinding);if(value==null)throw new IOException("TASK_IMPORT_UNAVAILABLE");return value.connection.encode();},null);}
- private static String errorLabel(String code){return "TASK_DEFAULT_REQUIRED".equals(code)?"首个连接需要一个默认目标。请勾选“设为默认 Agent 与工作区”后保存。":TaskWorkspace.label(code);}
+ private static String errorLabel(String code){return TaskWorkspace.label(code);}
  private void showError(long owner,Exception error){String code=TaskApi.safeError(error);MAIN.post(()->{if(valid(owner)){pending=null;saveButton.setEnabled(true);status.setText(errorLabel(code));}});}
  private void save(){
-  final TaskConnection next;final long owner;final File source;final byte[] original;final boolean turnOn=enabled.isChecked(),selectDefault=makeDefault.isChecked();
+  final TaskConnection next;final long owner;final File source;final byte[] original;final boolean turnOn=enabled.isChecked();
   synchronized(guard){if(candidate==null){status.setText("请先读取并核对连接文件。");return;}next=candidate;owner=generation;source=delivery;original=deliveryBytes;}
   saveButton.setEnabled(false);status.setText("保存连接…");
   IO.execute(()->{try{
    if(turnOn)preflight(next,owner);
-   synchronized(guard){if(!valid(owner))return;store.save(next,turnOn,selectDefault);candidate=null;}
+   synchronized(guard){if(!valid(owner))return;store.saveQuestion(next,turnOn);candidate=null;}
    boolean retained=false;
    if(source!=null&&source.isFile())try{byte[] current=read(new FileInputStream(source));TaskProfiles.Profile actual=store.loadAll().get(next.binding());if(Arrays.equals(current,original)&&actual.enabled==turnOn&&Arrays.equals(actual.connection.encode(),next.encode()))retained=!source.delete();else retained=true;}catch(Exception cleanupError){retained=true;}
    boolean keep=retained;MAIN.post(()->{saved.run();if(valid(owner)){pending=null;screen.dialog.dismiss();if(keep)AgentUI.notice(activity,"连接已保存，电脑登记文件未清理，请核对后手动移除。");}});

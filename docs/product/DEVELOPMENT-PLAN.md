@@ -1,5 +1,7 @@
 # 雷鸟 iO：按用户场景逐项完成的开发计划
 
+2026-10-25 最新：真实 session 目录、15秒心跳/60秒租约、CLI/手机共享默认和指定会话下发门禁已完成源码及本机联调，238份 Android 源码/D8通过。离线/深睡/丢回执不改投、不自动换默认。尚未部署或装机；眼镜主动入口未接通，通用派生工作停止仍未证明；Codex 队列恢复会连带执行其他排队输入，生产暂不启用此路径。详见[当前实施状态](./DEFAULT-AGENT-CONTROL-PLAN.md)和[本批证据](../../rebuild/agent-bridge/hosts/session-directory-proof-2026-10-25.json)。
+
 2026-10-25 续进：官方 Claude/Codex 隔离引擎验证之后，已补 native-runtime 与 CLI 显式绑定、服务器控制合同、手机独立打断/继续源码。真实本机 HTTP/SQLite 覆盖任务执行、完整结果、控制竞争与重启对账；JVM 覆盖手机持久发送和原目标保护。公网未部署、未装机；通用子任务停止证据、默认目标/原生 session 自动登记和眼镜双击入口仍开放。手机仍 dev92，dev93 资料性能候选等新无线地址。[实施记录](./DEFAULT-AGENT-CONTROL-PLAN.md)。
 
 2026-10-25【用户已确认】执行[默认 Agent、指定会话下发与打断计划](./DEFAULT-AGENT-CONTROL-PLAN.md)。先修资料列表/智记详情加载卡顿，再推进真实会话控制、手机选择 session 下发、打断后在原会话继续、眼镜双击访问默认 Agent。仅支持 Claude Code/Codex；R2 不重开，删除同步仍取消。dev93 /10515 已完成源码回归与签名候选，旧无线地址离线，尚未装机，手机仍以 dev92 为已验证基线；不把源码通过计为实际速度改善。见[本批证据](../../rebuild/android-app/material-reading-dev93-2026-10-25.json)。
