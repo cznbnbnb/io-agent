@@ -326,11 +326,15 @@
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
-      "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      "sha256": "253dc306214421b8e5249a66a9a429c89543cd104768df8cb3643dfc4c4ead42"
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnAudioControl.java",
-      "sha256": "a7f5d3e16bcad79c171ee2c10b05b4bc6ff391a654e5a6c2f0855509c91b3a45"
+      "sha256": "0a1ac66f656417e878f9e7b6d7939bbc8598f613fff06d2e1fe07942c9e5f91b"
+    },
+    {
+      "path": "src/com/turboio/addon/AlwaysOnCachedAudio.java",
+      "sha256": "abad64f3602f546740466f2082bf8aeefb62e6090511d31fee3e784c0bb3798d"
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnWire.java",
@@ -538,7 +542,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioExport.java",
-      "sha256": "4bb313531df6c2f59b9165a19a5677c0a33ed0e03e8de8cdecae97cc9f69c010"
+      "sha256": "2335793599d4904d9ba0e5fe0b64fde6ec098aba0dd89e9f60cbb2e664a7f02b"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioHealth.java",
@@ -562,7 +566,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
-      "sha256": "02061e23803e4d4f208a5d4fadfb6f29b5d783ec2b053fa17ea2f81258afa946"
+      "sha256": "ba73e6669364b17c392c59ebf71ab1c61a4e06bb18aa3c6a0a385b3533da93ce"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioRemoteSource.java",
@@ -574,7 +578,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioSource.java",
-      "sha256": "4eb74d2357d56d63f8e50bee1c2ab6a2f1cfcc100ea48385fb08eb996df4dabf"
+      "sha256": "5bcefefae46146f68a160383f850d0b133cd11b0397d4bc3eb784d5aa3faaec1"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -918,11 +922,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "eece736e9cc5f1d1b650391d75189d4e3263360f584120547710c8eaea948175"
+      "sha256": "ca3059ec107af01fa2dd84bbbfd409a77f1a8f604e50f5b599ac18e37e796bf8"
     }
   ],
-  "product_sha256": "51e59721df87bdbf9cf4835836e1e01097d809f35f774e9f844ac2a12d93aa33",
-  "addon_sha256": "9d607e5a91bd992b35c183da5bfe01e810ba85406b0db9a45e612c36fd08736b",
+  "product_sha256": "fedb4d6ee7488942407121b5b7f51f601a34e813c09f2212e476e63299937c46",
+  "addon_sha256": "b90aa297652d30d4ab355668782da22b5dc4928a93d1ce66c7e1e04a05bc066b",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

@@ -13,6 +13,8 @@ public final class AlwaysOnAudioBatch {
   public byte[] bytes(){return bytes.clone();}
  }
  public final String taskId;public final boolean modern,clamped;public final int unparsedBytes;public final List<Frame> frames;private final byte[] original,metadata;
+ /** Cached packets share immutable bytes, with no invented A3 VAD/VPU flags. */
+ static Frame cachedFrame(String task,byte[] data,int index,int count){return new Frame(task,data.clone(),0,index,count,false,false,false);}
  private AlwaysOnAudioBatch(byte[] meta,byte[] input,String task,boolean modern,boolean clamped,List<Frame> frames,int consumed){metadata=meta.clone();original=input.clone();taskId=task;this.modern=modern;this.clamped=clamped;this.frames=Collections.unmodifiableList(frames);unparsedBytes=input.length-consumed;}
  public byte[] original(){return original.clone();}public byte[] metadata(){return metadata.clone();}
  /** Only validated integer/null fields are admitted. Stringified numbers and
