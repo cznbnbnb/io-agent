@@ -17,13 +17,13 @@ public final class MaterialMonthRuntimeTest {
  static final class Catalog implements MaterialRuntime.CatalogResult{MaterialRuntime.CatalogSnapshot value;String error;int calls;public void done(MaterialRuntime.CatalogSnapshot v,String e){value=v;error=e;calls++;}}
  static final class AudioDone implements MaterialRuntime.AudioResult{MaterialRuntime.AudioSnapshot value;String error;int calls;public void done(MaterialRuntime.AudioSnapshot v,String e){value=v;error=e;calls++;}}
  static final class Fixture implements AutoCloseable{
-  final File files=Files.createTempDirectory(root.toPath(),"runtime-fixture-").toFile();final Application app=new Application(files);final Activity activity=new Activity(app);final MaterialRuntime runtime;final ExecutorService io,cancel;
+  final File files=Files.createTempDirectory(root.toPath(),"runtime-fixture-").toFile();final Application app=new Application(files);final Activity activity=new Activity(app);final MaterialRuntime runtime;final ExecutorService io,viewIO,cancel;
   Fixture()throws Exception{
    Handler.clear();AudioSettings.value=null;AudioHttp.created=AudioHttp.exchanges=AudioHttp.posts=0;AudioHttp.after=null;AudioHttp.entered=AudioHttp.release=null;Host107Login.current=OWNER;MaterialSettings.failure="";MaterialSettings.value=config("a",true,System.currentTimeMillis()+600000);Host107LifelogHttp.reset();MaterialSyncSession.reset();MaterialHttp.created=MaterialHttp.exchanges=0;Host107Login.reads=0;Host107Login.onRead=null;OfficialLifelogBatch.reads=0;OfficialHiveCache.reads=0;OfficialLifelogRefresh.refreshes=0;
-   Constructor<MaterialRuntime> constructor=MaterialRuntime.class.getDeclaredConstructor(Activity.class);constructor.setAccessible(true);runtime=constructor.newInstance(activity);io=executor("io");cancel=executor("cancel");
+   Constructor<MaterialRuntime> constructor=MaterialRuntime.class.getDeclaredConstructor(Activity.class);constructor.setAccessible(true);runtime=constructor.newInstance(activity);io=executor("io");viewIO=executor("viewIO");cancel=executor("cancel");
   }
   ExecutorService executor(String name)throws Exception{Field f=MaterialRuntime.class.getDeclaredField(name);f.setAccessible(true);return (ExecutorService)f.get(runtime);}
-  void idle()throws Exception{io.submit(()->{}).get(3,TimeUnit.SECONDS);}
+  void idle()throws Exception{io.submit(()->{}).get(3,TimeUnit.SECONDS);viewIO.submit(()->{}).get(3,TimeUnit.SECONDS);}
   void deliver()throws Exception{Runnable action=Handler.next(3000);if(action==null)throw new AssertionError("Missing main callback");Host107Login.delivering=true;try{action.run();}finally{Host107Login.delivering=false;}}
   void finish(Catalog result)throws Exception{for(int i=0;i<3&&result.calls==0;i++){idle();deliver();}yes(result.calls==1);}
   void finish(AudioDone result)throws Exception{for(int i=0;i<8&&result.calls==0;i++){idle();deliver();}yes(result.calls==1);}
@@ -32,7 +32,7 @@ public final class MaterialMonthRuntimeTest {
   Month pending()throws Exception{Month result=new Month();runtime.discoverMonth("2026-10",result);idle();yes(result.calls==0);return result;}
   MaterialRuntime.MonthSelection selection()throws Exception{Month result=pending();deliver();yes(result.calls==1&&result.error.isEmpty()&&result.value!=null);return result.value;}
   Done sync(MaterialRuntime.MonthSelection selected,List<String> days)throws Exception{Done done=new Done();runtime.syncMonthDays(selected,days,done);idle();deliver();return done;}
-  public void close()throws Exception{runtime.cancelPending();io.shutdownNow();cancel.shutdownNow();yes(io.awaitTermination(2,TimeUnit.SECONDS)&&cancel.awaitTermination(2,TimeUnit.SECONDS));Handler.clear();}
+  public void close()throws Exception{runtime.cancelPending();io.shutdownNow();viewIO.shutdownNow();cancel.shutdownNow();yes(io.awaitTermination(2,TimeUnit.SECONDS)&&viewIO.awaitTermination(2,TimeUnit.SECONDS)&&cancel.awaitTermination(2,TimeUnit.SECONDS));Handler.clear();}
  }
  static List<String> first(int count){List<String> days=new ArrayList<>();for(int n=1;n<=count;n++)days.add(String.format(Locale.ROOT,"2026-10-%02d",n));return days;}
  static void denied(Done result,String code){yes(result.calls==1&&code.equals(result.error));yes(MaterialSyncSession.started==0&&Host107LifelogHttp.discoveryCalls==0);}
@@ -211,7 +211,7 @@ public final class MaterialMonthRuntimeTest {
    AudioSettings.value=audioConfig(MaterialSettings.value,true,System.currentTimeMillis()+600000);
    Host107LifelogHttp.entered=new CountDownLatch(1);Host107LifelogHttp.release=new CountDownLatch(1);
    f.runtime.wakeAuto(false);yes(Host107LifelogHttp.entered.await(2,TimeUnit.SECONDS));
-   Catalog result=new Catalog();f.runtime.catalog(result);Host107LifelogHttp.release.countDown();f.finish(result);good(result);yes(MaterialSyncSession.completed==1&&AudioHttp.created==0);
+   Catalog result=new Catalog();f.runtime.catalog(result);Host107LifelogHttp.release.countDown();f.finish(result);good(result);yes(MaterialSyncSession.completed==0&&AudioHttp.created==0&&Host107LifelogHttp.disabled>0);
    Field debounce=MaterialRuntime.class.getDeclaredField("lastUiAt");debounce.setAccessible(true);debounce.setLong(f.runtime,0); // Next ordinary tick, beyond the 5s UI debounce.
    f.runtime.wakeAuto(false);f.idle();yes(AudioHttp.exchanges>0);
   }
@@ -219,6 +219,34 @@ public final class MaterialMonthRuntimeTest {
   try(Fixture f=new Fixture()){
    Catalog result=new Catalog();f.runtime.catalog(result);f.idle();f.runtime.cancelPending();f.deliver();rejected(result,"MATERIAL_PAUSED");
    Field field=MaterialRuntime.class.getDeclaredField("lastUiAt");field.setAccessible(true);field.setLong(f.runtime,0);f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.completed==1);
+  }
+ }
+ static void readingLatency()throws Exception{
+  // A selected entry is already immutable and validated. Reading it and
+  // reopening the recent list must complete while the HTTP/disk lane is held.
+  try(Fixture f=new Fixture()){
+   MaterialSettings.value=null;Catalog loaded=f.day("2026-10-23","Asia/Shanghai");good(loaded);
+   CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);Field guardField=MaterialRuntime.class.getDeclaredField("guard");guardField.setAccessible(true);Object guard=guardField.get(f.runtime);
+   f.io.execute(()->{synchronized(guard){entered.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}}});yes(entered.await(2,TimeUnit.SECONDS));
+   try{
+    Catalog detail=new Catalog(),list=new Catalog();int originalReads=Host107LifelogHttp.discoveryCalls;
+    CompletableFuture.runAsync(()->{f.runtime.verifyCatalog(loaded.value,detail);f.runtime.browse(list);}).get(1,TimeUnit.SECONDS);
+    for(int n=0;n<8&&(detail.calls==0||list.calls==0);n++){f.viewIO.submit(()->{}).get(2,TimeUnit.SECONDS);f.deliver();}
+    good(detail);good(list);yes(detail.value==loaded.value&&list.value==loaded.value&&Host107LifelogHttp.discoveryCalls==originalReads&&release.getCount()==1);
+    // Still enforce account revalidation after the first UI boundary.
+    Catalog changed=new Catalog();f.runtime.verifyCatalog(loaded.value,changed);f.viewIO.submit(()->{}).get(2,TimeUnit.SECONDS);Host107Login.current=OTHER;
+    for(int n=0;n<3&&changed.calls==0;n++){f.deliver();f.viewIO.submit(()->{}).get(2,TimeUnit.SECONDS);}rejected(changed,"OFFICIAL_ACCOUNT_CHANGED");
+    release.countDown();f.io.submit(()->{}).get(2,TimeUnit.SECONDS);Host107Login.current=OWNER;Catalog hidden=new Catalog();f.runtime.verifyCatalog(loaded.value,hidden);f.viewIO.submit(()->{}).get(2,TimeUnit.SECONDS);f.app.callbacks.onActivityStopped(f.activity);f.deliver();rejected(hidden,"MATERIAL_PAUSED");
+   }finally{release.countDown();}
+  }
+  // A stale list must load from disk; a cache is not permission to serve old
+  // content indefinitely or reuse the previous account after a login switch.
+  try(Fixture f=new Fixture()){
+   MaterialSettings.value=null;Catalog loaded=f.day("2026-10-23","Asia/Shanghai");good(loaded);
+   Field age=MaterialRuntime.class.getDeclaredField("recentCatalogAt");age.setAccessible(true);age.setLong(f.runtime,android.os.SystemClock.elapsedRealtime()-60001);
+   Catalog fresh=new Catalog();f.runtime.browse(fresh);f.finish(fresh);good(fresh);yes(fresh.value!=loaded.value);
+   Host107Login.current=OTHER;Catalog denied=new Catalog();f.runtime.browse(denied);f.finish(denied);rejected(denied,"OFFICIAL_ACCOUNT_CHANGED");
+   Catalog next=new Catalog();f.runtime.browse(next);f.finish(next);good(next);yes(next.value.catalog.account.equals(OTHER.binding)&&next.value.catalog.entries.isEmpty());
   }
  }
  static void autoSchedule()throws Exception{
@@ -321,7 +349,7 @@ public final class MaterialMonthRuntimeTest {
   // The two existing entry points retain their original source routing.
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.sync(done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("fresh")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&OfficialLifelogBatch.reads==1&&OfficialLifelogRefresh.refreshes==1&&Host107LifelogHttp.discoveryCalls==0);}
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.syncDay("2026-10-10","Asia/Shanghai",done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("discovery")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&Host107LifelogHttp.selected.size()==1&&Host107LifelogHttp.selected.get(0).date.equals("2026-10-10"));}
-  dayReads();autoSync();foregroundCatalogPriority();autoSchedule();audioRuntime();
+  dayReads();autoSync();foregroundCatalogPriority();readingLatency();autoSchedule();audioRuntime();
   System.out.println("Material month runtime: "+checks+" checks passed; real Runtime and month core, synthetic Android/IO boundaries");
  }
 }

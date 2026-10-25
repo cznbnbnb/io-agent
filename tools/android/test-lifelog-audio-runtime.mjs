@@ -18,7 +18,7 @@ const stubs={
  'android/util/Log.java':`package android.util; public class Log { public static int w(String t,String m){return 0;} public static int i(String t,String m){return 0;} }`,
  'com/turboio/addon/RuntimeNativeStubs.java':`package com.turboio.addon;
  class OfficialAccountBinding { final String binding; final String accountId="test"; OfficialAccountBinding(String b){binding=b;} boolean same(OfficialAccountBinding a){return a!=null&&binding.equals(a.binding);} java.io.File cacheFile(java.io.File f){return f;} }
- class Host107Login { static volatile int reads; static volatile long readCostMs,delayMs; static volatile OfficialAccountBinding active; static OfficialAccountBinding account(){reads++;android.os.SystemClock.now+=readCostMs;try{Thread.sleep(delayMs);}catch(InterruptedException e){Thread.currentThread().interrupt();return null;}return active;} }
+ class Host107Login { static volatile int reads,mainReads; static volatile long readCostMs,delayMs; static volatile OfficialAccountBinding active; static OfficialAccountBinding account(){reads++;if(Thread.currentThread().getName().equals("fake-main"))mainReads++;android.os.SystemClock.now+=readCostMs;try{Thread.sleep(delayMs);}catch(InterruptedException e){Thread.currentThread().interrupt();return null;}return active;} }
  class Fixed60Session { static class Link { String peer; long generation; } }
  class Host107Ota { static Fixed60Session.Link link(){Fixed60Session.Link l=new Fixed60Session.Link();l.peer="peer-test";l.generation=1;return l;} }
  class NavReflect { static Object call(Object o,String n,Object...a)throws Exception{return o.getClass().getMethod(n).invoke(o);} }
