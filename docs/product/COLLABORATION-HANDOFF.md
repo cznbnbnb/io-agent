@@ -1,3 +1,13 @@
+## [codex] 2026-10-25 官方原会话接入候选：两种引擎隔离执行、停止与继续通过
+
+用户「执行」后完成电脑端候选；fetch 后 Claude 仍96b1dbb已合，全部改动位于 Codex 工作区。没有全局安装插件、修改模型/账号配置或操作现用聊天；手机、眼镜、问答通道未使用，watch保持关闭。手机已验dev92、待装性能候选dev93、稳定回退76不变。
+
+新增 Codex 共享 app-server 原生队列适配与 Claude 2.1.308 Mod/broker。Codex 同一原生thread三次输入无重复，忙碌追加不steer，精确interrupt与原turn终端清理后回读初始口令；快速/先yield两种检查均通过。Claude 修正self-submit不走自身hook的回执假设；原生abort把Bash转后台，新增认证操作→turn→tool_use_id→结构化backgroundTaskId的TaskStop。实际受控Python在约1.429秒退出、心跳静止，再从原session正确回读口令。所有本轮进程/临时插件已清理，Codex测试thread已归档；失败历史保留。Claude沿用现有自定义provider（DeepSeek），验证的是Claude Code引擎/Mod，未更换配置。
+
+95项定向检查（SessionControl28、Codex39、Claude28）通过；Claude插件静态校验通过。最终文本缺失时新增result_pending，避免把轮次终态当作结果已到。Node24.14.0，目标Node22未另跑；不做Android构建/发包。[本批证据](../../rebuild/agent-bridge/hosts/native-session-live-proof-2026-10-25.json)、[宿主说明](../../rebuild/agent-bridge/hosts/README.md)。
+
+仍未交付：既有Desktop聊天接入/UI显示、服务器与手机执行接线、眼镜主动入口。通用停止证明仍为false；测试脚本的已知PID退出不能替代生产任意派生任务停止。已入原生队列任务的执行期限/取消尚未支持，候选明确native_queue_expiry:false。Claude v5回执快照拍在stop_prepared，实际OS/心跳证明单个子进程已停，不补造最终TaskStop成功回执。Mac仍锁定，仅影响Desktop验收。下一批先接现有AgentBridge的原生操作映射/结果与可证明的停止状态，再推进手机选择session。正常提交推送codex/agent-workspace-ui，不合main；总目标保持active。
+
 ## [codex] 2026-10-25 远程唤醒调研：原会话监听与同 session 恢复均有可行参考
 
 用户要求先调研 CLI 启动指定 session、监听钩子和 FanBox。本轮只读代码/公开文档并更新记录；没有安装插件、启动执行服务、向会话发输入/停止，也未碰手机、眼镜或问答通道。Claude 分支仍96b1dbb已合；本交接是双方共用文件，仅在 Codex 工作区顶部追加。保持现有眼镜进度 watch 关闭，不改变用户推送偏好。

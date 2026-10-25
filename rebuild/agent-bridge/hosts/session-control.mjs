@@ -10,7 +10,7 @@ const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const own=(o,k)=>Object.hasOwn(o,k)?o[k]:undefined;
 const TERMINAL=new Set(['completed','failed','stopped','cancelled','expired']);
-const PHASES=new Set(['queued','sending','accepted','running','stop_requested','stop_unconfirmed','outcome_unknown',...TERMINAL]);
+const PHASES=new Set(['queued','sending','accepted','running','result_pending','stop_requested','stop_unconfirmed','outcome_unknown',...TERMINAL]);
 const routeKeys=['computer_id','agent_id','project_id','session_id'];
 export class SessionControlError extends Error{constructor(code){super(code);this.code=code;}}
 const need=(v,code)=>{if(!v)throw new SessionControlError(code);};
@@ -22,8 +22,11 @@ const publicCommand=c=>structuredClone(Object.fromEntries(['command_id','task_id
 
 /** Durable, single-owner queue for ONE explicitly bound original session.
  * Host implementations are injected; this module neither starts agents nor
- * enables production dispatch. The host must provide atomic idle-only input,
+ * enables production dispatch. The host must provide atomic idle-only input
+ * or native queue append (never steer),
  * exact-turn interrupt, and read-only reconciliation before it can be enabled.
+ * Hosts opting into final_result_evidence must separately attest resultComplete
+ * for the exact completed turn; until then that command retains single-flight.
  * It reuses the bridge's fsync/rename storage and process-owned SQLite locks. */
 export class SessionControl {
   #state;#lease;#host;#clock;#busy=false;#closed=false;#poisoned=false;#binding;
@@ -53,6 +56,7 @@ export class SessionControl {
       const c=own(journal.commands,id);
       need(uuid(id)&&object(c)&&c.command_id===id&&uuid(c.client_user_message_id)&&PHASES.has(c.phase)&&validText(c.text)&&
         validTime(c.expires_at)&&runtimeDigest(c.route)===runtimeDigest(binding.route)&&c.digest===runtimeDigest(this.#inputOf(c)),'SESSION_STATE_CORRUPT');
+      if(c.phase==='result_pending')need(typeof c.turn_id==='string'&&c.turn_id&&c.native_status==='completed'&&c.result===undefined,'SESSION_STATE_CORRUPT');
       if(c.resume_of)need(uuid(c.resume_of)&&own(journal.commands,c.resume_of)&&
         (journal.commands[c.resume_of].resumed_by===id||['cancelled','expired'].includes(c.phase)),'SESSION_STATE_CORRUPT');
       if(c.resumed_by)need(own(journal.commands,c.resumed_by)?.resume_of===id,'SESSION_STATE_CORRUPT');
@@ -107,10 +111,11 @@ export class SessionControl {
     const next=commands.find(c=>c.phase==='queued');if(!next)return this.list();
     let status;
     try{status=await this.#hostStatus();}catch(error){this.#change(next,'queued',safeCode(error));return this.list();}
-    if(status.busy){this.#change(next,'queued','waiting_for_idle');return this.list();}
+    const nativeQueue=this.#host.capabilities?.atomic_queue_append===true;
+    if(status.busy&&!nativeQueue){this.#change(next,'queued','waiting_for_idle');return this.list();}
     // A local busy check is not atomic with the user's desktop input. Do not
     // expose execution until the host guarantees reject-on-busy (never steer).
-    if(this.#host.capabilities?.atomic_idle_start!==true){this.#change(next,'queued','host_idle_admission_unverified');return this.list();}
+    if(this.#host.capabilities?.atomic_idle_start!==true&&!nativeQueue){this.#change(next,'queued','host_idle_admission_unverified');return this.list();}
     if(Date.parse(next.expires_at)<=this.#clock()){this.#change(next,'expired','deadline_before_dispatch');return this.list();}
     this.#change(next,'sending');
     try{
@@ -128,12 +133,38 @@ export class SessionControl {
     try{await this.#hostStatus();observed=await this.#host.inspectOperation(c.client_user_message_id);}
     catch(error){this.#change(c,'outcome_unknown',safeCode(error));return;}
     if(observed?.found!==true){this.#change(c,'outcome_unknown','native_operation_not_proven');return;}
+    if(observed.status==='queued'){
+      // An acknowledged native queue entry is neither a running turn nor a
+      // missing operation. Once sent, local cancellation/expiry must not claim
+      // it was removed from the native queue. Reconcile until it is consumed.
+      need(this.#host.capabilities?.atomic_queue_append===true&&!c.turn_id&&!observed.turnId,'SESSION_NATIVE_TURN_CONFLICT');
+      this.#change(c,'accepted','waiting_in_native_queue');return;
+    }
+    if(observed.status==='rejected'){
+      // A native admission hook can definitively drop an input before a turn
+      // exists (for example after explicit user Stop). Never invent a turn ID.
+      need(this.#host.capabilities?.atomic_queue_append===true&&!c.turn_id&&!observed.turnId,'SESSION_NATIVE_TURN_CONFLICT');
+      this.#change(c,'failed','native_input_rejected_before_turn');return;
+    }
     need(typeof observed.turnId==='string'&&observed.turnId&&(!c.turn_id||c.turn_id===observed.turnId),'SESSION_NATIVE_TURN_CONFLICT');
     c.turn_id=observed.turnId;c.native_status=observed.status;
     if(observed.status==='inProgress'){this.#change(c,c.stop_control_id?'stop_requested':'running');return;}
     if(observed.status==='completed'){
       // Completion evidence and result delivery are separate. Never extract
       // arbitrary historical/commentary/tool text as the final task result.
+      // This opt-in preserves legacy host behavior. A strict host must attest
+      // the complete final snapshot, even when it is intentionally empty;
+      // missing/false/null resultComplete never means an empty final result.
+      // Do not publish partial text or release the queue while waiting. tick()
+      // will re-read this same operation, with the existing exact-turn fence.
+      if(this.#host.capabilities?.final_result_evidence===true&&observed.resultComplete!==true){
+        this.#change(c,'result_pending','native_result_not_complete');return;
+      }
+      if(observed.result!==undefined){
+        need(object(observed.result)&&observed.result.type==='text'&&typeof observed.result.text==='string'&&
+          Buffer.byteLength(observed.result.text)<=1024*1024&&Object.keys(observed.result).every(k=>['type','text'].includes(k)),'SESSION_NATIVE_RESULT_INVALID');
+        c.result=structuredClone(observed.result);
+      }
       this.#change(c,'completed',c.stop_control_id?'completed_before_stop':null);return;
     }
     if(observed.status==='failed'){this.#change(c,'failed','native_turn_failed');return;}

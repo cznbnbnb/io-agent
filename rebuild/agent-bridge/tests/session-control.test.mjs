@@ -44,6 +44,89 @@ test('busy native session queues, explicit unknown host idle capability never se
   const f=fixture(t),q=f.open();q.enqueue(f.command());f.host.busy=true;await q.tick();assert.equal(q.list()[0].reason,'waiting_for_idle');
   f.host.busy=false;f.host.capabilities.atomic_idle_start=false;await q.tick();assert.equal(q.list()[0].reason,'host_idle_admission_unverified');assert.equal(f.calls.length,0);
 });
+test('native queue admission while busy survives reopen and expiry without starting a second operation',async t=>{
+  const f=fixture(t);let q=f.open();f.host.busy=true;f.host.capabilities={atomic_idle_start:false,atomic_queue_append:true};
+  const first=f.command(),second=f.command();q.enqueue(first);q.enqueue(second);await q.tick();
+  assert.equal(f.calls.length,1);const message=f.calls[0].clientUserMessageId;
+  f.turns.set(message,{found:true,status:'queued',turnId:null});await q.tick();
+  assert.equal(q.list()[0].phase,'accepted');assert.equal(q.list()[0].reason,'waiting_in_native_queue');
+  assert.throws(()=>q.cancelQueued(first.command_id),{code:'SESSION_COMMAND_ALREADY_DISPATCHED'});
+  await q.close();q=f.open();f.setTime(Date.parse(first.expires_at)+1);await q.tick();
+  assert.deepEqual(q.list().map(c=>c.phase),['accepted','expired']);assert.equal(f.calls.length,1);
+  f.turns.set(message,{found:true,status:'inProgress',turnId:'native-queue-turn'});await q.tick();assert.equal(q.list()[0].phase,'running');
+  f.turns.set(message,{found:true,status:'queued',turnId:null});await assert.rejects(q.tick(),{code:'SESSION_NATIVE_TURN_CONFLICT'});
+});
+test('native completion persists only a scoped final text result, not arbitrary host fields',async t=>{
+  const f=fixture(t);let q=f.open();const{turn}=await running(f,q);turn.status='completed';turn.result={type:'text',text:'Synthetic final only'};
+  await q.tick();assert.deepEqual(q.list()[0].result,turn.result);await q.close();q=f.open();assert.deepEqual(q.list()[0].result,turn.result);
+});
+test('strict host completion waits for explicit complete final evidence and re-reads the same operation',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=true;const{turn}=await running(f,q);q.enqueue(f.command());
+  const inspected=[],inspect=f.host.inspectOperation;f.host.inspectOperation=async function(id){inspected.push(id);return inspect.call(this,id);};
+  turn.status='completed';turn.result={type:'text',text:'Provisional text must not be published'};
+  for(const complete of [undefined,false,null,'true']){
+    turn.resultComplete=complete;await q.tick();assert.deepEqual(q.list().map(c=>c.phase),['result_pending','queued']);
+    assert.equal(q.list()[0].reason,'native_result_not_complete');assert.equal(q.list()[0].native_status,'completed');assert.equal(q.list()[0].result,undefined);
+  }
+  assert.equal(f.calls.length,1);assert.deepEqual(inspected,Array(4).fill(f.calls[0].clientUserMessageId));
+  turn.resultComplete=true;turn.result={type:'text',text:'Complete final text'};await q.tick();
+  assert.equal(q.list()[0].phase,'completed');assert.deepEqual(q.list()[0].result,turn.result);assert.equal(f.calls.length,1);
+  await q.tick();assert.equal(f.calls.length,2);
+});
+test('result pending survives restart, keeps single-flight and delivers late output without re-enqueue',async t=>{
+  const f=fixture(t);f.host.capabilities.final_result_evidence=true;let q=f.open();const{input,turn}=await running(f,q);q.enqueue(f.command());
+  turn.status='completed';await q.tick();await q.close();q=f.open();assert.equal(q.list()[0].phase,'result_pending');
+  assert.equal(q.enqueue(input).phase,'result_pending');await q.tick();assert.equal(f.calls.length,1);
+  assert.throws(()=>q.cancelQueued(input.command_id),{code:'SESSION_COMMAND_ALREADY_DISPATCHED'});
+  await assert.rejects(q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:turn.turnId}),{code:'SESSION_STOP_STALE'});
+  turn.resultComplete=true;turn.result={type:'text',text:'Late final from the original turn'};await q.tick();
+  assert.equal(q.list()[0].phase,'completed');assert.equal(q.list()[0].turn_id,turn.turnId);assert.deepEqual(q.list()[0].result,turn.result);
+  await q.close();q=f.open();assert.deepEqual(q.list()[0].result,turn.result);await q.tick();assert.equal(f.calls.length,2);
+});
+test('strict host can explicitly attest an empty final snapshot without inventing text',async t=>{
+  for(const result of [undefined,{type:'text',text:''}])await t.test(result===undefined?'absent output':'empty text',async t=>{
+    const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=true;const{turn}=await running(f,q);
+    turn.status='completed';turn.resultComplete=true;if(result!==undefined)turn.result=result;await q.tick();
+    assert.equal(q.list()[0].phase,'completed');assert.deepEqual(q.list()[0].result,result);
+  });
+});
+test('pending final result cannot be completed by a replacement turn or unrelated operation',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=true;const{turn}=await running(f,q);turn.status='completed';await q.tick();
+  const originalId=f.calls[0].clientUserMessageId,other={found:true,status:'completed',turnId:'unrelated-turn',resultComplete:true,result:{type:'text',text:'Wrong task'}};
+  f.turns.set(randomUUID(),other);await q.tick();assert.equal(q.list()[0].phase,'result_pending');
+  f.turns.set(originalId,other);await assert.rejects(q.tick(),{code:'SESSION_NATIVE_TURN_CONFLICT'});
+  assert.equal(q.list()[0].phase,'result_pending');assert.equal(q.list()[0].turn_id,turn.turnId);assert.equal(q.list()[0].result,undefined);assert.equal(f.calls.length,1);
+  f.turns.set(originalId,turn);turn.resultComplete=true;turn.result={type:'text',text:'Correct task'};await q.tick();assert.deepEqual(q.list()[0].result,turn.result);
+});
+test('result pending journals require the completed turn and cannot bypass the one-flight limit',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=true;const{turn}=await running(f,q);q.enqueue(f.command());turn.status='completed';await q.tick();await q.close();
+  const valid=JSON.parse(fs.readFileSync(f.stateFile,'utf8'));
+  for(const mutate of [c=>{delete c.turn_id;},c=>{c.native_status='inProgress';},c=>{c.result={type:'text',text:'Premature'};}]){
+    const value=structuredClone(valid),journal=value.native_control;mutate(journal.commands[journal.order[0]]);fs.writeFileSync(f.stateFile,JSON.stringify(value));
+    assert.throws(()=>f.open(),{code:'SESSION_STATE_CORRUPT'});
+  }
+  const value=structuredClone(valid),journal=value.native_control;journal.commands[journal.order[1]].phase='accepted';fs.writeFileSync(f.stateFile,JSON.stringify(value));
+  assert.throws(()=>f.open(),{code:'SESSION_STATE_CORRUPT'});assert.equal(f.calls.length,1);
+});
+test('legacy hosts without final-result capability retain completion behavior',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=false;const{turn}=await running(f,q);turn.status='completed';turn.resultComplete=false;
+  await q.tick();assert.equal(q.list()[0].phase,'completed');assert.equal(q.list()[0].result,undefined);
+});
+test('a stop racing with completed native output still waits for the final result evidence',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.final_result_evidence=true;const{input,turn}=await running(f,q);
+  await q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:turn.turnId});turn.status='completed';await q.tick();
+  assert.equal(q.list()[0].phase,'result_pending');turn.resultComplete=true;turn.result={type:'text',text:'Completed before stop'};await q.tick();
+  assert.equal(q.list()[0].phase,'completed');assert.equal(q.list()[0].reason,'completed_before_stop');assert.deepEqual(q.list()[0].result,turn.result);
+});
+test('definitive native admission drop closes only the unstarted command without fabricating a turn',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities={atomic_queue_append:true};q.enqueue(f.command());await q.tick();
+  f.turns.set(f.calls[0].clientUserMessageId,{found:true,status:'rejected',turnId:null});await q.tick();
+  assert.equal(q.list()[0].phase,'failed');assert.equal(q.list()[0].turn_id,undefined);assert.equal(f.calls.length,1);
+});
+test('unknown result structure cannot be persisted as a task result',async t=>{
+  const f=fixture(t),q=f.open(),{turn}=await running(f,q);turn.status='completed';turn.result={type:'text',text:'Synthetic final',transcript:'unexpected'};
+  await assert.rejects(q.tick(),{code:'SESSION_NATIVE_RESULT_INVALID'});assert.equal(q.list()[0].phase,'running');assert.equal(q.list()[0].result,undefined);
+});
 test('one flight per session excludes concurrent ticks and enqueues during host await',async t=>{
   const f=fixture(t),q=f.open();q.enqueue(f.command());let release;const status=f.host.status;
   f.host.status=()=>new Promise(resolve=>{release=()=>resolve(status.call(f.host));});const pending=q.tick();
