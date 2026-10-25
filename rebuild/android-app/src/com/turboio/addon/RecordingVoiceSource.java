@@ -12,7 +12,7 @@ final class RecordingVoiceSource {
  interface Decoder {byte[] decode(byte[] packet)throws Exception;}
  // One 240-byte packet per 20 ms. Sized from the capture limit plus 4 s of tail (2026-10-23: the
  // 60 s limit kept a 32 s buffer and a 35 s answer failed with VOICE_RECORDING_RANGE_INVALID).
- static final int PACKET_BYTES=240,PCM_BYTES=640,MAX_PACKETS=(VoiceAnswerSession.CAPTURE_SECONDS+4)*50,MAX_BYTES=MAX_PACKETS*PACKET_BYTES;
+ static final int PACKET_BYTES=240,PCM_BYTES=640,MAX_PACKETS=(CaptureSession.CAPTURE_SECONDS+4)*50,MAX_BYTES=MAX_PACKETS*PACKET_BYTES;
  /** The recording service sends stereo Opus: left is the wearer's bone-conduction
   * microphone, right the environment microphone (2026-10-22 device measurement:
   * speaker playback and a bystander appear only on the right). Dictation keeps

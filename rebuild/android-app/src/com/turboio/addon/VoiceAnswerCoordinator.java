@@ -26,7 +26,7 @@ final class VoiceAnswerCoordinator implements AutoCloseable {
  }
  private interface Work {void run()throws Exception;}
  private static final long START_WAIT=8000,TAIL_WAIT=8000,IDLE_WAIT=8000;
- private final VoiceAnswerSession draft;private final String token,peer;private final long generation,captureDeadline;
+ private final CaptureSession draft;private final String token,peer;private final long generation,captureDeadline;
  private final RecordingVoiceSource source;private final VoiceAudioArchive archive;private final Device device;private final LongSupplier clock;private final Events events;
  private final ThreadPoolExecutor worker;private final Host107VoiceTask.Listener listener;
  private final Object callbackAdmission=new Object();private boolean callbackAccepting=true;
@@ -35,8 +35,8 @@ final class VoiceAnswerCoordinator implements AutoCloseable {
  private volatile Engine engine;private volatile State state;private volatile boolean released,startAttempted;
  private long startAt,nextIdle,idleIssued,idleUntil;private int idleQueries,engineStopAttempts;
  private boolean startAccepted,startCallback,begun,stopSaved,cancelSaved,faultSaved,tailComplete,inputSealed,engineStopAccepted,barrierPending,engineSealed,archiveSealed,archiveComplete,archiveFailed,engineReleased,deviceReleased;
- private VoiceAnswerSession.StopProbe idleProbe;private boolean stopAccepted,idleProven;private String note="prepared";
- VoiceAnswerCoordinator(VoiceAnswerSession draft,String peer,long generation,RecordingVoiceSource source,VoiceAudioArchive archive,Device device,LongSupplier clock,Events events){
+ private CaptureSession.StopProbe idleProbe;private boolean stopAccepted,idleProven;private String note="prepared";
+ VoiceAnswerCoordinator(CaptureSession draft,String peer,long generation,RecordingVoiceSource source,VoiceAudioArchive archive,Device device,LongSupplier clock,Events events){
   TaskWire.require(draft!=null&&draft.healthy()&&draft.phase().equals("CAPTURING")&&peer!=null&&generation>0&&source!=null&&archive!=null&&device!=null&&clock!=null&&events!=null,"VOICE_COORDINATOR_INVALID");
   Map<String,Object> saved=WireJson.map(draft.snapshot());token=(String)saved.get("token");
   TaskWire.require(FixedPeerHash.of(peer).equals(saved.get("peer"))&&generation==TaskWire.positive(saved.get("generation"))&&archive.matches(token,14),"VOICE_COORDINATOR_OWNER_INVALID");
@@ -52,7 +52,7 @@ final class VoiceAnswerCoordinator implements AutoCloseable {
  }
  Host107VoiceTask.Listener listener(){return listener;}
  State snapshot(){return state;}
- private boolean liveOwner(){VoiceAnswerSession.CapturePermit p=draft.capturePermit();return !released&&token.equals(p.token)&&FixedPeerHash.of(peer).equals(p.peer)&&generation==p.generation;}
+ private boolean liveOwner(){CaptureSession.CapturePermit p=draft.capturePermit();return !released&&token.equals(p.token)&&FixedPeerHash.of(peer).equals(p.peer)&&generation==p.generation;}
  private void acceptCallback(Work action){
   if(!liveOwner()||!startAttempted)return;
   // Admission never holds the durable draft monitor. The barrier is ordered

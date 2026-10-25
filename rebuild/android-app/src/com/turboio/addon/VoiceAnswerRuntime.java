@@ -40,7 +40,7 @@ final class VoiceAnswerRuntime {
   volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
-  volatile VoiceAnswerSession.StopProbe probe;volatile long recoveryFence;volatile boolean recovering;
+  volatile CaptureSession.StopProbe probe;volatile long recoveryFence;volatile boolean recovering;
   final Object resourceLock=new Object();volatile boolean nativeStartAttempted,recoveryArchiveSealed,recoveryArchiveClosed;
   volatile Host107VoiceTask releasedEngine,coordinatorEngine;volatile Host107VoiceDecoder releasedDecoder;
   volatile VoiceRecoveryProof.Warm recoveryProof;
@@ -248,7 +248,7 @@ final class VoiceAnswerRuntime {
  private boolean startNative(Attempt a)throws Exception{
   CountDownLatch finished=new CountDownLatch(1);AtomicBoolean pending=new AtomicBoolean(true),accepted=new AtomicBoolean();
   final Host107Recording owner=a.recording;final Host107VoiceTask nativeTask=a.engine;final String token=a.token,peer=FixedPeerHash.of(a.peer);final long generation=a.generation;
-  main.post(()->{try{VoiceAnswerSession.CapturePermit permit=a.draft.capturePermit();
+  main.post(()->{try{CaptureSession.CapturePermit permit=a.draft.capturePermit();
    if(pending.compareAndSet(true,false)&&owns(a)&&a.recording==owner&&a.engine==nativeTask&&!a.abort&&!a.recovery&&handoff(a)&&permit.opening&&token.equals(permit.token)&&peer.equals(permit.peer)&&generation==permit.generation&&SystemClock.elapsedRealtime()<permit.deadline){a.nativeStartAttempted=true;accepted.set(nativeTask.start(token));}
   }catch(Exception ignored){}finally{finished.countDown();}});
   boolean completed=finished.await(8,TimeUnit.SECONDS);pending.set(false);return completed&&accepted.get();
@@ -405,7 +405,7 @@ final class VoiceAnswerRuntime {
  private void recover(Attempt a,Fixed60Session.Link link,long operation,Result result)throws Exception{
   try{
    TaskWire.require(a.draft.healthy()&&a.draft.needsStop(),"VOICE_RECOVERY_REQUIRED");
-   VoiceAnswerSession.CapturePermit prior=a.draft.capturePermit();boolean cold=a.engine==null&&a.coordinator==null;
+   CaptureSession.CapturePermit prior=a.draft.capturePermit();boolean cold=a.engine==null&&a.coordinator==null;
    TaskWire.require(link.peer!=null&&prior.peer.equals(FixedPeerHash.of(link.peer))&&link.generation>0&&(cold||link.generation>prior.generation),"VOICE_CONNECTION_CHANGED");
    boolean sealed=false;VoiceRecoveryProof.Warm warm=null;
    if(cold)TaskWire.require(coldAdmission(a,link),"VOICE_RECOVERY_REQUIRED");

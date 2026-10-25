@@ -44,7 +44,7 @@ final class VoiceAudioArchive implements AutoCloseable {
   try{pcm.write(bytes);pcmBytes+=bytes.length;for(int i=0;i<bytes.length;i+=2){int value=(short)((bytes[i]&255)|(bytes[i+1]<<8));samples++;if(value!=0)nonzero++;peak=Math.max(peak,Math.abs(value));}decodedFrames++;}
   catch(IOException error){failed=true;throw error;}
  }
- synchronized Object seal(VoiceAnswerSession session)throws Exception{
+ synchronized Object seal(CaptureSession session)throws Exception{
   if(closed||sealed)throw new IOException("VOICE_AUDIO_CLOSED");Map<String,Object> draft=WireJson.map(session.snapshot());
   if(!token.equals(draft.get("token")))throw new IOException("VOICE_SOURCE_MISMATCH");
   boolean complete=session.healthy()&&!Boolean.TRUE.equals(draft.get("needs_stop"))&&TaskWire.set("REVIEW","SUBMITTING","SAVED").contains(draft.get("phase"))&&frames>0&&frames==decodedFrames&&samples>0&&nonzero>0&&!failed&&(business!=14||recordingComplete);

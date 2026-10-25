@@ -3,23 +3,11 @@ package com.turboio.addon;
 import java.util.*;
 
 /** Portable original-question voice draft. No microphone, SDK, network or implicit task cancel. */
-final class VoiceAnswerSession {
+final class VoiceAnswerSession implements CaptureSession {
  interface Store {Object read()throws Exception;void save(Object value)throws Exception;}
- interface Cutoff {boolean armed(String token,String peerHash,long generation,long deadline);}
- /** Immutable last durable capture binding. SDK admission reads this without
-  * waiting for the journal monitor. Revocation can only remove opening rights. */
- static final class CapturePermit {
-  final String token,peer,phase;final long generation,deadline;final boolean needsStop,opening;
-  CapturePermit(Map<String,Object> state,boolean opening){token=(String)state.get("token");peer=(String)state.get("peer");phase=(String)state.get("phase");generation=TaskWire.nonnegative(state.get("generation"));deadline=TaskWire.nonnegative(state.get("deadline"));needsStop=Boolean.TRUE.equals(state.get("needs_stop"));this.opening=opening&&needsStop&&"CAPTURING".equals(phase);}
-  CapturePermit(CapturePermit prior){token=prior.token;peer=prior.peer;phase=prior.phase;generation=prior.generation;deadline=prior.deadline;needsStop=prior.needsStop;opening=false;}
- }
- static final class StopProbe {
-  private final VoiceAnswerSession owner;private final long issued,generation;private final String token,peer;
-  private StopProbe(VoiceAnswerSession s,long now){owner=s;issued=now;generation=s.number("generation");token=s.token();peer=s.string("peer");}
- }
  // 2026-10-23 (user): 30 s was too short for a prompter answer with conditions; 60 s, and a stop at
  // the limit still goes to review. The 30 s rule for synthetic capture experiments (AGENTS.md) is separate.
- static final int CAPTURE_SECONDS=60;
+ static final int CAPTURE_SECONDS=CaptureSession.CAPTURE_SECONDS;
  private static final Set<String> PHASES=TaskWire.set("IDLE","PREPARED","CAPTURING","STOPPING","RECOVERY","REVIEW","INCOMPLETE","CANCELLED","SUBMITTING","SAVED");
  private final Store store;private Map<String,Object> state;private boolean healthy=true;private StopProbe probe;
  private volatile CapturePermit permit=new CapturePermit(empty(),false);private volatile boolean openingRevoked=true;
@@ -38,8 +26,8 @@ final class VoiceAnswerSession {
   state=next;permit=new CapturePermit(next,!openingRevoked);
  }
  private void revokeOpening(){openingRevoked=true;}
- void revokeOpening(String token){if(token!=null&&token.equals(permit.token))revokeOpening();}
- CapturePermit capturePermit(){CapturePermit current=permit;return openingRevoked&&current.opening?new CapturePermit(current):current;}
+ public void revokeOpening(String token){if(token!=null&&token.equals(permit.token))revokeOpening();}
+ public CapturePermit capturePermit(){CapturePermit current=permit;return openingRevoked&&current.opening?new CapturePermit(current):current;}
  private static Map<String,Object> target(Map<String,Object> value){
   BoundedJson.keys(value,"binding","fingerprint","request");TaskWire.require(TaskWire.text(value.get("binding"),64,false).matches("[a-f0-9]{64}"),"VOICE_TARGET_INVALID");
   Map<String,Object> request=TaskWire.object(value.get("request"));TaskWire.require("request".equals(request.get("kind"))&&TaskWire.requestFingerprint(request).equals(value.get("fingerprint")),"VOICE_REQUEST_CHANGED");return value;
@@ -66,15 +54,15 @@ final class VoiceAnswerSession {
   TaskWire.require(WireJson.bytes(s).length<=2097152,"VOICE_STORE_BUDGET");
  }
  private static boolean allFinal(Map<String,Object> s){for(Object raw:WireJson.list(s.get("segments")))if(!Boolean.TRUE.equals(WireJson.map(raw).get("final")))return false;return !WireJson.list(s.get("segments")).isEmpty();}
- synchronized boolean healthy(){return healthy;}synchronized String phase(){return healthy?string("phase"):"BLOCKED";}synchronized String token(){return string("token");}
- synchronized boolean needsStop(){return !healthy||flag("needs_stop");}synchronized String transcript(){return text(state);}synchronized String answerText(){return state.get("edited")==null?transcript():(String)state.get("edited");}
- synchronized String operation(){return "agent-voice-"+token();}synchronized Object snapshot(){return WireJson.copy(state);}
+ public synchronized boolean healthy(){return healthy;}public synchronized String phase(){return healthy?string("phase"):"BLOCKED";}public synchronized String token(){return string("token");}
+ public synchronized boolean needsStop(){return !healthy||flag("needs_stop");}synchronized String transcript(){return text(state);}synchronized String answerText(){return state.get("edited")==null?transcript():(String)state.get("edited");}
+ synchronized String operation(){return "agent-voice-"+token();}public synchronized Object snapshot(){return WireJson.copy(state);}
  synchronized boolean prepare(TaskConnection connection,Map<String,Object> request,Map<String,Object> parent,long wall)throws Exception{
   if(!healthy||!phase().equals("IDLE"))return false;TaskWire.object(request);TaskWire.object(parent);
   TaskWire.require(TaskWire.canAnswer(request,parent,wall)&&TaskWire.same(TaskWire.body(request).get("route"),connection.route()),"VOICE_REQUEST_CLOSED");
   Map<String,Object> next=empty();next.put("phase","PREPARED");next.put("token",UUID.randomUUID().toString().replace("-",""));next.put("target",WireJson.object("binding",connection.binding(),"fingerprint",TaskWire.requestFingerprint(request),"request",WireJson.copy(request)));save(next);return true;
  }
- synchronized boolean arm(String peer,long generation,long now,int seconds,Cutoff cutoff)throws Exception{
+ public synchronized boolean arm(String peer,long generation,long now,int seconds,Cutoff cutoff)throws Exception{
   if(!healthy||!phase().equals("PREPARED"))return false;TaskWire.require(peer!=null&&!peer.isEmpty()&&generation>0&&now>0&&seconds>=3&&seconds<=CAPTURE_SECONDS,"VOICE_CAPTURE_INVALID");String hash=FixedPeerHash.of(peer);long deadline=Math.addExact(now,seconds*1000L);
   if(cutoff==null||!cutoff.armed(token(),hash,generation,deadline))return false;
   Map<String,Object> next=copy();next.put("phase","CAPTURING");next.put("peer",hash);next.put("generation",generation);next.put("deadline",deadline);next.put("needs_stop",true);openingRevoked=false;save(next);return true;
@@ -97,7 +85,7 @@ final class VoiceAnswerSession {
   * new partial is ambiguous (duplicate versus another sentence): preserve its text,
   * mark the draft incomplete, and require cleanup instead of silently dropping it.
   */
- synchronized boolean officialResult(String token,String peer,long generation,String fullText,boolean finished,long now)throws Exception{
+ public synchronized boolean officialResult(String token,String peer,long generation,String fullText,boolean finished,long now)throws Exception{
   if(!owned(token,peer,generation)||flag("engine_stopped")||!string("error").isEmpty()||!TaskWire.set("CAPTURING","STOPPING").contains(phase()))return false;
   try{TaskWire.text(fullText,65536,false);TaskWire.require(!fullText.trim().isEmpty(),"VOICE_RESULT_INVALID");}
   catch(IllegalArgumentException invalid){fault("VOICE_RESULT_INCOMPLETE",now);return false;}
@@ -117,42 +105,42 @@ final class VoiceAnswerSession {
   if(last!=null&&!priorFinal&&!finished&&fullText.equals(last.get("text")))return true;
   return result(token,peer,generation,index,revision,fullText,finished,now);
  }
- synchronized boolean failed(String token,String peer,long generation,String code,long now)throws Exception{
+ public synchronized boolean failed(String token,String peer,long generation,String code,long now)throws Exception{
   if(!owned(token,peer,generation)||!needsStop())return false;
   TaskWire.require(code!=null&&code.matches("VOICE_[A-Z_]{1,50}"),"VOICE_ERROR_INVALID");if(string("error").isEmpty())fault(code,now);return true;
  }
  /** Called only after the owned native task accepted stop and returned a terminal state,
   * and all preceding callbacks have drained. Physical mic stop remains a separate proof. */
- synchronized boolean engineSealed(String token,boolean terminal,long now)throws Exception{
+ public synchronized boolean engineSealed(String token,boolean terminal,long now)throws Exception{
   if(!healthy||!token().equals(token)||!needsStop()||!terminal)return false;
   Map<String,Object> next=copy();next.put("phase","STOPPING");if(number("stop_at")==0)next.put("stop_at",now);next.put("engine_end",true);next.put("engine_stopped",true);save(next);return true;
  }
- boolean stop(String token,long now,boolean cancel)throws Exception{
+ public boolean stop(String token,long now,boolean cancel)throws Exception{
   revokeOpening(token);synchronized(this){
    if(!healthy||!token().equals(token)||!needsStop())return false;Map<String,Object> next=copy();next.put("phase","STOPPING");if(number("stop_at")==0)next.put("stop_at",now);next.put("cancelled",flag("cancelled")||cancel);save(next);return true;
   }
  }
- synchronized boolean stopSubmitted(String token,String peer,long generation,long now)throws Exception{
+ public synchronized boolean stopSubmitted(String token,String peer,long generation,long now)throws Exception{
   if(!owned(token,peer,generation)||!needsStop()||number("stop_at")==0||now<number("stop_at"))return false;Map<String,Object> next=copy();next.put("stop_sent",now);next.put("device_stopped",false);save(next);probe=null;return true;
  }
- synchronized boolean resumeCleanup(String peer,long generation,long now)throws Exception{
+ public synchronized boolean resumeCleanup(String peer,long generation,long now)throws Exception{
   if(!healthy||!needsStop()||!TaskWire.set("STOPPING","RECOVERY").contains(phase())||peer==null||!string("peer").equals(FixedPeerHash.of(peer))||generation<=0||now<=0)return false;
   Map<String,Object> next=copy();next.put("generation",generation);next.put("phase","STOPPING");next.put("stop_at",now);next.put("stop_sent",0);next.put("device_stopped",false);save(next);probe=null;return true;
  }
- synchronized boolean engineEnd(String token,long now)throws Exception{
+ public synchronized boolean engineEnd(String token,long now)throws Exception{
   if(!healthy||!token().equals(token)||!needsStop())return false;stop(token,now,false);Map<String,Object> next=copy();next.put("engine_end",true);save(next);return true;
  }
  synchronized boolean engineStopped(String token,boolean stopped)throws Exception{
   if(!healthy||!token().equals(token)||!needsStop())return false;Map<String,Object> next=copy();next.put("engine_stopped",stopped);save(next);return true;
  }
- synchronized StopProbe probeStop(String peer,long generation,long now){if(!healthy||!needsStop()||!owned(token(),peer,generation)||number("stop_sent")==0||now<number("stop_sent"))return null;probe=new StopProbe(this,now);return probe;}
- synchronized boolean deviceIdle(StopProbe check,String peer,long generation,long now,boolean micIdle)throws Exception{
+ public synchronized StopProbe probeStop(String peer,long generation,long now){if(!healthy||!needsStop()||!owned(token(),peer,generation)||number("stop_sent")==0||now<number("stop_sent"))return null;probe=new StopProbe(this,now,number("generation"),token(),string("peer"));return probe;}
+ public synchronized boolean deviceIdle(StopProbe check,String peer,long generation,long now,boolean micIdle)throws Exception{
   if(check==null||check!=probe||check.owner!=this||!owned(check.token,peer,generation)||!check.peer.equals(string("peer"))||check.generation!=generation||now<check.issued||now-check.issued>8000)return false;probe=null;
   Map<String,Object> next=copy();next.put("device_stopped",micIdle);save(next);return micIdle;
  }
  /** True when the capture was ended by its own time limit, not by the wearer or an error. */
  synchronized boolean timeLimited(){return healthy&&number("deadline")>0&&number("stop_at")==number("deadline");}
- synchronized boolean finish()throws Exception{
+ public synchronized boolean finish()throws Exception{
   if(!healthy||!needsStop()||!flag("engine_end")||!flag("engine_stopped")||!flag("device_stopped"))return false;
   Map<String,Object> next=copy();next.put("needs_stop",false);
   // 2026-10-23 (user): "已说内容照常进入确认流程". A stop that leaves the last sentence unfinalised
@@ -172,7 +160,7 @@ next.put("phase",flag("cancelled")?"CANCELLED":string("error").isEmpty()&&allFin
  synchronized boolean edit(String completeText)throws Exception{
   if(!healthy||!phase().equals("REVIEW"))return false;TaskWire.require(!TaskWire.text(completeText,65536,false).trim().isEmpty(),"VOICE_TEXT_EMPTY");Map<String,Object> next=copy();next.put("edited",completeText);save(next);return true;
  }
- boolean cancelDraft(long now)throws Exception{
+ public boolean cancelDraft(long now)throws Exception{
   revokeOpening();synchronized(this){
    if(!healthy||TaskWire.set("IDLE","SUBMITTING","SAVED","CANCELLED").contains(phase()))return false;
    if(needsStop())return stop(token(),now,true);Map<String,Object> next=copy();next.put("cancelled",true);next.put("phase","CANCELLED");save(next);return true;

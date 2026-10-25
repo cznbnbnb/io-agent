@@ -54,7 +54,7 @@ final class Host107RecordingTest {
    waitFor(()->sink.events.contains("idle:true"));long now=SystemClock.elapsedRealtime();
    yes(draft.stop(draft.token(),now,false));yes(draft.stopSubmitted(draft.token(),VoiceAnswerTest.PEER,1,now));
    yes(draft.engineEnd(draft.token(),now));yes(draft.engineStopped(draft.token(),true));
-   VoiceAnswerSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,1,now);yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,1,now,true));yes(draft.finish());
+   CaptureSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,1,now);yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,1,now,true));yes(draft.finish());
   }
   public void close()throws Exception{
    if(sink.unblock!=null)sink.unblock.countDown();
@@ -206,8 +206,8 @@ final class Host107RecordingTest {
   // A failed durable transition cannot resurrect opening or discard the last
   // proven capture binding needed by an exact-owner physical stop.
   BlockingStore broken=new BlockingStore();VoiceAnswerSession draft=VoiceAnswerTest.prepared(broken,VoiceAnswerTest.connection("permit-write-failure"));VoiceAnswerTest.arm(draft);
-  VoiceAnswerSession.CapturePermit old=draft.capturePermit();yes(old.opening&&old.needsStop);broken.fail=true;
-  VoiceAnswerTest.rejects(()->draft.stop(old.token,2000,false));VoiceAnswerSession.CapturePermit after=draft.capturePermit();
+  CaptureSession.CapturePermit old=draft.capturePermit();yes(old.opening&&old.needsStop);broken.fail=true;
+  VoiceAnswerTest.rejects(()->draft.stop(old.token,2000,false));CaptureSession.CapturePermit after=draft.capturePermit();
   yes(!after.opening&&after.needsStop&&after.token.equals(old.token)&&after.peer.equals(old.peer)&&after.generation==old.generation);
   yes(after.phase.equals("CAPTURING")&&!draft.healthy());
  }
@@ -258,7 +258,7 @@ final class Host107RecordingTest {
    yes(!owner.release()&&restored.needsStop()&&TaskWire.same(saved,restored.snapshot()));
    long now=SystemClock.elapsedRealtime();yes(!restored.stopSubmitted(restored.token(),VoiceAnswerTest.PEER,1,now));
    yes(restored.stopSubmitted(restored.token(),VoiceAnswerTest.PEER,2,now));
-   VoiceAnswerSession.StopProbe probe=restored.probeStop(VoiceAnswerTest.PEER,2,now);yes(probe!=null);
+   CaptureSession.StopProbe probe=restored.probeStop(VoiceAnswerTest.PEER,2,now);yes(probe!=null);
    yes(restored.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(!restored.finish()&&!owner.release());
    yes(restored.engineSealed(restored.token(),true,now)&&restored.finish());
    waitFor(owner::release);yes(NativeTransfer.owner.isEmpty()&&!cutoff.pending()&&automaticStops.get()==0);
@@ -299,7 +299,7 @@ final class Host107RecordingTest {
    yes(recovered.bytes==null&&!old.draft.stopSubmitted(old.draft.token(),VoiceAnswerTest.PEER,1,now));
    yes(old.draft.stopSubmitted(old.draft.token(),VoiceAnswerTest.PEER,2,now));
    yes(old.draft.engineSealed(old.draft.token(),true,now));
-   VoiceAnswerSession.StopProbe probe=old.draft.probeStop(VoiceAnswerTest.PEER,2,now);yes(old.draft.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(old.draft.finish());
+   CaptureSession.StopProbe probe=old.draft.probeStop(VoiceAnswerTest.PEER,2,now);yes(old.draft.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(old.draft.finish());
    waitFor(owner[0]::release);yes(NativeTransfer.owner.isEmpty());
   }finally{old.sink.unblock.countDown();old.cutoff.close();Host107Ota.generation=1;}
  }
@@ -321,7 +321,7 @@ final class Host107RecordingTest {
     recovery.stop();RecordingPlatform.last("RECORDING_SERVICE",4).receipt(true);waitFor(()->fresh.events.contains("sent:4:true"));
     recovery.inspectIdle();emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",true),null);waitFor(()->fresh.events.contains("idle:true"));
     yes(!recovery.release());long now=SystemClock.elapsedRealtime();yes(draft.stopSubmitted(draft.token(),VoiceAnswerTest.PEER,3,now));
-    yes(draft.engineSealed(draft.token(),true,now));VoiceAnswerSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,3,now);
+    yes(draft.engineSealed(draft.token(),true,now));CaptureSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,3,now);
     yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,3,now,true)&&draft.finish());waitFor(recovery::release);yes(NativeTransfer.owner.isEmpty());
    }finally{RecordingPlatform.autoQueue=true;Host107Ota.generation=1;}
   }

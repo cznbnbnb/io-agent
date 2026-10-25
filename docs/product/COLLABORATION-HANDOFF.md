@@ -1,3 +1,13 @@
+## [codex] 2026-10-25 共用采音接口抽取与原厂 wake ABI 检查
+
+目录批3a15958已推送，本批继续用户已授权三项目标。新增CaptureSession中性接口，旧问答仍保留相同journal、request来源、停止证明和答案提交；录音适配/截止/协调器/恢复只改静态类型，原monitor和非阻塞revocation不变。两个诊断探针同步更新反射签名，仅编译未执行。尚未实现独立主动委托capture owner/归档，不把类型抽取算作双击录音已通。
+
+新增独立verifyWakeAbi(root)，24漂移fixture+现共享解包目录1次只读检查通过，核对15个方法锚点：真实入站type1/rc3、KEY回调、mock、后台executor和原厂启动顺序。没有改build hook或stage，不以静态检查冒充物理双击/麦克风交接。
+
+测试：中性接口104、语音core1960、coordinator132、恢复127、归档70、原任务bridge248，共2641断言通过。239份全来源临时Java8/D8通过，DEX SHA6ac8f2c8eeee26e254e75ce13ab659ce07eef11ea96b5ccb4b75d0ab43905b6a，临时输出已清。补目标Node22.23.2：原生桥/目录67及服务目录/控制28测试通过。[本批证据](../../rebuild/agent-bridge/hosts/capture-interface-proof-2026-10-25.json)。仅源码，本批不公网部署/打APK/装机；已装dev92、未装dev93、回退76与watch关闭保持。
+
+下一项独立委托采音owner、双journal崩溃对账与音频收尾来源；不能伪造问答request或拿ASR回调时间冒充采集水位。并行准备已有原音服务的目录/控制发布profile：旧首次audio发布器不能直接重用，需要代码及schema一起切换/回退，禁止恢复DB覆盖新写入。新增发布工具尚在开发，不包含本提交。设备地址/Mac解锁及停止范围的既有问题待答，不重复催问；正常提交推送本分支，不合main。
+
 ## [codex] 2026-10-25 真实 session 目录、共享默认与手机选择接线
 
 用户「执行」后的第三批；仅 Codex 工作区。Claude 仍96b1dbb已合。未使用设备、问答通道或用户现用聊天；进度 watch 保持关闭。公网未部署、未打包或安装：已装dev92、待装dev93性能候选和回退76不变，共享构建暂存未修改。

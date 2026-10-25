@@ -34,7 +34,7 @@ final class Host107Recording {
   final Host107Recording owner;final byte[] bytes;final boolean opening;final int type;final long until;boolean consumed;
   Ticket(Host107Recording owner,byte[] bytes,int type){this.owner=owner;this.bytes=bytes.clone();this.type=type;opening=type==14||(type==1&&TaskWire.nonnegative(WireJson.map(OtaFrame.decode(bytes).json).get("action"))==1);until=SystemClock.elapsedRealtime()+5000;}
  }
- private final VoiceAnswerSession draft;private final VoiceCaptureCutoff cutoff;private final Receiver receiver;
+ private final CaptureSession draft;private final VoiceCaptureCutoff cutoff;private final Receiver receiver;
  private final String token,peer,peerHash,lease;private final long generation;private final boolean recoveryOnly;private long deadline;
  private final ThreadPoolExecutor incoming;
  private final AtomicBoolean faultPosted=new AtomicBoolean();
@@ -43,7 +43,7 @@ final class Host107Recording {
  private volatile String faultCode="";private volatile boolean closed;
  private boolean begun,preparedReleased,idleRetryPending,glassesBusy;private volatile boolean startAttempted,stopRequested,stopAccepted;
  private long idleSent,idleUntil,idleFence,checkSent,checkUntil,checkFence,readyUntil;private boolean checkedVersion,checkedIdle;
- private Host107Recording(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
+ private Host107Recording(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
   this.draft=draft;this.cutoff=cutoff;this.receiver=receiver;token=draft.token();this.peer=peer;peerHash=FixedPeerHash.of(peer);this.generation=generation;this.recoveryOnly=recoveryOnly;lease="agent-voice-"+token;
   incoming=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(32),r->{Thread t=new Thread(r,"iO-Agent-recording-source");t.setDaemon(true);return t;});
  }
@@ -55,7 +55,7 @@ final class Host107Recording {
   Map<String,Object> state=WireJson.map(draft.snapshot());
   return token.equals(state.get("token"))&&peerHash.equals(state.get("peer"))&&generation==TaskWire.positive(state.get("generation"))&&deadline==TaskWire.positive(state.get("deadline"));
  }
- static Host107Recording acquire(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
+ static Host107Recording acquire(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
   main();if(active!=null||draft==null||cutoff==null||receiver==null||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED"))return null;
   Fixed60Session.Link link=Host107Ota.link();if(link.peer==null||link.peer.isEmpty())return null;
   if(link.generation<=0)return null;
@@ -65,7 +65,7 @@ final class Host107Recording {
  }
  /** The IO owner must first persist resumeCleanup for this exact peer/epoch.
   * Acquisition never resumes audio, edits the draft or invents stop evidence. */
- static Host107Recording acquireRecovery(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
+ static Host107Recording acquireRecovery(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
   main();if(draft==null||cutoff==null||receiver==null||cutoff.pending()||!draft.healthy()||!draft.needsStop()||!"STOPPING".equals(draft.phase()))return null;
   Fixed60Session.Link link=Host107Ota.link();if(link.peer==null||link.peer.isEmpty()||link.generation<=0)return null;
   Map<String,Object> proof=WireJson.map(draft.snapshot());
@@ -155,7 +155,7 @@ final class Host107Recording {
    if(ticket.consumed)return false;ticket.consumed=true;
    Host107Recording issued=ticket.owner;
    if(owner!=issued||!issued.current()||!issued.sameLink()||!"RECORDING_SERVICE".equals(business)||!issued.peer.equals(peer)||bytes==null||!Arrays.equals(ticket.bytes,bytes)||SystemClock.elapsedRealtime()>=ticket.until)return false;
-   VoiceAnswerSession.CapturePermit durable=issued.draft.capturePermit();
+   CaptureSession.CapturePermit durable=issued.draft.capturePermit();
    if(!durable.needsStop||!issued.token.equals(durable.token)||!issued.peerHash.equals(durable.peer)||issued.generation!=durable.generation)return false;
    if(issued.recoveryOnly)return !ticket.opening&&ticket.type==4&&"STOPPING".equals(durable.phase);
    if(ticket.opening)return durable.opening&&durable.deadline==issued.deadline&&!issued.stopRequested&&!issued.faultPosted.get()&&issued.cutoff.armed(issued.token,issued.peerHash,issued.generation,issued.deadline);

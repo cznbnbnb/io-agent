@@ -60,7 +60,7 @@ public final class NormalVoiceGuardProbe extends Instrumentation {
  private void verifyAbi()throws Exception{
   try{
    Class<?> runtimeType=type("VoiceAnswerRuntime"),attemptType=type("VoiceAnswerRuntime$Attempt"),resultType=type("VoiceAnswerRuntime$Result"),runtimeState=type("VoiceAnswerRuntime$Snapshot");
-   Class<?> session=type("VoiceAnswerSession"),permit=type("VoiceAnswerSession$CapturePermit"),recordingType=type("Host107Recording"),coordinatorType=type("VoiceAnswerCoordinator"),state=type("VoiceAnswerCoordinator$State");
+   Class<?> session=type("VoiceAnswerSession"),capture=type("CaptureSession"),permit=type("CaptureSession$CapturePermit"),recordingType=type("Host107Recording"),coordinatorType=type("VoiceAnswerCoordinator"),state=type("VoiceAnswerCoordinator$State");
    Class<?> engine=type("Host107VoiceTask"),decoder=type("Host107VoiceDecoder"),archive=type("VoiceAudioArchive"),cutoff=type("VoiceCaptureCutoff");
    require(resultType.isInterface(),"NORMAL_VOICE_ABI_METHOD_MISMATCH");
    abiField(runtimeType,"instance",runtimeType,true,false,false);abiField(runtimeType,"active",attemptType,false,false,true);abiField(runtimeType,"action",boolean.class,false,false,false);
@@ -75,9 +75,9 @@ public final class NormalVoiceGuardProbe extends Instrumentation {
    abiMethod(session,"capturePermit",permit,false,false);abiMethod(session,"snapshot",Object.class,false,true);
    for(String name:new String[]{"phase","token"})abiField(permit,name,String.class,false,true,false);
    for(String name:new String[]{"needsStop","opening"})abiField(permit,name,boolean.class,false,true,false);
-   abiField(recordingType,"draft",session,false,true,false);for(String name:new String[]{"token","peer","peerHash"})abiField(recordingType,name,String.class,false,true,false);
+   abiField(recordingType,"draft",capture,false,true,false);for(String name:new String[]{"token","peer","peerHash"})abiField(recordingType,name,String.class,false,true,false);
    abiField(recordingType,"generation",long.class,false,true,false);abiField(recordingType,"closed",boolean.class,false,false,true);abiMethod(recordingType,"deadlineStop",void.class,false,false,String.class,String.class,long.class);
-   abiField(coordinatorType,"draft",session,false,true,false);abiField(coordinatorType,"archive",archive,false,true,false);for(String name:new String[]{"token","peer"})abiField(coordinatorType,name,String.class,false,true,false);abiField(coordinatorType,"generation",long.class,false,true,false);
+   abiField(coordinatorType,"draft",capture,false,true,false);abiField(coordinatorType,"archive",archive,false,true,false);for(String name:new String[]{"token","peer"})abiField(coordinatorType,name,String.class,false,true,false);abiField(coordinatorType,"generation",long.class,false,true,false);
    abiMethod(coordinatorType,"stop",void.class,false,false,boolean.class);abiMethod(coordinatorType,"snapshot",state,false,false);
    abiField(state,"draftSnapshot",Map.class,false,true,false);abiField(state,"phase",String.class,false,true,false);for(String name:new String[]{"released","answerReady"})abiField(state,name,boolean.class,false,true,false);
    for(String name:new String[]{"frames","pcmBytes"})abiField(archive,name,long.class,false,false,false);

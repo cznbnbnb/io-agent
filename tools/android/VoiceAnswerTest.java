@@ -23,7 +23,7 @@ public final class VoiceAnswerTest {
  static void stopped(VoiceAnswerSession s,long gen)throws Exception{
   yes(s.stop(s.token(),2000,false));yes(s.stopSubmitted(s.token(),PEER,gen,2001));
   yes(s.engineEnd(s.token(),2002));yes(!s.finish());yes(s.engineStopped(s.token(),true));yes(!s.finish());
-  VoiceAnswerSession.StopProbe p=s.probeStop(PEER,gen,2003);yes(p!=null);yes(!s.deviceIdle(p,OTHER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen+1,2004,true));yes(s.deviceIdle(p,PEER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen,2005,true));yes(s.finish());yes(!s.needsStop());
+  CaptureSession.StopProbe p=s.probeStop(PEER,gen,2003);yes(p!=null);yes(!s.deviceIdle(p,OTHER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen+1,2004,true));yes(s.deviceIdle(p,PEER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen,2005,true));yes(s.finish());yes(!s.needsStop());
  }
  static void core(File root)throws Exception{
   TaskConnection c=connection("original-agent");String first="请只预览，不发布。",second="补充：保留所有原始资料\n预算不超过200元，周五再执行。";String complete=first+"\n"+second;
@@ -68,7 +68,7 @@ public final class VoiceAnswerTest {
   yes(limited.result(limited.token(),PEER,1,1,1,"选一，另外",true,1100)&&limited.result(limited.token(),PEER,1,2,1,"标题不要写会",false,15900));
   limited.tick(PEER,1,15999);yes(limited.phase().equals("CAPTURING"));limited.tick(PEER,1,16200);yes(limited.phase().equals("STOPPING")&&limited.timeLimited());
   yes(limited.stopSubmitted(limited.token(),PEER,1,16201)&&limited.engineEnd(limited.token(),16202)&&limited.engineStopped(limited.token(),true));
-  VoiceAnswerSession.StopProbe limitProbe=limited.probeStop(PEER,1,16203);yes(limitProbe!=null&&limited.deviceIdle(limitProbe,PEER,1,16204,true)&&limited.finish());
+  CaptureSession.StopProbe limitProbe=limited.probeStop(PEER,1,16203);yes(limitProbe!=null&&limited.deviceIdle(limitProbe,PEER,1,16204,true)&&limited.finish());
   yes(limited.phase().equals("REVIEW")&&limited.transcript().equals("选一，另外\n标题不要写会"));
   VoiceAnswerSession limitReloaded=new VoiceAnswerSession(limitStore);yes(limitReloaded.phase().equals("REVIEW")&&limitReloaded.timeLimited()&&limitReloaded.edit("选一，另外\n标题不要写会话"));
   // The capture limit is 60 s: a 60 s capture arms, 61 s is refused before any cutoff is armed.
@@ -76,7 +76,7 @@ public final class VoiceAnswerTest {
   // Losing the link past the deadline is not the time limit: it keeps its own stop time.
   VoiceAnswerSession lost=prepared(new Memory(),c);arm(lost);yes(lost.result(lost.token(),PEER,1,1,1,"半句",false,1100));lost.tick(OTHER,2,17000);yes(!lost.timeLimited());
   VoiceAnswerSession disconnected=prepared(new Memory(),c);arm(disconnected);disconnected.tick(OTHER,2,1200);yes(disconnected.phase().equals("STOPPING")&&!disconnected.stopSubmitted(disconnected.token(),OTHER,2,1300));
-  VoiceAnswerSession expired=prepared(new Memory(),c);arm(expired);yes(expired.stop(expired.token(),2000,false));yes(expired.stopSubmitted(expired.token(),PEER,1,2001));VoiceAnswerSession.StopProbe p=expired.probeStop(PEER,1,2002);yes(!expired.deviceIdle(p,PEER,1,10003,true));yes(!expired.finish());
+  VoiceAnswerSession expired=prepared(new Memory(),c);arm(expired);yes(expired.stop(expired.token(),2000,false));yes(expired.stopSubmitted(expired.token(),PEER,1,2001));CaptureSession.StopProbe p=expired.probeStop(PEER,1,2002);yes(!expired.deviceIdle(p,PEER,1,10003,true));yes(!expired.finish());
   Memory failure=new Memory();VoiceAnswerSession denied=prepared(failure,c);failure.fail=true;rejects(()->denied.arm(PEER,1,1000,15,(a,b,d,e)->true));yes(!denied.healthy()&&denied.needsStop());
   Memory forged=new Memory();Map<String,Object> invalid=WireJson.map(m.value);invalid.put("engine_end",false);forged.value=invalid;VoiceAnswerSession blocked=new VoiceAnswerSession(forged);yes(!blocked.healthy()&&blocked.phase().equals("BLOCKED")&&blocked.needsStop());
   String fileId="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
