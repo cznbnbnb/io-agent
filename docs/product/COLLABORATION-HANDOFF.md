@@ -1,3 +1,15 @@
+## [codex] 2026-10-25 Codex 原会话状态适配基础；执行与打断仍待隔离验收
+
+性能修复 `fa6547d` 已推送，手机仍是已验证的 dev92；dev93 候选及约1.55MB差异待新无线地址，稳定回退76不变。当前新增文件只在 `rebuild/agent-bridge/hosts`、定向测试和只读探针，不触碰 Claude 工作区或 Android 现有候选来源。
+
+新增 CodexDesktopSession：固定已核验本机桌面源码及私有 IPC 协议，核对700目录/600 Socket和UID，原thread owner精确转发。不会启动另一个 app-server、resume、换模型权限或代答审批。实际当前线程 initialize / owner discovery / read-model-settings / 元信息订阅通过，59轮、当前轮次可见；busy输入/旧轮次interrupt在发送前拒绝。首次32MiB边界被当前长会话击中，改为沿已知协议256MiB硬上限、一次分帧拷贝，之后只保留17,526字节元信息并处理修订补丁；缺修订/断线/旧快照拒绝继续操作，状态查询核对原持有者可达。旧正文、图片和工具输出不保留到目录/手机状态。
+
+13组真实本机Unix socket/模拟桌面检查通过，涵盖canonical历史、精确路由、模型权限继承、忙碌/旧打断、回执不明不重发、队列断线/超时、消息ID核对、尺寸/原型路径边界。**没有给真实会话发新指令或停止**；合成响应不能替代真实执行/子任务停止。缺持久化操作映射、手机执行/控制事件、结果提取和眼镜主动入口，不是三项功能交付。只读探针 `node tools/collab/probe-codex-desktop.mjs` 限当前真实 CODEX_THREAD_ID，输出白名单计数，无对话内容。
+
+Claude桌面安装源码确认原宿主拥有SDK输入/interruptSession，且其停止逻辑保护待用户回答/另处输入；没有绕过。官方 Remote Control 支持现有桌面 `/remote-control`，须另核当前会话/账号接入；尚未启用、发消息或复制凭据。打开 Claude UI 的工具报告 Mac 锁定/自动解锁失败，已异步请求用户解锁，不能用其他UI方式绕过。为真实有界停止/继续验收，另请求明确允许新建两个临时测试聊天；新建聊天工具须明确授权，不能把普通会话当可丢弃。
+
+下一项仍阶段1真实原会话执行→打断→继续，再接手机会话选择。当前持久目标保持 active，未标完成。设备离线与Mac锁定不影响本次本机代码测试；不重开R2/Hermes/删除同步。本批正常提交推送，不合main。[适配说明](../../rebuild/agent-bridge/hosts/README.md)、[证据](../../rebuild/agent-bridge/hosts/codex-desktop-proof-2026-10-25.json)。
+
 ## [codex] 2026-10-25 资料读取性能修复候选 dev93；默认 Agent 计划已确认
 
 用户「计划OK」已批准默认 Agent、手机指定 session 下发、打断并在原会话继续；同轮先处理资料列表和详情卡顿。Claude 分支仍 96b1dbb 已合；仅 Codex 工作区，未动对方目录。当前目标三项尚未完成，不能用本次性能子项代替交付。
