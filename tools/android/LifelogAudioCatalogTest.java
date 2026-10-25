@@ -18,12 +18,12 @@ public final class LifelogAudioCatalogTest {
  }
  static final class Sink implements LifelogAudioCollector.Sink {
   final CountDownLatch appendEntered=new CountDownLatch(1),appendRelease=new CountDownLatch(1),catalogEntered=new CountDownLatch(1),catalogRelease=new CountDownLatch(1);
-  final List<Object> values=new ArrayList<>();boolean blockAppend,blockCatalog,failCatalog,fatalCatalog;int seals,ends;
+  final List<Object> values=new ArrayList<>();final List<Integer> sealedAt=new ArrayList<>();boolean blockAppend,blockCatalog,failCatalog,fatalCatalog;int seals,ends;
   public long next(){return 1;}
   static void waitFor(CountDownLatch latch)throws IOException{try{if(!latch.await(5,TimeUnit.SECONDS))throw new IOException("TEST_BARRIER_TIMEOUT");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException("TEST_INTERRUPTED");}}
   public void append(long seq,String kind,String message,byte[] raw,long at,long elapsed)throws IOException{appendEntered.countDown();if(blockAppend)waitFor(appendRelease);values.add(WireJson.object("sequence",seq));}
   public List<Object> catalog()throws IOException{catalogEntered.countDown();if(blockCatalog)waitFor(catalogRelease);if(fatalCatalog)throw new AssertionError("TEST_FATAL_CATALOG");if(failCatalog)throw new IOException("AUDIO_CATALOG_READ_FAILED");return values;}
-  public List<Object> checkpoint()throws IOException{seals++;return catalog();}public void end(String reason){ends++;}public void close(){}
+  public List<Object> checkpoint()throws IOException{seals++;sealedAt.add(values.size());return catalog();}public void end(String reason){ends++;}public void close(){}
  }
  static LifelogAudioCollector fake(Sink sink,AtomicBoolean gate)throws Exception{return new LifelogAudioCollector(context(),sink,new Health(),LifelogAudioCollector.Limits.standard(),(p,g)->gate.get());}
  public static void main(String[] args)throws Exception{
@@ -48,6 +48,16 @@ public final class LifelogAudioCatalogTest {
 
   Sink failed=new Sink();failed.failCatalog=true;c=fake(failed,new AtomicBoolean(true));denied(c.catalog(),"AUDIO_CATALOG_READ_FAILED");terminal=stop(c);yes("AUDIO_CATALOG_READ_FAILED".equals(terminal.get("error"))&&failed.ends==0);denied(c.catalog(),"AUDIO_CHECKPOINT_BUSY");
   Sink fatal=new Sink();fatal.fatalCatalog=true;c=fake(fatal,new AtomicBoolean(true));denied(c.catalog(),"TEST_FATAL_CATALOG");terminal=stop(c);yes("FAILED".equals(terminal.get("phase"))&&fatal.ends==0);
+
+  // A source boundary shares the raw event's existing memory budget and FIFO
+  // position. Later accepted bytes remain writable; no delayed seal callback.
+  Sink boundary=new Sink();boundary.blockAppend=true;c=fake(boundary,new AtomicBoolean(true));yes(offer(c,1)==LifelogAudioCollector.Offer.QUEUED);yes(boundary.appendEntered.await(3,TimeUnit.SECONDS));yes(c.offer(P,1,"A5","{}",new byte[]{2},1002,4,true)==LifelogAudioCollector.Offer.QUEUED);yes(offer(c,3)==LifelogAudioCollector.Offer.QUEUED);boundary.appendRelease.countDown();yes(await(c.catalog()).size()==3);yes(boundary.seals==1&&boundary.sealedAt.equals(Arrays.asList(2)));yes("RUNNING".equals(c.snapshot().get("phase")));terminal=stop(c);yes(n(terminal,"saved_batches")==3&&n(terminal,"unconfirmed_batches")==0);
+
+  // Append can be durable while the seal fails. Do not acknowledge that event
+  // as fully saved or write later events after the failing boundary.
+  Sink sealFailure=new Sink();sealFailure.blockAppend=true;sealFailure.failCatalog=true;c=fake(sealFailure,new AtomicBoolean(true));yes(c.offer(P,1,"A5","{}",new byte[]{1},1001,3,true)==LifelogAudioCollector.Offer.QUEUED);yes(sealFailure.appendEntered.await(3,TimeUnit.SECONDS));yes(offer(c,2)==LifelogAudioCollector.Offer.QUEUED);sealFailure.appendRelease.countDown();terminal=stop(c);yes("AUDIO_CATALOG_READ_FAILED".equals(terminal.get("error"))&&n(terminal,"saved_batches")==0&&n(terminal,"unconfirmed_batches")==2);yes(sealFailure.values.size()==1&&sealFailure.ends==0);
+
+  Sink staleBoundary=new Sink();staleBoundary.blockCatalog=true;AtomicBoolean fresh=new AtomicBoolean(true);c=fake(staleBoundary,fresh);yes(c.offer(P,1,"A5","{}",new byte[]{1},1001,3,true)==LifelogAudioCollector.Offer.QUEUED);yes(staleBoundary.catalogEntered.await(3,TimeUnit.SECONDS));yes(offer(c,2)==LifelogAudioCollector.Offer.QUEUED);fresh.set(false);staleBoundary.catalogRelease.countDown();terminal=stop(c);yes("AUDIO_COLLECTOR_CONTEXT_CHANGED".equals(terminal.get("error"))&&n(terminal,"saved_batches")==0&&n(terminal,"unconfirmed_batches")==2);yes(staleBoundary.values.size()==1&&staleBoundary.ends==0);
   System.out.println("Lifelog audio catalog: "+checks+" checks passed; ordered metadata only, no seal on polling");
  }
 }

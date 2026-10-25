@@ -3,7 +3,7 @@ package com.turboio.addon;
 import java.io.*;import java.lang.reflect.*;import java.nio.file.*;import java.util.*;import java.util.concurrent.*;
 
 /** Actual capture runtime/worker -> upload catalog bridge. Native IO is fake. */
-public final class LifelogAudioUploadCatalogTest {
+public class LifelogAudioUploadCatalogTest {
  static int checks;static final String A=String.join("",Collections.nCopies(64,"a"));static LifelogAudioRuntime active;
  static void yes(boolean v){checks++;if(!v)throw new AssertionError("upload catalog "+checks);}static Object field(Object owner,String name)throws Exception{Field f=owner.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(owner);}
  static void singleton(LifelogAudioRuntime value)throws Exception{Field f=LifelogAudioRuntime.class.getDeclaredField("instance");f.setAccessible(true);f.set(null,value);}
