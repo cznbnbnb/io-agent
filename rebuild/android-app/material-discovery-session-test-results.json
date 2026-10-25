@@ -1,6 +1,6 @@
 {
-  "at": "2026-10-25T03:57:13.255Z",
-  "output": "Material discovery session: 60 assertions passed",
+  "at": "2026-10-25T05:39:46.207Z",
+  "output": "Material discovery session: 79 assertions passed",
   "scope": "Synthetic date discovery through durable material revisions and server; failures, disappearance, account fencing and lost acknowledgements",
   "sources": [
     {
@@ -65,7 +65,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "ee7025c8c6a4f01c359661f9e0ab31ee35350f411ac5a267e8c22bbcb204691c"
+      "sha256": "4565b2b3d439143a0f29e057dce2b4b7c8d24c2d4974c9fdf35e5caeadf23639"
     },
     {
       "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
@@ -161,7 +161,7 @@
     },
     {
       "path": "../../tools/android/MaterialDiscoverySyncTest.java",
-      "sha256": "e1df1d8297d803a5c9cff050511e3a67d833a6455f4b37252788fd470803b6ab"
+      "sha256": "b6430029a434c697718122c88cc90f38e105ba2b29633b39c71b3a5d10498537"
     },
     {
       "path": "../../tools/android/OfficialHiveCacheTest.java",

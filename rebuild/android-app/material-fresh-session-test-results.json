@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T10:48:17.404Z",
+  "at": "2026-10-25T05:40:26.133Z",
   "assertions": 22,
   "scope": "Synthetic normal refresh session, existing bootstrap migration, offline recovery, changed pending body protection and account fencing",
   "sources": [
@@ -17,11 +17,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
+      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -29,7 +29,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
     },
     {
       "path": "src/com/turboio/addon/OfficialHiveCache.java",
@@ -41,7 +41,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogRefresh.java",
-      "sha256": "7e397d24394e839d546139f30ab8e6d6fbf4e59b94a29da3b4c9396aae0087d8"
+      "sha256": "950325ef8df0c992afbaa81e974b4169e63bdeb0aa1a28ba04ccc07728fef3ce"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -49,7 +49,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88"
+      "sha256": "cc745bccaaeff524acd040b3781aa84a042113b475389c76863dd16571efa1fa"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -65,7 +65,15 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609"
+      "sha256": "4565b2b3d439143a0f29e057dce2b4b7c8d24c2d4974c9fdf35e5caeadf23639"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
+      "sha256": "07aa4e78d3fe534374120a1b18ce97ff2de802775d76c5621bd54998feeb4d47"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialDeletionSync.java",
+      "sha256": "56fed98c1287c8960cded2bcc27fdddb65588f6c1bb908271e950ec4e332f4f6"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -81,7 +89,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
@@ -93,7 +101,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      "sha256": "60365bd191a7bd1e176ea570f4c3a291c40c838db20903ab9e059c6a642ece0c"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -129,7 +137,7 @@
     },
     {
       "path": "../../tools/android/OfficialLifelogDiscoveryTest.java",
-      "sha256": "1862fff0f09eadecf4457703253b4d3ca29f061c543f821a0281f70fc792faf2"
+      "sha256": "161955fb6b4f06925cfaa6ff9131782a407af66d68273d396d07b0c2e6b82c1d"
     },
     {
       "path": "../../tools/android/OfficialLifelogSnapshotTest.java",
@@ -145,7 +153,7 @@
     },
     {
       "path": "../../tools/android/OfficialLifelogRefreshTest.java",
-      "sha256": "cee6a0e53ffdce887c228f3bb2ae266f24b18026a2b58e2f99eeccb1dd9fdad5"
+      "sha256": "463fa80942d908c3e51b50a3fbf514a6bd6d1885ee9132b4ca47bbfdebbc1f4b"
     },
     {
       "path": "../../tools/android/MaterialFreshSyncTest.java",
@@ -153,7 +161,7 @@
     },
     {
       "path": "../../tools/android/MaterialDiscoverySyncTest.java",
-      "sha256": "628ecbfa367a8e1d75b197b24af4364ff642e69fc8fe83aaaf71bd811094ef36"
+      "sha256": "b6430029a434c697718122c88cc90f38e105ba2b29633b39c71b3a5d10498537"
     },
     {
       "path": "../../tools/android/OfficialHiveCacheTest.java",

@@ -21,6 +21,9 @@ final class MaterialSyncSession {
   api=new MaterialApi(config.connection,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{admitDeletion();MaterialApi.Response response=transport.exchange(path,body);admitDeletion();return response;}public void cancel(){transport.cancel();}});
  }
  private void admitDeletion()throws IOException{admit();if(deletionGuard!=null)try{deletionGuard.check();}catch(IOException|RuntimeException failed){throw failed;}catch(Exception failed){throw new IOException("OFFICIAL_DELETION_UNAVAILABLE");}}
+ private static Set<String> heldDeletions(MaterialOutbox outbox){
+  Set<String> held=new HashSet<>();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);Map<String,Object> event=WireJson.map(MaterialWire.read(((String)row.get("payload")).getBytes(java.nio.charset.StandardCharsets.UTF_8)));if("delete".equals(WireJson.map(event.get("body")).get("operation")))held.add((String)row.get("material_id"));}return held;
+ }
  static File accountFiles(File files,MaterialConfig config){return MaterialStorage.current(files,config);}
  private OfficialAccountBinding admit()throws IOException{
   guard.check();MaterialWire.require(config.enabled,"MATERIAL_PAUSED");try{OfficialAccountBinding now=source.current();MaterialWire.require(now!=null&&config.account.equals(now.binding),"OFFICIAL_ACCOUNT_CHANGED");return now;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}
@@ -37,6 +40,7 @@ final class MaterialSyncSession {
    try{status.added=journal.stage(batch,account,System.currentTimeMillis());}catch(IllegalArgumentException changed){if(!"LIFELOG_SOURCE_REFRESH_REQUIRED".equals(changed.getMessage()))throw changed;status.note="LIFELOG_SOURCE_REFRESH_REQUIRED";status.conflicts++;}
    journal.replay(admit(),outbox::enqueue);
    Set<String> allowed=new HashSet<>();for(OfficialLifelogSnapshot.Source value:batch.sources)allowed.add(value.materialId(config.account));
+   allowed.removeAll(heldDeletions(outbox));
    // Do not send an old queued body after observing a changed source. Missing
    // source/cache entries are retained locally, but cannot authorize a send.
    if(status.conflicts==0){
@@ -85,6 +89,13 @@ final class MaterialSyncSession {
    MaterialWire.require(fresh!=null&&config.account.equals(fresh.account),"OFFICIAL_ACCOUNT_CHANGED");admit();freshSources=fresh.sources;
    }
    if(deletionGuard!=null){deletionGuard.check();freshSources=deletionGuard.filter(freshSources);}
+   else{
+    // The product no longer follows original-app deletions. A dev91 intent may
+    // still exist locally: retain it, never dispatch it or re-upload that ID.
+    Set<String> held=heldDeletions(outbox);List<OfficialLifelogSnapshot.Source> retained=new ArrayList<>();
+    for(OfficialLifelogSnapshot.Source value:freshSources)if(!held.contains(value.materialId(config.account)))retained.add(value);
+    freshSources=retained;if(!held.isEmpty())status.note="deletion_sync_disabled";
+   }
    // Correct the known legacy counter defect before freshness equivalence is
    // evaluated: unchanged source text could otherwise hide an invalid counter.
    Set<String> freshIds=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)freshIds.add(value.materialId(config.account));int repairBudget=0;
@@ -108,7 +119,7 @@ final class MaterialSyncSession {
     admit();api.preflight(System.currentTimeMillis(),true);outbox.resumeBlocked();for(int i=0;i<16;i++){admit();if(!api.pump(outbox,System.currentTimeMillis(),allowed))break;}
    }
    status.selectedComplete=oversized.isEmpty();for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(allowed.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state")))status.selectedComplete=false;}
-   count(status,outbox);status.progressed=status.stored>storedBefore;status.tooLarge=oversized.size();status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
+   count(status,outbox);status.progressed=status.stored>storedBefore;status.tooLarge=oversized.size();if(status.note.equals("ready"))status.note=status.blocked>0?"blocked":status.expired>0?"expired":status.queued>0?"queued":status.tooLarge>0?"MATERIAL_EVENT_TOO_LARGE":source instanceof DiscoverySource&&freshSources.isEmpty()?"no_day_sources":status.stored>0?"server_stored":"no_loaded_sources";
   }return status;
  }
 }

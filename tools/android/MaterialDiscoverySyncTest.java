@@ -161,6 +161,32 @@ public final class MaterialDiscoverySyncTest {
   Fragments changedFragment=new Fragments();OfficialLifelogSnapshotTest.firstClip(changedFragment.details.get("fragment-m")).put("content","updated middle fragment");
   yes(sync(fragmentsRoot,config,changedFragment,fragmentsServer).added==1&&fragmentsServer.posts==2);List<String> updatedFragments=payloads(fragmentsRoot,config);yes(WireJson.list(body(updatedFragments.get(updatedFragments.size()-1)).get("utterances")).size()==9);
   yes(sync(fragmentsRoot,config,changedFragment,fragmentsServer).added==0&&fragmentsServer.posts==2);
+  // Deletion following was removed from the product. Preserve old intents
+  // across reopen, even when their source reappears in a fresh day listing.
+  for(boolean committed:new boolean[]{false,true}){
+   File heldRoot=new File(root,"disabled-delete-"+committed);
+   MaterialSyncSessionTest.MemoryServer heldServer=new MaterialSyncSessionTest.MemoryServer(connection);
+   String heldPayload;String heldId;
+   try(MaterialOutbox queue=new MaterialOutbox(MaterialStorage.prepare(heldRoot,config),connection)){
+    OfficialLifelogSnapshot.Source item=OfficialLifelogSnapshotTest.read(new Source().detail);
+    heldId=item.materialId(config.account);Map<String,Object> deleted=WireJson.map(WireJson.read(item.materialBody(config.account,1)));
+    deleted.put("operation","delete");deleted.put("utterances",Collections.emptyList());deleted.put("speakers",Collections.emptyList());WireJson.map(deleted.get("full_text")).put("text","");
+    heldPayload=new String(WireJson.bytes(WireJson.object("schema_version","1.2","event_id","legacy-delete-"+committed,"idempotency_key","legacy-delete-"+committed,"kind","material.revision","producer_id",connection.producer,"created_at",TaskWire.now(System.currentTimeMillis()),"expires_at",connection.expires,"body",deleted)),StandardCharsets.UTF_8);
+    queue.enqueue(heldPayload.getBytes(StandardCharsets.UTF_8));if(committed)yes(new MaterialApi(connection,heldServer).pump(queue,System.currentTimeMillis()));
+   }
+   int postsBefore=heldServer.posts;
+   for(int reopen=0;reopen<2;reopen++){
+    MaterialSyncSession.Status heldStatus=sync(heldRoot,config,new Source(),heldServer);
+    yes(heldStatus.note.equals("deletion_sync_disabled")&&heldStatus.added==0);
+    yes(heldServer.posts==postsBefore&&heldServer.lookups==0);
+    yes(payloads(heldRoot,config).equals(Collections.singletonList(heldPayload)));
+   }
+   // An unrelated fresh material still progresses in the same run.
+   MaterialSyncSession.Status unaffected=sync(heldRoot,config,many,heldServer);
+   yes(unaffected.progressed&&heldServer.posts==postsBefore+16);
+   yes(payloads(heldRoot,config).contains(heldPayload));
+   for(String saved:payloads(heldRoot,config))if(heldId.equals(body(saved).get("material_id")))yes(saved.equals(heldPayload));
+  }
   System.out.println("Material discovery session: "+checks+" assertions passed");
  }
 }

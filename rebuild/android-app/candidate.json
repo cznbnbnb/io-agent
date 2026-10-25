@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev91",
-  "version_code": 10513,
-  "revision": "io-agent-android-107-source-deletion",
+  "version": "0.5.3-dev92",
+  "version_code": 10514,
+  "revision": "io-agent-android-107-independent-backup",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-25T04:03:09.433Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev91.apk",
+  "signed": "2026-10-25T05:42:25.406Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev92.apk",
   "bytes": 429826329,
-  "sha256": "31f5a878a086806905158fd2f5087fdb47222b2eae15909fa4739002f71ea6a0",
+  "sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -52,5 +52,5 @@
   "one_minute_card_passed": false,
   "release_gate_passed": false,
   "retention_eligible_rollback": false,
-  "phone_install_evidence": "r4-deletion-source-dev91-2026-10-24.json"
+  "phone_install_evidence": "r4-delete-sync-disabled-dev92-2026-10-24.json"
 }

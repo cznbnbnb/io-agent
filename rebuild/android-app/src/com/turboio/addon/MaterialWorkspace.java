@@ -48,6 +48,7 @@ final class MaterialWorkspace {
   case "MATERIAL_RENEWAL_LIMIT":return "资料续传次数已达上限，原文和记录保留，请核对连接";
   case "MATERIAL_HISTORY_FULL":case "MATERIAL_STORE_FULL":case "LIFELOG_IMPORT_FULL":case "LIFELOG_REVISION_FULL":return "本机同步记录已满，资料保留，需整理后继续";
   case "LIFELOG_IMPORT_SCAN_INCOMPLETE":case "OFFICIAL_CACHE_CHANGED":return "资料正在变化，本次未导入，请稍后重试";
+  case "deletion_sync_disabled":return "旧删除操作已保留，本次同步不再执行";
   case "blocked":return "有资料需要核对，未记为同步成功";case "MATERIAL_IMPORT_UNAVAILABLE":return "未找到资料登记文件";
   default:return "同步暂未完成，请检查网络或连接配置后重试（"+code+"）";
  }}

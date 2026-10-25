@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T05:47:17.743854+00:00",
+  "scope_change": {
+    "user_request": "没有必要，不做删除同步",
+    "single_and_bulk_original_deletion_following": false,
+    "deletion_acceptance": "cancelled_by_user_not_passed",
+    "remote_audio_retention_hours": 72,
+    "user_exports_independent": true
+  },
+  "product": {
+    "version": "0.5.3-dev92",
+    "version_code": 10514,
+    "sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
+    "bytes": 429826329,
+    "installed": true
+  },
+  "implementation": {
+    "normal_runtime_deletion_source_disconnected": true,
+    "legacy_pending_deletes_held_without_send": true,
+    "legacy_committed_deletes_not_restored": true,
+    "unrelated_sources_continue": true,
+    "historical_adapter_and_protocol_retained_without_product_entry": true,
+    "original_app_ledger_not_read_by_normal_sync": true
+  },
+  "validation": {
+    "discovery_session_assertions": 79,
+    "fresh_session_assertions": 22,
+    "runtime_assertions": 458,
+    "runtime_boundaries": "real Runtime/filesystem; simulated Android, settings, source and upload session",
+    "deletion_fixtures": "queued and server-stored legacy tombstones, repeated queue reopen, unrelated upserts progress; simulated HTTP peer",
+    "product_sources_verified": 234
+  },
+  "delta": {
+    "baseline_sha256": "31f5a878a086806905158fd2f5087fdb47222b2eae15909fa4739002f71ea6a0",
+    "target_sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
+    "delta_bytes": 1543493,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 6.891
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 6.978
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 6.614
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 8.048
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 8.14
+      },
+      {
+        "bytes": 232773,
+        "through": 1543493,
+        "seconds": 5.758
+      }
+    ],
+    "resume_seconds": 47.335,
+    "earlier_attempts": []
+  },
+  "phone": {
+    "installed": true,
+    "version": "0.5.3-dev92",
+    "version_code": 10514,
+    "sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
+    "sources": 234,
+    "all_sources_current": true,
+    "protected_exports_unchanged": 2,
+    "normal_launch_requested": true
+  },
+  "material_ui": {
+    "at": "2026-10-25T05:46:15.393127+00:00",
+    "counts": {
+      "本机可读": 77,
+      "已同步文字": 61,
+      "待同步": 0
+    },
+    "auto_sync_enabled": true,
+    "day_read_in_progress": false,
+    "misleading_pause_present": false
+  },
+  "cleanup": {
+    "remote_delta_directory_removed": true,
+    "local_delta_removed": true,
+    "previous_dev91_apk_removed": true,
+    "rollback_dev76_hash_verified": true,
+    "current_dev92_hash_verified": true,
+    "protected_exports_unchanged": 2,
+    "product_pid_unchanged_during_cleanup": true,
+    "home_and_sleep_requested": true,
+    "no_microphone_commands_sent": true,
+    "device_lock_released": true
+  },
+  "checkpoint": {
+    "key": "codex-r4-delete-sync-disabled-dev92-20261024",
+    "successful_cli_exit": true,
+    "human_glasses_confirmation": false,
+    "message_id": "notice-f9be983a64216b039a3fe5a10dcb2101269e9838b7188ba177bcea71a933a941",
+    "server_stored": true,
+    "caller_verified": true,
+    "glasses_display_confirmed": false,
+    "server_watch": "armed",
+    "next_checkin_at": "2026-10-25T06:16:31.204Z"
+  },
+  "remaining": [
+    "long-running background continuity",
+    "multi-object export progress and cancellation feedback",
+    "receipt-backed phone storage cleanup",
+    "long-term material credentials (current fixed 24h; no auto renewal)",
+    "A24-A01 listening at user convenience"
+  ],
+  "scope_limits": [
+    "no real original deletion triggered",
+    "no original/user-export files removed",
+    "no extra microphone start",
+    "no new credentials issued",
+    "no server deployment or retention changes",
+    "R4 remains open; cancelled deletion is not counted as a passed test"
+  ]
+}
