@@ -4,7 +4,8 @@
 
 ## 2026-10-25 执行记录
 
-- 原会话输入入口的追加调查已结束：带 `responseItems` 的开始请求仍有竞态；`mode: queue` 经桌面 start handler 后被丢弃，回执也不支持排队结果。当前版本没有找到项目可调用的安全追加入口，不能通过多次空闲检查补救。后续接入选择见下方，用户决定前不改变已批准的支持范围。
+- 最新：按用户要求调研 FanBox、官方 Claude Mods/Channels/hooks、Codex 共享 app-server 和 HAPI，确认原会话监听及原 ID 恢复均有实现路线。下方新增调研节取代“只有另建受控会话”的判断；未安装/运行/发送输入，产品能力仍待验证。
+- 此前私有桌面入口的追加调查：带 `responseItems` 的开始请求仍有竞态；`mode: queue` 经桌面 start handler 后被丢弃，回执也不支持排队结果。这条私有路径未找到项目可调用的安全追加入口，不能通过多次空闲检查补救；该结论不涵盖下方新找到的官方扩展/共享服务器。
 - 后续复核纠正阶段 1 的输入可用性判断：Codex `turn/start` 会在竞态下 steer 正在运行的任务，普通空闲检查不够；整数组替换原生队列也没有 CAS。已关闭 `start()`，无绕过开关。CLI 有 `thread/queue/add`，原持有者的安全入口尚未打通。[来源及测试](../../rebuild/agent-bridge/hosts/codex-desktop-source-review-2026-10-25.md)。这项真实技术阻塞已通过当前任务 CLI 通知，服务器入库不等于镜片已见。
 - 继续完成不依赖设备的耐久控制器：复用现有文件持久化和进程锁，发送前落盘、未知回执不重发、精确会话/工作区、排队到期/取消、停止请求与证据分开、停止后同会话继续。尚未接产品派发，宿主缺原子准入时保持 queued；真实子任务停止证据及结果提取未接通。不能把合成宿主测试当阶段出口。
 - 原厂 KEY 唤起/ASR/退出已定位，KEY 与当前固件双击 AI 的对应仍待真机证据。主动委托新增独立草稿 core：固定默认目标、60 秒文字截止后等采集释放再确认、同 operation 入既有邮箱。支持停止后的最终 ASR 尾句、取消未入队确认和下一次草稿；577 项 JVM 检查通过。没有伪造已有问答 request，也尚未接 wake、录音或确认卡；dev93 候选不含这项后续 core。
@@ -83,7 +84,9 @@ Codex 官方 App Server 有输入和中断接口；本机桌面版另有会话�
 
 参考：[Codex App Server](https://learn.chatgpt.com/docs/app-server)、[Claude Code Remote Control](https://code.claude.com/docs/en/remote-control)。具体适配以本机已安装版本和实际回执为准。
 
-## 接入方式补充：待用户选择，尚未实施
+## 历史接入建议：尚未实施，由下方调研补充
+
+以下保留此前候选方案。2026-10-25 新调研发现官方原会话扩展及同 thread 恢复路径，因此“必须另建空白会话”不是必要条件；之前异步选择题不再是唯一前置。本节关于 Claude 无可用公开入口和 hook 无法唤醒的泛化判断以文末纠正为准。
 
 目前的限制发生在电脑宿主：项目可以读 Codex 原会话状态并请求停止指定轮次，但没有可靠的忙时追加入口；Claude Desktop 尚无项目可用的原会话外部控制接口。电脑解锁和手机重连可以恢复 UI/设备调试，不能直接解决这两个接口缺口。
 
@@ -97,3 +100,40 @@ Codex 官方 App Server 有输入和中断接口；本机桌面版另有会话�
 这会改变“任意现有桌面聊天都能直接接管”的支持范围，因此需用户选择后实施。若必须控制已有桌面聊天，保持原范围；当前两项宿主接口缺口仍然阻塞完整交付，不能用协作式领取或模拟停止宣称完成。
 
 另一条有限路线是让活跃 Agent 在工作收尾时主动领取手机待办。它保留原会话，但无法唤醒已空闲的 Claude，也没有独立即时打断，因此不满足本轮三项完整目标，暂不实现。
+
+## 2026-10-25 远程会话唤醒调研
+
+结论：用户提出的“CLI 绑定具体 session，加监听程序接收远程指令”技术上可行。应区分运行中原进程接入与停机后的原 ID 恢复，不能将某个私有桌面入口不可用推导为所有原会话都不能续聊。本轮为文档、公开源码和本机版本的静态核对，未改变 App、宿主配置或产品能力。
+
+### 已有实现与官方接口
+
+| 路线 | 可保留的连续性 | 本项目边界 |
+| --- | --- | --- |
+| Claude Desktop Mods | 插件运行在原进程；后台 listener 可提交到当前 session，按 turnId 请求停止 | 最优先验证；安装/加载、会话切换、用户 Stop 后的限制及子任务退出尚未实测 |
+| Claude Channels / asyncRewake | 已打开会话可被事件或后台 hook 唤醒 | Channels 有交互式启用限制；普通 hook 不等同 asyncRewake；不能单靠事件推送证明停止 |
+| Codex 共享 app-server | 原 thread、执行进程和原生队列可由终端与远程端共同使用 | 必须接到真实持有该 thread 的服务器；不能另开服务器假装接管当前 Desktop |
+| CLI 指定 ID resume | 延续已保存的原 session/thread 历史 | 旧执行者必须退出；不恢复旧进程内存和正在运行的工具；失败不能静默建新会话 |
+| FanBox PTY / 微信 driver | PTY 控制原进程；driver 按映射的 native ID 恢复 | 两条机制不同；其恢复失败和压缩分支可能换 ID，不能照搬为“始终同会话” |
+
+**Claude。** [Mods overview](https://code.claude.com/docs/en/plugins/mods/overview)明确支持 Desktop Code（最低2.1.286），本机内嵌引擎2.1.308符合静态版本条件，独立终端CLI2.1.234则较旧。[API](https://code.claude.com/docs/en/plugins/mods/api)提供后台任务、等待空闲提交的 `$.prompt.submit`；[reference](https://code.claude.com/docs/en/plugins/mods/reference)提供 `$.session.id()`、`$.turn.abort({turnId})` 和生命周期。提交返回只证明新轮次开始，不证明完成。用户 Stop 后后台任务不能自行恢复；会话切换时须注销旧绑定，不让旧 listener 操作新会话。原 Desktop 加载扩展即可成为候选，无须先放弃原会话。
+
+补充：[Hooks](https://code.claude.com/docs/en/hooks)的 `asyncRewake` 是普通 async 之外的空闲唤醒能力，需处理超时与重启监听；[Channels reference](https://code.claude.com/docs/en/channels-reference)可主动推入已打开交互式会话，但自定义 channel 的开发启动参数不适用于 `-p`/SDK，不能直接当作当前 Desktop 热加载方案。官方 [Remote Control](https://code.claude.com/docs/en/remote-control)证明官方客户端可连接原会话，未发现供本 App 使用的公开控制协议。
+
+**Codex。** 本机0.163.0-alpha.11.1 help及[官方命令参考](https://learn.chatgpt.com/docs/developer-commands)包含 `queue`、`--remote`、`app-server`、`resume`。官方[队列源码](https://github.com/openai/codex/blob/970111f6cb62cc02fe36a82ea7d71b37a2889c97/codex-rs/tui/src/session_queue_commands.rs#L27)实际调用 `thread/queue/add`，带 `clientUserMessageId`；[协议](https://learn.chatgpt.com/docs/app-server)提供指定 thread/turn 中断。连接器应持有稳定消息 ID 并接原服务器，而非每次重跑命令、恢复第二份执行者。私有 Desktop 的安全接入仍未验，原 start 禁用保持。
+
+**HAPI。** [共享会话说明](https://hapi.run/docs/guide/codex-shared-sessions)与固定提交4233bf8759de02b7d0a8ca79bd731d549738c114的实现相符：[runtime](https://github.com/tiann/hapi/blob/4233bf8759de02b7d0a8ca79bd731d549738c114/cli/src/codex/shared/runtime.ts#L311)持有 app-server，[frontend](https://github.com/tiann/hapi/blob/4233bf8759de02b7d0a8ca79bd731d549738c114/cli/src/codex/shared/frontend.ts#L24)让原生 TUI 接同 endpoint/thread，[queue](https://github.com/tiann/hapi/blob/4233bf8759de02b7d0a8ca79bd731d549738c114/cli/src/codex/shared/queue.ts#L167)使用原生队列，[root](https://github.com/tiann/hapi/blob/4233bf8759de02b7d0a8ca79bd731d549738c114/cli/src/codex/shared/root.ts#L501)按 turn 中断。其 owner registry 仅证明 HAPI 管理范围，不能证明任意 Desktop 已释放 thread。优先参考该架构，不直接引入整套产品或复制代码。
+
+**FanBox。** 本机确认有翻箱 FanBox 的历史登记（最近登记2.12.1）和数据目录，登记安装路径已不存在，没有活跃进程；未读取私有配置/聊天。公开源码固定e8395cb3043c90715651f20073a27580673b467a，不能反推本机旧版全部行为。[本机HTTP说明](https://github.com/alchaincyf/fanbox/blob/e8395cb3043c90715651f20073a27580673b467a/docs/12-Agent%E6%8E%A7%E5%88%B6%E6%8E%A5%E5%8F%A3-%E6%9C%AC%E6%9C%BAHTTP.md)的 list/read/send/wait/kill 操作其管理的真实 PTY；[微信driver](https://github.com/alchaincyf/fanbox/blob/e8395cb3043c90715651f20073a27580673b467a/electron/wechat/driver.js)每轮启动 Claude/Codex 子进程，后续按原 ID resume；[bridge](https://github.com/alchaincyf/fanbox/blob/e8395cb3043c90715651f20073a27580673b467a/electron/wechat/bridge.js)保存聊天到 native session 的映射。恢复失败会创建新 ID，部分压缩流程使用摘要和近期消息新建会话。我们应保留精确 ID，失败明确等待，不能继承该静默降级或放宽权限的启动方式。
+
+### 上下文一致性与建议验证
+
+历史连续性、进程连续性和操作去重分别验收。resume 可以读回持久化历史（包括原生压缩后的上下文），不能承诺恢复内存、临时 shell 状态或在途工具。必须绑定 Agent、真实 session、工作区、原权限及执行者；同会话只允许一个执行者，不能按同名主题重定位。
+
+建议 CLI 在现有 join 上登记可验证能力：运行中则接入原宿主 listener/服务器；已关闭则在确认无旧执行者后恢复同 ID；只有明确新建时才创建新 ID。以下是设计建议，尚无新的 CLI 命令交付：
+
+1. Claude 用临时 Mod 验证原会话空闲唤醒、忙时等待、精确 turn 停止后远程继续、用户 Stop 后拒绝自动恢复，以及切换 session 后解绑。本机2.1.308静态调用链中，Mod abort 走 `AbortController.abort("turn-abort")`，没有用户 Stop 入口设置拒绝后台工作的 gate，因此存在远程继续候选；这仍须真实验收，不能绕过用户同时主动 Stop 的限制。
+2. Codex 验证同 endpoint/thread 的电脑输入和远程入队；停止只作用于预期 turn。冷恢复另测持久化历史和旧 owner 释放，不宣称任意 Desktop 热接管。
+3. 每条指令固定 operation ID，区分入队/开始/完成；未知回执先对账、不重发。停止确认与派生进程退出分别取证，保留现有审批策略。
+4. 两项电脑验证通过后复用现有耐久控制器，继续手机选择 session、打断后继续、眼镜默认 Agent；不要求所有已有任务重建空白聊天。
+
+本轮用户要求“先调研”，所以止于上述研究；没有安装 listener、启动/恢复会话或做产品验收。这里的唤醒指空闲 Agent 开始下一轮；电脑仍须开机、清醒且联网。

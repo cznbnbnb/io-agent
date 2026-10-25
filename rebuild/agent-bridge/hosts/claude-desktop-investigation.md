@@ -2,7 +2,17 @@
 
 日期：2026-10-25。范围：Claude Desktop Code 与交互式 Claude Code CLI。只读调查；未修改 Claude 安装、配置或凭据，未启动新会话、向已有会话发送输入、打断任务或启用 Remote Control。
 
-## 当前产品结论
+## 后续调研纠正（2026-10-25）
+
+原会话控制在本项目仍未接通，但下方“没有公开接入候选”的结论已过时。用户提出 listener/hook 后，核对到官方 [Mods](https://code.claude.com/docs/en/plugins/mods/overview) 支持 Desktop 原进程扩展（最低2.1.286，本机内嵌2.1.308满足）。后台任务可用 [prompt.submit](https://code.claude.com/docs/en/plugins/mods/api) 等待空闲后启动原会话轮次；[reference](https://code.claude.com/docs/en/plugins/mods/reference) 有 session ID、精确 turnId abort 和生命周期。重新加载 Mod 可以初始化监听，无需把原 Desktop 改成新 CLI 会话。
+
+本机内嵌二进制静态核对：`$.session.id()` 读取当前 ID；abort 同步拒绝不存在、不匹配或已结束的 turn；submit 先检查用户 Stop 限制，再处理归因。用户 Stop 后不得用后台任务绕过；/clear、/resume、/branch 触发 session.end，须解绑旧监听。仅文档和静态代码，未安装/调用；下方旧 Desktop manager 无 expectedTurnId 的发现不适用于这个新增 Mods 入口。
+
+补核停止后继续：2.1.308内嵌引擎中，Mod `turn.abort` → `r.cancel()` → 已登记的 abort；交互式与SDK路径分别在字节253863107、255176640调用 `AbortController.abort("turn-abort")`，未调用用户 Stop 入口使用的 `GKt()`。由此推断 Mod 停止后可以等待终态再 submit；若用户也点了 Stop，仍须尊重拒绝后台工作的状态。此处为静态推断，真实轮次、待发输入和子进程退出须独立验收。
+
+[asyncRewake](https://code.claude.com/docs/en/hooks) 也是可唤醒空闲会话的官方 hook，不能把普通 Stop/async 的限制泛化到全部 hook。优先验证 Mods 的完整输入、停止、生命周期，再考虑 Channels/asyncRewake。详细比较与来源见[计划调研节](../../../docs/product/DEFAULT-AGENT-CONTROL-PLAN.md#2026-10-25-远程会话唤醒调研)。本轮未修改安装、设置、凭据或运行中的任何会话。
+
+## 早先产品结论（保留调查历史，以以上纠正为准）
 
 **Claude Desktop 原会话控制暂不可用。** 已证实 Desktop 自身具备发送、停止与会话管理方法，但本次没有找到可供外部桥接使用、保留真实调用者身份和权限检查的公开接口。手机应明确显示该能力未接入；不能把“已登记连接”“眼镜问答可返回”当成“手机可以主动下发或打断”。
 

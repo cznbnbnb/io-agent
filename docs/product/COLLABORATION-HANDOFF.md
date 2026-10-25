@@ -1,3 +1,13 @@
+## [codex] 2026-10-25 远程唤醒调研：原会话监听与同 session 恢复均有可行参考
+
+用户要求先调研 CLI 启动指定 session、监听钩子和 FanBox。本轮只读代码/公开文档并更新记录；没有安装插件、启动执行服务、向会话发输入/停止，也未碰手机、眼镜或问答通道。Claude 分支仍96b1dbb已合；本交接是双方共用文件，仅在 Codex 工作区顶部追加。保持现有眼镜进度 watch 关闭，不改变用户推送偏好。
+
+纠正上一条结论的泛化：普通 Stop hook 的限制不适用于全部扩展。Claude 官方 Mods 支持在 Desktop 原进程后台监听并提交 prompt、按 turnId abort；本机内嵌2.1.308符合官方版本要求。asyncRewake 也可唤醒空闲会话。Codex 官方共享 app-server、原生 thread/queue/add 和 HAPI 同执行进程方案可保留原 thread；尚不能据此声称任意现有 Desktop 私有进程都能热接入。原有不安全 start 仍禁用。
+
+FanBox 本机有历史安装登记与数据目录，没有找到当前可运行安装；未读其配置/凭据/聊天。公开仓库 e8395cb 的 PTY 控制保持原进程；微信 driver 则每轮 spawn，并按真实 session ID resume。但恢复失败及部分压缩流程会新建 session，不符合本项目精确会话要求。HAPI 4233bf8 已有原生 Codex TUI/手机共享执行与队列的实现，可参考接口和生命周期。
+
+详细来源、上下文边界与验证顺序写入 [计划新增调研节](./DEFAULT-AGENT-CONTROL-PLAN.md#2026-10-25-远程会话唤醒调研)。旧“只能新建可控会话”的选择题已不是唯一方向，不把未答复当作卡住研究的必要前置。下一步建议先做 Claude 原 Desktop Mod 和 Codex 同服务器队列的隔离验证，再接手机与眼镜；本轮按用户“先调研”止于研究。只做文档一致性及 git diff --check，不重复代码测试；正常提交推送本分支，不合 main。手机已验dev92、待装性能候选dev93及回退76不变。
+
 ## [codex] 2026-10-25 原桌面接入调查收口，待选择可控会话入口
 
 本轮仅文档，未发送原生输入/停止、未启动新会话/服务、未安装包。上一批代码保持 f28afb7；Claude 分支仍96b1dbb，未动其工作区。定点核对两条新线索：responseItems 的空闲检查与最终 turn/start 之间仍有 inject_items await；mode:queue 被 Bj 的实际请求白名单丢弃，admission 回执也无 queued 分支。原 owner follower IPC 未发现无损队列追加。具体位置及来源哈希已补 [调查记录](../../rebuild/agent-bridge/hosts/codex-desktop-source-review-2026-10-25.md)。保持真实输入禁用；代码未变，不重复运行已通过的模拟测试。
