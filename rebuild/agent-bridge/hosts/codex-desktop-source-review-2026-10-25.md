@@ -31,6 +31,30 @@
 
 本次没有启动另一个 app-server 或向运行中的真实 turn 注入探测。真正接通前仍须找到并验证原持有者提供的原子 idle-only / 无损追加接口，或采用原厂明确支持的同等入口。
 
+## 有界追加核对：responseItems 不能作为空闲锁
+
+再次只读检查同一已安装 src 模块的 869000–878650，结论仍是不能开放输入：
+
+1. `Qj()` 仅对没有实际输入、设置和非空 context 的特殊空请求复用 `turnStarts`；有输入或 `responseItems` 时直接进入 `$j()`。这个 Map 是空请求合并，不是所有桌面 / IPC 输入共享的会话互斥锁。
+2. `eM()` 在 `P.prepare()` 之后计算 `te`，发现已有活跃 turn 就拒绝带 `responseItems` 的请求。随后创建自己的待开始占位 turn，再计算 `c`，核对占位 turn、client message ID 和 runtime 状态。
+3. `c` 检查通过后仍要 `await e.sendRequest('thread/inject_items', ...)`。返回后只清理未确认请求、运行 `O_(state)` 及可选 `S()`，没有重新计算 `c` 或向 `turn/start` 携带“仍为空闲”的原子条件。
+4. 另一条合法的直接 follower 输入或桌面显式立即发送可以在该 `await` 期间启动新 turn；后续 `turn/start` 仍具有已由本机 schema 确认的 steer 语义。原厂默认排队策略减少部分交错，并不证明所有入口共享同一原子准入。
+
+因此两次检查、设置本地占位状态及 inject completion 都不能形成原子保护。`responseItems` 本身还会注入实际会话内容，不应伪造一个 context 条目充当锁。本次没有创建或发送任何这样的条目，也没有发真实输入或停止请求。
+
+对队列入口只作定点复核：1051974 的原厂 server queue controller 确实调用 `e.sendRequest('thread/queue/add', ...)`；1593450–1594900 的 `T0()` 列出当前 owner follower IPC handlers，没有 queue append 或通用 app-server 请求代理。现有 queue handler 仍只有完整状态替换、删除一条、清空队列。完整替换缺少 CAS，不能安全模拟 append。结论限于已核对的当前 owner follower 接口；尚未找到可由项目适配器正常调用的无损追加入口，保持 `atomic_idle_start: false`。
+
+## 有界追加核对：在 start request 中传 mode: queue 不会接通队列
+
+继续追踪原厂真实的 queue mode，未发送任何请求：
+
+- `.vite/build/src-CSKkIr_z.js`（207,355 字节，SHA-256 `4a939ae29c4f4010a62a7890797813363d4d2300afb43df4101872246cc7f0d6`）的 `Zr()` 在 36685 将 `thread/queue/add` 映射为 `turn/addUserMessage`，并增加 `mode: 'queue'`。这是实际队列序列化分支，不能据此推断 start handler 会保留 mode。
+- `src-CsH31EEu.js` 的 `qj()`（866324）确实先 spread 原 request。但原持有者随后执行 `Yj()` → `Bj()`，`Bj()` 在 **862134** 重新逐字段构造 `Re`，没有 `...c`，白名单中没有 `mode`。返回值明确为 `{request: Re, params: ze, ...}`；`ze` 虽保留原字段，却是本地 turn 参数而非发出的 request。因而 `turnStart.request.mode` 会在此消失。
+- `eM()` 真正发送使用 `I.request`。本地兼容处理 `n.c` 对应 `src-CSKkIr_z.js` 的 `Zm()`（172935），该函数仅 spread request 并按版本处理 lineage 字段，本身不删 mode；但它收到的 `I.request` 已无 mode。
+- `useUserMessageAdmission: true` 只选择 admission 方法，不会补回 `mode: 'queue'`。此外 admission 回执路径在 879000 后直接访问 `ce.turn.id`，`oj()` 仅识别 started / steered / duplicate，没有 queuedSubmission 分支。即使另一个未经验证的路径能传入 queue mode，也不能假设现有 start handler 能处理排队回执。
+
+因此 `mode: 'queue'` + `useUserMessageAdmission: true` 在该原 owner start 入口不可行：字段被白名单丢弃，随后仍可能 steer 当前 turn。没有修改或伪造 context，也没有尝试绕过字段过滤；输入能力继续关闭。
+
 ## 状态投影修复
 
 已安装 src 模块约 130618 的 `q(state)` 会合并 canonical history 与 legacy live overlay。合并函数位于 `.vite/build/conversation-turn-mutations-DZp-AgIY.js` 的 37821，53,115 字节，SHA-256 `f386be772ed58985a666ec48ded161be66cf8d3df0389f09fe622a0bbf40b170`。
