@@ -96,7 +96,7 @@ class FormalConnectionTests(unittest.TestCase):
     def execute(self, mode, run='synthetic-run'):
         return self.remote['run_remote']({'mode': mode, 'run_id': run})
 
-    def invoke(self, mode=None, execute=None):
+    def invoke(self, mode=None, execute=None, extra=None):
         class Connection:
             closed = False
             def close(self): self.closed = True
@@ -108,7 +108,7 @@ class FormalConnectionTests(unittest.TestCase):
         with patch.object(self.module, 'connect', return_value=connection), patch.object(self.module, 'remote', side_effect=remote), \
              patch.object(self.module, 'protect_directory', side_effect=lambda directory: protected.append(directory)), \
              patch.object(self.module, 'verify_identity', side_effect=self.verified), contextlib.redirect_stdout(output):
-            status = self.module.main(['--run-id', 'synthetic-run'] + ([mode] if mode else []))
+            status = self.module.main(['--run-id', 'synthetic-run'] + ([mode] if mode else []) + (extra or []))
         report = json.loads((self.root / 'rebuild/phase1/formal-material-connection-synthetic-run.json').read_text(encoding='utf-8'))
         if calls:
             self.assertTrue(connection.closed)
@@ -276,6 +276,14 @@ class FormalConnectionTests(unittest.TestCase):
                 self.module.verify_identity(Opener(json.dumps({**identity, **change}).encode()), 'phone', value)
         with self.assertRaisesRegex(ValueError, '^PUBLIC_IDENTITY_INVALID$'):
             self.module.verify_identity(Opener(b' ' * 16385), 'phone', value)
+        self.module.AUDIO = True
+        self.module.ROLES['phone']['scopes'] += ['audio:write', 'audio:read']
+        identity['scopes'] = self.module.ROLES['phone']['scopes']
+        for capabilities in [None, [], ['other'], [{}]]:
+            with self.assertRaisesRegex(ValueError, '^PUBLIC_AUDIO_UNSUPPORTED$'):
+                self.module.verify_identity(Opener(json.dumps({**identity, 'capabilities': capabilities}).encode()), 'phone', value)
+        observed = self.module.verify_identity(Opener(json.dumps({**identity, 'capabilities': ['audio_archive_v1']}).encode()), 'phone', value)
+        self.assertEqual(observed['http_status'], 200)
         with self.assertRaisesRegex(ValueError, '^PUBLIC_REDIRECT_REFUSED$'):
             self.module.NoRedirect().redirect_request(None, None, None, None, None, None)
 
@@ -336,6 +344,37 @@ class FormalConnectionTests(unittest.TestCase):
         self.assertEqual(result['error'], 'REMOTE_EXISTING_ROLE_MISSING')
         self.assertEqual(self.mints, [])
         self.assertFalse((self.remote['RUN_PARENT'] / 'synthetic-android').exists())
+
+    def test_explicit_audio_grant_uses_separate_format_and_preserves_text_credentials(self):
+        with sqlite3.connect(self.db) as db:
+            before = db.execute('SELECT * FROM credentials').fetchall()
+        def execute(action, run):
+            return self.remote['run_remote']({'mode': action, 'run_id': run, 'platform': 'android', 'audio': True})
+        status, report, output, calls, _ = self.invoke('--issue', execute, ['--platform', 'android', '--audio'])
+        self.assertEqual(status, 0);self.assertEqual(calls, ['inspect', 'issue'])
+        self.assertEqual(report['roles']['phone']['scopes'], ['materials:write', 'audio:write', 'audio:read'])
+        self.assertEqual(report['roles']['reader']['scopes'], ['materials:read', 'changes:read', 'audio:read'])
+        private = self.root / 'rebuild/material-server/private/formal-synthetic-run'
+        pack = json.loads((private / 'connection.json').read_text())
+        self.assertEqual(pack['format'], 'turboio-audio-sync/1')
+        self.assertEqual(pack['producer_id'], 'phone-android')
+        self.assertNotIn(pack['token'], output);self.assertNotIn(pack['token'], json.dumps(report))
+        self.assertEqual(report['credential_ttl_ms'], 86400000)
+        with sqlite3.connect(self.db) as db:
+            rows = db.execute('SELECT * FROM credentials').fetchall()
+            for row in before: self.assertIn(row, rows)
+        status, recovered, _, _, _ = self.invoke('--recover', execute, ['--platform', 'android', '--audio'])
+        self.assertEqual(status, 0);self.assertEqual(len(self.mints), 2)
+        self.assertEqual(recovered['credentials_received'], report['credentials_received'])
+        wrong = self.remote['run_remote']({'mode': 'recover', 'run_id': 'synthetic-run', 'platform': 'android'})
+        self.assertEqual(wrong['error'], 'REMOTE_MANIFEST_INVALID')
+        self.assertEqual(len(self.mints), 2)
+
+    def test_audio_is_opt_in_and_rejects_coercion_before_any_mint(self):
+        for value in ['true', 1, [], None]:
+            with self.assertRaisesRegex(ValueError, '^REMOTE_OPERATION_FAILED$'):
+                self.remote['run_remote']({'mode': 'issue', 'run_id': 'synthetic-audio', 'audio': value})
+        self.assertEqual(self.mints, [])
 
     def test_unknown_platform_refused_before_preflight_or_mint(self):
         with self.assertRaisesRegex(ValueError, '^REMOTE_OPERATION_FAILED$'):

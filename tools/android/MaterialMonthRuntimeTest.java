@@ -184,6 +184,43 @@ public final class MaterialMonthRuntimeTest {
    try{headless.wakeAuto(false);io.submit(()->{}).get(3,TimeUnit.SECONDS);yes(MaterialSyncSession.started==1&&MaterialSyncSession.completed==1);}finally{io.shutdownNow();((ExecutorService)cancel.get(headless)).shutdownNow();}
   }
  }
+ static void foregroundCatalogPriority()throws Exception{
+  // A previously queued automatic round must yield to a foreground read before
+  // taking a new generation, even if it entered the serial queue first.
+  try(Fixture f=new Fixture()){
+   CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
+   f.io.execute(()->{entered.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+   yes(entered.await(2,TimeUnit.SECONDS));f.runtime.wakeAuto(false);Catalog result=new Catalog();f.runtime.catalog(result);release.countDown();f.finish(result);good(result);noUpload();
+   f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.completed==1);
+  }
+  // The account revalidation and final UI delivery still own the read; finishing
+  // disk work alone must not let an automatic tick invalidate the result.
+  try(Fixture f=new Fixture()){
+   Catalog first=new Catalog(),second=new Catalog();f.runtime.catalog(first);f.runtime.catalog(second);f.idle();f.runtime.wakeAuto(false);f.idle();noUpload();
+   for(int n=0;n<8&&(first.calls==0||second.calls==0);n++){f.idle();f.deliver();}
+   good(first);good(second);f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.completed==1);
+  }
+  // A long official day read is also protected past the ordinary 5s debounce.
+  try(Fixture f=new Fixture()){
+   Host107LifelogHttp.afterFull=()->{try{Field field=MaterialRuntime.class.getDeclaredField("lastUiAt");field.setAccessible(true);field.setLong(f.runtime,0);f.runtime.wakeAuto(false);}catch(Exception e){throw new RuntimeException(e);}};
+   Catalog result=f.day("2026-10-23","Asia/Shanghai");good(result);noUpload();
+  }
+  // A text round already in flight cannot take a second generation for audio
+  // after the catalog has joined the queue behind it.
+  try(Fixture f=new Fixture()){
+   AudioSettings.value=audioConfig(MaterialSettings.value,true,System.currentTimeMillis()+600000);
+   Host107LifelogHttp.entered=new CountDownLatch(1);Host107LifelogHttp.release=new CountDownLatch(1);
+   f.runtime.wakeAuto(false);yes(Host107LifelogHttp.entered.await(2,TimeUnit.SECONDS));
+   Catalog result=new Catalog();f.runtime.catalog(result);Host107LifelogHttp.release.countDown();f.finish(result);good(result);yes(MaterialSyncSession.completed==1&&AudioHttp.created==0);
+   Field debounce=MaterialRuntime.class.getDeclaredField("lastUiAt");debounce.setAccessible(true);debounce.setLong(f.runtime,0); // Next ordinary tick, beyond the 5s UI debounce.
+   f.runtime.wakeAuto(false);f.idle();yes(AudioHttp.exchanges>0);
+  }
+  // Real cancellation continues to reject content and releases the priority.
+  try(Fixture f=new Fixture()){
+   Catalog result=new Catalog();f.runtime.catalog(result);f.idle();f.runtime.cancelPending();f.deliver();rejected(result,"MATERIAL_PAUSED");
+   Field field=MaterialRuntime.class.getDeclaredField("lastUiAt");field.setAccessible(true);field.setLong(f.runtime,0);f.runtime.wakeAuto(false);f.idle();yes(MaterialSyncSession.completed==1);
+  }
+ }
  static void autoSchedule()throws Exception{
   try(Fixture f=new Fixture()){
    MaterialConfig config=MaterialSettings.value;long start=Instant.parse("2026-10-24T01:00:00Z").toEpochMilli();
@@ -284,7 +321,7 @@ public final class MaterialMonthRuntimeTest {
   // The two existing entry points retain their original source routing.
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.sync(done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("fresh")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&OfficialLifelogBatch.reads==1&&OfficialLifelogRefresh.refreshes==1&&Host107LifelogHttp.discoveryCalls==0);}
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.syncDay("2026-10-10","Asia/Shanghai",done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("discovery")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&Host107LifelogHttp.selected.size()==1&&Host107LifelogHttp.selected.get(0).date.equals("2026-10-10"));}
-  dayReads();autoSync();autoSchedule();audioRuntime();
+  dayReads();autoSync();foregroundCatalogPriority();autoSchedule();audioRuntime();
   System.out.println("Material month runtime: "+checks+" checks passed; real Runtime and month core, synthetic Android/IO boundaries");
  }
 }

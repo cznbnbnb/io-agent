@@ -1,0 +1,1574 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T03:17:36.623546+00:00",
+  "candidate": "0.5.3-dev89 /10511",
+  "installed_sha256": "3529b0db32c118b8a9624d9f81b3149f7b3bc0e328f7a9f2a069b92ae9c20b09",
+  "authorization": {
+    "channel": "current actual chat",
+    "user_text": "授权可以扩大到原音删除",
+    "owner_id": "turboio-user",
+    "credential_ttl_ms": 86400000,
+    "retention_seconds": 259200,
+    "source_bound_deletion_authorized": true,
+    "automatic_renewal": false,
+    "exported_phone_files_mutated": false,
+    "old_expired_question_rewritten": false,
+    "microphone_start_command_sent": false
+  },
+  "grant": {
+    "run_id": "android-audio-20261024-codex",
+    "status": "ready",
+    "public_identity": {
+      "phone": {
+        "expires_at": "2026-10-26T02:44:39.066Z",
+        "http_status": 200,
+        "material_schema_versions": [
+          "1.0",
+          "1.1",
+          "1.2"
+        ],
+        "owner_id": "turboio-user",
+        "producer_id": "phone-android",
+        "scopes": [
+          "materials:write",
+          "audio:write",
+          "audio:read"
+        ],
+        "server_id": "80384449-a5c6-4630-bf1b-524a30454c92",
+        "token_id": "f1bd5d17-ae28-4a1c-8501-5ff6902497ea"
+      },
+      "reader": {
+        "expires_at": "2026-10-26T02:44:39.553Z",
+        "http_status": 200,
+        "material_schema_versions": [
+          "1.0",
+          "1.1",
+          "1.2"
+        ],
+        "owner_id": "turboio-user",
+        "producer_id": "pc-query",
+        "scopes": [
+          "materials:read",
+          "changes:read",
+          "audio:read"
+        ],
+        "server_id": "80384449-a5c6-4630-bf1b-524a30454c92",
+        "token_id": "d3d081d1-dac9-4d23-9eaf-32847da693e8"
+      }
+    },
+    "single_issue": true,
+    "existing_text_credentials_preserved": true,
+    "public_audio_delete_scope_invented": false,
+    "tool_sha256": "c072dad525db8886a3c93b436c8d5b4a86351a1d098b35fca0d9affc76e7795f",
+    "recover_verified_same_credentials": true,
+    "audio_capability_verified": true
+  },
+  "normal_product": {
+    "audio_settings_imported": true,
+    "enabled": true,
+    "checkbox_explicitly_selected": true,
+    "identity_checked_before_save": true,
+    "plaintext_import_removed_after_save": true,
+    "manual_backup_button_used": false,
+    "background_screen_off_upload": true,
+    "remote_export_test_complete": true,
+    "automatic_stored_objects": 74,
+    "automatic_stored_bytes": 63921625,
+    "material_page_recovered_after_dev90": true,
+    "stored_text_count_before": 55,
+    "stored_text_count_after": 57,
+    "source_bound_detail_opened_after_fix": true,
+    "remote_system_picker_reached_after_second_attempt": true,
+    "remote_picker_package": "com.google.android.documentsui",
+    "remote_picker_directory": "Download",
+    "first_large_export_saved": false,
+    "large_picker_cancelled_by_automation": true,
+    "remote_saved_export": {
+      "at": "2026-10-25T03:14:17.378097+00:00",
+      "candidate": "dev90 /10512",
+      "picker_package": "com.google.android.documentsui",
+      "normal_remote_export_button_used": true,
+      "system_save_to_download": true,
+      "new_unique_file": "io-agent-audio-export-20261024-codex-a49001.zip",
+      "bytes": 1434921,
+      "sha256": "e393db2e35e0eed02c14ee9dbcc53df9725d143363adf61f005a5fbd89186c38",
+      "user_audio_downloaded_to_mac": false
+    },
+    "remote_saved_export_audit": {
+      "passed": true,
+      "bytes": 1434921,
+      "sha256": "e393db2e35e0eed02c14ee9dbcc53df9725d143363adf61f005a5fbd89186c38",
+      "zip_entries": 3,
+      "opus_parts": 1,
+      "audio_packets": 5344,
+      "zip_crc_verified": true,
+      "ogg_page_crc_sequence_and_packet_counts_verified": true,
+      "remote_only_origins": true,
+      "recording_complete": false,
+      "audio_bytes_returned": false,
+      "at": "2026-10-25T03:15:38.417763+00:00",
+      "helper_sha256": "313fb16ed27cc39d5eddafa385e29e52dc12f17009f6aef1f8292528bb558f94",
+      "execution_uid": "shell",
+      "read_only": true,
+      "user_audio_downloaded_to_mac": false
+    },
+    "document_input": {
+      "verified": true,
+      "self_targeted": true,
+      "product_pid_unchanged": true,
+      "new_unique_name": "io-agent-audio-export-20261024-codex-a49001.zip",
+      "plain_adb_ime_input_replaced": true
+    }
+  },
+  "server_read_only_audit": {
+    "timer_active": "active",
+    "timer_enabled": "enabled",
+    "expiry_result": "success",
+    "owner_id": "turboio-user",
+    "objects": [
+      {
+        "object_id": "0010cd43049f780f69bebd1c0a1b5de00519605d2e09773cd4dec348ed67fb28",
+        "material_id_sha256": "437b68c53f0679d6767b2b7a153c9772a6f1a0b1dc0d78d9de8bad8138914858",
+        "producer": "phone-android",
+        "bytes": 2340986,
+        "state": "stored",
+        "parts": 18,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897914658,
+        "expires_at_ms": 1793157114658,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "00d7ddfc56c621bbdbe2d6754b7f9852bb53ddcb593a4516478a01d66aacd196",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 342679,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897109493,
+        "expires_at_ms": 1793156309493,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "0120a5891436a0ff7b6f1dc9d7585795ccf3b0e7f11e3abadd987d514a9163f8",
+        "material_id_sha256": "03b6e54f7feac9ee4f133ca8be69d7f859c0dc7ed16f29cad414be59a26992cb",
+        "producer": "phone-android",
+        "bytes": 5303755,
+        "state": "stored",
+        "parts": 41,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897505181,
+        "expires_at_ms": 1793156705181,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "0ac7dd985f57a29fe130c3df62f2e983b9279e18ffe274af53e4759e34fe01a0",
+        "material_id_sha256": "437b68c53f0679d6767b2b7a153c9772a6f1a0b1dc0d78d9de8bad8138914858",
+        "producer": "phone-android",
+        "bytes": 8388156,
+        "state": "stored",
+        "parts": 64,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896834994,
+        "expires_at_ms": 1793156034994,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "0ded8e6c4f0c125489d3c9bef7eab7ca8282f261a66f1cf2eda5fabfb8012402",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86433,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896940074,
+        "expires_at_ms": 1793156140074,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "10405ecb80f63f203a658b8e2215bd9de6976d9cf9c2155c48688b47f5451f28",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86597,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897022861,
+        "expires_at_ms": 1793156222861,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "1075011b84a9eb5086aae081aafcc2cd3a0f13d0a5cfa1908d20ddd7af0c5c98",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 1111210,
+        "state": "stored",
+        "parts": 9,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897018880,
+        "expires_at_ms": 1793156218880,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "16b3157c1745ce62f562c00331c6466ee9fe24883111618951a3863d4b595a9b",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 342599,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897329245,
+        "expires_at_ms": 1793156529245,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "19093fbe1dcd8563fe4b53ce485f6359f9ec7259c3363c752a734359c40a7d77",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86593,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897110666,
+        "expires_at_ms": 1793156310666,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "1f4420def9412fa4c2992475fb084f56f644dd17ae24063bd88f757457df3939",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172187,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897549562,
+        "expires_at_ms": 1793156749562,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "1fd6bc550e776ef9c8fae1a926feaed2a1acdd815f1ecf90cebcb239047853dd",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 1027731,
+        "state": "stored",
+        "parts": 8,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897061308,
+        "expires_at_ms": 1793156261308,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "20af99c3c85cb7c588f9bf7f0244d1a26ec0a83bf6d0aef4f53e872f4d255a3d",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 514539,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897296511,
+        "expires_at_ms": 1793156496511,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "25d145105d002fc91bb90afe4b06dab571b549c458b74f5d712bc88a74e8d1bd",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 78493,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897726778,
+        "expires_at_ms": 1793156926778,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "32a8bebe2eea86229cd0a7a8f7a4a9fc3e9a6762d0056181d6c8709395865f48",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 172435,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897113959,
+        "expires_at_ms": 1793156313959,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "35dc92a8fc02421211d5ee008929b1b021f000bcb9920a6a628551c06749e5a2",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 770533,
+        "state": "stored",
+        "parts": 6,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897593199,
+        "expires_at_ms": 1793156793199,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "43cfe8a94ab61e7450bafeac4858089640442b3c7382293a2052bded08110568",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86603,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896970514,
+        "expires_at_ms": 1793156170514,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "45b4dd76858ea589287f4c2815028648d95c68754a48591c402bd00e1d825b3a",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 856189,
+        "state": "stored",
+        "parts": 7,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896947592,
+        "expires_at_ms": 1793156147592,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "48caaa44322221118a3d58cb9795f0ca01279131254c9594eb8ad3b93a615444",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86601,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897552991,
+        "expires_at_ms": 1793156752991,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "4cf2ada0f347beca6e3dd1f52cb63553f25d1cf5799d845f776f3f8e54782ecb",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 1968662,
+        "state": "stored",
+        "parts": 16,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897643016,
+        "expires_at_ms": 1793156843016,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "4df5dfbe7858f5e1079b368eea466617c443ebe4b022c1a52f976fad06ead492",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86603,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896835952,
+        "expires_at_ms": 1793156035952,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "51c9d858cfe8e2e60a7d39624e750022bdc5def53f1e8b8f82db11f5adaddc67",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172191,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897776316,
+        "expires_at_ms": 1793156976316,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "53250430244f922034ac925be772845a2540002455bd935827239977d1c2aa39",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86601,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897293572,
+        "expires_at_ms": 1793156493572,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "53b2d845f866b09ca0c37b5d08114c593c9844a6e5404528e7211bc419347a45",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 172339,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897547283,
+        "expires_at_ms": 1793156747283,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "58d4c1556025868ba679dc21348c260a69b29e0391ec1af9e924b583d0ef1cc0",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172189,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897374893,
+        "expires_at_ms": 1793156574893,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "58f400d42eab679feb1e13a51bba1d3579523f96e76426c3ebff2ef3f3ba3560",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86573,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897111860,
+        "expires_at_ms": 1793156311860,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "5fc1304b15cd5e7025beabe062bafbb41e1e0443709fce4294315d71c16be1f5",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 239853,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897555296,
+        "expires_at_ms": 1793156755296,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "6030c64c47a7f395833d6a4ef493b74e4cbf4ee43b8f07c88c0eb11ab1f5e54f",
+        "material_id_sha256": "ce37187b35fd3b12828346c2f8570407e5c5839a69e3aa63a331a4b584e58858",
+        "producer": "phone-android",
+        "bytes": 1367739,
+        "state": "stored",
+        "parts": 11,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897035304,
+        "expires_at_ms": 1793156235304,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "68c5e1e19a8c522a6b0fb8502f3c284fd8525677c07dcd1450d216b7100a3505",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 428347,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897827170,
+        "expires_at_ms": 1793157027170,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "6a0ac0f06c249f08a5e55c92206b3ceca69eec640eb02ee206b220f38fc4a326",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86675,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897690642,
+        "expires_at_ms": 1793156890642,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "703c0f0c74da0b7f84de05a02b491a2a2595e916465472ed01966b19f93db3a0",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 428947,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896666332,
+        "expires_at_ms": 1793155866332,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "75b1fca1e88a3b95baa19dc16ab86d62aef7f2f45a2f49fbc4f459fa6c4c9c4f",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 342819,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897372880,
+        "expires_at_ms": 1793156572880,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "75eff2e0863a8d24d4a2ee493e06e9590c363fd18fa10d5667e50d46372b087c",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 171871,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897778413,
+        "expires_at_ms": 1793156978413,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "7814e55ef3f445f97c995ac924bfd26bab838a827926cd8733573b5933d205e8",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 8383328,
+        "state": "stored",
+        "parts": 64,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897292247,
+        "expires_at_ms": 1793156492247,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "7e122870388b32f6b9e699b7539e8fd61c7f82db829825f60d81108087b6de4c",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 6329597,
+        "state": "stored",
+        "parts": 49,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896931486,
+        "expires_at_ms": 1793156131486,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "811bd4a8ebfa80604f32719cf4a48e9a5aeb237c4947be5d4e33fac179648695",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86597,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896969226,
+        "expires_at_ms": 1793156169226,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "814688123274970734976df4925266e6cf44140da62c0dc209fbea5f1107fafe",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 2481054,
+        "state": "stored",
+        "parts": 19,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896461995,
+        "expires_at_ms": 1793155661995,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "856889408e6b01aba532201b54d6ce56fd07b3f47a8e1dae28e089baa38d9475",
+        "material_id_sha256": "03b6e54f7feac9ee4f133ca8be69d7f859c0dc7ed16f29cad414be59a26992cb",
+        "producer": "phone-android",
+        "bytes": 1648372,
+        "state": "stored",
+        "parts": 13,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897689325,
+        "expires_at_ms": 1793156889325,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "8c48fac4edd62ea59c165711e3e6dd132deb1376896210f0c9fb572e6417ca9d",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86593,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897297695,
+        "expires_at_ms": 1793156497695,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "8c7ddc04c4ddf88d0e01e0f942eeb242534ee2d1cbe4d0689fed8d4a7c3fade1",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 856261,
+        "state": "stored",
+        "parts": 7,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896616164,
+        "expires_at_ms": 1793155816164,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "8c979b0e77be6574a1ad18813db6af3c44c7d9ce860bbc571a2f728c80cdf53a",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 1796949,
+        "state": "stored",
+        "parts": 14,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897106916,
+        "expires_at_ms": 1793156306916,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "8d06f11aa5f34c81ff81e0464f2caf37d31dfdc5706601f106f32a7df024134f",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 343159,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896839094,
+        "expires_at_ms": 1793156039094,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "8d1d0b1be747239906f79bd4332f9bd7235c807cd6627f3c8460f0791d790a25",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 684989,
+        "state": "stored",
+        "parts": 6,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897866267,
+        "expires_at_ms": 1793157066267,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "90b00ba072124b1d27fc5c18f35f2f0c86b46392ea7e16cbbf879dcf61acd1d3",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86577,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897598114,
+        "expires_at_ms": 1793156798114,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "9afa6940354a64c9918151a13d9e65f1cc5f0946c54d224f538538fad7f94f50",
+        "material_id_sha256": "437b68c53f0679d6767b2b7a153c9772a6f1a0b1dc0d78d9de8bad8138914858",
+        "producer": "phone-android",
+        "bytes": 513447,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897950677,
+        "expires_at_ms": 1793157150677,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "9cfb7f632393cfeaa91c9f338566f8f293ebcee849b3e1d588e314e7c9723b8c",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86603,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896837068,
+        "expires_at_ms": 1793156037068,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "9e65cede92cc4623c1e0ae3984e34d19adac53a8406651b4f81d93b92048c5f0",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 257783,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896549955,
+        "expires_at_ms": 1793155749955,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "9f4212fff8ccc3abb9d48a69d224100d693036a173c1de0a5062fc57ef69b451",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 171807,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896976795,
+        "expires_at_ms": 1793156176795,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "a439e71317e6d1325a8e31fbec4c6b91120ff83ea9f7fced88720ba421109654",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 342973,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897819935,
+        "expires_at_ms": 1793157019935,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "a6ec172ca368014cdc6462e4b2baa792633f05be07f1c886fe039c4394f716a9",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 343199,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897510855,
+        "expires_at_ms": 1793156710855,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "aacd491df3cc2263c3d5490f505661867a6fe1c6fe81285b75611e954065a02c",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 599357,
+        "state": "stored",
+        "parts": 5,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897817215,
+        "expires_at_ms": 1793157017215,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "aaf69c4a0d08dc2fde371025f992aa917eb1684a08d14dc78147bab900a1c810",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86409,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896463160,
+        "expires_at_ms": 1793155663160,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "acc10d0e7e9bb6f9c42e69ab9227fb277c4ea64bacce59bf5e9652bdf1f041ea",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172195,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896938809,
+        "expires_at_ms": 1793156138809,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "b1c160bb61142baec53912467ffc826e1ee48f2fcfaad04eabe388bd1b6974c6",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 342759,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897508130,
+        "expires_at_ms": 1793156708130,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "b987f154b6f2d3cdad7eb42d20d9c898df8eebeb2af5661d797c9667d796cc18",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86599,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896551152,
+        "expires_at_ms": 1793155751152,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "b9cd5ca5107c611f7e2b76ff2541545e53679cdd719614a8eab8faa3bced0b54",
+        "material_id_sha256": "e2855d001aa541e1fe5f516ecd74b18a93299ba3fdabd271a3deec985b866232",
+        "producer": "phone-android",
+        "bytes": 1622794,
+        "state": "stored",
+        "parts": 13,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897326333,
+        "expires_at_ms": 1793156526333,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "bfde721d2632bcedfc709e9a2ef3da1f554208b00b074fe0ed0d8ba6ed8b5151",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 171945,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897021648,
+        "expires_at_ms": 1793156221648,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "c3ebecfd3b584ac1c6398bc07fe0149ba3afe1c576dbe7fb8f047ca01956f635",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 857957,
+        "state": "stored",
+        "parts": 7,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896611263,
+        "expires_at_ms": 1793155811263,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "c4576e6369100d66a941c36f7913a70eda61384f11f81345c64a19760cc5273f",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 343475,
+        "state": "stored",
+        "parts": 3,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896430878,
+        "expires_at_ms": 1793155630878,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "cad32cb022e3d223cec3a36e8a3ba695e547f6bd60b1813e24f2e2c5c55ea952",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 513793,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897596850,
+        "expires_at_ms": 1793156796850,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "caf9a00e75e6e1a4f9babb5d1ac165eb8c2927816754130340da4df03cf53196",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86597,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897821341,
+        "expires_at_ms": 1793157021341,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "cb84f45fccab725b9695f18faf590134246356c23ab413a3b150f7e5cb3e164b",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 86667,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896932542,
+        "expires_at_ms": 1793156132542,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "d2caa1152df7bc0ad9c1c6b4ec04f36d66680b74b1ed1ce0173ca4e1874c069a",
+        "material_id_sha256": "437b68c53f0679d6767b2b7a153c9772a6f1a0b1dc0d78d9de8bad8138914858",
+        "producer": "phone-android",
+        "bytes": 861919,
+        "state": "stored",
+        "parts": 7,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896975129,
+        "expires_at_ms": 1793156175129,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "d42afc8a0bad38617e98a86f06e1f8de4f2268ac4c166091b8e3cce80df70731",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86603,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896663834,
+        "expires_at_ms": 1793155863834,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "d49a06dc3cc6e14c2a18429afdf07c313d42db09485b7e26712cf5cb6478420c",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 171957,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897551660,
+        "expires_at_ms": 1793156751660,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "d519c3bb918f6e3fe7f08e83a737ddebde79c633f199a2d616b2dc144915d384",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86603,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896662006,
+        "expires_at_ms": 1793155862006,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "de9187029e9adc0cfcfbefa4a66be3d1ef1c6586be7fb0778b3814f6bd18e032",
+        "material_id_sha256": "b675c8555756e06b2745a2531fcd9d1c5bb35806b439e3d7fd1e9a6a5708ac53",
+        "producer": "phone-android",
+        "bytes": 428273,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897368225,
+        "expires_at_ms": 1793156568225,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "e97b0d168878e8e3faeb20b0555ca1738e45de7b5d3a638db4211645101df624",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 428949,
+        "state": "stored",
+        "parts": 4,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896942704,
+        "expires_at_ms": 1793156142704,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "e9d6f0c63ad9f8c7bd26accda3ce44d73c1958475f0790761e4628a361f2b112",
+        "material_id_sha256": "437b68c53f0679d6767b2b7a153c9772a6f1a0b1dc0d78d9de8bad8138914858",
+        "producer": "phone-android",
+        "bytes": 110407,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897019928,
+        "expires_at_ms": 1793156219928,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "ec851e88e9043d172e7e2e230de9d5d3c62122a3e49812f31a947d66eb59356a",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 257353,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897370248,
+        "expires_at_ms": 1793156570248,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "eded3fd0f55ec694b420e98ab8cf047f65870d87c603dde025a306785e933ef7",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 1525737,
+        "state": "stored",
+        "parts": 12,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792896588534,
+        "expires_at_ms": 1793155788534,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "ef09df745e5db5b52b04362e35480639e16401920a3357a727f2ca045c5d7b6f",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172313,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897645322,
+        "expires_at_ms": 1793156845322,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "f3a8829582f9fea2eddf15083832c37ab0cc6db59be1dccaee7c766998667703",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 2397156,
+        "state": "stored",
+        "parts": 19,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897774121,
+        "expires_at_ms": 1793156974121,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "f3bc55c9b604221cfd0f4f584ea37ef135bb3f95488c8ea82b7f5d00ed794779",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 172193,
+        "state": "stored",
+        "parts": 2,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897149298,
+        "expires_at_ms": 1793156349298,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      },
+      {
+        "object_id": "fe21161a38da816cdc4674214bffb270c214efda2c03808d545385da46f3c933",
+        "material_id_sha256": "c6b8bf26844075702d162bdc0d1fc1d542ac3330daddc4da5e25476afd0f9da6",
+        "producer": "phone-android",
+        "bytes": 86599,
+        "state": "stored",
+        "parts": 1,
+        "part_bytes_sha256_verified": true,
+        "source_revision_verified": true,
+        "complete_object_sha256_verified": true,
+        "stored_at_ms": 1792897823679,
+        "expires_at_ms": 1793157023679,
+        "retention_seconds": 259200,
+        "recording_completeness_verified": false
+      }
+    ],
+    "audio_bytes_returned": false,
+    "at": "2026-10-25T03:17:36.623546+00:00"
+  },
+  "verification": {
+    "offline_formal_connection_tests": 19,
+    "passed": true,
+    "new_product_build_or_install": true,
+    "raw_user_audio_downloaded_to_mac": false,
+    "ui_automation_limitations": [
+      "A 45s wait did not establish failure of the 2min bounded operation. Later inspection observed the real Google document saver.",
+      "A subsequent back action cancelled that saver before writing; preserved as cancellation, not successful saved-file verification.",
+      "Overlapping diagnostic UI dumps returned exit137/invalid XML; all were allowed to terminate, then the fresh serial snapshot succeeded. No product settings changed for this diagnostic failure."
+    ]
+  },
+  "open": [
+    "authoritative original source deletion contract or existing confirmed receipt",
+    "original-audio continuity and receipt-gated original cleanup",
+    "large multi-object export responsiveness and operation progress/cancel visibility",
+    "subjective listening A24-A01"
+  ],
+  "status": "formal_backup_and_normal_remote_export_verified_r4_incomplete",
+  "delivery": {
+    "candidate": "0.5.3-dev90",
+    "version_code": 10512,
+    "sha256": "18b7ed3e635805816e823620f3d1b7f93a45a0d4d8b47f27d552a291901d3ea2",
+    "installed": true,
+    "source_count": 231,
+    "source_manifest_sha256": "6eb446c1a57eef110c4caba9d87a90841bfc34b3d2b8265430af2a4dbb726ea7",
+    "signature_v2": true,
+    "signature_v3": true,
+    "delta": {
+      "baseline_sha256": "3529b0db32c118b8a9624d9f81b3149f7b3bc0e328f7a9f2a069b92ae9c20b09",
+      "target_sha256": "18b7ed3e635805816e823620f3d1b7f93a45a0d4d8b47f27d552a291901d3ea2",
+      "delta_bytes": 1539397,
+      "remote_reconstruction_verified": true,
+      "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+      "verified_resume_offset": 0,
+      "chunks": [
+        {
+          "bytes": 262144,
+          "through": 262144,
+          "seconds": 4.801
+        },
+        {
+          "bytes": 262144,
+          "through": 524288,
+          "seconds": 4.542
+        },
+        {
+          "bytes": 262144,
+          "through": 786432,
+          "seconds": 5.184
+        },
+        {
+          "bytes": 262144,
+          "through": 1048576,
+          "seconds": 4.851
+        },
+        {
+          "bytes": 262144,
+          "through": 1310720,
+          "seconds": 4.665
+        },
+        {
+          "bytes": 228677,
+          "through": 1539397,
+          "seconds": 4.623
+        }
+      ],
+      "resume_seconds": 34.038,
+      "earlier_attempts": []
+    },
+    "installed_proof": {
+      "at": "2026-10-25T02:59:58.531632+00:00",
+      "version": "0.5.3-dev90",
+      "version_code": 10512,
+      "installed_sha256": "18b7ed3e635805816e823620f3d1b7f93a45a0d4d8b47f27d552a291901d3ea2",
+      "old_user_export_sha256": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+      "source_context": "normal product install; no data clear"
+    }
+  },
+  "foreground_fix": {
+    "old_runtime_new_race_test_failed": true,
+    "baseline_failure": "Runtime month check 377 / foregroundCatalogPriority before runtime fix",
+    "actual_runtime_tests": {
+      "schema": 1,
+      "at": "2026-10-25T02:58:02.546Z",
+      "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
+      "device": false,
+      "network": false,
+      "real_queue_or_server_tested": false,
+      "passed": true,
+      "checks": 458,
+      "sources": [
+        {
+          "path": "src/com/turboio/addon/MaterialRuntime.java",
+          "sha256": "373feb4b27db14849b7a6ee71c5773eb67bbfb21615dc19fa78f90bfac682666"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
+          "sha256": "536414c7c61531ba892b93b9dacea3b56b7b508d003a50b526f049da649358ae"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialCatalog.java",
+          "sha256": "7a5142492437dcc328b8eb119232cfc81b45ac0e7ecda0845c7854e72ce22b78"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
+          "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialOutbox.java",
+          "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+        },
+        {
+          "path": "src/com/turboio/addon/AtomicDocument.java",
+          "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialConfig.java",
+          "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialStorage.java",
+          "sha256": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialSettingsState.java",
+          "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialConnection.java",
+          "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialAccountBinding.java",
+          "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogMonthDiscovery.java",
+          "sha256": "c8d8430989e467213d8bb105cf1a8f6387cf134444ab7c8cd18f9033ccf22546"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogCalendar.java",
+          "sha256": "3b365adb2473d4820eb3adf408f47cdbfe783fe5dbd8f44a7c67792d6e9af032"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogCalendarRequest.java",
+          "sha256": "8209e9395ea52630dd3b0a8d853c380a4ca998a08ffdc899dec6939f30a667d0"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
+          "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
+          "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
+          "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
+          "sha256": "9726da370b53b054d5914d924c6d8194405278d028781a04d14f978399421476"
+        },
+        {
+          "path": "src/com/turboio/addon/OfficialLifelogJson.java",
+          "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
+        },
+        {
+          "path": "src/com/turboio/addon/WireJson.java",
+          "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+        },
+        {
+          "path": "src/com/turboio/addon/TaskWire.java",
+          "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+        },
+        {
+          "path": "src/com/turboio/addon/TaskConnection.java",
+          "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+        },
+        {
+          "path": "src/com/turboio/addon/MaterialWire.java",
+          "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioConfig.java",
+          "sha256": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioConnection.java",
+          "sha256": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioUploadWire.java",
+          "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+          "sha256": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioAutoSchedule.java",
+          "sha256": "488ed92f89c0dacc46a4c8f014518e0697d24163be3f1dc56f3f90395db9778f"
+        },
+        {
+          "path": "src/com/turboio/addon/AudioSyncSession.java",
+          "sha256": "cf15606c2d8153cdb904be923e3365e4b7dbdc2466958af7477a5f14ae69c7b9"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
+          "sha256": "ba73e6669364b17c392c59ebf71ab1c61a4e06bb18aa3c6a0a385b3533da93ce"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+          "sha256": "3e1a7e4b7607258b565a9c637da8bf31504f37d0e4901ece8783603c61949e4b"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+          "sha256": "c830b3578ae781c7b277f3dde48b0d58cbfa95a8e7e810c72eb3521aabf31b44"
+        },
+        {
+          "path": "src/com/turboio/addon/LifelogAudioManager.java",
+          "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+          "sha256": "253dc306214421b8e5249a66a9a429c89543cd104768df8cb3643dfc4c4ead42"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnAudioControl.java",
+          "sha256": "0a1ac66f656417e878f9e7b6d7939bbc8598f613fff06d2e1fe07942c9e5f91b"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnCachedAudio.java",
+          "sha256": "abad64f3602f546740466f2082bf8aeefb62e6090511d31fee3e784c0bb3798d"
+        },
+        {
+          "path": "src/com/turboio/addon/AlwaysOnWire.java",
+          "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
+        },
+        {
+          "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+          "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+        },
+        {
+          "path": "../../tools/android/MaterialMonthRuntimeTest.java",
+          "sha256": "cdbea3a8b6679e43c8875591c8f025a4fde24e66ddb01792a2049c284bce8bb1"
+        },
+        {
+          "path": "../../tools/android/test-material-month-runtime.mjs",
+          "sha256": "d65e13b72bf8495b8c679a4ce118eea12680015b050918017dc2e96ddec0de06"
+        }
+      ],
+      "temporary_classes_removed": true
+    },
+    "automatic_text_and_audio_yield_until_final_catalog_callback": true,
+    "explicit_cancel_and_account_lifecycle_guards_preserved": true,
+    "notes": [
+      "Test runner source list initially lacked A4/A5 dependencies; corrected before old-runtime failure reproduction.",
+      "Audio resume fixture initially ran inside the existing 5s UI debounce; fixture advances that boundary, no production timing changed."
+    ]
+  },
+  "cleanup": {
+    "at": "2026-10-25T03:17:07.589454+00:00",
+    "installed_sha256_unchanged": true,
+    "stable_rollback_sha256_unchanged": true,
+    "protected_exports": {
+      "io-agent-audio-export-20261024-codex-6397af.zip": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+      "io-agent-audio-export-20261024-codex-a49001.zip": "e393db2e35e0eed02c14ee9dbcc53df9725d143363adf61f005a5fbd89186c38"
+    },
+    "diagnostic_driver_uninstalled": true,
+    "remote_delta_and_helper_stages_removed": true,
+    "local_owned_generated_removed": [
+      {
+        "path": "rebuild/android-app/artifacts/iO-Agent-Android-0.5.3-dev89.apk",
+        "bytes": 429822233
+      },
+      {
+        "path": "rebuild/android-app/build/emulator-input",
+        "bytes": 2558862
+      },
+      {
+        "path": "rebuild/android-app/build/dev90-zip-audit",
+        "bytes": 18232
+      }
+    ],
+    "retained_signed_products": [
+      "iO-Agent-Android-0.5.3-dev90.apk",
+      "iO-Agent-Android-0.5.3-dev76.apk"
+    ],
+    "credentials_and_original_audio_untouched": true,
+    "device_lock_released": true
+  },
+  "progress_receipts": {
+    "notify": {
+      "message_id": "notice-11bcfb04acad4c892f7e34098ba28c8264e6235fc09fabab4524ebde32b6a04f",
+      "server_stored": true,
+      "caller_verified": true,
+      "requires_answer": false,
+      "glasses_display": "notice",
+      "glasses_display_confirmed": false,
+      "progress": {
+        "glasses_progress": true,
+        "checkpoint_due": false,
+        "next_checkin_at": "2026-10-25T03:42:50.978Z",
+        "rule": "每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；默认推送到眼镜。"
+      }
+    },
+    "checkpoint": {
+      "checkpoint": true,
+      "checkpoint_key": "codex-r4-formal-audio-dev90-verified-20261024",
+      "glasses_display": "notice",
+      "glasses_display_confirmed": false,
+      "next_checkin_at": "2026-10-25T03:49:34.114Z",
+      "requires_answer": false,
+      "message_id": "notice-8236b05fe2435433a433338523f9c64c6cefb4c479455b24c681e68eb04fb034",
+      "server_stored": true,
+      "server_watch": "armed",
+      "caller_verified": true
+    }
+  },
+  "current_task_watch": {
+    "at": "2026-10-25T03:19:34.880Z",
+    "task_id": "codex-task-2dfaa9459810661d2ef4dca6f8688c4c9f1149d479b9c8c37860434260d1eba9",
+    "caller_verified": true,
+    "before_enabled": true,
+    "after_enabled": false,
+    "next_checkin_at": null,
+    "glasses_progress_policy_unchanged": true,
+    "only_current_task_watch_changed": true
+  },
+  "goal_remaining_blocker": "Original authoritative deletion source schema/account binding/success receipt is still unavailable; new original-audio/delete permission is recorded and no longer a blocker."
+}

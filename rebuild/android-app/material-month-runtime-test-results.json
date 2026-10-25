@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "at": "2026-10-24T11:44:20.627Z",
+  "at": "2026-10-25T02:58:02.546Z",
   "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 392,
+  "checks": 458,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "ded09feda5d6e491e5cecc6f0d65f9e5b3c5f0040b585de78e75137f9edc9884"
+      "sha256": "373feb4b27db14849b7a6ee71c5773eb67bbfb21615dc19fa78f90bfac682666"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
@@ -101,16 +101,72 @@
       "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
     },
     {
+      "path": "src/com/turboio/addon/AudioConfig.java",
+      "sha256": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioConnection.java",
+      "sha256": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadWire.java",
+      "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+      "sha256": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioAutoSchedule.java",
+      "sha256": "488ed92f89c0dacc46a4c8f014518e0697d24163be3f1dc56f3f90395db9778f"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioSyncSession.java",
+      "sha256": "cf15606c2d8153cdb904be923e3365e4b7dbdc2466958af7477a5f14ae69c7b9"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioPayloads.java",
+      "sha256": "ba73e6669364b17c392c59ebf71ab1c61a4e06bb18aa3c6a0a385b3533da93ce"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioLibrary.java",
+      "sha256": "3e1a7e4b7607258b565a9c637da8bf31504f37d0e4901ece8783603c61949e4b"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioArchive.java",
+      "sha256": "c830b3578ae781c7b277f3dde48b0d58cbfa95a8e7e810c72eb3521aabf31b44"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioManager.java",
+      "sha256": "ce5b62ad81005fa784eab9342b110aa508623483c7611048f513dc7255231d2c"
+    },
+    {
+      "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+      "sha256": "253dc306214421b8e5249a66a9a429c89543cd104768df8cb3643dfc4c4ead42"
+    },
+    {
+      "path": "src/com/turboio/addon/AlwaysOnAudioControl.java",
+      "sha256": "0a1ac66f656417e878f9e7b6d7939bbc8598f613fff06d2e1fe07942c9e5f91b"
+    },
+    {
+      "path": "src/com/turboio/addon/AlwaysOnCachedAudio.java",
+      "sha256": "abad64f3602f546740466f2082bf8aeefb62e6090511d31fee3e784c0bb3798d"
+    },
+    {
+      "path": "src/com/turboio/addon/AlwaysOnWire.java",
+      "sha256": "9b8c6059eec86fbd97f8977eb0bddcd44d4282437e11c9b37f6e2224cd7e1ea1"
+    },
+    {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
       "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "bc46e840629881a6f793181ccaa30fda267d698c773e1071713d5f3df6734106"
+      "sha256": "cdbea3a8b6679e43c8875591c8f025a4fde24e66ddb01792a2049c284bce8bb1"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",
-      "sha256": "926cec9cfe71b0a7d5cd8cc257d7d3f33bc1308002e2c38900de765657a71f18"
+      "sha256": "d65e13b72bf8495b8c679a4ce118eea12680015b050918017dc2e96ddec0de06"
     }
   ],
   "temporary_classes_removed": true
