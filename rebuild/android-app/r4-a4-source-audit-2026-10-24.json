@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T01:15:42.158763+00:00",
+  "passed": true,
+  "product_unchanged": "dev87 /10509",
+  "r3_percent": 100,
+  "r4_estimate_percent": 90,
+  "phone_audit": {
+    "probe_id": "55b5e286e540ceadd9ee502e2055cf05",
+    "passed": true,
+    "product": "dev87 /10509",
+    "a4_shape": {
+      "sealed_segments_scanned": 64,
+      "open_or_quarantined_skipped": 1,
+      "budget_limited": true,
+      "journal_bytes_verified": 43716237,
+      "batch_kinds": {
+        "A3": 5651
+      },
+      "a4_batches": 0,
+      "a4_data_bytes": 0,
+      "a4_empty": 0,
+      "a4_batch_ogg_markers": 0,
+      "a4_batch_multiple_240": 0,
+      "a4_min_batch_bytes": 0,
+      "a4_max_batch_bytes": 0,
+      "a4_same_session_task": 0,
+      "stock_cache_directory_present": false,
+      "stock_caches_for_verified_tasks": [],
+      "unowned_stock_cache_entries_not_read": 0,
+      "originals_unchanged": true,
+      "probe_original_writes": 0,
+      "probe_explicit_http_requests": 0,
+      "audio_bytes_returned": false,
+      "format_or_codec_proven": false
+    },
+    "original_audio_removed": "false",
+    "new_recording_started": "false",
+    "audio_uploaded_played_or_returned": "false"
+  },
+  "first_audit": {
+    "probe_id": "e13bf07ca1ef1fe7e5ed527d3d830613",
+    "passed": true,
+    "product": "dev87 /10509",
+    "a4_shape": {
+      "sealed_segments_scanned": 64,
+      "open_or_quarantined_skipped": 1,
+      "budget_limited": true,
+      "journal_bytes_verified": 42691976,
+      "batch_kinds": {
+        "A3": 5519
+      },
+      "a4_batches": 0,
+      "a4_data_bytes": 0,
+      "a4_empty": 0,
+      "a4_batch_ogg_markers": 0,
+      "a4_batch_multiple_240": 0,
+      "a4_min_batch_bytes": 0,
+      "a4_max_batch_bytes": 0,
+      "a4_same_session_task": 0,
+      "stock_cache_directory_present": false,
+      "stock_caches_for_verified_tasks": [],
+      "unowned_stock_cache_entries_not_read": 0,
+      "originals_unchanged": true,
+      "probe_original_writes": 0,
+      "probe_explicit_http_requests": 0,
+      "audio_bytes_returned": false,
+      "format_or_codec_proven": false
+    },
+    "original_audio_removed": "false",
+    "new_recording_started": "false",
+    "audio_uploaded_played_or_returned": "false"
+  },
+  "driver_build": {
+    "apk_sha256": "c99f784ab707d63553bee67de4f0db00157a1c07e0d212ed771fc67ec3e389e5",
+    "apk_bytes": 274636,
+    "source_sha256": "b25282705598d7e9880b1f323fd2f9b890e2342f8e9b8bfc635a94e24f476086",
+    "builder_sha256": "6ae0cb297f04cf94ab321e72f064d2d7a2fc8b329a030504ac97b323e9fa979e",
+    "manifest_sha256": "b9600b6881d244ee88596a95b8c78d1c5f3ecb068645c69385cf32b104f6baa2",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "product_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "mode": "a4-shape",
+    "purpose": "Read-only existing same-account sealed journal and verified-task stock cache metadata on phone; no audio bytes returned",
+    "explicit_library_account_check": true
+  },
+  "first_driver_build": {
+    "apk_sha256": "fa1f793f449cc6cd69df44a47307f7cc9a2e1243ad103a3e61797bf57c8edecd",
+    "apk_bytes": 274636,
+    "source_sha256": "5e7d89cf659ce3be0fec4ccba4bf46622d63a6b3932b9e9a1574b2b7858d2074",
+    "builder_sha256": "6ae0cb297f04cf94ab321e72f064d2d7a2fc8b329a030504ac97b323e9fa979e",
+    "manifest_sha256": "b9600b6881d244ee88596a95b8c78d1c5f3ecb068645c69385cf32b104f6baa2",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "product_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "mode": "a4-shape",
+    "purpose": "Read-only existing same-account sealed journal and verified-task stock cache metadata on phone; no audio bytes returned"
+  },
+  "cleanup": {
+    "driver_uninstalled": true,
+    "product_sha256_unchanged": true,
+    "product_pid": 24369,
+    "normal_start_and_background_screen_off": true,
+    "protected_user_export_sha256": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+    "original_audio_left_on_phone": true
+  },
+  "own_derived_driver_stage_removed": true,
+  "derived_bytes_removed": 2551700,
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-a4-shape-audit-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T01:33:28.664Z",
+    "requires_answer": false,
+    "message_id": "notice-23adbe7b6b90c8adc147af7ef8736c2c24284f1c38a481900367b4e50fa7886d",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "static_source_apk_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+  "static_blocks": [
+    {
+      "file": "t8/b$b.smali",
+      "first_line": 330,
+      "last_line": 385,
+      "purpose": "A4 listener cached dump forwarding",
+      "sha256": "20c634ee2d9ce5c767e4d9c1efeb09a7b68b7c85425e08ca5d42a6f9085c9130"
+    },
+    {
+      "file": "m8/r.smali",
+      "first_line": 42,
+      "last_line": 63,
+      "purpose": "cached runnable delegates unchanged bytes",
+      "sha256": "46e4ffa09da8399505e1c7e12889c2c6e8e8e807329bfd2506a1e1a693e0c8bc"
+    },
+    {
+      "file": "m8/s.1.smali",
+      "first_line": 1702,
+      "last_line": 2034,
+      "purpose": "cached source calls the Ogg dump writer",
+      "sha256": "6685b62aad438d4b17499006a8523b7abd36a43173bf83f5c170d2162f2f151b"
+    },
+    {
+      "file": "m8/s$a.smali",
+      "first_line": 544,
+      "last_line": 657,
+      "purpose": "writer chunks 240 bytes and preserves a short last packet",
+      "sha256": "96a219aee2f5caa0ee647b78cbdb9be40d10b72e73f6f51a0434f0029376f16f"
+    },
+    {
+      "file": "m8/s$a.smali",
+      "first_line": 511,
+      "last_line": 544,
+      "purpose": "vendor granule increments fixed 960; not a reliable duration oracle",
+      "sha256": "25afc354b65ed2f82d0de8248270bbabd76aeeaca33ffbc0e54ebb82227f4d3d"
+    }
+  ],
+  "source_conclusions": [
+    "Actual A4 listener forwards bytes through m8.r cached -> m8.s.m -> m8.s$a.c.",
+    "This actual cached dump writer partitions each incoming data array at 240-byte boundaries, preserving any short last packet.",
+    "The same writer hardcodes 960 granule increments; duration must be computed from Opus TOC and verified by native decoding.",
+    "This gives a pinned host-side A4 framing contract, not observed live A4, codec proof or recording continuity."
+  ],
+  "deletion_api_investigation": {
+    "endpoint_constant": "/clsapi/user-data/deletions/",
+    "associated_models": [
+      "DeleteUserDataStatus",
+      "UserDataRequestReceipt(requestId:",
+      "UserDataRequestStatus"
+    ],
+    "source_paths": [
+      "features/personal/security_page/data_management/data/data_management_service.dart",
+      "features/personal/security_page/data_management/delete_personal_data_success_page.dart"
+    ],
+    "conclusion": "These constants point to personal-data deletion request/status management. They do not establish a per-material deletion feed; do not infer tombstones or call a guessed operation.",
+    "any_related_http_request_attempted": false
+  },
+  "failure_history": [
+    "First phone audit passed; host [a-z_]+ parser omitted a4_shape. Reparsed saved output with [a-z0-9_]+ without rerunning for the parsing failure.",
+    "Added an explicit library-account check and pinned the new mode to dev87, then rebuilt and reran that changed diagnostic successfully."
+  ],
+  "not_verified": [
+    "All historical journals: scan is explicitly limited to latest 64 sealed segments and 128MiB.",
+    "Live A4 packet/body format and source association",
+    "A4 producer/upload/playable export integration: next implementation batch",
+    "Formal real-audio backup authorization/verification and authoritative source deletion"
+  ],
+  "source_hashes": {
+    "tools/android/LifelogAudioExportProbe.java": "b25282705598d7e9880b1f323fd2f9b890e2342f8e9b8bfc635a94e24f476086",
+    "tools/android/run-a4-shape-audit.py": "0776f263fed016c3ea3d7afb896170b968a4427d29d3b4d72472c5c115581993"
+  },
+  "framing_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-a4-framing-found-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T01:45:54.760Z",
+    "requires_answer": false,
+    "message_id": "notice-7593106d7c56ba2a5f05cdb5b0786859f77a79639c95956aed9a042173e1c0ea",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_release": {
+    "state": "free"
+  }
+}
