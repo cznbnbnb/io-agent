@@ -4,7 +4,7 @@ import java.io.*;import java.util.*;
 /** One bounded manual sync. Account guard wraps every HTTP request, including
  * event reconciliation; initial import and queue files are account-isolated. */
 final class MaterialSyncSession {
- interface AccountSource {OfficialAccountBinding current()throws Exception;}
+ interface AccountSource {OfficialAccountBinding current()throws Exception;default OfficialRecordingDeletion.Source deletions(){return null;}}
  interface Source extends AccountSource {OfficialLifelogBatch read()throws Exception;}
  interface FreshSource extends Source {OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception;}
  interface DiscoverySource extends AccountSource {OfficialLifelogDiscovery.Snapshot discover()throws Exception;}
@@ -14,11 +14,13 @@ final class MaterialSyncSession {
   int queued,stored,blocked,expired,reconcile,added,conflicts,unowned,invalid,discovered,days,recordings,otherEntries,tooLarge;String note="ready";
   Map<String,Object> summary(){return WireJson.object("queued",queued,"stored",stored,"blocked",blocked,"expired",expired,"reconcile",reconcile,"added",added,"conflicts",conflicts,"unowned",unowned,"invalid",invalid,"discovered",discovered,"days",days,"recordings",recordings,"other_entries",otherEntries,"too_large",tooLarge,"note",note);}
  }
+ private OfficialDeletionSync deletionGuard;
  private final File root,files;private final MaterialConfig config;private final AccountSource source;private final Guard guard;private final MaterialApi api;
  MaterialSyncSession(File files,MaterialConfig config,Source source,Guard guard,MaterialApi.Transport transport){this(files,config,(AccountSource)source,guard,transport);}
  MaterialSyncSession(File files,MaterialConfig config,AccountSource source,Guard guard,MaterialApi.Transport transport){this.root=files;this.files=accountFiles(files,config);this.config=config;this.source=source;this.guard=guard;
-  api=new MaterialApi(config.connection,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{admit();return transport.exchange(path,body);}public void cancel(){transport.cancel();}});
+  api=new MaterialApi(config.connection,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{admitDeletion();MaterialApi.Response response=transport.exchange(path,body);admitDeletion();return response;}public void cancel(){transport.cancel();}});
  }
+ private void admitDeletion()throws IOException{admit();if(deletionGuard!=null)try{deletionGuard.check();}catch(IOException|RuntimeException failed){throw failed;}catch(Exception failed){throw new IOException("OFFICIAL_DELETION_UNAVAILABLE");}}
  static File accountFiles(File files,MaterialConfig config){return MaterialStorage.current(files,config);}
  private OfficialAccountBinding admit()throws IOException{
   guard.check();MaterialWire.require(config.enabled,"MATERIAL_PAUSED");try{OfficialAccountBinding now=source.current();MaterialWire.require(now!=null&&config.account.equals(now.binding),"OFFICIAL_ACCOUNT_CHANGED");return now;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}
@@ -59,6 +61,11 @@ final class MaterialSyncSession {
    // above before suppressing that conflict. Preserve both historical files.
    LifelogImportJournal.Queue replayBootstrap=event->{Map<String,Object> body=WireJson.map(MaterialWire.event(event,config.connection.producer).get("body"));if(!revisions.ownsInitial((String)body.get("material_id")))outbox.enqueue(event);};
    bootstrap.replay(admit(),replayBootstrap);
+   OfficialRecordingDeletion.Source originalDeletion=source.deletions();
+   if(originalDeletion!=null){
+    deletionGuard=OfficialDeletionSync.read(config,new OfficialRecordingDeletion.Source(){public OfficialAccountBinding current()throws Exception{return admit();}public String read(String key)throws Exception{admit();String value=originalDeletion.read(key);admit();return value;}});
+    deletionGuard.stage(outbox,api,System.currentTimeMillis());
+   }
    List<OfficialLifelogSnapshot.Source> freshSources;
    if(source instanceof DiscoverySource){
     // Date discovery authenticates list/full membership itself. It must never
@@ -77,6 +84,7 @@ final class MaterialSyncSession {
    }
    MaterialWire.require(fresh!=null&&config.account.equals(fresh.account),"OFFICIAL_ACCOUNT_CHANGED");admit();freshSources=fresh.sources;
    }
+   if(deletionGuard!=null){deletionGuard.check();freshSources=deletionGuard.filter(freshSources);}
    // Correct the known legacy counter defect before freshness equivalence is
    // evaluated: unchanged source text could otherwise hide an invalid counter.
    Set<String> freshIds=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)freshIds.add(value.materialId(config.account));int repairBudget=0;
@@ -84,17 +92,18 @@ final class MaterialSyncSession {
     MaterialWire.require(repairBudget++<16,"MATERIAL_TEXT_REVISION_REPAIR_REQUIRED");admit();api.reconcileOnly(outbox,eventId,System.currentTimeMillis());MaterialWire.require(!outbox.needsTextRevisionRepair(eventId),"MATERIAL_TEXT_REVISION_REPAIR_REQUIRED");
    }}
    Set<String> oversized=new TreeSet<>();
-   try{status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized);}
+   try{status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized)+(deletionGuard==null?0:deletionGuard.added);}
    catch(IllegalArgumentException pending){
     if(!"LIFELOG_PENDING_REVISION_CHANGED".equals(pending.getMessage()))throw pending;
     Set<String> currentIds=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)currentIds.add(value.materialId(config.account));int budget=0;
     for(Object raw:outbox.all()){Map<String,Object> row=WireJson.map(raw);if(currentIds.contains(row.get("material_id"))&&!"server_stored".equals(row.get("state"))&&!"cancelled".equals(row.get("state"))&&budget++<16){admit();api.reconcileOnly(outbox,(String)row.get("event_id"),System.currentTimeMillis());admit();api.cancelPending(outbox,(String)row.get("event_id"),System.currentTimeMillis());}}
     // A stored predecessor permits the next revision. A verified cancellation
     // permits replacement at the same revision; unknown outcomes still stop.
-    status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized);
+    status.added=revisions.stageFresh(freshSources,this::admit,outbox,System.currentTimeMillis(),oversized)+(deletionGuard==null?0:deletionGuard.added);
    }
    revisions.replay(this::admit,outbox);
    Set<String> allowed=new HashSet<>();for(OfficialLifelogSnapshot.Source value:freshSources)allowed.add(value.materialId(config.account));
+   if(deletionGuard!=null)allowed.addAll(deletionGuard.readyMaterials);
    if(!allowed.isEmpty()){
     admit();api.preflight(System.currentTimeMillis(),true);outbox.resumeBlocked();for(int i=0;i<16;i++){admit();if(!api.pump(outbox,System.currentTimeMillis(),allowed))break;}
    }

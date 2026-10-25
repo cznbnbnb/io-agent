@@ -5,6 +5,9 @@ import android.app.*;import android.widget.*;import java.io.*;import java.util.*
 final class MaterialWorkspace {
  static String label(String code){switch(code){
   case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
+  case "OFFICIAL_DELETION_PENDING":return "正在等待原厂完成删除，稍后自动同步";
+  case "OFFICIAL_DELETION_HISTORY_UNSUPPORTED":return "这条原厂批量删除记录需要核对，已暂缓同步";
+  case "OFFICIAL_DELETION_CHANGED":case "OFFICIAL_DELETION_UNAVAILABLE":case "OFFICIAL_DELETION_STORE_UNAVAILABLE":return "原厂删除状态暂不可用，稍后重试";
   case "syncing":return "正在读取智记并同步…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
   case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
   case "MATERIAL_AUTO_DEADLINE":return "本轮同步时间较长，队列已保留，稍后自动继续";

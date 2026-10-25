@@ -329,6 +329,7 @@ public final class MaterialMonthRuntimeTest {
 // Finite interface doubles. No copy of generation, fingerprint or day-selection
 // admission logic: those decisions run only in the production classes above.
 final class Host107Login{static volatile OfficialAccountBinding current;static boolean delivering;static int reads;static java.util.function.IntConsumer onRead;static OfficialAccountBinding account(){reads++;if(onRead!=null)onRead.accept(reads);if(delivering&&Thread.currentThread().getName().equals("main"))throw new AssertionError("Main callback must not perform login IO");return current;}}
+final class Host107RecordingDeletion implements OfficialRecordingDeletion.Source{public OfficialAccountBinding current(){return Host107Login.account();}public String read(String key){return null;}}
 final class MaterialSettings{static volatile MaterialConfig value;static String failure="";MaterialSettings(android.content.Context app){}MaterialConfig load()throws IOException{if(!failure.isEmpty())throw new IOException(failure);return value;}void save(MaterialConfig v){value=v;}}
 final class Host107LifelogHttp implements AutoCloseable,OfficialLifelogDiscovery.Transport{
  static int calendars,closed,discoveryCalls,lists,fulls;static volatile int disabled;

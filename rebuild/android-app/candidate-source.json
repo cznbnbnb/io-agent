@@ -513,6 +513,10 @@
       "sha256": "544636eb7c6d556a760d05b9de8797a443df387f82bd260563703e951ad0af7d"
     },
     {
+      "path": "src/com/turboio/addon/Host107RecordingDeletion.java",
+      "sha256": "885d5ea3fb4cf04bc467a7964d3700e7befb5063b42c18dea9f052f57d2c7c49"
+    },
+    {
       "path": "src/com/turboio/addon/Host107Suggestion.java",
       "sha256": "7ad42353473a1077b03203d73de7b825161c0a8a85a1b36718d0e3dc272ee498"
     },
@@ -654,11 +658,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      "sha256": "60365bd191a7bd1e176ea570f4c3a291c40c838db20903ab9e059c6a642ece0c"
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "373feb4b27db14849b7a6ee71c5773eb67bbfb21615dc19fa78f90bfac682666"
+      "sha256": "e7747cce1a4bedff94bb0b72cf8c129ac32c9a24be9e44518f2580c13c6a1436"
     },
     {
       "path": "src/com/turboio/addon/MaterialSettings.java",
@@ -674,7 +678,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "0669ea88ca073d8d72bc6057e5f3c7e884ed8ec7ee7d40940066e82efc6ae033"
+      "sha256": "ee7025c8c6a4f01c359661f9e0ab31ee35350f411ac5a267e8c22bbcb204691c"
     },
     {
       "path": "src/com/turboio/addon/MaterialTaskDraft.java",
@@ -690,7 +694,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "76df3396043e0ee0540966d03c2219c91898b9c91c63a2e687d358f3c6bee43f"
+      "sha256": "0c11ec5f697a6e9c93a297541007a275906bbddba9dcfdc84153062412acbe37"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -702,7 +706,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialDeletionSync.java",
+      "sha256": "56fed98c1287c8960cded2bcc27fdddb65588f6c1bb908271e950ec4e332f4f6"
     },
     {
       "path": "src/com/turboio/addon/OfficialGatewaySigning.java",
@@ -751,6 +759,10 @@
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
       "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
+      "sha256": "07aa4e78d3fe534374120a1b18ce97ff2de802775d76c5621bd54998feeb4d47"
     },
     {
       "path": "src/com/turboio/addon/OfficialSdkReceipt.java",
@@ -922,11 +934,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "208fcfdeb12400409ebf0d9ff3c664579c69cc8d2fda6d443d1b6a60b6628143"
+      "sha256": "77867db113324516f2ffce8daa0eef9020a6bc2df1ff8954a8fa4bb830bfa496"
     }
   ],
-  "product_sha256": "08346b71ace59d906dea0766b882e9a0737a28e05b7d2e1e0426f2443cacc61f",
-  "addon_sha256": "e8b7b9aa9470322279ae009af79c4e66b5f02f88d4caa260c5e36855adca3c12",
+  "product_sha256": "30e1d3733a4cdfddb1379d2d772e719e4a02947e4ad8f6e82ef38c405ff46155",
+  "addon_sha256": "7864f0c944754e8fc4f7eeae4250afde8d749e6af16d73a049fce729edfbc62c",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T10:36:40.093Z",
+  "at": "2026-10-25T04:00:22.837Z",
   "unit_assertions": 71,
   "transport": "real Java material core to existing loopback HTTP/SQLite service across two JVM processes",
   "computer_query": "existing MaterialQueryClient via actual HTTP with separate read-only credential",
@@ -37,7 +37,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "38e59b95878b5477a7e5a5056d80f047e0850dcb2ef67651a284ec79d46adb63"
+      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -53,7 +53,15 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609"
+      "sha256": "ee7025c8c6a4f01c359661f9e0ab31ee35350f411ac5a267e8c22bbcb204691c"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
+      "sha256": "07aa4e78d3fe534374120a1b18ce97ff2de802775d76c5621bd54998feeb4d47"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialDeletionSync.java",
+      "sha256": "56fed98c1287c8960cded2bcc27fdddb65588f6c1bb908271e950ec4e332f4f6"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogBatch.java",
@@ -61,7 +69,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogRefresh.java",
-      "sha256": "7e397d24394e839d546139f30ab8e6d6fbf4e59b94a29da3b4c9396aae0087d8"
+      "sha256": "950325ef8df0c992afbaa81e974b4169e63bdeb0aa1a28ba04ccc07728fef3ce"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogJson.java",
@@ -69,7 +77,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionJournal.java",
-      "sha256": "61efd00a6a9bf921aaf99a540337d53d01dfca9344b0706fbee09eebe26f8f88"
+      "sha256": "cc745bccaaeff524acd040b3781aa84a042113b475389c76863dd16571efa1fa"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -81,11 +89,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "c6599018f8c92c8c726f605e747f8c38bd270934933a115f03bef318000bd9dd"
+      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "fb094df6acaa52f741a9066f41f47c4544cc37881f28d9b531cf4673daf65dca"
+      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogLogReader.java",
@@ -97,7 +105,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
     },
     {
       "path": "src/com/turboio/addon/LifelogImportJournal.java",
@@ -113,7 +121,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      "sha256": "60365bd191a7bd1e176ea570f4c3a291c40c838db20903ab9e059c6a642ece0c"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -189,7 +197,7 @@
     },
     {
       "path": "../../tools/android/test-material.mjs",
-      "sha256": "19769ce8043bc1594ef36fd553a9be01fec74311f1ab790fdf445f7c1ece5b6f"
+      "sha256": "e6280dd1d5bb43b98a6292931af90bd06a8dda49d1365e1acd48d69ad6e0be80"
     }
   ]
 }
