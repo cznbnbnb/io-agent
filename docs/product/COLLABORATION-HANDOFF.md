@@ -1,3 +1,14 @@
+## [codex] 2026-10-26 WorkBuddy 异机 CLI 试用 ZIP
+
+用户要求给另一台电脑上的 WorkBuddy 打包。新增 `tools/collab/package-workbuddy.py` 按静态依赖白名单打包 CLI 与共享 Python 辅助模块（不启动 Hermes），并附中文 README、独立 AGENTS、setup 环境检查/登记请求/连接导入和 io-agent 启动包装。产物 `outputs/io-agent-workbuddy-2026-10-26.zip`，约 73 KiB，27 个文件，逐文件 SHA-256 清单。没有包含任何现有电脑凭据、私有目录、用户资料、SQLite、录音、APK 或 SSH 密钥。
+
+- 另一台电脑先 `node setup.mjs doctor`、`node setup.mjs request`，把无密钥的 enrollment-request.json 发回当前 Codex，随后按该 computer_id 为它单独签发连接并导入；本次没有为未知电脑提前签发身份。禁止复制现有 Mac 的登记。
+- 包内连接存 `.io-agent/device.json`，不碰目标电脑已有的 ~/.turboio。自动检测 Python 3.10+，保留宿主真实 WorkBuddy 会话 ID；不伪造会话、不吞掉冲突身份。用户关闭进度推送的决定写在包内 AGENTS，先 join 后 config false。
+- 从临时新目录解压、从包外 cwd 启动：校验全部文件哈希，help/doctor/request、未登记报错、合成 workbuddy 身份的 join→ask→wait/完整答案及会话路由全部通过。测试仅本机 HTTP/SQLite 合成数据，不访问公网或手机；临时状态已清。Windows 和 WorkBuddy 本体仍未验。
+- 明确说明：本包不负责远程启动/打断 WorkBuddy；电脑问答设备凭据仍是旧自动更新机制，离线跨到期可能需重新登记，不能把 dev106 的手机资料长期配对等同于问答已永久续期。
+
+App 保持 dev106，未用设备或眼镜锁、未发镜片消息。下一步收到新电脑的登记请求后再为它接通，并由 WorkBuddy 用自身真实会话验收一问一答。
+
 ## [codex] 2026-10-26 dev106 资料长期配对与自动续期
 
 用户明确要求“长期配对、自动续期”，覆盖旧固定 24 小时/不自动续签限制。开工 fetch 后 Claude 仍为 a7bae3d，已在本分支；任务下发继续暂停，眼镜推送关闭。
