@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "name": "iO Agent Android",
-  "version": "0.5.3-dev107",
-  "version_code": 10529,
+  "version": "0.5.3-dev108",
+  "version_code": 10530,
   "revision": "io-agent-android-107-material-batch",
-  "apk_stem": "iO-Agent-Android-0.5.3-dev107",
+  "apk_stem": "iO-Agent-Android-0.5.3-dev108",
   "launcher": "com.rayneo.venus.MainActivity",
   "rayneo_account_required_for_local_features": true,
   "ota_writes_enabled": false,
