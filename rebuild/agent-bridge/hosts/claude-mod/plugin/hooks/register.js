@@ -13,6 +13,7 @@ let journal = {operations:{}, tools:{}, outbox:[]};
 let pending = {};
 let writeTail = Promise.resolve();
 let storageFailed = false;
+const synchronousTools = new Set(['Read','Write','Edit','MultiEdit','Glob','Grep','LS','NotebookEdit','TodoWrite','TaskCreate','TaskGet','TaskList','TaskUpdate','TaskStop','AskUserQuestion']);
 
 function storeKey() { return `io-session-v1:${connection.session_id}`; }
 function identity() { return {session_id:connection.session_id, cwd:connection.cwd, instance_id:instance}; }
@@ -81,6 +82,16 @@ async function childReceipt($, entry, phase, extra = {}) {
   if (!old) journal.outbox.push({key, endpoint:'/v1/child-report', value});
   await persist($);
 }
+async function workReceipt($, id) {
+  const operation=journal.operations[id];
+  if (!operation?.turn_id || operation.coverage !== 1) return;
+  operation.work_sequence=(operation.work_sequence || 0)+1;
+  const value={operation_id:id,turn_id:operation.turn_id,sequence:operation.work_sequence,
+    sealed:operation.sealed===true,tools:Object.values(journal.tools).filter(t=>t.operation_id===id).map(t=>({
+      tool_use_id:t.tool_use_id,tool:t.tool,state:t.work_state || 'unknown'}))};
+  journal.outbox.push({key:'work:'+id+':'+value.sequence,endpoint:'/v1/work-report',value});
+  await persist($);
+}
 async function stopChildren($) {
   const entry = Object.values(journal.tools).find(item => item.phase === 'identified' && abortWasRequested(item.turn_id));
   if (!entry || !(await exact($))) return;
@@ -103,13 +114,13 @@ async function stopChildren($) {
     if (enabled) await childReceipt($, entry, 'stop_unknown', {native_result:'unknown', reason:'native_task_stop_outcome_unknown'});
   }
 }
-async function trackBash($, e, next) {
+async function trackTool($, e, next) {
   const turn = activeTurn;
   const operation = Object.keys(journal.operations).find(id => journal.operations[id].kind === 'submit' &&
     journal.operations[id].turn_id === turn);
-  if (!enabled || e.agentId !== undefined || e.tool !== 'Bash' || !operation || !(await exact($))) return next(e);
+  if (!enabled || e.agentId !== undefined || !operation || !(await exact($))) return next(e);
   if (typeof e.tool_use_id !== 'string' || !/^[a-zA-Z0-9_-]{1,256}$/.test(e.tool_use_id)) {
-    return {deny:'The bridge cannot identify this Bash call for scoped stopping.'};
+    return {deny:'The bridge cannot identify this tool call for scoped stopping.'};
   }
   const id = e.tool_use_id, old = journal.tools[id];
   if (old && (old.operation_id !== operation || old.turn_id !== turn)) {
@@ -117,21 +128,31 @@ async function trackBash($, e, next) {
   }
   if (!old) {
     if (Object.keys(journal.tools).length >= 1000) return {deny:'The bridge tool ledger is full.'};
-    journal.tools[id] = {tool_use_id:id, operation_id:operation, turn_id:turn, phase:'observing'};
+    journal.tools[id] = {tool_use_id:id, operation_id:operation, turn_id:turn, tool:e.tool, phase:'observing',work_state:'in_flight'};
     await persist($);
+    await workReceipt($,operation);
   }
-  const response = await next(e);
+  let response;
+  try { response = await next(e); }
+  catch (error) {
+    journal.tools[id].work_state='unknown';
+    await workReceipt($,operation);
+    throw error;
+  }
   if (!(await exact($))) return response;
   const result = response?.result;
   // Never extract a task ID from stdout/text. Native structured result must
   // identify backgrounding caused by a turn abort, not normal background work.
-  if (!response?.isError && object(result) && result.backgroundedByTurnAbort === true &&
+  if (e.tool === 'Bash' && !response?.isError && object(result) &&
       typeof result.backgroundTaskId === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(result.backgroundTaskId)) {
     const entry = journal.tools[id];
     if (entry.task_id && entry.task_id !== result.backgroundTaskId) throw new Error('CLAUDE_MOD_CHILD_TASK_CONFLICT');
     entry.task_id = result.backgroundTaskId;
+    entry.work_state='background';
     if (entry.phase === 'observing') await childReceipt($, entry, 'identified');
-  }
+  } else journal.tools[id].work_state = result?.detachedToolCall === true ? 'unknown' :
+    (e.tool === 'Bash' || synchronousTools.has(e.tool)) ? 'settled' : 'unsupported';
+  await workReceipt($,operation);
   return response;
 }
 async function submissionSettled($, id, result) {
@@ -207,7 +228,7 @@ async function pump($) {
   pumping = true;
   try {
     if (!(await exact($))) { await end($); return; }
-    await flush($);
+    for (let n=0;n<8 && journal.outbox.length;n++) await flush($);
     const response = await post($, '/v1/poll', {busy, turn_id:activeTurn});
     if (response.action) await perform($, response.action);
     await stopChildren($);
@@ -229,7 +250,14 @@ async function start($) {
   journal.tools ??= {};
   if (!object(journal.operations) || !object(journal.tools) || !Array.isArray(journal.outbox)) throw new Error('CLAUDE_MOD_STORE_INVALID');
   instance = String(await $.clock.now()) + '-' + Math.random().toString(36).slice(2);
-  await post($, '/v1/bind', {});
+  let enginePid;
+  try {
+    // The short-lived helper's parent is the native CLI, not a PID supplied
+    // by a model or read from its tool output. The broker verifies OS identity.
+    const process = await $.process.run(['/bin/sh','-c','printf "%s" "$PPID"'],{timeoutMs:2000});
+    if (process.exitCode===0 && /^[1-9][0-9]*$/.test(process.stdout)) enginePid=Number(process.stdout);
+  } catch { /* execution still works; stop remains unconfirmed without a witness */ }
+  await post($, '/v1/bind', enginePid ? {engine_pid:enginePid} : {});
   enabled = true;
   for (const entry of Object.values(journal.tools)) {
     if (entry.phase === 'stop_prepared') await childReceipt($, entry, 'stop_unknown', {reason:'previous_task_stop_not_proven'});
@@ -260,7 +288,13 @@ async function started($, e) {
   const id = Object.keys(pending).find(key => pending[key].submitted &&
     !journal.operations[key]?.turn_id && matchesBoundTurn(e.text, pending[key].text));
   if (id && await exact($)) {
-    await receipt($, id, 'running', {turn_id:e.turnId});
+    journal.operations[id].coverage=1;
+    await receipt($, id, 'running', {turn_id:e.turnId,work_coverage:1});
+    await workReceipt($,id);
+    // Native turn.start awaits this callback. Acknowledging the pre-tool
+    // process baseline here prevents a later poll mistaking our own child
+    // process for a pre-existing service. Failure never grants stop proof.
+    while (journal.outbox.length) await flush($);
   }
 }
 async function completed($, e) {
@@ -268,6 +302,8 @@ async function completed($, e) {
   if (activeTurn === e.turnId || activeTurn === null) { activeTurn = null; busy = false; }
   const id = Object.keys(journal.operations).find(key => journal.operations[key].kind === 'submit' && journal.operations[key].turn_id === e.turnId);
   if (!id) return;
+  journal.operations[id].sealed=true;
+  await workReceipt($,id);
   const hasAnswer = typeof e.answer === 'string' && e.answer.length <= 32768;
   await receipt($, id, e.isAborted ? 'interrupted' : 'completed', {turn_id:e.turnId,
     ...(hasAnswer ? {answer:e.answer} : {reason:typeof e.answer === 'string' ? 'final_result_too_large' : 'final_result_missing'})});
@@ -282,8 +318,8 @@ export function register(on) {
   });
   on('turn.start', async ($, e, next) => { await started($, e); return next(e); });
   on('turn.complete', async ($, e, next) => { await completed($, e); return next(e); });
-  on('tool.call', {tool:'Bash'}, async ($, e, next) => trackBash($, e, next)).catch(async ($, e, next) => {
+  on('tool.call', async ($, e, next) => trackTool($, e, next)).catch(async ($, e, next) => {
     if (next.called) return next(e);
-    return {deny:'The bridge could not durably track this Bash call.'};
+    return {deny:'The bridge could not durably track this tool call.'};
   });
 }

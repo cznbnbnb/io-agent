@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev114",
-  "version_code": 10536,
-  "revision": "io-agent-android-107-browse-dates",
+  "version": "0.5.3-dev115",
+  "version_code": 10537,
+  "revision": "io-agent-android-107-single-week-browse",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-26T14:59:32.085Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev114.apk",
+  "signed": "2026-10-26T15:19:24.452Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev115.apk",
   "bytes": 430199144,
-  "sha256": "6dd1d8e3313113426db2573a5a95673fe32527e1ce8c20420b3e7969041b69e0",
+  "sha256": "a22eaca914e8c68d77c2c32637be22e8e675e912ac62d5d949a10fa34e081d72",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -51,5 +51,5 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "installed_verified_at": "2026-10-26T15:18:51.573463+00:00"
+  "installed_verified_at": "2026-10-26T15:25:40.710445+00:00"
 }

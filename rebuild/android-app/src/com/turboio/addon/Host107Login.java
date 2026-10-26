@@ -22,6 +22,9 @@ final class Host107Login {
  private static boolean validRecords(Map<?,?> values){
    Map<?,?> record=tokenRecord(values);return record!=null&&valid(record,System.currentTimeMillis());
  }
+ private static boolean identityRecords(Map<?,?> values){
+   Map<?,?> record=tokenRecord(values);return record!=null&&identityValid(record,System.currentTimeMillis());
+ }
  private static Map<?,?> tokenRecord(Map<?,?> values){
    if(values==null)return null;Object token=values.get("token");if(!(token instanceof String)||((String)token).length()>16384)return null;
    Object parsed=WireJson.read(((String)token).getBytes(StandardCharsets.UTF_8),65536,100);return parsed instanceof Map?(Map<?,?>)parsed:null;
@@ -41,7 +44,7 @@ final class Host107Login {
  }
  static String loginCode(){return renewingSince(System.currentTimeMillis())!=null?"OFFICIAL_LOGIN_RENEWING":"OFFICIAL_LOGIN_REQUIRED";}
  static OfficialAccountBinding account(){
-  try{Map<?,?> values=records();if(!validRecords(values)||!(values.get("user_info") instanceof String))return null;return OfficialAccountBinding.read(((String)values.get("user_info")).getBytes(StandardCharsets.UTF_8));}catch(Exception unavailable){return null;}
+  try{Map<?,?> values=records();if(!identityRecords(values)||!(values.get("user_info") instanceof String))return null;return OfficialAccountBinding.read(((String)values.get("user_info")).getBytes(StandardCharsets.UTF_8));}catch(Exception unavailable){return null;}
  }
  /** Ephemeral current-account read credential for the fixed official API only.
   * No refresh, persistence, or credential forwarding to our material server. */
@@ -61,7 +64,7 @@ final class Host107Login {
  static void warm(android.content.Context context)throws Exception{Class<?> holder=NavReflect.type("y8.d");if(holder.getField("b").get(null)!=null)return;Object d=holder.getField("a").get(null);holder.getMethod("a",android.content.Context.class).invoke(d,context);}
  static boolean loggedIn(){
   Map<?,?> values=null;String failure=null;boolean ok;
-  try{values=records();ok=validRecords(values);}catch(Exception unavailable){failure=unavailable.getClass().getSimpleName();ok=false;}
+  try{values=records();ok=identityRecords(values);}catch(Exception unavailable){failure=unavailable.getClass().getSimpleName();ok=false;}
   note(ok,values,failure);return ok;
  }
  private static volatile Boolean lastOk;private static volatile long lastNote;
@@ -101,6 +104,18 @@ final class Host107Login {
   if(!(access instanceof String)||((String)access).trim().isEmpty())return false;
   Long until=expiresAt(record.get("accessTokenExpireAt"));
   return until!=null&&until>now;
+ }
+ /** Server pairing uses the current signed-in account identity, not an official
+  * API access token's short lifetime. A still-valid native refresh session keeps
+  * that identity available. Official API requests continue to use valid() in
+  * session(); no refresh credential is exported, renewed or sent to our server. */
+ static boolean identityValid(Map<?,?> record,long now){
+  if(valid(record,now))return true;
+  Object access=record.get("accessToken"),refresh=record.get("refreshToken");
+  Long accessUntil=expiresAt(record.get("accessTokenExpireAt")),refreshUntil=expiresAt(record.get("refreshTokenExpireAt"));
+  return access instanceof String&&!((String)access).trim().isEmpty()&&accessUntil!=null&&accessUntil<=now&&
+    refresh instanceof String&&!((String)refresh).trim().isEmpty()&&((String)refresh).length()<=16384&&
+    refreshUntil!=null&&refreshUntil>now;
  }
  static Long expiresAt(Object expiry){
   try{

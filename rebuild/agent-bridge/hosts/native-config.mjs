@@ -9,7 +9,7 @@ import {createClaudeModBroker} from './claude-mod/broker.mjs';
 
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const need=(v,code='INVALID_NATIVE_CONFIG')=>{if(!v)throw new BridgeError(code,{permanent:true});};
-const hostCapabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,exact_turn_interrupt:true,final_result_evidence:true,native_queue_expiry:false});
+const hostCapabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true,native_queue_expiry:false});
 
 /** Explicit, local host binding. No session discovery, creation, resume, model
  * launch, or global plugin installation. A disconnected native endpoint is
@@ -62,10 +62,10 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
             const get=()=>attempt??=(async()=>{
               let bearerToken;
               if(e.authFile){const auth=readPrivateJson(e.authFile);need(object(auth)&&Object.keys(auth).length===1&&typeof auth.token==='string'&&auth.token,'INVALID_NATIVE_AUTH');bearerToken=auth.token;}
-              return connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,metadataOnly:true,...(bearerToken?{bearerToken}:{})});
+              return connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,metadataOnly:true,subscribeEvents:true,...(bearerToken?{bearerToken}:{})});
             })();
             host={conversationId:e.binding.route.session_id,capabilities:hostCapabilities};
-            for(const method of ['status','start','inspectOperation','interrupt','inspectStop','readiness'])host[method]=async(...args)=>{
+            for(const method of ['status','start','inspectOperation','interrupt','stopChildren','inspectStop','readiness'])host[method]=async(...args)=>{
               const connected=await get();need(typeof connected[method]==='function','NATIVE_RUNTIME_READINESS_UNSUPPORTED');return connected[method](...args);
             };
             closers.push(async()=>{if(attempt)try{await (await attempt).close();}catch{}});

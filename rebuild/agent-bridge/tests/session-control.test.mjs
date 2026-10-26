@@ -212,3 +212,18 @@ test('corrupt journal and identity replacement stop rather than recreate the que
   const value=JSON.parse(fs.readFileSync(f.stateFile,'utf8'));value.native_control.order.push(randomUUID());fs.writeFileSync(f.stateFile,JSON.stringify(value));
   assert.throws(()=>f.open(),{code:'SESSION_STATE_CORRUPT'});assert.equal(f.calls.length,0);
 });
+
+test('native child stop is separately durable, exact-turn, and never resent after reply loss or restart',async t=>{
+  const f=fixture(t);let q=f.open();const {input,turn}=await running(f,q);
+  f.host.capabilities.exact_turn_child_stop=true;let calls=0;
+  f.host.stopChildren=async id=>{
+    calls++;assert.equal(id,turn.turnId);
+    const saved=JSON.parse(fs.readFileSync(f.stateFile)).native_control.commands[input.command_id];
+    assert.equal(saved.child_stop_phase,'prepared');throw Error('native reply lost');
+  };
+  await q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:turn.turnId});
+  turn.status='interrupted';await q.tick();assert.equal(calls,1);assert.equal(q.list()[0].phase,'stop_unconfirmed');
+  await q.close();q=f.open();await q.tick();assert.equal(calls,1);
+  f.host.proof={conversationId:f.binding.route.session_id,turnId:turn.turnId,terminal:true,descendantsStopped:true};
+  await q.tick();assert.equal(q.list()[0].phase,'stopped');assert.equal(calls,1);
+});

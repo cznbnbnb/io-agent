@@ -9,19 +9,20 @@ import {MOD_NAME, stamp} from '../hosts/claude-mod/plugin/hooks/protocol.js';
 
 // Synthetic Mod runtime only. These tests never launch Claude or load a plugin
 // into a real conversation. Network calls use an isolated loopback broker.
-async function fixture(t) {
+async function fixture(t,{witness}={}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'io-claude-mod-'));
   fs.chmodSync(directory,0o700);
   let now = Date.now();
   const binding = {server_id:'synthetic', owner_id:'synthetic', host_kind:'claude', workspace:directory,
     route:{computer_id:'test',agent_id:'claude',project_id:'test',session_id:randomUUID()}};
-  let broker = await createClaudeModBroker({directory, binding, clock:() => now});
+  const createWitness=witness?()=>witness:undefined;
+  let broker = await createClaudeModBroker({directory, binding, clock:() => now,createWitness});
   t.after(async () => {await broker.close(); fs.rmSync(directory,{recursive:true,force:true});});
   const f = {directory, binding, get broker(){return broker;}, now:()=>now, advance:ms=>{now += ms;},
     descriptor:()=>JSON.parse(fs.readFileSync(broker.configFile,'utf8')),
     async restart(){await broker.close(); const reordered={host_kind:binding.host_kind,workspace:binding.workspace,
       server_id:binding.server_id,owner_id:binding.owner_id,route:binding.route};
-      broker = await createClaudeModBroker({directory,binding:reordered,clock:()=>now});},
+      broker = await createClaudeModBroker({directory,binding:reordered,clock:()=>now,createWitness});},
     async request(endpoint, body={}, overrides={}) {
       const c=f.descriptor();
       const response = await fetch(c.url+endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${c.token}`,...overrides.headers},
@@ -40,6 +41,7 @@ async function simulator(t, f, initialStore) {
   const $ = {
     plugin:{root:f.broker.pluginDirectory},
     fs:{read:async file=>fs.readFileSync(file,'utf8')},
+    process:{run:async()=>({exitCode:0,stdout:'12345',stderr:''})},
     session:{id:async()=>state.sessionId,cwd:async()=>state.cwd},
     store:{get:async key=>structuredClone(store.get(key)),set:async(key,value)=>{
       if(state.storeFailure) throw new Error('synthetic durable write failure'); store.set(key,structuredClone(value));
@@ -123,7 +125,8 @@ test('native queued input does not block exact abort, and stop receipt never pro
   await f.broker.host.interrupt('owned-turn');await s.tick(2);
   await s.fire('turn.complete',{turnId:'owned-turn',isAborted:true,answer:'partial'});await s.tick();
   assert.deepEqual(await f.broker.host.inspectStop('owned-turn'),{
-    conversationId:f.binding.route.session_id,turnId:'owned-turn',terminal:true,descendantsStopped:false});
+    conversationId:f.binding.route.session_id,turnId:'owned-turn',terminal:true,descendantsStopped:false,
+    workStop:{coverage:1,toolsStopped:true,processes:{observed:false,quiescent:false}}});
 });
 
 test('lost poll and receipt replies never duplicate native submission; final result belongs to its exact turn',async t=>{
@@ -345,11 +348,10 @@ test('aborted owned Bash uses exact structured native task once; lost receipt ne
     phase:'stop_requested',native_result:'success'}]);
 });
 
-test('no Mod abort, subagent tools, normal backgrounding and text-only task IDs cannot trigger TaskStop',async t=>{
+test('no Mod abort, subagent tools and text-only task IDs cannot trigger TaskStop',async t=>{
   const variants=[
     {abort:false},
     {event:{agentId:'child-agent'},abort:true},
-    {response:{result:{backgroundTaskId:'native-task-1',backgroundedByTurnAbort:false}},abort:true},
     {response:{text:'Command running in background with ID: fake-task',result:{}},abort:true},
     {response:{isError:true,result:{backgroundTaskId:'native-task-1',backgroundedByTurnAbort:true}},abort:true},
   ];
@@ -425,4 +427,59 @@ test('broker child receipts require exact turn/task and terminal evidence cannot
   assert.equal((await report({phase:'stop_unknown'})).error,'CLAUDE_MOD_CHILD_TERMINAL_CONFLICT');
   assert.equal((await report({phase:'identified',task_id:'other-native-task'})).error,'CLAUDE_MOD_CHILD_TASK_CONFLICT');
   assert.equal((await f.broker.host.inspectStop('owned')).childStops[0].phase,'stop_requested');
+});
+
+function syntheticWitness(){
+  return {proof:{observed:true,quiescent:true},async bind(){},async begin(){},async inspect(){return structuredClone(this.proof);},close(){}};
+}
+test('complete native tool ledger plus independent process quiet enables exact stop, never a bare receipt',async t=>{
+  const witness=syntheticWitness(),f=await fixture(t,{witness}),s=await simulator(t,f),b=await ownedBash(t,f,s);
+  await f.broker.host.interrupt('bash-turn');await s.tick(2);
+  b.release();await b.call;await s.fire('turn.complete',{turnId:'bash-turn',isAborted:true,answer:''});await s.tick(3);
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,true);
+  witness.proof.quiescent=false;
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,false);
+  witness.proof.quiescent=true;
+  await s.fire('turn.start',{turnId:'local-user-work',text:'Local user task'});await s.tick();
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,false);
+  await s.fire('session.end');
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,false);
+});
+test('a tool still in flight or unsupported external work fences continuation despite an idle OS snapshot',async t=>{
+  for(const tool of ['Read','Agent','mcp__remote__create_job']){
+    const f=await fixture(t,{witness:syntheticWitness()}),s=await simulator(t,f),id=await f.enqueue();
+    await s.tick(2);await s.admit(0,'guarded');await s.tick();
+    let release,entered;const ready=new Promise(r=>entered=r);
+    const call=s.fire('tool.call',{tool,tool_use_id:'work-1'},async()=>{entered();return new Promise(r=>release=r);});
+    await ready;await f.broker.host.interrupt('guarded');await s.tick(2);
+    await s.fire('turn.complete',{turnId:'guarded',isAborted:true,answer:''});await s.tick(2);
+    assert.equal((await f.broker.host.inspectStop('guarded')).descendantsStopped,false);
+    release({result:{}});await call;await s.tick(3);
+    assert.equal((await f.broker.host.inspectStop('guarded')).descendantsStopped,tool==='Read');
+    assert.equal((await f.broker.host.inspectOperation(id)).turnId,'guarded');
+  }
+});
+test('bridge restart cannot bless an old interrupted turn with a new process observer',async t=>{
+  const f=await fixture(t,{witness:syntheticWitness()}),s=await simulator(t,f),b=await ownedBash(t,f,s);
+  await f.broker.host.interrupt('bash-turn');await s.tick(2);b.release();await b.call;
+  await s.fire('turn.complete',{turnId:'bash-turn',isAborted:true,answer:''});await s.tick(3);
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,true);
+  s.state.timer.cancel();const copied=new Map([...s.store].map(([k,v])=>[k,structuredClone(v)]));
+  await f.restart();const restored=await simulator(t,f,copied);await restored.tick(2);
+  assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,false);
+});
+test('normal background work created by this exact turn is also stopped when that task is interrupted',async t=>{
+  const f=await fixture(t,{witness:syntheticWitness()}),s=await simulator(t,f);
+  const b=await ownedBash(t,f,s,{response:{result:{backgroundTaskId:'native-task-1',backgroundedByTurnAbort:false}}});
+  b.release();await b.call;await f.broker.host.interrupt('bash-turn');await s.tick(3);
+  await s.fire('turn.complete',{turnId:'bash-turn',isAborted:true,answer:''});await s.tick(2);
+  assert.equal(s.state.toolCalls.length,1);assert.equal((await f.broker.host.inspectStop('bash-turn')).descendantsStopped,true);
+});
+
+test('native turn.start cannot release tools before the broker acknowledges its process baseline',async t=>{
+  let entered,release;const began=new Promise(r=>entered=r),witness=syntheticWitness();
+  witness.begin=async()=>{entered();await new Promise(r=>release=r);};
+  const f=await fixture(t,{witness}),s=await simulator(t,f);await f.enqueue();await s.tick(2);
+  let admitted=false;const admission=s.admit(0,'pre-tool').then(()=>admitted=true);
+  await began;assert.equal(admitted,false);release();await admission;assert.equal(admitted,true);
 });

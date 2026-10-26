@@ -16,7 +16,7 @@ const turnStates=new Set(['inProgress',...terminal]);
 const processId=v=>typeof v==='string'&&/^[0-9]{1,10}$/.test(v)&&Number(v)>0&&Number(v)<=2147483647;
 // expiresAt gates initial admission only. Native queue/add has no expiry field;
 // accepted work may execute later, and this adapter does not delete queued work.
-const capabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,final_result_evidence:true});
+const capabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
 
 export class CodexAppServerError extends Error {
   constructor(code,{outcomeUnknown=false,nativeCode,nativeReason,threadId,nativeMethod}={}) {
@@ -178,23 +178,48 @@ function turn(value){need(object(value)&&id(value.id)&&turnStates.has(value.stat
  * callers must retain that journal across process restarts. This adapter has
  * no retry/reconnect loop, and an ambiguous write is never resent here. */
 export class CodexAppServerSession {
+  #stopObservations=new Map();
+  #observedTurnStarts=new Set();
+  #observedTurnEnds=new Set();#observedKinds=new Map();#unknownToolTurns=new Set();
+  #subscribeEvents;#joined=false;
   #channel;#attempts=new Map();#turnIds=new Map();#maxPages;#closed=false;#workspace;#inFlight=new Set();#interrupts=new Map();#hasHistory=false;#legacyItems=false;#legacyTurns=false;#queueStarts=new Map();#cleanups=new Map();#cleanupPreparing=new Set();#liveCommandItems=new Map();#liveItemsOverflow=false;#unlisten;
-  constructor(channel,conversationId,{workspace,maxPages=10}={}){
+  constructor(channel,conversationId,{workspace,maxPages=10,subscribeEvents=false}={}){
     need(channel&&typeof channel.request==='function'&&uuid(conversationId),'CODEX_APP_SERVER_BINDING_INVALID');
     need(Number.isSafeInteger(maxPages)&&maxPages>=1&&maxPages<=100,'CODEX_APP_SERVER_LIMIT_INVALID');
-    this.#channel=channel;this.conversationId=conversationId;this.#workspace=normalizedWorkspace(workspace);this.#maxPages=maxPages;
+    need(typeof subscribeEvents==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
+    this.#channel=channel;this.conversationId=conversationId;this.#workspace=normalizedWorkspace(workspace);this.#maxPages=maxPages;this.#subscribeEvents=subscribeEvents;
     if(typeof channel.listen==='function')this.#unlisten=channel.listen(message=>this.#observeNativeItem(message));
   }
   get capabilities(){return capabilities;}
-  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages,metadataOnly=false}={}){
+  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages,metadataOnly=false,subscribeEvents=false,onDiagnostic}={}){
     need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
-    const channel=await new CodexAppServerChannel(endpoint,{timeoutMs,bearerToken}).connect();
-    try{return await new CodexAppServerSession(channel,conversationId,{workspace,maxPages}).attach({metadataOnly});}catch(error){channel.close();throw error;}
+    const channel=await new CodexAppServerChannel(endpoint,{timeoutMs,bearerToken,onDiagnostic}).connect();
+    try{return await new CodexAppServerSession(channel,conversationId,{workspace,maxPages,subscribeEvents}).attach({metadataOnly});}catch(error){channel.close();throw error;}
   }
   #check(){need(!this.#closed,'CODEX_APP_SERVER_CLOSED');}
   #observeNativeItem(message){
+    if(!this.#closed && !Object.hasOwn(message??{},'id') && message?.method==='turn/started' &&
+        message.params?.threadId===this.conversationId && id(message.params?.turn?.id)) {
+      if(this.#observedTurnStarts.size>=1000)this.#liveItemsOverflow=true;
+      else this.#observedTurnStarts.add(message.params.turn.id);
+    }
+    if(!this.#closed && !Object.hasOwn(message??{},'id') && message?.method==='turn/completed' &&
+        message.params?.threadId===this.conversationId && id(message.params?.turn?.id)) {
+      if(this.#observedTurnEnds.size>=1000)this.#liveItemsOverflow=true;
+      else this.#observedTurnEnds.add(message.params.turn.id);
+    }
     if(this.#closed||!object(message)||Object.hasOwn(message,'id')||!['item/started','item/completed'].includes(message.method))return;
     const params=message.params,item=params?.item,timestamp=params?.[message.method==='item/started'?'startedAtMs':'completedAtMs'];
+    if(params?.threadId===this.conversationId && id(params.turnId) && object(item) && id(item.type)) {
+      if(this.#observedKinds.size>=1000&&!this.#observedKinds.has(params.turnId))this.#liveItemsOverflow=true;
+      else {
+        const kinds=this.#observedKinds.get(params.turnId)??new Set();
+        kinds.add(item.type);this.#observedKinds.set(params.turnId,kinds);
+        if(kinds.size>64)this.#liveItemsOverflow=true;
+      }
+      if(item.type==='commandExecution' && (!processId(item.processId)||!id(item.id)||!Number.isSafeInteger(timestamp)))
+        this.#unknownToolTurns.add(params.turnId);
+    }
     if(!object(params)||params.threadId!==this.conversationId||!id(params.turnId)||!Number.isSafeInteger(timestamp)||timestamp<0||!object(item)||item.type!=='commandExecution'||!id(item.id)||!processId(item.processId))return;
     const prior=this.#liveCommandItems.get(item.id);
     if(prior){
@@ -202,12 +227,16 @@ export class CodexAppServerSession {
       // contradictory evidence instead of allowing a later event to replace it.
       if(prior.turnId!==params.turnId||prior.processId!==item.processId)prior.conflicted=true;
       if(!prior.sources.includes(message.method))prior.sources.push(message.method);
+      if(message.method==='item/completed' && ['completed','failed'].includes(item.status) && Number.isInteger(item.exitCode))
+        Object.assign(prior,{status:item.status,exitCode:item.exitCode});
       return;
     }
     if(this.#liveCommandItems.size>=MAX_LIVE_COMMAND_ITEMS){this.#liveItemsOverflow=true;return;}
     // Never retain commands, output or other user content. Only native routing
     // identity and lifecycle provenance are needed for a later double match.
-    this.#liveCommandItems.set(item.id,{id:item.id,turnId:params.turnId,processId:item.processId,sources:[message.method],conflicted:false});
+    this.#liveCommandItems.set(item.id,{id:item.id,turnId:params.turnId,processId:item.processId,sources:[message.method],conflicted:false,
+      ...(message.method==='item/completed' && ['completed','failed'].includes(item.status) && Number.isInteger(item.exitCode) ?
+        {status:item.status,exitCode:item.exitCode} : {})});
   }
   async #pages(method,params,visit){
     let cursor;const seen=new Set();
@@ -222,7 +251,19 @@ export class CodexAppServerSession {
   }
   async attach({metadataOnly=false}={}){
     need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
-    if(metadataOnly)await this.readiness();else await this.status();return this;
+    if(metadataOnly)await this.readiness();else await this.status();
+    if(this.#subscribeEvents&&!this.#joined){
+      const before=await this.#metadata();
+      // The official protocol uses resume to JOIN a thread already owned by
+      // this shared server. No history/path/settings overrides, new server,
+      // session discovery or implicit reconnect. A closing thread rejects it.
+      const reply=await this.#channel.request('thread/resume',{threadId:this.conversationId,excludeTurns:true},{mutation:true});
+      need(reply?.thread?.id===this.conversationId&&normalizedWorkspace(reply.thread.cwd)===this.#workspace&&
+        reply.thread.canAcceptDirectInput===true&&!reply.thread.parentThreadId&&!reply.thread.ephemeral&&
+        (before.createdAt===undefined||before.createdAt===reply.thread.createdAt),'CODEX_APP_SERVER_JOIN_INVALID',{outcomeUnknown:true});
+      this.#joined=true;
+    }
+    return this;
   }
   async #metadata(){
     this.#check();
@@ -494,7 +535,38 @@ export class CodexAppServerSession {
   }
   async inspectStop(turnId){
     need(id(turnId),'CODEX_APP_SERVER_TURN_INVALID');await this.#metadata();const current=(await this.#turns()).find(t=>t.id===turnId);
-    return{conversationId:this.conversationId,turnId,terminal:current?terminal.has(current.status):false,nativeStatus:current?.status??null,descendantsStopped:false};
+    const result={conversationId:this.conversationId,turnId,terminal:current?terminal.has(current.status):false,nativeStatus:current?.status??null,descendantsStopped:false};
+    if(current?.status!=='interrupted' || this.#liveItemsOverflow || !this.#observedTurnStarts.has(turnId) ||
+      !this.#observedTurnEnds.has(turnId) || this.#unknownToolTurns.has(turnId))return result;
+    const items=(await this.#items(turnId)).map(e=>e.item),commands=await this.#turnCommands(turnId),live=await this.#terminals();
+    // An external/MCP/child-agent job has a separate lifecycle. Its absence
+    // from the terminal table cannot certify that work stopped.
+    const synchronous=new Set(['userMessage','agentMessage','reasoning','fileChange','webSearch','imageView','contextCompaction','plan']);
+    const unsupported=items.some(item=>item.type!=='commandExecution'&&!synchronous.has(item.type)) ||
+      [...(this.#observedKinds.get(turnId)??[])].some(kind=>kind!=='commandExecution'&&!synchronous.has(kind));
+    let settled=true;
+    for (const item of commands) {
+      const history=items.find(v=>v.id===item.id),event=this.#liveCommandItems.get(item.id);
+      const completed=event?.turnId===turnId&&!event.conflicted&&event.processId===item.processId&&
+        ['completed','failed'].includes(event.status)&&Number.isInteger(event.exitCode);
+      const historical=history&&['completed','failed'].includes(history.status)&&Number.isInteger(history.exitCode);
+      if(!completed&&!historical || live.some(v=>v.itemId===item.id&&v.processId===item.processId))settled=false;
+    }
+    // A live terminal with this turn's item ID but a contradictory handle is
+    // unknown work, never evidence that the old process disappeared.
+    if(live.some(v=>commands.some(c=>c.id===v.itemId&&c.processId!==v.processId)))settled=false;
+    const noHandle=items.filter(v=>v.type==='commandExecution'&&!processId(v.processId));
+    if(noHandle.some(v=>!['completed','failed'].includes(v.status)||!Number.isInteger(v.exitCode)))settled=false;
+    const observation=digest(JSON.stringify({turn:current.status,commands:commands.map(c=>({id:c.id,processId:c.processId})).sort((a,b)=>a.id.localeCompare(b.id)),
+      settled,unsupported})),previous=this.#stopObservations.get(turnId),now=Date.now();
+    if(!previous || previous.digest!==observation){
+      need(this.#stopObservations.size<1000||this.#stopObservations.has(turnId),'CODEX_APP_SERVER_OPERATION_LIMIT');
+      this.#stopObservations.set(turnId,{digest:observation,at:now});
+    }
+    result.descendantsStopped=!unsupported&&settled&&previous?.digest===observation&&now-previous.at>=450;
+    result.workStop={scope:'native_turn_and_managed_process_groups',commandsSettled:settled,unsupportedWork:unsupported};
+    return result;
   }
+  async stopChildren(turnId){return this.terminateTurnTerminals(turnId);}
   close(){if(this.#closed)return;this.#closed=true;this.#unlisten?.();this.#liveCommandItems.clear();this.#channel.close();}
 }

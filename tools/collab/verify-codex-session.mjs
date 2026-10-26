@@ -51,12 +51,14 @@ try{
     if(nativeItems.length>=300||!item)return;
     nativeItems.push({method:message.method,turnId,type:item.type,id:item.id,processId:item.processId??null,at:new Date().toISOString()});
   });
-  host=new CodexAppServerSession(channel,threadId,{workspace:work,timeoutMs:15000});await host.attach();
+  host=new CodexAppServerSession(channel,threadId,{workspace:work});await host.attach();
   check('isolated_thread_attached',{same_thread:host.conversationId===threadId});
   const nonce=`IO_CONTEXT_${randomUUID()}`;
   const first=randomUUID();await host.start({text:`Remember this exact token for later in this conversation: ${nonce}. Reply with exactly READY and do not call tools.`,clientUserMessageId:first,expiresAt:new Date(Date.now()+180000).toISOString()});
-  const initial=await until(async()=>{const r=await host.inspectOperation(first);return r.status==='completed'?r:false;},'INITIAL_COMPLETION');
+  const initial=await until(async()=>{try{const r=await host.inspectOperation(first);return r.status==='completed'?r:false;}catch(error){if(error.code!=='CODEX_APP_SERVER_RPC_ERROR')throw error;report.initial_observation_retries=(report.initial_observation_retries??0)+1;return false;}},'INITIAL_COMPLETION');
   check('idle_wake_completed',{turn_id:initial.turnId,final_present:!!initial.result});
+  host=await CodexAppServerSession.connect(threadId,{endpoint:`unix://${fs.realpathSync(socket)}`,workspace:work,timeoutMs:15000,subscribeEvents:true,onDiagnostic:arg('--diagnostics')==='yes'?event=>process.stderr.write(JSON.stringify({diagnostic:event})+'\n'):undefined});
+  check('separate_client_joined_original_loaded_thread');
   const workId=randomUUID();await host.start({text:`Run python3 ${path.join(work,'bounded-work.py')} once and wait for it. Do not background it. It is bounded to 180 seconds. Do not call other tools. Reply WORK_FINISHED only after it exits.`,clientUserMessageId:workId,expiresAt:new Date(Date.now()+180000).toISOString()});
   await until(()=>fs.existsSync(path.join(work,'child.json')),'CHILD_START');
   const childInfo=JSON.parse(fs.readFileSync(path.join(work,'child.json'),'utf8'));childPid=childInfo.pid;childStarted=childInfo.started_at*1000;
@@ -75,10 +77,11 @@ try{
   const receipt=await host.interrupt(active.turnId);assert.equal(receipt.expectedTurnId,active.turnId);
   const stopped=await until(async()=>{const r=await host.inspectOperation(workId);return r.status==='interrupted'?r:false;},'INTERRUPTED',30000);
   check('exact_native_turn_interrupted',{turn_id:stopped.turnId,controlled_child_still_running:originalAlive()});
-  const terminals=await host.terminateTurnTerminals(stopped.turnId);report.terminal_stop=terminals;save();
+  const terminals=await host.stopChildren(stopped.turnId);report.terminal_stop=terminals;save();
   await until(()=>!originalAlive(),'CHILD_EXIT',15000);
   const stopElapsed=Date.now()-childStarted;
   assert(stopElapsed<160000&&!fs.existsSync(path.join(work,'child-finished')),'stop must precede natural deadline');
+  report.production_stop=await until(async()=>{const r=await host.inspectStop(stopped.turnId);return r.descendantsStopped===true?r:false;},'PRODUCTION_STOP_PROOF',15000);
   check('exact_turn_and_controlled_child_stopped',{turn_id:stopped.turnId,child_alive:false,child_elapsed_ms:stopElapsed,heartbeat:fs.readFileSync(path.join(work,'heartbeat'),'utf8')});
   const waiting=await host.inspectOperation(next);
   if(waiting.status==='queued'){await host.startQueued(next);check('explicit_original_queue_item_started');}

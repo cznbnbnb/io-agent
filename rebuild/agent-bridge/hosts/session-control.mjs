@@ -61,6 +61,7 @@ export class SessionControl {
         (journal.commands[c.resume_of].resumed_by===id||['cancelled','expired'].includes(c.phase)),'SESSION_STATE_CORRUPT');
       if(c.resumed_by)need(own(journal.commands,c.resumed_by)?.resume_of===id,'SESSION_STATE_CORRUPT');
       if(c.stop_control_id)need(own(journal.controls,c.stop_control_id)?.command_id===id,'SESSION_STATE_CORRUPT');
+      if(c.child_stop_phase!==undefined)need(c.stop_control_id&&['prepared','replied','outcome_unknown'].includes(c.child_stop_phase),'SESSION_STATE_CORRUPT');
     }
     need(Object.keys(journal.controls).length<=1000,'SESSION_STATE_LIMIT');
     for(const [id,control]of Object.entries(journal.controls))need(uuid(id)&&control.control_id===id&&own(journal.commands,control.command_id)?.stop_control_id===id&&
@@ -169,6 +170,14 @@ export class SessionControl {
     }
     if(observed.status==='failed'){this.#change(c,'failed','native_turn_failed');return;}
     if(observed.status!=='interrupted'){this.#change(c,'outcome_unknown','native_status_unrecognized');return;}
+    if (c.stop_control_id && this.#host.capabilities?.exact_turn_child_stop===true && !c.child_stop_phase) {
+      // Persist separately from the original turn interrupt. On restart or a
+      // lost reply, only inspect native evidence; never repeat a child kill.
+      c.child_stop_phase='prepared';this.#change(c,'stop_unconfirmed','awaiting_native_child_stop');
+      try { await this.#host.stopChildren(c.turn_id);c.child_stop_phase='replied'; }
+      catch { c.child_stop_phase='outcome_unknown'; }
+      this.#change(c,'stop_unconfirmed','awaiting_stop_evidence');
+    }
     let proof;
     try{proof=await this.#host.inspectStop?.(c.turn_id);}catch{}
     if(proof?.conversationId===this.#binding.route.session_id&&proof?.turnId===c.turn_id&&proof.terminal===true&&proof.descendantsStopped===true)

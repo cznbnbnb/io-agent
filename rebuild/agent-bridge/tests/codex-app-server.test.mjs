@@ -84,7 +84,7 @@ async function fixture(t,{transport='unix',timeoutMs=300}={}){
 test('connects a private Unix official endpoint and only reads the explicitly loaded thread',async t=>{
   const f=await fixture(t),session=await f.session(),status=await session.status();
   assert.equal(status.conversationId,f.threadId);assert.equal(status.busy,false);assert.equal(status.workspace,fs.realpathSync(f.directory));
-  assert.deepEqual(session.capabilities,{atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,final_result_evidence:true});
+  assert.deepEqual(session.capabilities,{atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
   assert.deepEqual(f.calls[0].params.capabilities,{experimentalApi:true});assert.equal(f.calls[1].method,'initialized');
   assert(f.calls.every(m=>['initialize','initialized','thread/loaded/list','thread/read','thread/turns/list'].includes(m.method)));
 });
@@ -482,4 +482,42 @@ test('live command metadata cache is bounded and overflow never becomes empty pr
   for(let i=1;i<=1001;i++)f.socket.write(frame(nativeCommandEvent(f,turnId,{itemId:randomUUID(),processId:String(i)})));
   await assert.rejects(session.terminateTurnTerminals(turnId),{code:'CODEX_APP_SERVER_LIVE_ITEM_LIMIT'});
   assert(!f.calls.some(m=>m.method==='thread/backgroundTerminals/terminate'));
+});
+
+test('terminal disappearance and a terminate receipt cannot replace exact native process completion',async t=>{
+  const f=await fixture(t),session=await f.session(),turnId=f.addTurn(f.input(),{status:'interrupted',final:null});
+  const own=commandTerminal(f,turnId,'401'),other=commandTerminal(f,f.addTurn(f.input()),'402');
+  f.socket.write(frame({method:'turn/started',params:{threadId:f.threadId,turn:{id:turnId,status:'inProgress'}}}));
+  f.socket.write(frame({method:'turn/completed',params:{threadId:f.threadId,turn:{id:turnId,status:'interrupted'}}}));
+  await session.stopChildren(turnId);assert.deepEqual(f.terminals,[other]);
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,false);
+  const item=f.items.find(e=>e.item.id===own.itemId).item;item.status='failed';item.exitCode=137;
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,false);
+  await new Promise(r=>setTimeout(r,500));
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,true);
+  f.terminals.push({...own,processId:'403'});
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,false);
+});
+test('unmanaged external work remains unconfirmed even with no live terminal',async t=>{
+  const f=await fixture(t),session=await f.session(),turnId=f.addTurn(f.input(),{status:'interrupted',final:null});
+  f.items.push({turnId,item:{id:randomUUID(),type:'mcpToolCall',status:'inProgress'}});
+  await session.inspectStop(turnId);await new Promise(r=>setTimeout(r,500));
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,false);
+  assert(!f.calls.some(m=>m.method==='thread/backgroundTerminals/terminate'));
+});
+
+test('history-only connection with empty interrupted history never proves that omitted native work stopped',async t=>{
+  const f=await fixture(t),session=await f.session(),turnId=f.addTurn(f.input(),{status:'interrupted',final:null});
+  await session.inspectStop(turnId);await new Promise(r=>setTimeout(r,500));
+  assert.equal((await session.inspectStop(turnId)).descendantsStopped,false);
+});
+test('explicit live-session subscription joins only the exact loaded thread without configuration overrides',async t=>{
+  const f=await fixture(t);
+  f.overrides.set('thread/resume',message=>{
+    assert.deepEqual(message.params,{threadId:f.threadId,excludeTurns:true});
+    return {thread:{id:f.threadId,cwd:f.directory,canAcceptDirectInput:true,ephemeral:false,parentThreadId:null,turns:[]}};
+  });
+  const session=await CodexAppServerSession.connect(f.threadId,{endpoint:f.endpoint,workspace:f.directory,metadataOnly:true,subscribeEvents:true});t.after(()=>session.close());
+  assert.equal(f.calls.filter(m=>m.method==='thread/resume').length,1);
+  assert(!f.calls.some(m=>['thread/start','turn/start','thread/settings/update'].includes(m.method)));
 });

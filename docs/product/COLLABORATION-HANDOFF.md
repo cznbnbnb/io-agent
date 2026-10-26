@@ -1,3 +1,26 @@
+## [codex] 2026-10-26 dev116 已差异装机：账号续期与精确停止修复；继续动作待接
+
+已安装 dev116 /10538，完整手机 SHA `1b3e43f9a35dad8de519505152fe3a97097c4c55a05df5576a1e68203c81783d`，仅传 1,911,592 字节差异，安装前/重建后/现装完整哈希一致。原厂及 Agent 页正常，安装版反射 policy probe 证明有效 refresh 身份可跨 access 到期、官方 API access 仍严格、失效 refresh/退出拒绝；未读取或修改实际凭据。UI 样式没有改变。
+
+最终多连接 Codex 原会话事件订阅已跑通：caller608 手机办公写文件和结果回显通过；手机精确停止后，受控父 Python 与其子 Python 均在180秒自然期限前退出，另一个 caller609 会话的父/子进程继续心跳，手机已显示“已停止，可追加指示继续”。caller609 在 dev116 上通过临时选会话办公、结果回显；该临时选择未修改 Codex 默认。此前 caller605 在 dev115 已走通 Claude 同任务停止/追加/改原文件/回手机。
+
+**未完成**：caller608 点继续后指示实际停在 Codex 原生队列，没有启动，不计继续通过。已按原生 queue ID + client ID + 完整指示匹配删除这一自有待发测试输入，恢复原默认 null（revision15），关闭桥/归档测试 thread；服务将未知阶段转为 failed 收尾。caller609 的隔离长任务自然结束，运行器随后到独立截止时间自动退出；不把自然结束算手机停止通过。前一节 caller606 停止误判及手动收尾失败证据保留。
+
+下一步：接入显式继续的原子 queue/start，并在手机明确恢复语义：本次追加指示优先执行，之后原会话已有的排队指令按原顺序继续；不宣称 native 单条启动会一直暂停剩余队列。仍保留停止实证、原子忙时拒绝、原 task/command 路由、丢回执不重发。下一 App 版本 dev117 /10539。设备锁仍 Codex（至19:11Z），提交后继续该目标。
+
+本批检查 Node22.23.2 161 项、task-device 28项/配对解析、登录策略 JVM/manifest、安装版 policy 均通过。证据：[阶段记录](../../rebuild/android-app/phone-session-progress-dev116-2026-10-26.json)。目标仍 active，不能标产品全流程完成。眼镜主动唤起未接，R2 不重开。测试配置/日志保持私有；没有签发或撤销共享设备凭据。
+
+## [codex] 2026-10-26 手机 session 办公/打断收口中（设备锁在 Codex，dev116 待装）
+
+当前目标是手机端完整办公、精确打断及原任务追加继续；眼镜主动录音接线仍未纳入本次完成声明。已核对并包含 Claude 分支 9822acc，不覆盖其 UI 改动。手机仍为 dev115 /10537；新签名 dev116 /10538 已构建，正在按完整 SHA 校验生成差异包，尚未装机。请勿抢设备或版本号。
+
+- Claude 真机：caller604 与最终 caller605 的正常手机下发 → Write 实际写简报 → 长任务 → 手机打断 → 已停止 → 同任务追加 → 原文件预算 8000 改 9000 → 手机完整结果均通过。nonce 只在原 session 播种；task ID 不变，resume_of 关联原 command。生产 Mod 新增完整工具账本和按原轮次建立的只读进程观察，未知/拒绝/丢失的工具回执、仍在运行的后代均不放行。最终进程基线在 turn.start 返回前获 broker ACK，既有服务不误算为本轮工作。真实引擎及重启/权限/孤儿进程等定向检查已跑。
+- 保留的重要失败：caller606 首次手机 Codex 打断出现 false stopped。独立 OS 证据显示 Python 继续心跳；第二条桥接连接没有订阅实时事件，而原生历史省略了这个命令。未继续该任务，按原生 item ID + handle 双匹配手动收尾，不计产品通过。服务拒绝把 stopped 历史改 failed（STATE_CONFLICT），保留历史与失败证据；该连接已暂停，原默认已 CAS 恢复 null（revision13），桥与测试 thread 已关闭/归档。
+- Codex 修复：新增完整 turn.start/turn.complete 事件覆盖门禁及未知工具保护；生产连接先核对原生已加载原 session，再用官方 thread/resume（仅 threadId、excludeTurns，无模型/权限/历史覆盖）加入同服务器原 owner 的事件流。独立真实“两连接”检验已通过，原受控程序退出及同 session 上下文继续通过；最终手机重验仍待进行。控制器对子进程停止另行先落盘，断回执/重启不自动重复终止。不能用单连接测试替代这次入口。
+- 实测还遇到原厂 access token 过期，打开原厂回忆页后手机补回已有结果，没有重新下发。dev116 修正账号身份与短期 API access 的耦合：账号 access 到期但原厂 refresh 会话仍有效时，我们的长期配对继续使用当前账号；官方资料 API 仍要求新鲜 access。退出、刷新会话过期、换号继续隔离，不导出/代续原厂凭据。新增纯合成 map 的 installed-policy probe，尚待新包真机运行。
+
+当前回归：Node 22.23.2 下原生/Mod/控制器/目录等 161 项通过；task device 28 项及配对解析通过；登录策略 JVM/原厂 manifest 通过。登录老测试脚本补齐编译专用 Android/SDK trace 边界，不把 stub 算真机。待完成：差异安装 dev116、installed policy、修复后的 Codex 手机全链及双会话隔离、清理自有测试资源、最终证据/计划/提交推送。所有未完成 DelegateCapture/Confirm 文件保留原样，构建时按 SHA 临时移出后恢复，没有打进 APK。测试私有目录 phone-acceptance-caller603…607；没有新签服务器设备凭据，不撤销共享配对。眼镜进度推送保持关闭。
+
 ## [codex] 2026-10-26 手机主动派发/打断实测：默认 Claude 通过，停止确认与眼镜 wake 未收口
 
 用户要求在手机验主动调用默认 Agent、指定会话打断。设备为 dev115 /10537，完整现装 SHA 再核对；没有构建新 App。复用既有账号配对与正式服务，建 `caller602-20261026-codex` 隔离 Claude 2.1.308 引擎，在同一个真实 session 内执行两项合成任务，不碰用户现用聊天/模型配置，也未发眼镜题或开麦。

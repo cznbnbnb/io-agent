@@ -8,6 +8,7 @@ import {BridgeState} from '../../state.mjs';
 import {BridgeRunLock} from '../../run-lock.mjs';
 import {runtimeDigest} from '../../runtime-events.mjs';
 import {uuid, object} from './plugin/hooks/protocol.js';
+import {ProcessWitness} from '../process-witness.mjs';
 
 const fail = code => { throw Object.assign(new Error(code), {code}); };
 const need = (condition, code) => { if (!condition) fail(code); };
@@ -20,7 +21,7 @@ const clean = operation => {
 };
 
 /** Local candidate only. No credential discovery, model process, or plugin installation. */
-export async function createClaudeModBroker({directory, binding, clock = Date.now}) {
+export async function createClaudeModBroker({directory, binding, clock = Date.now, createWitness=()=>new ProcessWitness()}) {
   need(path.isAbsolute(directory) && object(binding) && uuid(binding.route?.session_id) &&
     binding.host_kind === 'claude' && path.isAbsolute(binding.workspace), 'CLAUDE_MOD_BINDING_INVALID');
   binding = {server_id:binding.server_id, owner_id:binding.owner_id, host_kind:binding.host_kind,
@@ -31,7 +32,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
   const existing = fs.existsSync(stateFile);
   const lock = BridgeRunLock.acquire({stateFile, identity:{server_id:'claude-mod-v1', owner_id:String(os.userInfo().uid),
     computer_id:'local', agent_id:`claude-mod:${binding.route.session_id}`}});
-  let state, server, poisoned = false, closed = false;
+  let state, server, witness, witnessInstance, poisoned = false, closed = false;
   try {
     state = BridgeState.load(lock.stateFile);
     state.bind({server_id:binding.server_id, owner_id:binding.owner_id, producer_id:'claude-mod-broker', binding});
@@ -65,6 +66,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
     const check = () => { need(!closed && !poisoned, 'CLAUDE_MOD_STORAGE_UNAVAILABLE'); lock.assertHeld(); };
     save();
     const token = randomBytes(32).toString('hex');
+    const witnessEpoch=randomUUID();
     let instance = null, ended = false, heartbeat = 0, busy = true, activeTurn = null;
     let publicUrl;
     const envelope = value => ({...value, session_id:binding.route.session_id, cwd:binding.workspace});
@@ -91,7 +93,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         'CLAUDE_MOD_ROUTE_MISMATCH');
       need(typeof request.instance_id === 'string' && /^[a-zA-Z0-9._-]{8,128}$/.test(request.instance_id), 'CLAUDE_MOD_INSTANCE_INVALID');
     }
-    function receive(endpoint, request) {
+    async function receive(endpoint, request) {
       route(request);
       if (endpoint === '/v1/bind') {
         need(!ended && (instance === null || instance === request.instance_id), 'CLAUDE_MOD_ALREADY_BOUND');
@@ -146,6 +148,13 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         op.receipts[receiptId] = digest;
         const extra = {};
         if (receipt.turn_id) extra.turn_id = receipt.turn_id;
+        if (receipt.phase==='running' && receipt.work_coverage===1) {
+          extra.work_coverage=1;
+          if (witness && witnessInstance===instance) {
+            try { await witness.begin(receipt.turn_id);extra.witness_epoch=witnessEpoch; }
+            catch { /* no pre-tool process scope, so no stop proof */ }
+          }
+        }
         if (typeof receipt.reason === 'string') extra.reason = receipt.reason.slice(0,256);
         if (typeof receipt.answer === 'string') extra.answer = receipt.answer;
         if (['running','outcome_unknown'].includes(op.phase) && receipt.phase === 'queued_native') { save(); return {ok:true}; }
@@ -179,8 +188,23 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         }
         child.receipts[r.phase] = digest;op.children[r.tool_use_id] = child;save();return {ok:true};
       }
+      if (endpoint === '/v1/work-report') {
+        const r=request.receipt,op=object(r)&&journal.operations[r.operation_id];
+        need(op?.kind==='submit' && op.work_coverage===1 && op.turn_id===r.turn_id &&
+          Number.isSafeInteger(r.sequence) && r.sequence>0 && typeof r.sealed==='boolean' &&
+          Array.isArray(r.tools) && r.tools.length<=1000 && new Set(r.tools.map(t=>t.tool_use_id)).size===r.tools.length &&
+          r.tools.every(t=>object(t)&&typeof t.tool_use_id==='string'&&/^[a-zA-Z0-9_-]{1,256}$/.test(t.tool_use_id)&&
+            typeof t.tool==='string'&&t.tool.length<=256&&['in_flight','settled','background','unknown','unsupported'].includes(t.state)),
+          'CLAUDE_MOD_WORK_RECEIPT_INVALID');
+        const digest=runtimeDigest(r),old=op.work;
+        if (old && r.sequence===old.sequence) { need(old.digest===digest,'CLAUDE_MOD_WORK_RECEIPT_CONFLICT');return {ok:true}; }
+        need(!old || r.sequence>old.sequence && (!old.sealed || r.sealed) &&
+          old.tools.every(t=>r.tools.some(n=>n.tool_use_id===t.tool_use_id&&n.tool===t.tool)), 'CLAUDE_MOD_WORK_RECEIPT_STALE');
+        op.work={sequence:r.sequence,sealed:r.sealed,tools:r.tools,digest};save();return {ok:true};
+      }
       fail('CLAUDE_MOD_ENDPOINT_UNKNOWN');
     }
+    let receiveTail=Promise.resolve();
     server = http.createServer(async (req, res) => {
       const reply = (status, body) => { res.writeHead(status, {'Content-Type':'application/json', 'Cache-Control':'no-store'}); res.end(JSON.stringify(body)); };
       try {
@@ -191,7 +215,20 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         need(req.headers['content-type']?.split(';')[0] === 'application/json', 'CLAUDE_MOD_REQUEST_REFUSED');
         let raw = '', bytes = 0;
         for await (const chunk of req) { bytes += chunk.length; need(bytes <= 128*1024, 'CLAUDE_MOD_REQUEST_LIMIT'); raw += chunk; }
-        reply(200, receive(req.url, JSON.parse(raw)));
+        const request=JSON.parse(raw);
+        // A duplicate running receipt cannot ACK while its first request is
+        // still establishing the before-tool process scope.
+        const job=receiveTail.then(async()=>{
+          const result=await receive(req.url,request);
+          if (req.url==='/v1/bind' && !witness && Number.isSafeInteger(request.engine_pid)) {
+            try { witness=createWitness();await witness.bind(request.engine_pid);witnessInstance=request.instance_id; }
+            catch { witness?.close();witness=null; }
+          }
+          return result;
+        });
+        receiveTail=job.catch(()=>{});
+        const result=await job;
+        reply(200,result);
       } catch (error) { reply(error.code === 'CLAUDE_MOD_AUTH_FAILED' ? 401 : 409, {ok:false, error:/^CLAUDE_MOD_/.test(error.code) ? error.code : 'CLAUDE_MOD_REQUEST_FAILED'}); }
     });
     server.requestTimeout = 5000; server.headersTimeout = 5000;
@@ -235,11 +272,20 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       },
       async inspectStop(turnId) {
         check(); const op = Object.values(journal.operations).find(op => op.kind === 'submit' && op.turn_id === turnId);
-        return {conversationId:binding.route.session_id, turnId, terminal:op?.phase === 'interrupted', descendantsStopped:false,
+        const processes=witness && witnessInstance===instance && op?.witness_epoch===witnessEpoch ?
+          await witness.inspect(turnId) : {observed:false,quiescent:false};
+        const tools=op?.work?.tools;
+        const toolsStopped=op?.work_coverage===1 && op.work?.sealed===true && Array.isArray(tools) && tools.every(t=>
+          t.state==='settled' || t.state==='background' && op.children?.[t.tool_use_id]?.phase==='stop_requested' &&
+            op.children[t.tool_use_id].native_result==='success');
+        const connected=instance && !ended && clock()-heartbeat<5000;
+        const stopped=op?.phase==='interrupted' && connected && !busy && activeTurn===null && toolsStopped && processes.quiescent;
+        return {conversationId:binding.route.session_id, turnId, terminal:op?.phase === 'interrupted', descendantsStopped:!!stopped,
+          ...(op?.work ? {workStop:{coverage:op.work_coverage,toolsStopped:!!toolsStopped,processes}} : {}),
           ...(op?.children ? {childStops:Object.values(op.children).map(({receipts,...child})=>structuredClone(child))} : {})};
       }
     };
     return {host, pluginDirectory, configFile, snapshot:() => journal.order.map(id => clean(journal.operations[id])),
-      async close() { if (closed) return; closed = true; await new Promise(resolve => server.close(resolve)); lock.release(); } };
-  } catch (error) { server?.close(); lock.release(); throw error; }
+      async close() { if (closed) return; closed = true; witness?.close();await new Promise(resolve => server.close(resolve)); lock.release(); } };
+  } catch (error) { witness?.close();server?.close(); lock.release(); throw error; }
 }

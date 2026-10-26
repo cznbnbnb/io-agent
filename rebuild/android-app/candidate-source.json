@@ -530,7 +530,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Login.java",
-      "sha256": "81b3e51dd59f80dd9a10fe55276bf90e5d04333367dc48fa120f826be79eef94"
+      "sha256": "cc6ccad80c519dace483f0e33cedaf08f779766befa9e3a70cf2e2adda7e1c14"
     },
     {
       "path": "src/com/turboio/addon/Host107OpusFileDecoder.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "7823079d5aacca858d04a811aebb697bdd3f59ffefb1bc7602b51b68a9d7c136"
+      "sha256": "3e85363f2e01cc1118d99de78d1016adb032ece260b1e63789fd6ca25fec1200"
     }
   ],
-  "product_sha256": "fdbb45da02812ce8d68f0f96c8a7216fb15b0e69ddf45f0645ef451fc04890c0",
-  "addon_sha256": "b3819184ca174a924fec64c0fef2146f2fa90bf364edc17d0f862e301c777224",
+  "product_sha256": "2f9849a9700ffbb8b1c1a8a939d850c0298461ca11145b1f7af88172dc22fd06",
+  "addon_sha256": "4a3d595b55c108c73959a1feb3fa64ef3f297533d9af074b388d5eae8d5f7152",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
