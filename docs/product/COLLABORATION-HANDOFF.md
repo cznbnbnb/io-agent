@@ -1,3 +1,11 @@
+## [codex] 2026-10-26 目录/控制服务已发布；真机控制停在原厂登录过期
+
+在 dev97 之后完成 session 发布工具：Node22.23.2 五阶段 rehearsal、7 个发布保护及 8 个 schema-layout 测试通过。release `sessions-5bd5fbe93cec-690c7a108ebf`（源码 `5bd5fbe`）已部署并核对 after SHA；原文字库只备份未恢复，原音库未复制/改写，独立到期 timer 健康。证据 `rebuild/material-server/session-release-deploy.json`。
+
+真机只完成隔离目录/默认/下发链部分：Codex 隔离任务先暴露默认模型不受支持，随后原生 model/list 选中可用模型却返回 usageLimitExceeded（至 10-31），不重试。改 Claude 后发现 broker 对同语义但字段顺序不同的 binding 错报 `STATE_IDENTITY_MISMATCH`，已在 `broker.mjs` 规范化，所有重启测试改用不同字段顺序；Node22 broker/readiness 41 项通过。Claude 2.1.310 第一条手机任务返回空结果且未启动工具，不能用于打断；恢复同一隔离 session 到此前已验 2.1.308 后 READY 和目录在线，但随后原厂安全存储访问令牌过期，手机拒绝新提交。已正常回原厂页面/Home 触发，未恢复；不代替用户重新登录、不发原厂 AI 消息。
+
+因此本轮**没有完成实际打断→停止→追加指示**，更没有宣称 descendantsStopped。两条已到期非默认旧登记经界面确认移除，历史保留；默认目标已清空，隔离引擎/驱动和临时安装已清理。后续先由用户完成 A25-D02 原厂登录恢复，再复用隔离 Claude 验证。眼镜双击继续暂缓。当前 dev97/回退 dev76 保持。
+
 ## [codex] 2026-10-26 USB 全局/资料性能修复 dev97；用户要求合 main，双击暂缓
 
 用户明确优先处理原厂页与自有页卡顿、USB 已连接、随后真机验证打断追加指示；眼镜双击默认 Agent 暂缓。现装 dev92 基线完整 SHA `2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623`，资料列表/首条详情同路径约 5.479/5.892 秒；进程持续高 CPU，原厂页也受同进程资源竞争影响。先差异安装 dev93，再依据真机证据合批隐藏任务页停止重建、任务指纹按需计算、账号读取去重、预热请求合并和只读目录独立 viewIO。中间 dev95 首次 9.547 秒及 dev96 长时间等待未通过，未作为最终结果；根因是预热竞争及只读目录排在最长两分钟同步 IO 后。

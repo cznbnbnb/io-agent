@@ -19,7 +19,9 @@ async function fixture(t) {
   t.after(async () => {await broker.close(); fs.rmSync(directory,{recursive:true,force:true});});
   const f = {directory, binding, get broker(){return broker;}, now:()=>now, advance:ms=>{now += ms;},
     descriptor:()=>JSON.parse(fs.readFileSync(broker.configFile,'utf8')),
-    async restart(){await broker.close(); broker = await createClaudeModBroker({directory,binding,clock:()=>now});},
+    async restart(){await broker.close(); const reordered={host_kind:binding.host_kind,workspace:binding.workspace,
+      server_id:binding.server_id,owner_id:binding.owner_id,route:binding.route};
+      broker = await createClaudeModBroker({directory,binding:reordered,clock:()=>now});},
     async request(endpoint, body={}, overrides={}) {
       const c=f.descriptor();
       const response = await fetch(c.url+endpoint,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${c.token}`,...overrides.headers},
