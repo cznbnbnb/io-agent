@@ -1,3 +1,14 @@
+## [codex] 2026-10-26 会话二维码 + 配对字符串（代码完成，尚未发布）
+
+用户纠正异机接入方式，并补充可复制配对字符串及后续前端美学统一。已合入 Claude dev107 `efe2ab7`；当前设备锁仍归 Claude，本批没有安装 App，不覆盖其资料 UI。旧 WorkBuddy ZIP 的文件来回登记流程作废。
+
+- CLI `pair` 读取宿主真实 session，生成本地离线二维码 HTML 和 `io-agent-pair/1:…` 字符串；两者批准同一份元数据，手机先核对 Agent / 工作区 / 主题 / session 再保存。`pair-status` 领取仅当前路由的长期可续期连接，`join` 沿用原问答适配器。新凭据分 session 保存在私有目录，长期 claim secret 不进入二维码/字符串/分发 ZIP；不创建或唤醒 WorkBuddy。
+- 服务器新增 SessionPairings：10 分钟请求、手机账号确认、稳定设备与限定路由 scopes、离线跨到期恢复及撤销拒绝。inbox / 对象读取 / 发布 / receipt / watch / reconcile 都收窄到绑定路由，不能访问资料、配对其他手机或操作其他 session。旧电脑/手机配对保留。
+- App 电脑连接入口新增统一的扫码/粘贴/预览/保存页面，复用 AgentUI。相机只在前台短时打开、只读 QR，帧不落盘不上网；权限拒绝时可粘贴。相机和 App 实际 UI 尚未实机验收。
+- 测试：服务器新配对+设备+资料配对 9 项通过；队列/回执/生命周期/会话/桥接回归 305 通过、3 个已有跳过；独立完整 Java 编译通过（合入 dev107 后 254 源文件）；parser 双入口等价和 5 种非法输入通过；JS 编码→Android ZXing 解码通过；ZIP 临时新目录解压、文件哈希、doctor/pair/pair-status/join/ask/wait 合成答案完整通过。未访问真实用户问答或发眼镜通知。获取锁失败后误顺带执行一次 `adb devices` 枚举，未操作屏幕/安装/问答；后续已停止一切 ADB。
+- 依赖：qrcode-generator 1.4.4 / MIT 与 ZXing core 3.5.3 / Apache-2.0，固定来源/SHA/许可证，CLI 离线渲染二维码，APK 打包解码器且核验哈希。
+- 新 ZIP 尚未正式交付，需先发布服务器（`deploy-material-pairing.py --session --baseline 0175ef3`，严格核对线上旧版）、获得设备锁再取最新版本号、差异装机、验证手机双入口；WorkBuddy 真正宿主及光学扫码最终仍需用户集中验收 A26-C01。眼镜推送关闭，任务下发继续暂停。
+
 ## [codex] 2026-10-26 合入 Claude dev107，继续会话扫码与粘贴配对
 
 合入 Claude `efe2ab7` 的资料页多选、双向侧滑与统一面板，不覆盖其 UI。当前会话扫码/配对字符串开发尚未发布；原 WorkBuddy ZIP 的传登记文件流程已被用户纠正，不作为正式交付。后续使用 CLI 在真实 session 生成二维码和同等配对字符串，手机核对后服务器绑定。手机仍由 Claude 持锁，Codex 仅进行本地代码/合成服务器测试。用户补充的后续前端美学统一约束将写入 AGENTS。

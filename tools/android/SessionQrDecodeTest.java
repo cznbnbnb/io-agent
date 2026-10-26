@@ -1,0 +1,4 @@
+import java.nio.file.*;import java.util.*;import com.google.zxing.*;import com.google.zxing.common.*;
+public final class SessionQrDecodeTest {
+ public static void main(String[] args)throws Exception{List<String> rows=Files.readAllLines(Paths.get(args[0]));String expected=rows.remove(0);int count=rows.size(),scale=4,edge=16,size=count*scale+edge*2;int[] pixels=new int[size*size];Arrays.fill(pixels,0xffffff);for(int y=0;y<count;y++)for(int x=0;x<count;x++)if(rows.get(y).charAt(x)=='1')for(int a=0;a<scale;a++)for(int b=0;b<scale;b++)pixels[(edge+y*scale+a)*size+edge+x*scale+b]=0;String actual=new MultiFormatReader().decode(new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(size,size,pixels)))).getText();if(!expected.equals(actual))throw new AssertionError();System.out.println("QR encoded by JS and decoded by Android ZXing: passed");}
+}

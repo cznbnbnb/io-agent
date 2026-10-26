@@ -6,6 +6,7 @@ import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
 import {MaterialPairings} from './material-pairings.mjs';
+import {SessionPairings,SESSION_SCOPES} from './session-pairings.mjs';
 import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
@@ -99,7 +100,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
+      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -138,6 +139,8 @@ export class MaterialStore {
     if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))reject(401,'UNAUTHENTICATED');
     const row=this.db.prepare('SELECT * FROM credentials WHERE digest=?').get(sha(token));
     if(!row||row.revoked||row.expires<=this.clock())reject(401,'UNAUTHENTICATED');
+    const bound=this.db.prepare('SELECT route FROM session_bindings WHERE owner=? AND producer=?').get(row.owner,row.producer);
+    if(bound){row.sessionRoute=bound.route;row.scopes=JSON.stringify(JSON.parse(row.scopes).filter(s=>SESSION_SCOPES.includes(s)));}
     if(scope&&!JSON.parse(row.scopes).includes(scope))reject(403,'FORBIDDEN');return row;
   }
   identity(token){
@@ -265,7 +268,7 @@ export class MaterialStore {
       let next=null;
       if(input.enabled){if(!timestamp(input.next_checkin_at))reject(400,'INVALID');next=Date.parse(input.next_checkin_at);if(next<=now||next>now+WATCH_MAX_MS)reject(400,'INVALID_TIME_RANGE');}
       else if(input.next_checkin_at!==null)reject(400,'INVALID');
-      if(!this.queueHead(p.owner,'task',taskId))reject(404,'TASK_NOT_FOUND');
+      const target=this.queueHead(p.owner,'task',taskId);if(!target||p.sessionRoute&&p.sessionRoute!==target.route)reject(404,'TASK_NOT_FOUND');
       const prior=this.db.prepare('SELECT producer FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId);if(prior&&prior.producer!==p.producer)reject(403,'FORBIDDEN');
       this.db.prepare('INSERT INTO watches VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(owner,task_id) DO UPDATE SET enabled=excluded.enabled,next_at=excluded.next_at,note=excluded.note,fired_at=NULL,updated_at=excluded.updated_at').run(p.owner,taskId,p.producer,input.enabled?1:0,next,input.note,null,now);
       return this.watchView(this.db.prepare('SELECT * FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId));
@@ -318,6 +321,7 @@ export class MaterialStore {
     return this.tx(()=>{
       const p=this.auth(token,this.queueScope(kind,event)),now=this.clock(),b=event.body;
       if(p.producer!==event.producer_id)reject(403,'FORBIDDEN');
+      if(p.sessionRoute){const route=kind==='receipt'?this.queueHead(p.owner,b.subject_kind,b.subject_id)?.route:canonical(b.route);if(route!==p.sessionRoute)reject(403,'FORBIDDEN');}
       if(Date.parse(event.expires_at)<=now)reject(410,'EXPIRED');
       if(Date.parse(event.created_at)>now+300000)reject(400,'INVALID_TIME_RANGE');
       const digest=sha(encoded),prior=this.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?').get(p.owner,p.producer,event.idempotency_key);
@@ -474,6 +478,7 @@ export class MaterialStore {
   }
   queueGet(token,kind,objectId){
     const {p}=this.queueRead(token,kind),head=this.queueHead(p.owner,kind,objectId);if(!head)reject(404,QUEUE_MISSING[kind]);
+    if(p.sessionRoute&&p.sessionRoute!==head.route)reject(404,QUEUE_MISSING[kind]);
     const item=this.queueItem(this.queueRevision(p.owner,kind,objectId,head.revision),head.state);
     const receiptsOf=(subjectKind,subject)=>this.db.prepare("SELECT body FROM queue_revisions WHERE owner=? AND kind='receipt' AND json_extract(body,'$.subject_kind')=? AND json_extract(body,'$.subject_id')=? ORDER BY seq")
       .all(p.owner,subjectKind,subject).map(r=>JSON.parse(r.body));
@@ -493,7 +498,7 @@ export class MaterialStore {
       !Number.isSafeInteger(command.request_revision)||command.request_revision<1)reject(400,'INVALID');
     return this.tx(()=>{
       const p=this.auth(token,'requests:write'),now=this.clock();
-      const head=this.queueHead(p.owner,'request',requestId);if(!head)reject(404,'REQUEST_NOT_FOUND');
+      const head=this.queueHead(p.owner,'request',requestId);if(!head||p.sessionRoute&&p.sessionRoute!==head.route)reject(404,'REQUEST_NOT_FOUND');
       if(head.revision!==command.request_revision)reject(409,'STALE_REQUEST',{current_revision:head.revision});
       let changed=false,reason=null;
       if(['pending','presented'].includes(head.state)){
@@ -529,9 +534,9 @@ export class MaterialStore {
     if(Object.keys(query).some(k=>k!=='cursor'&&k!=='limit'))reject(400,'INVALID_QUERY');
     const limit=query.limit===undefined?20:Number(query.limit);
     if(!Number.isSafeInteger(limit)||limit<1||limit>50||!/^\d+$/.test(String(query.limit??20)))reject(400,'INVALID_QUERY');
-    const hash=sha(canonical({kinds})),state=this.cursor(query.cursor,p.owner,'inbox',hash,()=>this.queueCeiling(p.owner));
-    const rows=this.db.prepare(`SELECT * FROM queue_revisions WHERE owner=? AND seq<=? AND kind IN (${kinds.map(()=>'?').join(',')}) AND seq>? ORDER BY seq LIMIT ?`)
-      .all(p.owner,state.ceiling,...kinds,state.last,limit+1);
+    const hash=sha(canonical(p.sessionRoute?{kinds,route:p.sessionRoute}:{kinds})),state=this.cursor(query.cursor,p.owner,'inbox',hash,()=>this.queueCeiling(p.owner));
+    const rows=this.db.prepare(`SELECT * FROM queue_revisions WHERE owner=? AND seq<=? AND kind IN (${kinds.map(()=>'?').join(',')}) AND seq>? ${p.sessionRoute?"AND json_extract(body,'$.route')=?":''} ORDER BY seq LIMIT ?`)
+      .all(p.owner,state.ceiling,...kinds,state.last,...(p.sessionRoute?[p.sessionRoute]:[]),limit+1);
     const items=[];let bytes=8192,last=state.last;
     for(const row of rows.slice(0,limit)){
       const head=this.queueHead(p.owner,row.kind,row.object_id),item=this.queueItem(row,head?.state);

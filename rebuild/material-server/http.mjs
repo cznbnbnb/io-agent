@@ -50,6 +50,11 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         if(url.search||req.headers.authorization)reject(400,'INVALID_QUERY');observation.route='pair';
         send(200,store.devices.pair(await smallJson(req,observation,1024)));return;
       }
+      if(req.method==='GET'&&url.pathname==='/v1/connect'&&!url.search){send(200,{instructions:'请在手机 iO Agent 的电脑连接页点击扫码绑定；二维码只授权屏幕上的指定会话。'});return;}
+      if(req.method==='POST'&&['/v1/session-pairings/start','/v1/session-pairings/claim'].includes(url.pathname)){
+        if(url.search||req.headers.authorization)reject(400,'INVALID_QUERY');observation.route='other';const input=await smallJson(req,observation,4096);
+        send(200,url.pathname.endsWith('/start')?store.sessionPairings.start(input):store.sessionPairings.claim(input));return;
+      }
       // No credentials in query strings, duplicate Authorization or ambiguous queries.
       const headers=req.rawHeaders.filter((_,i)=>i%2===0).map(h=>h.toLowerCase());
       if(headers.filter(h=>h==='authorization').length!==1)reject(401,'UNAUTHENTICATED');
@@ -62,6 +67,11 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         send(200,url.pathname.endsWith('/refresh')?store.materialPairings.refresh(token,input):store.materialPairings.revokeBy(token,input));return;
       }
       observation.principal=store.auth(token);
+      if(observation.principal.sessionRoute&&!/^\/v1\/(?:identity|inbox|tasks|requests|messages|receipts|events|watches)(?:\/|$)/.test(url.pathname))reject(403,'SESSION_SCOPE_REQUIRED');
+      if(req.method==='POST'&&['/v1/session-pairings/preview','/v1/session-pairings/approve'].includes(url.pathname)){
+        if(url.search)reject(400,'INVALID_QUERY');const input=await smallJson(req,observation,1024);
+        send(200,url.pathname.endsWith('/preview')?store.sessionPairings.preview(token,input):store.sessionPairings.approve(token,input));return;
+      }
       const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices|agent-sessions|agent-default)(?:\/|$)/.exec(url.pathname)?.[1];
       observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':
         ['agent-sessions','agent-default'].includes(route)?'other':route??'other';

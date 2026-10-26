@@ -79,7 +79,8 @@ final class AgentConnectionsPage {
     AgentUI.button(activity,screen.body,(history?"收起":"查看")+"已到期连接（"+expired.size()+"）",false,()->{history=!history;redraw();});
     if(history)for(TaskHub.View view:expired)connectionCard(view);
    }
-   AgentUI.button(activity,screen.dock,"添加电脑连接",true,()->register(null));
+   AgentUI.button(activity,screen.dock,"添加 Agent 会话",true,()->AgentSessionPairUI.show(activity));
+   AgentUI.button(activity,screen.body,"导入旧版连接",false,()->register(null));
   }
   void connectionCard(TaskHub.View view){
    TaskConnection connection=view.profile.connection;LinearLayout card=AgentUI.card(activity,screen.body);

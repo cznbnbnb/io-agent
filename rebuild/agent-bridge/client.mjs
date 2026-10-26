@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {renewSession,atomic} from './session-pairing.mjs';
 // P41 connection program: outbound-only client for the material/queue service.
 // Same transport rules as the query tool: file-only bearer, HTTPS (loopback http
 // only when explicitly allowed), no redirects, bounded bodies, one request per call.
@@ -43,7 +44,7 @@ export class BridgeClient{
     this.config=Object.freeze({...config,timeout_ms:timeout});this.base=base;this.clock=clock;this.fetch=fetchImpl;
   }
   token(){
-    const credential=readPrivateJson(this.config.credential_file,4096);
+    const credential=readPrivateJson(this.config.credential_file,8192);
     if(!credential||typeof credential.token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(credential.token)||
       !Number.isFinite(Date.parse(credential.expires_at))||Date.parse(credential.expires_at)<=this.clock())fail('CREDENTIAL_EXPIRED_OR_INVALID',{permanent:true});
     return credential.token;
@@ -52,7 +53,13 @@ export class BridgeClient{
   // refresh_after: the file is replaced atomically, and a 409 means another process sharing the
   // same file renewed first, so the file is read again. Renewal failure keeps a still-valid token.
   async #renewed(){
-    const file=this.config.credential_file,credential=readPrivateJson(file,4096),token=this.token();
+    const file=this.config.credential_file,credential=readPrivateJson(file,8192);
+    if(credential.session_pairing){
+      if(Date.parse(credential.refresh_after)>this.clock()&&Date.parse(credential.expires_at)>this.clock())return this.token();
+      try{const renewed=await renewSession(credential,this.fetch);atomic(file,renewed);return renewed.token;}
+      catch(e){if(Date.parse(credential.expires_at)>this.clock())return this.token();fail(e.code??'PAIRING_RENEW_FAILED',{retryable:true});}
+    }
+    const token=this.token();
     if(typeof credential.device_id!=='string'||!stamp(credential.refresh_after)||Date.parse(credential.refresh_after)>this.clock())return token;
     try{
       const {body}=await this.#send('POST','credentials/refresh','{}',token);

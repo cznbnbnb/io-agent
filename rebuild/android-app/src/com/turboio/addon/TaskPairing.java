@@ -38,6 +38,11 @@ final class TaskPairing {
   TaskApi.Response r=exchange("DELETE",d.base+"devices/"+d.deviceId,d.token,null);
   if(r.status!=200&&r.status!=401)throw new IOException(error(r));
  }
+ static Map<String,Object> session(TaskDevice d,String action,Map<String,Object> body)throws IOException{
+  if(!action.equals("preview")&&!action.equals("approve"))throw new IOException("SESSION_PAIRING_INVALID");
+  TaskApi.Response r=exchange("POST",d.base+"session-pairings/"+action,d.token,WireJson.bytes(body));
+  if(r.status!=200)throw new IOException(error(r));return WireJson.map(WireJson.read(r.body));
+ }
  private static String error(TaskApi.Response r){try{Object code=WireJson.map(WireJson.map(WireJson.read(r.body)).get("error")).get("code");if(code instanceof String&&((String)code).matches("[A-Z][A-Z0-9_]{0,63}"))return (String)code;}catch(RuntimeException ignored){}return "TASK_HTTP_"+r.status;}
  private static TaskApi.Response exchange(String method,String url,String bearer,byte[] payload)throws IOException{
   if(!url.startsWith(TaskDevice.BASE)||url.indexOf('#')>=0||url.indexOf('\r')>=0||url.indexOf('\n')>=0)throw new IOException("TASK_PATH_INVALID");

@@ -24,7 +24,8 @@ def native_preparation():
 
 def public_assets():
     result=assets()
-    result.update({'assets/io-agent/LICENSE.txt':ROOT/'upstream'/'LICENSE',
+    result.update({'assets/io-agent/zxing-LICENSE.txt':ROOT/'vendor/zxing/LICENSE',
+                   'assets/io-agent/LICENSE.txt':ROOT/'upstream'/'LICENSE',
                    'assets/io-agent/NOTICE.txt':ROOT/'upstream'/'NOTICE',
                    'assets/io-agent/upstream-lock.json':ROOT/'upstream-lock.json',
                    'assets/io-agent/product.json':ROOT/'product.json'})

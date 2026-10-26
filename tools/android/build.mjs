@@ -9,6 +9,8 @@ const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..
 const root=path.join(workspace,'rebuild/android-app'),build=path.join(root,'build'),sdk=path.join(root,'.tools/sdk');
 const source=path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),host=path.join(build,'host-107');
 const jarTool=path.join(root,'.tools/apktool.jar'),androidJar=path.join(sdk,'platforms/android-36/android.jar');
+const zxing=path.join(root,'vendor/zxing/core-3.5.3.jar');
+if(crypto.createHash('sha256').update(fs.readFileSync(zxing)).digest('hex')!=='8d8064c1636fdaef7189dd9055c7d59950a8940a12f2293956446ec3c109fd82')throw new Error('ZXing dependency hash mismatch');
 const mode=process.argv.includes('--assemble-only')?'assemble':process.argv.includes('--smali-only')?'smali':process.argv.includes('--addon-only')?'addon':process.argv.includes('--compile-only')?'compile':'all';
 function run(command,args){console.log('Running '+command+' '+(command==='java'&&args.includes('-jar')?path.basename(args[args.indexOf('-jar')+1]):''));const r=spawnSync(command,args,{stdio:'inherit',cwd:root});if(r.error)throw r.error;if(r.status!==0)throw new Error(command+' exit '+r.status);}
 function hash(file){return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');}
@@ -58,11 +60,11 @@ try{
    if(fs.lstatSync(classes).isSymbolicLink()||!fs.statSync(classes).isDirectory())throw new Error('Compiled stage path changed');inspect(classes);fs.rmSync(classes,{recursive:true});
   }
   fs.mkdirSync(classes,{recursive:true});
-  const args=path.join(build,'javac.args');fs.writeFileSync(args,['-encoding','UTF-8','-source','8','-target','8','-cp','"'+androidJar.replaceAll('\\','/')+'"','-d','"'+classes.replaceAll('\\','/')+'"',...sources.map(p=>'"'+p.replaceAll('\\','/')+'"')].join('\n'));
+  const args=path.join(build,'javac.args');fs.writeFileSync(args,['-encoding','UTF-8','-source','8','-target','8','-cp','"'+(androidJar+path.delimiter+zxing).replaceAll('\\','/')+'"','-d','"'+classes.replaceAll('\\','/')+'"',...sources.map(p=>'"'+p.replaceAll('\\','/')+'"')].join('\n'));
   run('javac',['-J-Dfile.encoding=UTF-8','@'+args]);
   run('jar',['cf',path.join(build,'addon.jar'),'-C',classes,'.']);
   fs.mkdirSync(path.join(build,'dex'),{recursive:true});
-  run('java',['-Xmx2048m','-cp',path.join(sdk,'build-tools/36.0.0/lib/d8.jar'),'com.android.tools.r8.D8','--lib',androidJar,'--min-api','29','--output',path.join(build,'dex'),path.join(build,'addon.jar')]);
+  run('java',['-Xmx2048m','-cp',path.join(sdk,'build-tools/36.0.0/lib/d8.jar'),'com.android.tools.r8.D8','--lib',androidJar,'--min-api','29','--output',path.join(build,'dex'),path.join(build,'addon.jar'),zxing]);
   }
   if(mode!=='addon'){
    run('javac',['-encoding','UTF-8','-cp',jarTool,'-d',build,path.join(workspace,'tools/android/AssembleDex.java')]);

@@ -175,6 +175,30 @@ final class TaskRuntime {
   if(now>=nextDirectory)try{refreshDirectory(now);}catch(Exception failure){directoryNote=TaskApi.safeError(failure);}
  }
  private void rebuild()throws Exception{generation++;cancelAll();if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();}
+ interface SessionPreviewResult {void done(SessionPairingCode.Preview preview,String error);}
+ private TaskDevice pairingDevice()throws Exception{
+  login();TaskDevice d=settings.loadDevice();TaskWire.require(d!=null,"DIRECTORY_PAIRING_REQUIRED");
+  TaskWire.require(d.expiresAt>System.currentTimeMillis(),"PAIRING_EXPIRED");
+  if(d.renewDue(System.currentTimeMillis())){d=TaskPairing.renew(d,System.currentTimeMillis());settings.saveDevice(d);device=d;}
+  return d;
+ }
+ private String pairingAccount(){OfficialAccountBinding a=Host107Login.account();TaskWire.require(a!=null,"OFFICIAL_LOGIN_REQUIRED");return a.binding;}
+ void previewSession(String input,SessionPreviewResult result){
+  final long version=generation;final SessionPairingCode.Preview[] preview={null};
+  work(()->{TaskDevice d=pairingDevice();String account=pairingAccount();SessionPairingCode code=SessionPairingCode.parse(input);
+   Map<String,Object> body=TaskPairing.session(d,"preview",code.body());TaskWire.require(version==generation&&account.equals(pairingAccount()),"SESSION_PAIRING_IDENTITY_CHANGED");
+   preview[0]=new SessionPairingCode.Preview(code,d,account,body);
+  },(state,error)->result.done(preview[0],error));
+ }
+ void approveSession(SessionPairingCode.Preview preview,Result result){
+  final long version=generation;work(()->{TaskDevice d=pairingDevice();
+   TaskWire.require(version==generation&&preview.deviceId.equals(d.deviceId)&&preview.owner.equals(d.owner)&&preview.account.equals(pairingAccount()),"SESSION_PAIRING_IDENTITY_CHANGED");
+   TaskWire.require(preview.expires>System.currentTimeMillis(),"PAIRING_EXPIRED");
+   Map<String,Object> ack=TaskPairing.session(d,"approve",preview.code.body());
+   TaskWire.require(preview.code.id.equals(ack.get("id"))&&Boolean.TRUE.equals(ack.get("approved")),"SESSION_PAIRING_INVALID");
+   TaskWire.require(version==generation&&preview.account.equals(pairingAccount()),"SESSION_PAIRING_IDENTITY_CHANGED");nextDiscovery=0;
+  },result);schedule();
+ }
  void pair(String code,Result result){work(()->{
   login();long now=System.currentTimeMillis();
   TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;directory=null;pendingDefault=null;pairing="";nextDiscovery=0;nextDirectory=0;device(now);note="contexts_ready";
