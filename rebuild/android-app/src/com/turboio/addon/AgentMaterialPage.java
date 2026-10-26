@@ -52,7 +52,7 @@ final class AgentMaterialPage {
   Row(int type){this.type=type;}
  }
  private static final class Holder {TextView start,end,title,preview,meta,number,range;MaterialReadingUI.Glyph chevron;View card,rule;MaterialActionsRow actions;MaterialReadingUI.Tick tick;Row row;}
- private MaterialActionsRow openActions;
+ private MaterialActionsRow openActions;private MaterialWeekStrip weekStrip;private boolean deferredRender;
  private void actionsOpened(MaterialActionsRow row){if(openActions!=null&&openActions!=row)openActions.close(false);openActions=row;}
  private final List<Row> rows=new ArrayList<>();
  private final BaseAdapter adapter=new BaseAdapter(){
@@ -100,17 +100,14 @@ final class AgentMaterialPage {
  }
  private boolean hasTrail(long start,long end){return snapshot.insights!=null&&!snapshot.insights.trail(start,end).isEmpty();}
  /** Header (month, week, day title) is a small fixed view; the records below are recycled rows. */
- private void render(){if(closed||snapshot==null)return;body.removeAllViews();MaterialCatalog catalog=snapshot.catalog;ZoneId zone=catalog.zone;Activity a=activity;
+ private void render(){if(closed||snapshot==null)return;if(weekStrip!=null&&weekStrip.busy()&&!selecting){deferredRender=true;return;}deferredRender=false;body.removeAllViews();MaterialCatalog catalog=snapshot.catalog;ZoneId zone=catalog.zone;Activity a=activity;
   if(selecting){selectionHeader();rebuildRows();updateSelection();return;}
   // Month (opens the calendar) and a compact sync status (opens sync details).
   LinearLayout top=new LinearLayout(a);top.setGravity(Gravity.CENTER_VERTICAL);LinearLayout month=new LinearLayout(a);month.setGravity(Gravity.CENTER_VERTICAL);month.setMinimumHeight(AgentUI.dp(a,44));month.addView(MaterialReadingUI.bold(AgentUI.text(a,selected.getYear()+" 年 "+selected.getMonthValue()+" 月",17,AgentUI.INK)));MaterialReadingUI.glyph(a,month,"down",AgentUI.MUTED,16);month.setFocusable(true);month.setContentDescription("选择日期");month.setOnClickListener(v->calendar());top.addView(month,new LinearLayout.LayoutParams(0,-2,1));
   TextView sync=AgentUI.text(a,syncSummary()+"  ›",12,AgentUI.MUTED);sync.setGravity(Gravity.CENTER);sync.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,12),0);sync.setBackground(MaterialReadingUI.outline(a,15));sync.setFocusable(true);sync.setContentDescription("资料同步："+syncSummary());sync.setOnClickListener(v->syncDetails());top.addView(sync,new LinearLayout.LayoutParams(-2,AgentUI.dp(a,32)));body.addView(top);
-  // Week strip: swipe sideways for the previous/next week; the selected day is filled.
-  MaterialReadingUI.SwipeRow week=new MaterialReadingUI.SwipeRow(a,direction->select(selected.plusWeeks(direction)));LocalDate start=selected.minusDays(selected.getDayOfWeek().getValue()-1L);for(int i=0;i<7;i++){LocalDate day=start.plusDays(i);boolean on=day.equals(selected),has=catalog.dates.contains(day);LinearLayout cell=AgentUI.column(a);cell.setGravity(Gravity.CENTER);
-   TextView weekday=AgentUI.text(a,new String[]{"一","二","三","四","五","六","日"}[i],11,on?MaterialReadingUI.ON_ACCENT:AgentUI.MUTED);weekday.setGravity(Gravity.CENTER);cell.addView(weekday);AgentUI.gap(a,cell,4);TextView number=MaterialReadingUI.bold(AgentUI.text(a,Integer.toString(day.getDayOfMonth()),16,on?MaterialReadingUI.ON_ACCENT:has?AgentUI.INK:MaterialReadingUI.DIM));number.setGravity(Gravity.CENTER);cell.addView(number);AgentUI.gap(a,cell,4);
-   View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,has?(on?MaterialReadingUI.ON_ACCENT:MaterialReadingUI.ACCENT_SOFT):0,2));cell.addView(dot,new LinearLayout.LayoutParams(AgentUI.dp(a,4),AgentUI.dp(a,4)));
-   if(on)cell.setBackground(MaterialReadingUI.fill(a,AgentUI.ACCENT,14));cell.setContentDescription(day+(has?"，有已保存记录":"，无已保存记录"));cell.setFocusable(true);cell.setOnClickListener(v->select(day));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(0,AgentUI.dp(a,58),1);cp.leftMargin=cp.rightMargin=AgentUI.dp(a,2);week.addView(cell,cp);}
-  LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(-1,-2);wp.topMargin=AgentUI.dp(a,6);body.addView(week,wp);
+  // Neighbouring weeks remain visible throughout drag, native fling and snap.
+  weekStrip=new MaterialWeekStrip(a,selected,catalog.dates,this::select,()->{if(deferredRender&&!closed&&active)render();});
+  LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(-1,AgentUI.dp(a,58));wp.topMargin=AgentUI.dp(a,6);body.addView(weekStrip,wp);
   // Day header with sort order and refresh.
   List<MaterialCatalog.Entry> entries=catalog.on(selected);LinearLayout header=new LinearLayout(a);header.setGravity(Gravity.CENTER_VERTICAL);LinearLayout titles=AgentUI.column(a);String weekdayName=new String[]{"一","二","三","四","五","六","日"}[selected.getDayOfWeek().getValue()-1];
   titles.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,(selected.equals(LocalDate.now(zone))?"今天 · ":"")+selected.getMonthValue()+"月"+selected.getDayOfMonth()+"日 周"+weekdayName,16,AgentUI.INK,1)));AgentUI.gap(a,titles,4);titles.addView(MaterialReadingUI.line(a,entries.size()+" 条 · "+dayStatus(entries.size()),12,AgentUI.MUTED,2));header.addView(titles,new LinearLayout.LayoutParams(0,-2,1));

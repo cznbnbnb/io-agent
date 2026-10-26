@@ -1,0 +1,55 @@
+{
+  "version": "0.5.3-dev112",
+  "version_code": 10534,
+  "installed_sha256": "0d470b614cc6b8776685327d3860e135991f07e56d46cef091389535e4450ae9",
+  "delta_bytes": 1911592,
+  "installed_full_sha_verified": true,
+  "rollback_version": "0.5.3-dev110",
+  "model_compile_sources": 256,
+  "production_component_probe": {
+    "checks": 11,
+    "passed": true,
+    "viewport_width": 918,
+    "distinct_drag_positions": 12,
+    "distinct_release_positions": 12,
+    "release_positions": [
+      3569,
+      3362,
+      3634,
+      3650,
+      3667,
+      3670,
+      3607,
+      3671,
+      3672,
+      3449,
+      3661,
+      3519
+    ],
+    "no_day_callback_during_drag": true,
+    "cancel_returns_without_selecting": true,
+    "reverse_drag_interrupts_fling_without_jump": true,
+    "detached_animation_cannot_select": true
+  },
+  "actual_material_page_swipes": [
+    {
+      "from": "2026-10-26",
+      "to": "2026-10-19",
+      "process_unchanged": true
+    },
+    {
+      "from": "2026-10-19",
+      "to": "2026-10-26",
+      "process_unchanged": true
+    }
+  ],
+  "failed_intermediate": {
+    "version": "dev111",
+    "check": "WEEK_STRIP_CHECK_6",
+    "distinct_release_positions": 2,
+    "viewport_width": 918,
+    "resolution": "Use a single cancelable ValueAnimator for velocity-based snap, avoiding repeated native smoothScrollTo restarts."
+  },
+  "user_subjective_smoothness_confirmed": false,
+  "user_materials_deleted_or_exported": false
+}

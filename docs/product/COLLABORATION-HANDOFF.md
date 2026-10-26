@@ -1,3 +1,13 @@
+## [codex] 2026-10-26 dev112：日期条改为连续滚动；保留 dev110 回退
+
+用户反馈 dev110 虽不闪退，仍“滑一下刷新一下”，要求相邻日期连续动画。沿用原有 MaterialReadingUI 颜色/字号/圆点和 Claude dev108 布局，替换资料页单周 SwipeRow 入口为 MaterialWeekStrip：相邻七周预排在同一 HorizontalScrollView，原生 1:1 拖动，松手按速度投影到整周，用单一可取消 ValueAnimator 平滑停靠；新手势从当前偏移接管，取消回原周，脱离页面不提交迟到选择。资料 render 在拖动/动画/待提交回调期间延后，停稳后才读选中日期。
+
+中间 dev111 已装但自动采样失败（只捕捉到 2 个松手位置）；保留失败记录，没有宣布通过。排查并移除反复调用原生 smoothScrollTo 的路径；该 API 短间隔调用会中止动画后直接 scrollBy，参见 [AOSP 实现](https://android.googlesource.com/platform/frameworks/base/+/b5d35088cbbbac53b052ec52f199de4ad8b061e7/core/java/android/widget/HorizontalScrollView.java)。最终 dev112 真机自有驱动使用安装包的实际组件、合成日期，通过 11 项：拖动 12 个位置、松手 12 个位置、拖动中不选日期、快速反向不跳起点、取消不切日、移除后不迟到回调。真实资料页左右切换 10/26→10/19→10/26，进程不变。主观顺滑程度仍由用户日常确认；没有删除/导出真实资料。
+
+已差异安装 dev112 /10534，补丁 1,911,592 字节，现装完整 SHA `0d470b614cc6b8776685327d3860e135991f07e56d46cef091389535e4450ae9`。保留已知稳定 dev110 为唯一回退；中间 dev111 与更旧 dev109 包经 SHA 核对后移除。无线中继传输的未知结果均先查实际大小/前缀 SHA，再续传，不全量重发。完整证据：[连续日期带](../../rebuild/android-app/continuous-calendar-dev112-2026-10-26.json)。未碰另一工作区和未完成 DelegateCapture 文件。
+
+上批扫码问答已完成、watch 关闭。临时二维码网页与便携包测试目录已清，用户批准的长期 session 凭据在标准私有目录保留。下一步推荐仍是另一台电脑 WorkBuddy 的真实 session 与粘贴配对入口验收；本批不重复发眼镜问题。
+
 ## [codex] 2026-10-26 dev110：清空旧问答后，真实扫码→眼镜口述→当前 Codex 走通
 
 按用户当前明确要求，只清手机和 turboio-user 服务器旧 Agent 对话。服务器事务移除 147 个 queue 对象、183 个历史版本与相应幂等事件、3 个超时 watch；资料/版本/凭据保护表哈希一致，队列序号保留。手机自有诊断驱动移除 214 个 mailbox/口述草稿/旧卡片缓存文件，清派生连接和提醒队列，保留手机配对、原厂登录、智记、原音及已导出文件。未清电脑设备凭据和会话目录登记。任务主页空状态已真机确认。[清理证据](../../rebuild/android-app/agent-history-reset-2026-10-26.json)。

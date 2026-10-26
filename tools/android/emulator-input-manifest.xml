@@ -42,4 +42,5 @@
  <instrumentation android:name="com.turboio.androidtests.MaterialReadingProbe" android:targetPackage="com.rayneo.venus.pub" />
   <instrumentation android:name="com.turboio.androidtests.MaterialPairingProbe" android:targetPackage="com.rayneo.venus.pub" android:functionalTest="true" />
  <instrumentation android:name="com.turboio.androidtests.TaskHistoryResetProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.WeekStripProbe" android:targetPackage="com.rayneo.venus.pub" />
 </manifest>
