@@ -1,0 +1,42 @@
+{
+  "status": "preflight_passed",
+  "node": "v22.23.2",
+  "production_changed": false,
+  "baseline_commit": "aa813663a1ab7e0a9c201f58a462b8803cc75b9f",
+  "before_sha256": {
+    "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+    "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+    "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+    "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+    "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+    "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+    "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+    "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+    "rebuild/material-server/audio.mjs": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b",
+    "rebuild/material-server/audio-expiry.mjs": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+    "rebuild/material-server/agent-sessions.mjs": null,
+    "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+    "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+    "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+    "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+    "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+    "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+    "rebuild/material-server/contracts/event-v1.schema.json": null,
+    "rebuild/material-server/contracts/event-v1.1.schema.json": null,
+    "rebuild/material-server/contracts/event-v1.2.schema.json": null,
+    "rebuild/material-server/release-contracts.json": null
+  },
+  "shared_contract_sha256": {
+    "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+    "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+    "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+  },
+  "server_id_sha256": "39407d0b5cc92520b46bdb11c18e0588caf658539a2784571625b7672e789b6b",
+  "text_inode": 925340,
+  "audio_inode": 928401,
+  "expiry_module_sha256": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+  "expiry_timer_healthy": true,
+  "shared_contracts_unchanged": true,
+  "legacy_rollback_allowed": true,
+  "extended_task_revisions": 0
+}

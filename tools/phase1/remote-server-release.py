@@ -26,10 +26,11 @@ EXPECTED_START = NODE + ' /opt/turboio/rebuild/material-server/cli.mjs serve --d
 
 class CodeSwitch:
     """Both callbacks must prove service state, not merely issue a request."""
-    def __init__(self, current, stage, backup, rejected, matches, stop, start, health, record, sync):
+    def __init__(self, current, stage, backup, rejected, matches, stop, start, health, record, sync, rollback_guard=None):
         self.current, self.stage, self.backup, self.rejected = map(Path, (current, stage, backup, rejected))
         self.matches, self.stop, self.start = matches, stop, start
         self.health, self.record, self.sync = health, record, sync
+        self.rollback_guard = rollback_guard
         self.stop_requested = False
         self.old_moved = False
         self.new_installed = False
@@ -68,7 +69,20 @@ class CodeSwitch:
         if old_at_backup:
             if not new_at_current and self.current.exists():
                 raise ValueError('ROLLBACK_SOURCE_CONFLICT')
+            if self.rollback_guard:
+                self.rollback_guard()
             self.stop()
+            if self.rollback_guard:
+                try:
+                    # Fence writes that arrived after the first check. No code
+                    # has moved yet; restore the new service if rollback is now
+                    # unsafe, without changing its database or task history.
+                    self.rollback_guard()
+                except Exception:
+                    if new_at_current:
+                        self.start()
+                        self.health('new')
+                    raise
             if new_at_current:
                 if not self.matches(self.current, 'new') or self.rejected.exists():
                     raise ValueError('ROLLBACK_SOURCE_CONFLICT')
@@ -248,6 +262,12 @@ def run_remote(metadata, archive_bytes, package):
         raise ValueError('ARCHIVE_HASH_MISMATCH')
     names = list(package['FILES'])
     additive = tuple(package.get('ADDITIVE_CONTRACTS', ()))
+    session_profile = package.get('RELEASE_PROFILE') == 'agent-session-directory-v1'
+    if session_profile and (package.get('CONTRACTS') or additive or
+            tuple(package.get('LOCAL_CONTRACTS', ())) != tuple(RUNTIME_PREFIX + 'contracts/' + n for n in
+                ('event-v1.schema.json', 'event-v1.1.schema.json', 'event-v1.2.schema.json')) or
+            not callable(package.get('existing_audio_health')) or not callable(package.get('rollback_guard'))):
+        raise ValueError('SESSION_PROFILE_HOOK_REQUIRED')
     if additive and (additive != ('docs/contracts/event-v1.2.schema.json',) or package.get('RELEASE_PROFILE') != 'material-speakers-v1.2'):
         raise ValueError('ADDITIVE_SCHEMA_SCOPE_INVALID')
     if set(metadata['before_sha256']) != set(names):
@@ -314,7 +334,7 @@ def run_remote(metadata, archive_bytes, package):
                 raise ValueError('SHARED_SCHEMA_CHANGED')
             if name in additive and metadata['before_sha256'][name] not in (None, manifest['files'][name]['sha256']):
                 raise ValueError('ADDITIVE_SCHEMA_CHANGED')
-        immutable = ('json.mjs', 'package.json', 'package-lock.json') if additive else ('json.mjs', 'validation.mjs', 'package.json', 'package-lock.json')
+        immutable = ('json.mjs', 'package.json', 'package-lock.json') if additive or session_profile else ('json.mjs', 'validation.mjs', 'package.json', 'package-lock.json')
         for name in immutable:
             if new[RUNTIME_PREFIX + name] != before[RUNTIME_PREFIX + name]:
                 raise ValueError('DEPENDENCY_OR_VALIDATOR_CHANGED')
@@ -375,6 +395,9 @@ def run_remote(metadata, archive_bytes, package):
                 raise ValueError('AUDIO_EXPIRY_HOOK_REQUIRED')
             state['independent_audio_expiry'] = package['prepare_expiry'](manifest)
             record('audio_expiry_ready')
+        if session_profile:
+            state['existing_audio_expiry'] = package['existing_audio_health']()
+            record('existing_audio_verified')
 
         def matches(directory, version):
             if source_hashes(directory, runtime) != (before if version == 'old' else new):
@@ -417,13 +440,16 @@ def run_remote(metadata, archive_bytes, package):
                             raise ValueError('DATABASE_SCHEMA_CHANGED')
                     if version == 'new' and package.get('RELEASE_PROFILE') == 'material-audio-v1':
                         package['audio_health']()
+                    if session_profile:
+                        package['existing_audio_health']()
                     return
                 except Exception:
                     if attempt == 9:
                         raise
                     time.sleep(.3)
 
-        switch = CodeSwitch(paths['current'], paths['stage'], paths['backup'], paths['rejected'], matches, stop, start, health, record, sync_dir)
+        switch = CodeSwitch(paths['current'], paths['stage'], paths['backup'], paths['rejected'], matches, stop, start, health, record, sync_dir,
+                            rollback_guard=package['rollback_guard'] if session_profile else None)
         switch.activate()
         state['after_sha256'] = source_hashes(paths['current'], runtime)
         state['after_contract_sha256'] = verify_contracts(BASE, package['CONTRACTS'], expected_contracts)

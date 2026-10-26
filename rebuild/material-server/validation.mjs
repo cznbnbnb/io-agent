@@ -1,4 +1,4 @@
-import fs from 'node:fs';import {createRequire} from 'node:module';
+import fs from 'node:fs';import {createRequire} from 'node:module';import {createHash} from 'node:crypto';
 import {canonical,reject} from './json.mjs';
 const require=createRequire(import.meta.url);
 function dependency(n){
@@ -7,11 +7,31 @@ function dependency(n){
     throw error;
   }
 }
+const contractNames=['event-v1.schema.json','event-v1.1.schema.json','event-v1.2.schema.json'];
+// A release carries its schemas with the switched code directory. The explicit
+// marker binds all three files; a damaged release must never fall back to the
+// shared, older schemas. Source checkouts and historical packages have neither.
+function contracts(){
+  const marker=new URL('./release-contracts.json',import.meta.url),local=new URL('./contracts/',import.meta.url);
+  const stat=url=>{try{return fs.lstatSync(url);}catch(e){if(e.code==='ENOENT')return null;throw e;}};
+  const m=stat(marker),d=stat(local);
+  if(!m){if(d)throw new Error('RELEASE_CONTRACT_MARKER_MISSING');return new URL('../../docs/contracts/',import.meta.url);}
+  if(!m.isFile()||m.isSymbolicLink()||m.size>4096||!d?.isDirectory()||d.isSymbolicLink())throw new Error('RELEASE_CONTRACT_LAYOUT_INVALID');
+  let manifest;try{manifest=JSON.parse(fs.readFileSync(marker,'utf8'));}catch{throw new Error('RELEASE_CONTRACT_MARKER_INVALID');}
+  if(!manifest||Object.keys(manifest).sort().join(',')!=='files,schema'||manifest.schema!==1||
+    !manifest.files||Array.isArray(manifest.files)||Object.keys(manifest.files).sort().join(',')!==[...contractNames].sort().join(','))throw new Error('RELEASE_CONTRACT_MARKER_INVALID');
+  for(const name of contractNames){
+    const file=new URL(name,local),s=stat(file),expected=manifest.files[name];
+    if(!s?.isFile()||s.isSymbolicLink()||s.size>2097152||typeof expected!=='string'||!/^[a-f0-9]{64}$/.test(expected)||
+      createHash('sha256').update(fs.readFileSync(file)).digest('hex')!==expected)throw new Error('RELEASE_CONTRACT_HASH_MISMATCH');
+  }
+  return local;
+}
 // P40 queue objects reuse the P14 v1.0 envelope. Each kind is validated against
 // its own $defs entry so a material body can never be accepted as a task.
 export function createQueueValidator(){
   const Ajv=dependency('ajv/dist/2020.js'),formats=dependency('ajv-formats');const ajv=new Ajv({allErrors:true,strict:false});formats(ajv);
-  const root=new URL('../../docs/contracts/',import.meta.url);
+  const root=contracts();
   const schema=JSON.parse(fs.readFileSync(new URL('event-v1.schema.json',root)));ajv.addSchema(schema);
   const envelope=ajv.getSchema(schema.$id);
   const kinds=['task','request','answer','message','receipt'];
@@ -28,7 +48,7 @@ export function createQueueValidator(){
 
 export function createValidator(){
   const Ajv=dependency('ajv/dist/2020.js'),formats=dependency('ajv-formats');const ajv=new Ajv({allErrors:true,strict:false});formats(ajv);
-  const root=new URL('../../docs/contracts/',import.meta.url);
+  const root=contracts();
   const old=JSON.parse(fs.readFileSync(new URL('event-v1.schema.json',root)));ajv.addSchema(old);
   const current=JSON.parse(fs.readFileSync(new URL('event-v1.1.schema.json',root)));ajv.addSchema(current);
   const speakers=JSON.parse(fs.readFileSync(new URL('event-v1.2.schema.json',root)));ajv.addSchema(speakers);
