@@ -1,3 +1,15 @@
+## [codex] 2026-10-26 手机 Claude/Codex 办公、精确打断和继续已验收；现装 dev118
+
+本轮手机目标完成，开发者全链在 dev117/10539 通过：CLI 设 Codex 默认→手机正常办公→原会话实际写 brief.md→最终结果回手机；临时选 Claude 下发不改变默认；两边父/子 Python 并行时手机精确停止 Codex，目标两进程提前退出而 Claude 两进程继续；随后同 task 追加继续，原文件8000改9000、nonce不变，最终结果回原任务。Claude 同样通过父/子进程停止、同任务追加修改和手机结果。不是用文字回复或新建任务替代执行。Codex 本次指示只启动一次，预先排队的合成 peer 指令之后正常执行，队列最终为空；前后台返回不重复执行。[完整验收证据](../../rebuild/android-app/phone-session-acceptance-dev117-2026-10-26.json)。caller606 false stopped、caller608 原生队列未启动仍作为失败历史保留。
+
+实现：Codex 的显式继续由生产 SessionControl 耐久保存 activation intent，再以精确 client ID / queue ID 调用原子 queue/start；丢回执/重启仅对账，不重发，不以 turn/start steer，也不覆盖其它队列。该操作恢复原会话调度，后续已授权队列会继续。Claude 仍沿用官方 prompt.submit 排队。手机统一说明“继续会恢复原会话的执行，也会处理该会话已有的排队指令。具体顺序由原 Agent 管理”，使用原 AgentUI 样式；未知工具/事件覆盖缺口/仍活跃工作继续不放行。停止范围是可跟踪的原生工具和受控进程组，不保证任意逃逸 daemon 或远程系统作业已取消。
+
+现装 dev118/10540，完整 SHA `b2e16c4549c5f77b5776b65f2eac3b799492ef6d2bb7305d7e11bbfa34476720`，回退 dev117。dev118 相对已全链验收 dev117 只有共用提示和版本变更；7份控制/登录源码指纹不变，256份 Android 源码编译/D8、签名/原厂 dex 保留检查、1,911,592字节差异传输、基线/重建/现装完整SHA、启动及原已完成任务9000结果保留通过，没有重复同一全链。前一批166项 Node22 回归、补充普通输入不恢复队列用例、最新控制器/Codex80项和手机 task-device28项通过。[dev118交付记录](../../rebuild/android-app/phone-session-delivery-dev118-2026-10-26.json)。
+
+收尾：caller610/611 桥和原生测试引擎干净退出，Codex测试thread已归档，父子工作均无残留；caller608…611 手机连接均暂停，原默认null按CAS恢复revision17；未签新服务器凭据或撤销共享配对。自有诊断驱动已卸载，手机APK/差异/helper/XML临时文件已按SHA清理，仅保留dev118和dev117签名包。设备锁已释放。Claude最新9822acc已包含；仍在自己的 codex/agent-workspace-ui 工作区，未写对方源码。
+
+眼镜进度推送保持关闭，未发眼镜题/开麦，R2不重开。眼镜主动KEY wake→独立采音owner→确认→默认任务仍未接，不能从手机通过推定双击已可用；任意既有Desktop聊天接管也未验收。下一项建议接这条眼镜主动入口，复用已验手机任务通道。7个未完成DelegateCapture/Confirm源码与测试文件保持未跟踪、未装包、未提交；后续单独推进，勿误入本次提交。
+
 ## [codex] 2026-10-26 dev116 已差异装机：账号续期与精确停止修复；继续动作待接
 
 已安装 dev116 /10538，完整手机 SHA `1b3e43f9a35dad8de519505152fe3a97097c4c55a05df5576a1e68203c81783d`，仅传 1,911,592 字节差异，安装前/重建后/现装完整哈希一致。原厂及 Agent 页正常，安装版反射 policy probe 证明有效 refresh 身份可跨 access 到期、官方 API access 仍严格、失效 refresh/退出拒绝；未读取或修改实际凭据。UI 样式没有改变。

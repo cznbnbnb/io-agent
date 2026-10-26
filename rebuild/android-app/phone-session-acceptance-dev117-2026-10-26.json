@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "at": "2026-10-26T18:55:53.062424+00:00",
+  "overall": "passed_phone_bound_native_sessions",
+  "scope": "手机端已显式接入的 Claude/Codex 原 session：默认办公、临时指定、精确停止、同任务追加继续、结果回手机",
+  "app": {
+    "version": "0.5.3-dev117",
+    "version_code": 10539,
+    "installed_sha256": "11ae2b26e23d1e7e856de4b0bfd882b10df36e67c67869070cf0c786999e75d8",
+    "rollback": "dev116",
+    "delta_bytes": 1911592,
+    "baseline_target_full_sha_verified": true
+  },
+  "checks": {
+    "node_22_affected_regression_passed": 166,
+    "additional_normal_queue_no_resume_case_passed": true,
+    "session_control_latest_suite_passed": 34,
+    "task_device_passed": 28,
+    "android_build_sign_original_dex_audit": true,
+    "final_affected_controller_codex_suite_passed": 80
+  },
+  "glasses_active_wake_tested": false,
+  "glasses_wake_capture_confirm_wired": false,
+  "arbitrary_desktop_session_takeover_tested": false,
+  "r2_reopened": false,
+  "sessions": {
+    "codex": {
+      "host": "codex",
+      "route": {
+        "computer_id": "io-mac-computer",
+        "agent_id": "caller610-20261026-codex",
+        "project_id": "phone-ai-acceptance",
+        "session_id": "01a17985-a4d1-77b1-93d0-43dda8f4281a"
+      },
+      "nonce_sha256": "562ce118270a31269e6168cd96f2c314c69b782cecec975270f1922d7e772aec",
+      "office_real_file_and_phone_final": true,
+      "stop_proof": {
+        "610": {
+          "elapsed_seconds": 87.90547299385071,
+          "heartbeat": "62",
+          "grandchild_heartbeat": "62",
+          "natural_end": false,
+          "grandchild_natural_end": false,
+          "pid_alive": false,
+          "grandchild_pid_alive": false
+        },
+        "611": {
+          "elapsed_seconds": 136.24806094169617,
+          "heartbeat": "135",
+          "grandchild_heartbeat": "135",
+          "natural_end": false,
+          "grandchild_natural_end": false,
+          "pid_alive": true,
+          "grandchild_pid_alive": true
+        }
+      },
+      "same_task_resume_real_file_and_phone_final": true,
+      "brief_sha256": "513cbcce6a75b0d591527dc0c600e308be35df051af268221c451fad52857f2a",
+      "commands": [
+        {
+          "command_id": "b8c51f85-c33e-5a11-a560-2e02b486cefb",
+          "task_id": "task-android-9e140abcb56533008b906adbc164f9f0a8e5cb02d8db446f96e742f0deeef3ea",
+          "phase": "completed",
+          "reason": null,
+          "turn_id": "01a17988-1c1b-7ba1-b338-3976a6cccf14",
+          "resume_of": null,
+          "resumed_by": null,
+          "child_stop_phase": null,
+          "resume_queue_phase": null
+        },
+        {
+          "command_id": "15dd62a7-a892-5a4b-a983-0a458572f711",
+          "task_id": "task-android-67267bd747e103f0dc8eed7d3cca333a298fa500a733986577a8e5857c2f9442",
+          "phase": "stopped",
+          "reason": "native_turn_and_children_stopped",
+          "turn_id": "01a1798a-94a5-79e0-867c-5c2ffbb7a445",
+          "resume_of": null,
+          "resumed_by": "a42c8bb4-5776-43eb-beca-8781f97e6b2c",
+          "child_stop_phase": "replied",
+          "resume_queue_phase": null
+        },
+        {
+          "command_id": "a42c8bb4-5776-43eb-beca-8781f97e6b2c",
+          "task_id": "task-android-67267bd747e103f0dc8eed7d3cca333a298fa500a733986577a8e5857c2f9442",
+          "phase": "completed",
+          "reason": null,
+          "turn_id": "01a1798c-6a89-7032-881e-79b0f2fddc5e",
+          "resume_of": "15dd62a7-a892-5a4b-a983-0a458572f711",
+          "resumed_by": null,
+          "child_stop_phase": null,
+          "resume_queue_phase": "replied"
+        }
+      ],
+      "runner_closed_without_error": true,
+      "test_directory_offline": true,
+      "phone_profile_paused": true,
+      "artifacts": {
+        "phone-office-ui.xml": "2307b9ae651ae1a6fe984556f2f447a2584e2931be4fb1195b8eaf5dc0d5eb6a",
+        "phone-stopped-ui.xml": "d0c6ed5f862cc990f893ed41541e848b45270bfe3f1597ab82aa921d9153b1e0",
+        "phone-resumed-result-ui.xml": "a65f090ac693ac4c35dcc7de16f0c878aec33c797fa8263e717df5207adac8f6",
+        "final-stop-os-proof.json": "5c631299bdce0086ea5b04bc7814d4ad229ea91ce29cf5a538432ce9a30d490f"
+      },
+      "selected_directive_started_once": true,
+      "synthetic_peer_followed_in_native_order": true,
+      "native_queue_empty": true,
+      "second_client_event_subscription": true,
+      "background_return_preserved_final_result": true,
+      "thread_archived": true,
+      "phone_queue_restoration_copy_verified": true
+    },
+    "claude": {
+      "host": "claude",
+      "route": {
+        "computer_id": "io-mac-computer",
+        "agent_id": "caller611-20261026-codex",
+        "project_id": "phone-ai-acceptance",
+        "session_id": "6ca5ce6a-1223-4865-972a-edf10920bed8"
+      },
+      "nonce_sha256": "ba7a5c9c57443741f2644f9679ec6f11935fca98ab12e562b9e0a1c60b9d2d49",
+      "office_real_file_and_phone_final": true,
+      "stop_proof": {
+        "elapsed_seconds": 229.5685031414032,
+        "heartbeat": "202",
+        "grandchild_heartbeat": "202",
+        "natural_end": false,
+        "grandchild_natural_end": false,
+        "pid_alive": false,
+        "grandchild_pid_alive": false
+      },
+      "same_task_resume_real_file_and_phone_final": true,
+      "brief_sha256": "bfaf0d93cb8cc9d00d08da1e37d8178dbe5290545db478fea4fd911802b3c2ff",
+      "commands": [
+        {
+          "command_id": "02036884-29a2-5218-a32e-099dddd47889",
+          "task_id": "task-android-75d31758a8b726c960fc71c6e9a7445e6a273d93d06a08fd9c19ec77c67d5396",
+          "phase": "completed",
+          "reason": null,
+          "turn_id": "5cb35ed4-a172-4c23-8635-eb28f1b1c478",
+          "resume_of": null,
+          "resumed_by": null,
+          "child_stop_phase": null,
+          "resume_queue_phase": null
+        },
+        {
+          "command_id": "e367ec7e-e6f5-558e-aee9-7a454a52205b",
+          "task_id": "task-android-907163ebd7fcef4454ced24d1ddb7d3fb32c4484a89d03ef0bd0670ed41dd3d9",
+          "phase": "stopped",
+          "reason": "native_turn_and_children_stopped",
+          "turn_id": "39c1da3b-60e0-4af3-8440-b53d5319855c",
+          "resume_of": null,
+          "resumed_by": "3935ef26-875b-47ec-84ff-fdac3fde82a8",
+          "child_stop_phase": null,
+          "resume_queue_phase": null
+        },
+        {
+          "command_id": "3935ef26-875b-47ec-84ff-fdac3fde82a8",
+          "task_id": "task-android-907163ebd7fcef4454ced24d1ddb7d3fb32c4484a89d03ef0bd0670ed41dd3d9",
+          "phase": "completed",
+          "reason": null,
+          "turn_id": "64efbce9-6f89-4f2b-a7a4-ac7150caf53d",
+          "resume_of": "e367ec7e-e6f5-558e-aee9-7a454a52205b",
+          "resumed_by": null,
+          "child_stop_phase": null,
+          "resume_queue_phase": null
+        }
+      ],
+      "runner_closed_without_error": true,
+      "test_directory_offline": true,
+      "phone_profile_paused": true,
+      "artifacts": {
+        "phone-office-ui.xml": "79075be89ae7daeadaba9cd35fe3ea23fcbd8097f21639d5ea476cdf4f4d32de",
+        "phone-stopped-ui.xml": "319e967440e6f072751fdead94c85ea5e0a161f287a09e5778d3572003ba28d0",
+        "phone-resumed-result-ui.xml": "bf60c06e6038a256d00c1552f8912f30bc95d098187d1f21623d8aa92e13575d",
+        "final-stop-os-proof.json": "bffd2f71080659fc9a33be44b95a92bc1402dce65f95bb26a1e955ce40d87b21"
+      }
+    }
+  },
+  "preserved_prior_failure": {
+    "evidence": "phone-session-progress-dev116-2026-10-26.json",
+    "caller606_false_stopped_preserved": true,
+    "caller608_queued_resume_failure_preserved": true,
+    "neither_counted_as_full_pass": true
+  },
+  "limits": [
+    "Only explicitly bound, online native sessions with original tool permissions; no implicit Desktop takeover.",
+    "Unknown tools, incomplete native event coverage or live work cannot receive a stopped proof.",
+    "Native queue expiry is not supported after acceptance. Explicit queue activation checks the directive deadline; accepted entries are not falsely claimed removed.",
+    "Continue restores the original session queue: this directive starts first, then already-authorized entries drain in native order. Phone UI explains this."
+  ],
+  "sources": [
+    {
+      "path": "rebuild/agent-bridge/hosts/session-control.mjs",
+      "sha256": "b9405e299d04e8b2dfd61e9d6030f75087965cab4a45982ff8a6085a8b86d683"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/native-config.mjs",
+      "sha256": "f0b6ac4f3b042c4227c7c720987c1d3a4e5896143c49186e90acbd67d9f1522b"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/codex-app-server.mjs",
+      "sha256": "b90c33b8767e3d11e1498cc590e3e49dd32d5f61b99134432cdadddae0090704"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/process-witness.mjs",
+      "sha256": "a85eb2c0136582a25f45ba420b331d6c86bfc23ac415fd49c515ccdc6151bb85"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/claude-mod/broker.mjs",
+      "sha256": "1237c12aba1989605f995f869126e5a688ab7084cfd8eb6fb224fb66e4c4543f"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/claude-mod/plugin/hooks/register.js",
+      "sha256": "bb3b1be4712766dfb5d73970d1d3cd204cf8751be908a346a070e097f4a1d48f"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/AgentTaskPage.java",
+      "sha256": "5939a151618c35a74f5de6b72b745badc246d52670292c21b83956c786d0dcbf"
+    },
+    {
+      "path": "rebuild/android-app/src/com/turboio/addon/Host107Login.java",
+      "sha256": "cc6ccad80c519dace483f0e33cedaf08f779766befa9e3a70cf2e2adda7e1c14"
+    }
+  ],
+  "cleanup": {
+    "shared_default_restored_to_original_null": true,
+    "default_revision": 17,
+    "no_shared_pair_revoked": true,
+    "no_new_server_credentials_minted": true,
+    "qa_runners_clean_exit": true,
+    "qa_native_directory_offline": true,
+    "codex_test_thread_archived": true,
+    "all_known_bounded_parent_and_child_processes_gone": true,
+    "native_pending_queue_empty": true,
+    "retained_signed_apks": [
+      "dev118",
+      "dev117"
+    ],
+    "driver_uninstalled": true,
+    "remote_install_temporaries_removed": true,
+    "device_lock_released": true,
+    "all_qa_phone_profiles_paused": true
+  },
+  "copy_follow_up": "dev118 changes only the shared scheduling explanation; full native round trip was accepted on dev117"
+}

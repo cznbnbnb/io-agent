@@ -22,16 +22,16 @@ node --test rebuild/agent-bridge/tests/codex-desktop.test.mjs rebuild/agent-brid
 
 `session-control.mjs` 复用现有 BridgeState 的 fsync/原子替换和 BridgeRunLock 的进程锁，固定服务器、账号、电脑、Agent、项目、session 与工作目录。新任务先入耐久队列；只有宿主明确支持原子空闲准入或原生追加队列时才可能发送，普通新输入不会 steer 当前任务。不同文件也不能取得同一原生 session 的第二个执行锁。发送前保存操作 ID；回执丢失或进程死亡后只查原操作，部分历史没找到仍是不明，不重发。确定未发的排队命令可取消/过期；已发送的操作到期仍须核对。继续指示限有停止证据的原任务、原会话，未发的继续指示取消/过期后可重新填写。
 
-控制器现经 native-runtime 接 AgentBridge 和服务器控制事件；CLI 的 native_runtime 显式配置可启动该桥接，但尚未在正式配对和手机上部署验收。测试用合成宿主，包括真实子进程 SIGKILL 后恢复；不能据此认为真实 Agent 执行成功。支持精确轮次的最终文字结果。声明 `final_result_evidence` 的宿主在终态之后仍须提供 `resultComplete:true`，缺最终结果时保留 `result_pending`、继续占用本会话队列，并只回查原操作；不生成第二轮补结果。未知结构不作为结果，明确空文本保留。电脑获得结果不等于手机已收到。
+控制器现经 native-runtime 接 AgentBridge 和服务器控制事件；CLI 的 native_runtime 显式配置可启动该桥接，已在真实配对手机上用隔离 Claude/Codex session 验证办公与精确停止；最新继续结果以产品证据为准。合成宿主检查仍与真实引擎、手机验收分别记录。支持精确轮次的最终文字结果。声明 `final_result_evidence` 的宿主在终态之后仍须提供 `resultComplete:true`，缺最终结果时保留 `result_pending`、继续占用本会话队列，并只回查原操作；不生成第二轮补结果。未知结构不作为结果，明确空文本保留。电脑获得结果不等于手机已收到。
 
-`interrupt(expectedTurnId)` 只向原持有者提交精确轮次的停止请求；原轮次不再活跃时不会发送。返回 `requested` 只代表宿主回执，`confirmedStopped` 始终为 false。控制器必须随后取得该轮次终态和受控子任务退出证据，才能显示 `stopped`；目前真实宿主没有后者，继续操作不会提前放行。停止回执不明也不自动重发。通用停止证据尚未接好；隔离脚本单个已知 PID 的退出证据不能直接提升生产宿主的 `descendantsStopped`。
+`interrupt(expectedTurnId)` 只向原持有者提交精确轮次的停止请求；原轮次不再活跃时不会发送。返回 `requested` 只代表宿主回执，`confirmedStopped` 始终为 false。控制器必须随后取得该轮次终态和受控子任务退出证据，才能显示 `stopped`。Claude 需精确工具账本、真实引擎身份与按轮次建立的独立进程观察同时成立；Codex 需完整实时轮次覆盖、原生命令终态及精确后台 handle 退出。未知工具、观察缺口或残留工作均保持 stop_unconfirmed。停止回执不明不重发；不将已退出的单个测试 PID 泛化为任意外部工作已停止。
 
 Claude 已实现官方 Mod 候选，临时加载在真实2.1.308引擎的同一个 session 内；以后台 listener、`$.prompt.submit` 和精确 turn abort 工作。没有全局安装、修改模型供应商或接管当前用户聊天。原 Desktop 界面的加载和用户 Stop gate 仍须单独验收，早期[调查笔记](./claude-desktop-investigation.md)保留历史。
 
 
 ## 官方共享 app-server 候选
 
-`codex-app-server.mjs` 只连接显式给定、已运行的服务器与已加载的具体 thread，核对原工作目录及直接输入能力。它不创建服务器、不 resume、不更换模型或审批设置；由原持有者提供连接。Unix socket 必须是当前用户的私有目录内真实 socket，官方发布的符号链接由调用方先核对并取 canonical path。
+`codex-app-server.mjs` 只连接显式给定、已运行的服务器与已加载的具体 thread，核对原工作目录及直接输入能力。它不创建服务器、不更换模型或审批设置；由原持有者提供连接。显式 `subscribeEvents:true` 会在核对已加载原 thread 后，用无设置覆盖的 `thread/resume` 加入该 owner 的事件流，生产桥开启此选项；这不代表能自动接管任意 Desktop 聊天。Unix socket 必须是当前用户的私有目录内真实 socket，官方发布的符号链接由调用方先核对并取 canonical path。
 
 ```js
 const host = await CodexAppServerSession.connect(nativeThreadId, {
@@ -40,7 +40,7 @@ const host = await CodexAppServerSession.connect(nativeThreadId, {
 });
 ```
 
-`start` 调用 `thread/queue/add`，固定 UUID 消息标识；按原生 userMessage.clientId 对账，排队项尚无 turnId，不捏造轮次。`startQueued` 指定本实例已记录的原 queueId 为首先启动的项，原生拒绝忙碌，不以 turn/start 替代。**它同时恢复后续队列执行，不是单任务隔离继续。** 2026-10-25 隔离实测：指定非队头 B，B 完成 34 ms 后原队头 A 自动启动，两项均完成，只有一次 queue/start。[证据](./codex-queue-selection-proof-2026-10-25.json)。该 helper 尚未接入生产 runtime；单项测试不能替代多项副作用验证。
+`start` 调用 `thread/queue/add`，固定 UUID 消息标识；按原生 userMessage.clientId 对账，排队项尚无 turnId，不捏造轮次。`startQueued` 指定本实例已记录的原 queueId 为首先启动的项，原生拒绝忙碌，不以 turn/start 替代。**它同时恢复后续队列执行，不是单任务隔离继续。** 2026-10-25 隔离实测：指定非队头 B，B 完成 34 ms 后原队头 A 自动启动，两项均完成，只有一次 queue/start。[证据](./codex-queue-selection-proof-2026-10-25.json)。生产控制器只在用户明确对已证实停止的原任务选择继续时接入此原子启动。手机会说明：继续也会恢复已有排队指令，具体顺序由原 Agent 管理。Codex 此接口的精确优先启动顺序已单独验证。启动前耐久保存意图，丢回执/重启不重发，不替换、删除或改序其它队列项。
 
 中断后 `terminateTurnTerminals` 仅操作原终态 turn 的命令：历史或实时原生 item/started/completed 提供 item/process 关联，再与当前 backgroundTerminals 双重匹配；代码模式子工具可能不出现在历史重建结果中。停止意图只发一次，未知不重发；回执保留来源，仍不把 terminated:true 当作所有派生进程退出。
 
@@ -113,4 +113,4 @@ node rebuild/agent-bridge/cli.mjs clear-default --config /absolute/private/bridg
 
 手机控制与电脑状态并发时，明确被服务拒绝的旧状态按新 control 精确收口，完成事实以新 revision 保留新 control，不更改已发送事件。已接受旧答案保留历史，停止后或命令变更后不再投递执行。结果先按 JSON 编码大小与字符双限拆分（240 KiB / 65536 字符），完整结果与完成状态同一耐久 runtime event，最多 64 actions；任一分片延迟时，同任务后续正文/完成/回执等待。其它任务可继续。
 
-原生完整结果上限 1 MiB；native runtime 走同进程适配。原有 `AdapterHost` 的 stdio 帧上限仍 1 MiB，不用于转运这里的超长多分片事件。原问答连接与原生目录分别保留，目录过期不会封住旧问题的回答。生产宿主继续保留 `descendantsStopped:false`；本机合成宿主的 stop→resume 检查不代表正式任意任务已能确认停止。`startQueued` 仍只供有界验证，产品尚未接耐久队列启动；不能把脚本显式启动称为产品自动恢复。公网尚未部署，本批未安装 Android 包。
+原生完整结果上限 1 MiB；native runtime 走同进程适配。原有 `AdapterHost` 的 stdio 帧上限仍 1 MiB，不用于转运这里的超长多分片事件。原问答连接与原生目录分别保留，目录过期不会封住旧问题的回答。生产宿主按上述可核验工作范围提供停止证明；任意未知/外部工作仍不放行。Codex 的已发送继续输入在原生队列中可见时，控制器仅对该 client ID 执行一次原子 queue/start，之后回查实际 turn 和最终结果。已发输入过期不能伪称已从原生队列删除；不会主动启动已过期指示。当前 App dev117 的继续说明与此语义一致，具体安装和验收结果见产品交接。

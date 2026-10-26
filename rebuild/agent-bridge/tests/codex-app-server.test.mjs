@@ -84,7 +84,7 @@ async function fixture(t,{transport='unix',timeoutMs=300}={}){
 test('connects a private Unix official endpoint and only reads the explicitly loaded thread',async t=>{
   const f=await fixture(t),session=await f.session(),status=await session.status();
   assert.equal(status.conversationId,f.threadId);assert.equal(status.busy,false);assert.equal(status.workspace,fs.realpathSync(f.directory));
-  assert.deepEqual(session.capabilities,{atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
+  assert.deepEqual(session.capabilities,{atomic_idle_start:false,atomic_queue_append:true,atomic_queued_resume:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
   assert.deepEqual(f.calls[0].params.capabilities,{experimentalApi:true});assert.equal(f.calls[1].method,'initialized');
   assert(f.calls.every(m=>['initialize','initialized','thread/loaded/list','thread/read','thread/turns/list'].includes(m.method)));
 });
@@ -520,4 +520,13 @@ test('explicit live-session subscription joins only the exact loaded thread with
   const session=await CodexAppServerSession.connect(f.threadId,{endpoint:f.endpoint,workspace:f.directory,metadataOnly:true,subscribeEvents:true});t.after(()=>session.close());
   assert.equal(f.calls.filter(m=>m.method==='thread/resume').length,1);
   assert(!f.calls.some(m=>['thread/start','turn/start','thread/settings/update'].includes(m.method)));
+});
+
+
+test('explicit queue continuation cannot activate an expired input or change queue contents',async t=>{
+  const f=await fixture(t),session=await f.session(),input=f.input();await session.start(input);
+  const before=structuredClone(f.queue);
+  await assert.rejects(session.startQueued(input.clientUserMessageId,{expiresAt:new Date(Date.now()-1000).toISOString()}),{code:'CODEX_APP_SERVER_INPUT_EXPIRED'});
+  assert.deepEqual(f.queue,before);assert(!f.calls.some(m=>m.method==='thread/queue/start'||m.method==='turn/start'));
+  await assert.rejects(session.startQueued(input.clientUserMessageId,{expiresAt:'bad-date'}),{code:'CODEX_APP_SERVER_INPUT_INVALID'});
 });

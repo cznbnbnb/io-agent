@@ -3,9 +3,9 @@ import path from 'node:path';
 import http from 'node:http';
 import {createHash, randomBytes, randomUUID} from 'node:crypto';
 
-// Public app-server v2, checked against the installed 0.163.0-alpha.11.1
-// generated experimental schema. No desktop IPC, process launch, thread
-// resume, settings update, approval response, or implicit reconnection.
+// Public app-server v2, checked against installed 0.164.0 experimental schemas.
+// Explicit event subscription joins an already-loaded thread with no settings
+// overrides. No desktop IPC, process launch, approval response, or reconnect.
 const MAX_FRAME=16*1024*1024,MAX_RESULT=1024*1024,MAX_LIVE_COMMAND_ITEMS=1000;
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const id=v=>typeof v==='string'&&v.length>0&&v.length<=256;
@@ -16,7 +16,7 @@ const turnStates=new Set(['inProgress',...terminal]);
 const processId=v=>typeof v==='string'&&/^[0-9]{1,10}$/.test(v)&&Number(v)>0&&Number(v)<=2147483647;
 // expiresAt gates initial admission only. Native queue/add has no expiry field;
 // accepted work may execute later, and this adapter does not delete queued work.
-const capabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
+const capabilities=Object.freeze({atomic_idle_start:false,atomic_queue_append:true,atomic_queued_resume:true,native_queue_expiry:false,exact_turn_interrupt:true,exact_turn_child_stop:true,final_result_evidence:true});
 
 export class CodexAppServerError extends Error {
   constructor(code,{outcomeUnknown=false,nativeCode,nativeReason,threadId,nativeMethod}={}) {
@@ -421,8 +421,9 @@ export class CodexAppServerSession {
     need(object(reply)&&Object.keys(reply).length===0,'CODEX_APP_SERVER_INTERRUPT_RECEIPT_INVALID',{outcomeUnknown:true});
     const receipt={requested:true,expectedTurnId,confirmedStopped:false};this.#interrupts.set(expectedTurnId,receipt);return{...receipt};
   }
-  async startQueued(clientUserMessageId){
+  async startQueued(clientUserMessageId,{expiresAt}={}){
     this.#check();need(uuid(clientUserMessageId),'CODEX_APP_SERVER_INPUT_INVALID');
+    if(expiresAt!==undefined)need(typeof expiresAt==='string'&&Number.isFinite(Date.parse(expiresAt)),'CODEX_APP_SERVER_INPUT_INVALID');
     need(!this.#inFlight.has(clientUserMessageId),'CODEX_APP_SERVER_INPUT_IN_FLIGHT',{outcomeUnknown:true});
     const original=this.#attempts.get(clientUserMessageId);
     need(original,'CODEX_APP_SERVER_OPERATION_UNKNOWN');
@@ -452,12 +453,13 @@ export class CodexAppServerSession {
       if(status.busy){this.#queueStarts.delete(clientUserMessageId);return{requested:false,clientUserMessageId,queueId:observed.queueId,reason:'thread_busy'};}
       const fresh=(await this.#queue()).filter(q=>q.clientUserMessageId===clientUserMessageId);
       need(fresh.length===1&&fresh[0].id===observed.queueId&&digest(inputText(fresh[0].input)??'')===original.digest,'CODEX_APP_SERVER_QUEUE_CHANGED');
+      need(expiresAt===undefined||Date.parse(expiresAt)>Date.now(),'CODEX_APP_SERVER_INPUT_EXPIRED');
       attempt.queueId=observed.queueId;attempt.sent=true;
       // The explicit submission selects the first turn, but the native queue
-      // may then drain other people's queued inputs automatically (live proof:
-      // codex-queue-selection-proof-2026-10-25.json). This helper is not wired
-      // into production resume. Busy rejection avoids turn/start's steer race;
-      // it does not make this an isolated single-operation continuation.
+      // then drains already-authorized queued inputs in their existing order.
+      // The phone explicitly describes this restoration of session execution.
+      // Busy rejection avoids turn/start's steer race; it is not an isolated
+      // single-operation continuation or permission to rewrite other entries.
       const reply=await this.#channel.request('thread/queue/start',{threadId:this.conversationId,queuedSubmissionId:attempt.queueId},{mutation:true});
       const started=turn(reply?.turn);
       attempt.receipt={requested:true,clientUserMessageId,queueId:attempt.queueId,turnId:started.id,confirmedStarted:false};

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "at": "2026-10-26T19:04:49.839219+00:00",
+  "version": "0.5.3-dev118",
+  "version_code": 10540,
+  "installed_sha256": "b2e16c4549c5f77b5776b65f2eac3b799492ef6d2bb7305d7e11bbfa34476720",
+  "baseline_full_sha256": "11ae2b26e23d1e7e856de4b0bfd882b10df36e67c67869070cf0c786999e75d8",
+  "delta_bytes": 1911592,
+  "delta_sha256": "75cf4645943a5a70d48a58f4a3a1928bb71e264eac73f758b9341d14b2821dce",
+  "rollback": "dev117",
+  "change_scope": "Shared continuation copy only: native Agent manages queue order. No execution, stop, login or session-routing behavior changed from the accepted dev117 sources.",
+  "full_native_phone_e2e_evidence": "phone-session-acceptance-dev117-2026-10-26.json",
+  "full_native_phone_e2e_version": "0.5.3-dev117",
+  "full_native_phone_e2e_rerun_on_dev118": false,
+  "checks": {
+    "android_build_sign_original_dex_audit": true,
+    "baseline_reconstruction_and_installed_full_sha_verified": true,
+    "seven_backend_login_source_fingerprints_match_accepted_version": true,
+    "deferred_voice_sources_excluded": true,
+    "launch_and_existing_paired_data_retained": true,
+    "original_completed_task_final_9000_nonce_and_marker_retained": true,
+    "no_driver_remains": true,
+    "all_qa_connections_paused": true,
+    "original_default_restored_null_revision17": true,
+    "known_native_queue_empty_and_test_runners_closed": true,
+    "owned_remote_install_files_removed": true,
+    "only_current_and_one_rollback_signed_apks_retained": true,
+    "device_lock_released": true
+  },
+  "current_ui_source_sha256": "da467ac673e5b46d1f25b0b853469d7256302b1377f8687cfab2cf38379d69c1",
+  "current_result_ui_sha256": "68e751cdaa42eec2607dacbc61b7567e396835fb4a66a9bf87218fe9a81e70ea",
+  "glasses_active_wake_wired": false
+}

@@ -179,6 +179,7 @@ final class AgentTaskPage {
   if(!TaskControl.eligible(row.item,"resume"))return;
   AgentUI.Screen form=new AgentUI.Screen(activity,"追加指示并继续");track(form);form.body.addView(AgentUI.text(activity,row.title(),18,AgentUI.INK));AgentUI.gap(activity,form.body,12);
   form.body.addView(AgentUI.text(activity,"原任务已停止。指示将回到 "+TaskPresentation.source(row.profile)+" 的原会话，沿用当前任务。",15,AgentUI.MUTED));AgentUI.gap(activity,form.body,14);
+  form.body.addView(AgentUI.text(activity,"继续会恢复原会话的执行，也会处理该会话已有的排队指令。具体顺序由原 Agent 管理。",13,AgentUI.MUTED));AgentUI.gap(activity,form.body,14);
   EditText edit=AgentUI.input(activity);edit.setTextColor(AgentUI.INK);edit.setHintTextColor(AgentUI.MUTED);edit.setHint("写下调整要求，例如：先整理结论，再补充依据");edit.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);edit.setMinLines(4);edit.setFilters(new InputFilter[]{new InputFilter.LengthFilter(32768)});edit.setText(instructions().getString(instructionKey(row),""));form.body.addView(edit,new LinearLayout.LayoutParams(-1,-2));
   boolean[] sent={false};edit.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){}public void afterTextChanged(android.text.Editable text){if(!sent[0])instructions().edit().putString(instructionKey(row),text.toString()).apply();}});
   AgentUI.gap(activity,form.body,14);form.body.addView(AgentUI.text(activity,"草稿自动保存在本机。提交后若断网，会核对原任务再发送；不会转交其他会话。",13,AgentUI.MUTED));

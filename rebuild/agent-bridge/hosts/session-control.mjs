@@ -62,6 +62,7 @@ export class SessionControl {
       if(c.resumed_by)need(own(journal.commands,c.resumed_by)?.resume_of===id,'SESSION_STATE_CORRUPT');
       if(c.stop_control_id)need(own(journal.controls,c.stop_control_id)?.command_id===id,'SESSION_STATE_CORRUPT');
       if(c.child_stop_phase!==undefined)need(c.stop_control_id&&['prepared','replied','outcome_unknown'].includes(c.child_stop_phase),'SESSION_STATE_CORRUPT');
+      if(c.resume_queue_phase!==undefined)need(c.resume_of&&['prepared','replied','outcome_unknown'].includes(c.resume_queue_phase),'SESSION_STATE_CORRUPT');
     }
     need(Object.keys(journal.controls).length<=1000,'SESSION_STATE_LIMIT');
     for(const [id,control]of Object.entries(journal.controls))need(uuid(id)&&control.control_id===id&&own(journal.commands,control.command_id)?.stop_control_id===id&&
@@ -139,6 +140,24 @@ export class SessionControl {
       // missing operation. Once sent, local cancellation/expiry must not claim
       // it was removed from the native queue. Reconcile until it is consumed.
       need(this.#host.capabilities?.atomic_queue_append===true&&!c.turn_id&&!observed.turnId,'SESSION_NATIVE_TURN_CONFLICT');
+      if(c.resume_of&&this.#host.capabilities?.atomic_queued_resume===true&&!c.resume_queue_phase){
+        // Explicit Continue restores normal scheduling of the original native
+        // session. Select this directive first, then let already-authorized
+        // native queue entries run in their existing order. Never use steer.
+        // Persist intent before the mutation; a lost reply/restart only reads
+        // the original message ID and cannot start a second queued entry.
+        if(Date.parse(c.expires_at)<=this.#clock()){
+          this.#change(c,'accepted','resume_expired_in_native_queue');return;
+        }
+        c.resume_queue_phase='prepared';this.#change(c,'accepted','starting_native_continuation');
+        try{
+          const reply=await this.#host.startQueued(c.client_user_message_id,{expiresAt:c.expires_at});
+          need(reply?.clientUserMessageId===c.client_user_message_id&&typeof reply.requested==='boolean','SESSION_RESUME_RECEIPT_INVALID');
+          c.resume_queue_phase='replied';
+          this.#change(c,'accepted',reply.requested?'awaiting_native_turn':'waiting_in_native_queue');
+        }catch(error){c.resume_queue_phase='outcome_unknown';this.#change(c,'accepted',safeCode(error));}
+        return;
+      }
       this.#change(c,'accepted','waiting_in_native_queue');return;
     }
     if(observed.status==='rejected'){

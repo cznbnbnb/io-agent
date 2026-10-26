@@ -227,3 +227,57 @@ test('native child stop is separately durable, exact-turn, and never resent afte
   f.host.proof={conversationId:f.binding.route.session_id,turnId:turn.turnId,terminal:true,descendantsStopped:true};
   await q.tick();assert.equal(q.list()[0].phase,'stopped');assert.equal(calls,1);
 });
+
+
+async function queuedContinuation(f,q){
+  const {input,turn}=await running(f,q);
+  turn.status='interrupted';f.host.proof={conversationId:f.host.conversationId,turnId:turn.turnId,terminal:true,descendantsStopped:true};
+  await q.tick();assert.equal(q.list()[0].phase,'stopped');
+  f.host.capabilities.atomic_queue_append=true;f.host.capabilities.atomic_queued_resume=true;
+  const resume=f.command({task_id:input.task_id,resume_of:input.command_id,text:'Explicit same-session continuation'});
+  q.enqueue(resume);await q.tick();const message=f.calls.at(-1).clientUserMessageId;
+  f.turns.set(message,{found:true,status:'queued',turnId:null});return {input,resume,message};
+}
+test('explicit continuation persists exact queue-start intent and reconciles the original task result',async t=>{
+  const f=fixture(t),q=f.open(),{input,resume,message}=await queuedContinuation(f,q);let starts=0;
+  f.host.startQueued=async(id,options)=>{
+    starts++;assert.equal(id,message);assert.equal(options.expiresAt,resume.expires_at);
+    const saved=JSON.parse(fs.readFileSync(f.stateFile,'utf8')).native_control.commands[resume.command_id];
+    assert.equal(saved.resume_queue_phase,'prepared');assert.equal(saved.resume_of,input.command_id);
+    f.turns.set(id,{found:true,status:'inProgress',turnId:'continued-original-session'});
+    return{requested:true,clientUserMessageId:id,turnId:'continued-original-session'};
+  };
+  await q.tick();await q.tick();assert.equal(q.list()[1].phase,'running');
+  f.turns.set(message,{found:true,status:'completed',turnId:'continued-original-session',result:{type:'text',text:'Actual continuation result'}});
+  await q.tick();assert.equal(q.list()[1].phase,'completed');assert.equal(q.list()[1].task_id,input.task_id);
+  assert.equal(starts,1);assert.equal(f.calls.filter(c=>c.text).length,2);
+});
+test('lost queue-start reply or restart never repeats native activation',async t=>{
+  const f=fixture(t);let q=f.open();const {resume,message}=await queuedContinuation(f,q);let starts=0;
+  f.host.startQueued=async()=>{starts++;throw {code:'CODEX_APP_SERVER_REPLY_TIMEOUT'};};
+  await q.tick();await q.close();q=f.open();await q.tick();await q.tick();assert.equal(starts,1);
+  f.turns.set(message,{found:true,status:'inProgress',turnId:'late-continuation'});await q.tick();assert.equal(q.list()[1].phase,'running');
+  const saved=JSON.parse(fs.readFileSync(f.stateFile,'utf8')).native_control.commands[resume.command_id];assert.equal(saved.resume_queue_phase,'outcome_unknown');
+});
+test('unexpired first input is never activated by continuation hook; expired sent continuation stays observable',async t=>{
+  const f=fixture(t),q=f.open(),{resume}=await queuedContinuation(f,q);let starts=0;
+  f.host.startQueued=async()=>{starts++;throw Error('must not activate');};
+  f.setTime(Date.parse(resume.expires_at)+1);await q.tick();assert.equal(starts,0);
+  assert.equal(q.list()[1].phase,'accepted');assert.equal(q.list()[1].reason,'resume_expired_in_native_queue');
+  assert.throws(()=>q.cancelQueued(resume.command_id),{code:'SESSION_COMMAND_ALREADY_DISPATCHED'});
+});
+test('native busy rejection is not steered or repeatedly activated',async t=>{
+  const f=fixture(t),q=f.open(),{message}=await queuedContinuation(f,q);let starts=0;
+  f.host.startQueued=async id=>{starts++;return {requested:false,clientUserMessageId:id,reason:'thread_busy'};};
+  await q.tick();await q.tick();assert.equal(starts,1);assert.equal(q.list()[1].phase,'accepted');
+  f.turns.set(message,{found:true,status:'inProgress',turnId:'normal-queue-drain'});await q.tick();assert.equal(q.list()[1].phase,'running');
+});
+
+
+test('normal new input appends without resuming an interrupted native queue',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities.atomic_queue_append=true;f.host.capabilities.atomic_queued_resume=true;
+  f.host.startQueued=async()=>assert.fail('ordinary enqueue must not restore native scheduling');
+  q.enqueue(f.command());await q.tick();const message=f.calls[0].clientUserMessageId;
+  f.turns.set(message,{found:true,status:'queued',turnId:null});await q.tick();await q.tick();
+  assert.equal(q.list()[0].reason,'waiting_in_native_queue');assert.equal(f.calls.length,1);
+});
