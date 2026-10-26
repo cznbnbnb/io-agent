@@ -5,6 +5,7 @@ import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {DeviceRegistry} from './devices.mjs';
+import {MaterialPairings} from './material-pairings.mjs';
 import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
@@ -98,7 +99,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
+      this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}

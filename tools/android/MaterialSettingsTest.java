@@ -34,6 +34,14 @@ public final class MaterialSettingsTest {
   legacy.prefs.fail=true;rejects(()->upgraded.save(config));yes(current.equals(legacy.prefs.values.get("material_sealed_v2"))&&paused.equals(legacy.prefs.values.get("sealed")));legacy.prefs.fail=false;
   MaterialConfig other=new MaterialConfig(connection,String.join("",Collections.nCopies(64,"b")),true);rejects(()->upgraded.save(other));yes(!upgraded.load().enabled);
   App failing=new App();failing.prefs.values.put("sealed",old);failing.prefs.fail=true;rejects(()->new MaterialSettings(failing).load());yes(failing.prefs.values.size()==1&&old.equals(failing.prefs.values.get("sealed")));
+  Map<String,Object> paired=new LinkedHashMap<>(WireJson.map(WireJson.read(connection.encode())));paired.put("format","turboio-material-sync/2");paired.put("pairing_id","test-pairing");paired.put("refresh_secret",String.join("",Collections.nCopies(43,"R")));paired.put("account_binding",config.account);
+  MaterialConnection pc=MaterialConnection.parse(WireJson.bytes(paired),now+40L*86400000);yes(pc.paired()&&pc.renewDue(now+40L*86400000));
+  MaterialConfig pairConfig=new MaterialConfig(pc,config.account,true);settings.save(pairConfig);yes(settings.load().connection.paired());yes(!MaterialConfig.decode(open(empty.prefs.values.get("sealed"),"io-agent/material-connection/1")).connection.paired());
+  yes(!new String(pairConfig.connection.legacy().encode(),"UTF-8").contains("refresh_secret"));
+  rejects(()->new MaterialConfig(pc,String.join("",Collections.nCopies(64,"b")),true));
+  Map<String,Object> reply=new LinkedHashMap<>(paired);reply.remove("format");reply.remove("base_url");reply.remove("refresh_secret");reply.put("expires_at",TaskWire.now(now+86400000));
+  MaterialConnection renewed=pc.renewed(WireJson.bytes(reply),now);yes(renewed.binding().equals(pc.binding())&&renewed.refreshSecret.equals(pc.refreshSecret)&&!renewed.renewDue(now));
+  reply.put("owner_id","other");rejects(()->pc.renewed(WireJson.bytes(reply),now));reply.put("owner_id",pc.owner);reply.put("expires_at",TaskWire.now(now-1));rejects(()->pc.renewed(WireJson.bytes(reply),now));
   System.out.println("Material settings: "+checks+" assertions passed; real AES/GCM, atomic preference adapter, paused rollback projection and no tamper fallback");
  }
 }

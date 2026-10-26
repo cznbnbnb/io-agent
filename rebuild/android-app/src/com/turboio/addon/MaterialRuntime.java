@@ -45,7 +45,7 @@ final class MaterialRuntime {
   try{
    config=settings.load();long now=System.currentTimeMillis();if(config==null||!config.enabled||observed!=generation||foregroundCatalogs.get()>0||visible&&now-lastUiAt<5000)return;
    OfficialAccountBinding login=Host107Login.account();if(login==null||!config.account.equals(login.binding))return;
-   if(config.connection.expiresAt>now)try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config,true)){
+   if(config.connection.paired()||config.connection.expiresAt>now)try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config,true)){
     MaterialAutoSchedule.Plan plan=schedule.begin(now,java.time.ZoneId.systemDefault().getId(),networkRecovered);if(plan!=null){
      long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}
      boolean success=false,progressed=false;try{performSync(owner,null,null,null,null,false,null);success=status.selectedComplete;progressed=status.progressed;autoError="";autoTarget=config.fingerprint();}catch(Exception error){if(owner==generation){note=safe(error);autoError=note;autoTarget=config.fingerprint();}}finally{try{schedule.finish(plan,System.currentTimeMillis(),success,progressed);}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}}
@@ -54,6 +54,26 @@ final class MaterialRuntime {
    // Audio/transcripts stay on the phone under the 2026-10-26 policy.
   }catch(Exception error){note=safe(error);}
  }
+ private void renewConnection(long owner,boolean force)throws Exception{
+  check(owner);MaterialConfig old=config;if(old==null||!old.connection.paired()||!force&&!old.connection.renewDue(System.currentTimeMillis()))return;
+  OfficialAccountBinding login=account(owner);MaterialWire.require(login.binding.equals(old.account),"OFFICIAL_ACCOUNT_CHANGED");
+  MaterialHttp http=new MaterialHttp(old.connection);synchronized(guard){check(owner);transport=http;}
+  try{
+   MaterialApi.Response response=http.exchange("/material-pairing/refresh",old.connection.pairingBody());
+   if(response.status!=200)throw new IOException(response.status==401||response.status==403?"MATERIAL_PAIRING_REVOKED":"MATERIAL_RENEW_UNAVAILABLE");
+   MaterialConnection fresh=old.connection.renewed(response.body,System.currentTimeMillis());
+   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig saved=settings.load();MaterialWire.require(saved!=null&&saved.fingerprint().equals(old.fingerprint()),"MATERIAL_CONNECTION_CHANGED");settings.save(new MaterialConfig(fresh,old.account,old.enabled));config=settings.load();}
+  }finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
+ }
+ void unpair(String fingerprint,Result result){long owner=invalidate();work(()->{
+  MaterialWire.require(config!=null&&config.fingerprint().equals(fingerprint)&&config.connection.paired(),"MATERIAL_CONNECTION_CHANGED");
+  MaterialWire.require(config.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");
+  // Pause locally first, including when the server is temporarily unreachable.
+  settings.save(config.enabled(false));config=settings.load();MaterialConfig old=config;MaterialHttp http=new MaterialHttp(old.connection);synchronized(guard){check(owner);transport=http;}
+  try{MaterialApi.Response response=http.exchange("/material-pairing/revoke",old.connection.pairingBody());if(response.status!=200)throw new IOException("MATERIAL_REVOKE_UNAVAILABLE");
+   synchronized(guard){check(owner);MaterialWire.require(old.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");settings.save(new MaterialConfig(old.connection.legacy(),old.account,false));config=settings.load();}note="MATERIAL_PAIRING_REMOVED";
+  }finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
+ },result);}
  private long invalidate(){synchronized(guard){generation++;backgroundOwner=-1;AudioHttp audio=audioTransport;audioTransport=null;if(audio!=null){audio.disable();cancel.execute(audio::cancel);}if(visible)lastUiAt=System.currentTimeMillis();MaterialHttp old=transport;transport=null;if(old!=null){old.disable();cancel.execute(old::cancel);}Host107LifelogHttp prior=officialTransport;officialTransport=null;if(prior!=null){prior.disable();cancel.execute(prior::cancel);}return generation;}}
  private void check(long owner)throws IOException{if(owner==backgroundOwner&&System.nanoTime()>autoDeadline)throw new IOException("MATERIAL_AUTO_DEADLINE");if(owner!=generation||(!visible&&backgroundOwner!=owner))throw new IOException("MATERIAL_PAUSED");}
  private void checkView(long owner)throws IOException{check(owner);if(!visible)throw new IOException("MATERIAL_PAUSED");}
@@ -62,7 +82,7 @@ final class MaterialRuntime {
  private static String safe(Exception error){String code=error.getMessage();return code!=null&&code.matches("[A-Z_]{3,80}")?code:"MATERIAL_UNAVAILABLE";}
  private void counts()throws IOException{MaterialSyncSession.Status next=DailySummarySync.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
- void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
+ void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(!config.connection.paired()&&config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
  /** Browsing belongs to the official signed-in account, independently of an
   * optional remote upload connection. Read-only catalogs use the view lane;
   * source refreshes, uploads and configuration writes remain on serial IO. */
@@ -153,6 +173,10 @@ final class MaterialRuntime {
  void cancelPending(){invalidate();}
  void configure(byte[] raw,boolean enabled,Result result){long owner=invalidate();byte[] input=raw.clone();work(()->{try{
   OfficialAccountBinding source=account(owner);MaterialConnection next=MaterialConnection.parse(input,System.currentTimeMillis());MaterialConfig candidate=new MaterialConfig(next,source.binding,enabled);if(config!=null)config.replaceAllowed(candidate);
+  if(next.paired()){
+   MaterialWire.require(source.binding.equals(next.accountBinding),"MATERIAL_ACCOUNT_REBIND_REFUSED");MaterialHttp refresh=new MaterialHttp(next);synchronized(guard){check(owner);transport=refresh;}
+   try{MaterialApi.Response response=refresh.exchange("/material-pairing/refresh",next.pairingBody());MaterialWire.require(response.status==200,"MATERIAL_PAIRING_REVOKED");next=next.renewed(response.body,System.currentTimeMillis());candidate=new MaterialConfig(next,source.binding,enabled);}finally{refresh.cancel();}
+  }
   MaterialHttp http=new MaterialHttp(next);synchronized(guard){check(owner);transport=http;}
   MaterialApi api=new MaterialApi(next,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(source.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}return http.exchange(path,body);}public void cancel(){http.cancel();}});
   api.preflight(System.currentTimeMillis(),true);
@@ -164,17 +188,17 @@ final class MaterialRuntime {
   * credentials from a stale UI snapshot after another registration was saved. */
  void setEnabled(String expectedFingerprint,boolean enabled,Result result){long owner=invalidate();work(()->{
   check(owner);MaterialWire.require(config!=null&&config.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");
-  OfficialAccountBinding login=account(owner);MaterialWire.require(config.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig original=config;
+  OfficialAccountBinding login=account(owner);MaterialWire.require(config.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");if(enabled)renewConnection(owner,false);MaterialConfig original=config;final String savingFingerprint=original.fingerprint();
   if(enabled){MaterialWire.require(original.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");MaterialHttp http=new MaterialHttp(original.connection);synchronized(guard){check(owner);transport=http;}
    try{new MaterialApi(original.connection,http).preflight(System.currentTimeMillis(),true);}finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
   }
-  synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
+  synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(savingFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
   status=DailySummarySync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  },result);}
  void discoverMonth(String month,MonthResult result){long owner=invalidate();io.execute(()->{
   MonthSelection found=null;String error="";Host107LifelogHttp official=null;
   try{
-   config=settings.load();check(owner);MaterialWire.require(config!=null&&config.enabled,"MATERIAL_PAUSED");MaterialWire.require(config.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");
+   config=settings.load();check(owner);MaterialWire.require(config!=null&&config.enabled,"MATERIAL_PAUSED");renewConnection(owner,false);MaterialWire.require(config.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");
    String fingerprint=config.fingerprint();OfficialAccountBinding login=account(owner);MaterialWire.require(config.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");
    official=new Host107LifelogHttp(app,login,()->check(owner));synchronized(guard){check(owner);officialTransport=official;}
    OfficialLifelogMonthDiscovery.Snapshot source=OfficialLifelogMonthDiscovery.read(config.account,OfficialLifelogCalendarRequest.month(month),"Asia/Shanghai",()->account(owner),()->check(owner),official::calendar);
@@ -191,7 +215,7 @@ final class MaterialRuntime {
  void syncMonthDays(MonthSelection selected,List<String> days,Result result){sync(null,null,selected,days==null?null:new ArrayList<>(days),true,result);}
  private void sync(String date,String timezone,MonthSelection selected,List<String> chosen,boolean month,Result result){long owner=invalidate();work(()->performSync(owner,date,timezone,selected,chosen,month,null),result);}
  private void performSync(long owner,String date,String timezone,MonthSelection selected,List<String> chosen,boolean month,List<OfficialLifelogInventory.Request> automatic)throws Exception{
-  check(owner);MaterialWire.require(config!=null&&config.enabled,"MATERIAL_PAUSED");final MaterialConfig target=config;MaterialWire.require(target.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");
+  check(owner);MaterialWire.require(config!=null&&config.enabled,"MATERIAL_PAUSED");renewConnection(owner,false);final MaterialConfig target=config;MaterialWire.require(target.connection.expiresAt>System.currentTimeMillis(),"MATERIAL_IMPORT_EXPIRED");
   List<OfficialLifelogInventory.Request> days=automatic;
   if(month){MaterialWire.require(selected!=null&&selected.owner+1==owner&&selected.configFingerprint.equals(target.fingerprint())&&selected.source.account.equals(target.account),"MATERIAL_MONTH_SELECTION_STALE");days=selected.source.select(chosen);}
   else if(date!=null)days=Collections.singletonList(OfficialLifelogInventory.Request.day(date,timezone));

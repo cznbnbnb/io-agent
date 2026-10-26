@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T11:39:46.383541+00:00",
+  "version": "0.5.3-dev106",
+  "version_code": 10528,
+  "installed_sha256": "c9a25c18c414e6644f3ef930a25281382d059e1e6e80cde009b71ef907350c5c",
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/pairing-release-1793014168378988741",
+    "node": "v22.23.2",
+    "source_sha256": {
+      "store.mjs": "85337d22880dc47aad0d1893a60ffa29be44381e3faf86e43dc6cedffb391250",
+      "http.mjs": "14b19ae4526833d1286b4d4504d6a020de0f9cb049d6a91189db63dc975dd7ae",
+      "cli.mjs": "e9689ea80e48e07743e36b5b9f6a3d4efee59825229b90e227fc919e0ec54a2e",
+      "material-pairings.mjs": "5a2fefc9de2802cb8d448bf7b954bff824307bfc88b4d70bff80e24daa8894ac"
+    },
+    "memory_recovery_revoke_test": true
+  },
+  "public_pairing": {
+    "public_refresh_idempotent": true,
+    "wrong_account_rejected": true,
+    "refresh_secret_not_access_token": true,
+    "synthetic_pairing_revoked": true,
+    "formal_owner": "turboio-user",
+    "producer": "phone-android",
+    "scopes": [
+      "materials:write"
+    ],
+    "pairing_id": "9fd310a5-0fef-4efa-a929-14f923914c23",
+    "access_expires_at": "2026-10-27T11:30:54.171Z",
+    "pairing_expires_at": null
+  },
+  "phone": {
+    "paired": true,
+    "enabled": true,
+    "daily_stored": 3,
+    "queued": 0,
+    "expired_local_cache_40_days_recovered_by_production_runtime": true,
+    "phone_clock_changed": false,
+    "server_expiry_modified": false,
+    "same_account_and_producer_preserved": true,
+    "ui_pause_resume_preserves_pairing": true,
+    "unpair_confirmation_cancelled": true,
+    "final_sync_enabled": true
+  },
+  "readback": {
+    "daily_versions": 3,
+    "daily_materials": 3,
+    "all_daily_summary_only": true,
+    "revisions": [
+      1,
+      1,
+      1
+    ],
+    "latest_stored_at": "2026-10-26T11:36:27.263Z"
+  },
+  "tests": {
+    "material_settings_assertions": 32,
+    "audio_settings_assertions": 35,
+    "material_http_sqlite_regression": true,
+    "server_suite_passed": 127,
+    "server_suite_environment_failures": [
+      "ArkTS device-p21-wire39-seed.json missing",
+      "DevEco bundled TypeScript module missing"
+    ],
+    "node_local": "v24.14.0",
+    "production_node": "v22.23.2",
+    "production_node_pairing_recovery_revoke": true
+  },
+  "scope": {
+    "daily_ai_summary_only": true,
+    "phone_remote_file_api": false,
+    "glasses_or_microphone_tested": false,
+    "real_records_deleted": false,
+    "task_pairing_changed": false
+  },
+  "pending": [
+    "natural long-term operation observation"
+  ],
+  "cleanup": {
+    "phone_import_removed": true,
+    "diagnostic_driver_removed": true,
+    "phone_apk_patch_removed": true,
+    "retained_versions": [
+      "dev106",
+      "dev105"
+    ]
+  }
+}

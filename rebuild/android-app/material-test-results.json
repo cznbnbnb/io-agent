@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-26T10:53:48.615Z",
+  "at": "2026-10-26T11:30:08.044Z",
   "unit_assertions": 71,
   "transport": "real Java material core to existing loopback HTTP/SQLite service across two JVM processes",
   "computer_query": "existing MaterialQueryClient via actual HTTP with separate read-only credential",
@@ -58,7 +58,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
-      "sha256": "694613d68a7d3777cf2753d6d157ef9b7ad9629ccd089da1c923d45ab4902f72"
+      "sha256": "05e08df2ba9cb32b8e7256b5d6f4a2255c3991d58fe5614616bee5ff72d59d48"
     },
     {
       "path": "src/com/turboio/addon/MaterialStorage.java",
@@ -66,7 +66,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSettingsState.java",
-      "sha256": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527"
+      "sha256": "bc86a287d6bfcf2940fdbc19442d2fdff8ff8bdbd57a48b103cdcf051d22bbcf"
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
@@ -130,7 +130,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialConnection.java",
-      "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+      "sha256": "2474ea87e1f47e77c9e2b1c779d5990a98d79a7d7d3fa1676bb009b33183ba99"
     },
     {
       "path": "src/com/turboio/addon/MaterialWire.java",
@@ -150,7 +150,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialHttp.java",
-      "sha256": "18becf11b237299b195915759f66f169fc94dcbea25629074c3cb12bd46d0d8d"
+      "sha256": "2533b17320533dcd04f96abb2e5d6a04e1d17f1a9e32810c59328de552dbddde"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",

@@ -5,6 +5,8 @@ import android.app.*;import android.widget.*;import java.io.*;import java.util.*
 final class MaterialWorkspace {
  static String label(String code){switch(code){
   case "DAILY_SUMMARY_NOT_READY":return "原厂近期日报中尚无所选日期的 AI 总结，请稍后再试";case "DAILY_SUMMARY_PARTIAL":return "已有日报已同步，部分所选日期尚无可用日报";case "DAILY_SUMMARY_RANGE_UNSUPPORTED":return "原厂日报日期格式发生变化，未上传";case "DAILY_SUMMARY_CHANGED_PENDING":return "日报已更新，正在核对旧版本的同步结果";case "AUDIO_PHONE_ONLY":return "原音只保存在手机，可从资料页导出";
+  case "MATERIAL_PAIRING_REVOKED":return "资料配对已撤销，请重新连接账号";case "MATERIAL_PAIRING_REMOVED":return "资料配对已解除，已有资料保留";
+  case "MATERIAL_RENEW_UNAVAILABLE":return "暂时无法连接服务器，联网后自动恢复";case "MATERIAL_REVOKE_UNAVAILABLE":return "已暂停同步，但服务器撤销尚未确认，请联网后再次解除配对";
   case "unconfigured":return "尚未配置资料服务器";case "ready":return "资料连接已启用";case "paused":case "MATERIAL_PAUSED":return "同步已暂停，本机队列保留";
   case "OFFICIAL_DELETION_PENDING":return "正在等待原厂完成删除，稍后自动同步";
   case "OFFICIAL_DELETION_HISTORY_UNSUPPORTED":return "这条原厂批量删除记录需要核对，已暂缓同步";

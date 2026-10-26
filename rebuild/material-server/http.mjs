@@ -55,6 +55,12 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       if(headers.filter(h=>h==='authorization').length!==1)reject(401,'UNAUTHENTICATED');
       const bearer=/^Bearer ([A-Za-z0-9_-]{43})$/.exec(req.headers.authorization??'');if(!bearer)reject(401,'UNAUTHENTICATED');
       const token=bearer[1],query={};
+      // Long-lived pairing secret is accepted only by these two bounded endpoints.
+      if(req.method==='POST'&&['/v1/material-pairing/refresh','/v1/material-pairing/revoke'].includes(url.pathname)){
+        if(url.search)reject(400,'INVALID_QUERY');observation.route='other';
+        const input=await smallJson(req,observation,1024);
+        send(200,url.pathname.endsWith('/refresh')?store.materialPairings.refresh(token,input):store.materialPairings.revokeBy(token,input));return;
+      }
       observation.principal=store.auth(token);
       const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices|agent-sessions|agent-default)(?:\/|$)/.exec(url.pathname)?.[1];
       observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':

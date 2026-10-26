@@ -9,9 +9,10 @@ const [action,...args]=process.argv.slice(2),options={};
 try{
   for(let i=0;i<args.length;i+=2){if(!args[i].startsWith('--')||!args[i+1]||Object.hasOwn(options,args[i]))throw new Error('INVALID_ARGUMENTS');options[args[i]]=args[i+1];}
   const allowed={serve:['--db','--port'],mint:['--db','--owner','--producer','--scopes','--ttl-ms','--out'],revoke:['--db','--token-id'],backup:['--db','--out'],
+    'material-enroll':['--db','--owner','--producer','--account','--out'],'material-unpair':['--db','--pairing-id'],
     enroll:['--db','--owner','--role','--label','--out'],devices:['--db','--owner'],unpair:['--db','--device-id']};
   if(!allowed[action]||Object.keys(options).some(k=>!allowed[action].includes(k))||!options['--db']||!path.isAbsolute(options['--db']))throw new Error('EXPLICIT_ABSOLUTE_DB_REQUIRED');
-  if(['mint','backup','enroll'].includes(action)&&(!options['--out']||!path.isAbsolute(options['--out'])))throw new Error('EXPLICIT_PRIVATE_OUTPUT_REQUIRED');
+  if(['mint','backup','enroll','material-enroll'].includes(action)&&(!options['--out']||!path.isAbsolute(options['--out'])))throw new Error('EXPLICIT_PRIVATE_OUTPUT_REQUIRED');
   fs.mkdirSync(path.dirname(options['--db']),{recursive:true,mode:0o700});
   const store=new MaterialStore(options['--db']);
   let traffic=null;
@@ -38,6 +39,12 @@ try{
         fs.writeFileSync(fd,JSON.stringify(value)+'\n');fs.fsyncSync(fd);
       }catch(error){if(value)store.revoke(value.token_id);throw error;}finally{fs.closeSync(fd);}
       process.stdout.write(JSON.stringify({token_id:value.token_id,expires_at:value.expires_at})+'\n');store.close();
+    }else if(action==='material-enroll'){
+      const fd=fs.openSync(options['--out'],'wx',0o600);let value;
+      try{value=store.materialPairings.enroll({owner:options['--owner'],producer:options['--producer'],account:options['--account']});fs.writeFileSync(fd,JSON.stringify(value)+'\n');fs.fsyncSync(fd);}
+      catch(error){if(value)store.materialPairings.revoke(value.pairing_id);throw error;}finally{fs.closeSync(fd);}
+      process.stdout.write(JSON.stringify({pairing_id:value.pairing_id,expires_at:value.expires_at})+'\n');store.close();
+    }else if(action==='material-unpair'){process.stdout.write(JSON.stringify(store.materialPairings.revoke(options['--pairing-id']))+'\n');store.close();
     }else if(action==='enroll'){
       // First computer of an owner (one-time pairing bootstraps here; phones then pair with a code).
       const fd=fs.openSync(options['--out'],'wx',0o600);let value;
