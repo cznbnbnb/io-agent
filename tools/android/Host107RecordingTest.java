@@ -54,7 +54,7 @@ final class Host107RecordingTest {
    waitFor(()->sink.events.contains("idle:true"));long now=SystemClock.elapsedRealtime();
    yes(draft.stop(draft.token(),now,false));yes(draft.stopSubmitted(draft.token(),VoiceAnswerTest.PEER,1,now));
    yes(draft.engineEnd(draft.token(),now));yes(draft.engineStopped(draft.token(),true));
-   VoiceAnswerSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,1,now);yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,1,now,true));yes(draft.finish());
+   CaptureSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,1,now);yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,1,now,true));yes(draft.finish());
   }
   public void close()throws Exception{
    if(sink.unblock!=null)sink.unblock.countDown();
@@ -64,15 +64,47 @@ final class Host107RecordingTest {
   }
  }
  static void run()throws Exception{
-  // Busy/preflight failure never schedules recording; other owner's messages pass.
+  // Busy during prompter teardown is read-only and bounded by the original deadline.
   try(Env e=new Env()){
    yes(Host107Recording.acquire(e.draft,e.cutoff,e.sink)==null);
    VoiceAnswerTest.rejects(e.owner::begin);
    e.owner.inspect();for(RecordingPlatform.Message m:RecordingPlatform.messages)m.receipt(true);
    emit(VoiceAnswerTest.PEER,9,1,version(),null);emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",false),null);
-   waitFor(()->e.sink.events.contains("VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED"));
+   Handler.drain();yes(!e.sink.events.contains("ready:true"));
+   SystemClock.advance(500);Handler.drain();yes(RecordingPlatform.sent("MARS_FOTA",11).size()==2);
+   SystemClock.advance(7500);Handler.drain();waitFor(()->e.sink.events.contains("VOICE_GLASSES_BUSY"));yes(!e.sink.events.contains("VOICE_PREFLIGHT_TIMEOUT"));
    yes(RecordingPlatform.sent("RECORDING_SERVICE",1).isEmpty()&&RecordingPlatform.sent("RECORDING_SERVICE",4).isEmpty());
    yes(!e.draft.needsStop());
+  }
+  // Fresh idle after one busy response admits capture; busy itself never does.
+  try(Env e=new Env()){
+   e.owner.inspect();for(RecordingPlatform.Message m:RecordingPlatform.messages)m.receipt(true);
+   emit(VoiceAnswerTest.PEER,9,1,version(),null);emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",false),null);
+   Handler.drain();SystemClock.advance(500);Handler.drain();
+   RecordingPlatform.last("MARS_FOTA",11).receipt(true);
+   emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",true),null);
+   waitFor(()->e.sink.events.contains("ready:true"));yes(e.sink.events.stream().noneMatch(x->x.startsWith("VOICE_")));
+   yes(RecordingPlatform.sent("RECORDING_SERVICE",1).isEmpty());
+   waitFor(e.owner::releasePrepared);yes(e.owner.releasePrepared()); // duplicate cleanup remains released
+   // A disposed owner's delayed query must not touch a later owner.
+   int sent=RecordingPlatform.messages.size();SystemClock.advance(8000);Handler.drain();yes(RecordingPlatform.messages.size()==sent);
+  }
+  // 2026-10-23: with 全天智记 on, a busy idle reply (which only that setting explains) admits capture
+  // without any retry; with it off the same reply still blocks (above).
+  try(Env e=new Env()){
+   LifelogState.set(true);
+   e.owner.inspect();for(RecordingPlatform.Message m:RecordingPlatform.messages)m.receipt(true);
+   emit(VoiceAnswerTest.PEER,9,1,version(),null);emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",false),null);
+   waitFor(()->e.sink.events.contains("ready:true"));yes(e.sink.events.stream().noneMatch(x->x.startsWith("VOICE_")));
+   yes(RecordingPlatform.sent("MARS_FOTA",11).size()==1);
+   waitFor(e.owner::releasePrepared);LifelogState.reset();
+  }
+  // Invalid version is a terminal failure, never a reason to poll until accepted.
+  try(Env e=new Env()){
+   e.owner.inspect();Map<String,Object> wrong=version();wrong.put("OsVersion","unknown");
+   emit(VoiceAnswerTest.PEER,9,1,wrong,null);
+   waitFor(()->e.sink.events.contains("VOICE_PREFLIGHT_VERSION_INVALID"));
+   yes(RecordingPlatform.sent("RECORDING_SERVICE",1).isEmpty());
   }
   // A queued old observation in the same millisecond cannot satisfy a new query.
   try(Env e=new Env()){
@@ -174,8 +206,8 @@ final class Host107RecordingTest {
   // A failed durable transition cannot resurrect opening or discard the last
   // proven capture binding needed by an exact-owner physical stop.
   BlockingStore broken=new BlockingStore();VoiceAnswerSession draft=VoiceAnswerTest.prepared(broken,VoiceAnswerTest.connection("permit-write-failure"));VoiceAnswerTest.arm(draft);
-  VoiceAnswerSession.CapturePermit old=draft.capturePermit();yes(old.opening&&old.needsStop);broken.fail=true;
-  VoiceAnswerTest.rejects(()->draft.stop(old.token,2000,false));VoiceAnswerSession.CapturePermit after=draft.capturePermit();
+  CaptureSession.CapturePermit old=draft.capturePermit();yes(old.opening&&old.needsStop);broken.fail=true;
+  VoiceAnswerTest.rejects(()->draft.stop(old.token,2000,false));CaptureSession.CapturePermit after=draft.capturePermit();
   yes(!after.opening&&after.needsStop&&after.token.equals(old.token)&&after.peer.equals(old.peer)&&after.generation==old.generation);
   yes(after.phase.equals("CAPTURING")&&!draft.healthy());
  }
@@ -226,7 +258,7 @@ final class Host107RecordingTest {
    yes(!owner.release()&&restored.needsStop()&&TaskWire.same(saved,restored.snapshot()));
    long now=SystemClock.elapsedRealtime();yes(!restored.stopSubmitted(restored.token(),VoiceAnswerTest.PEER,1,now));
    yes(restored.stopSubmitted(restored.token(),VoiceAnswerTest.PEER,2,now));
-   VoiceAnswerSession.StopProbe probe=restored.probeStop(VoiceAnswerTest.PEER,2,now);yes(probe!=null);
+   CaptureSession.StopProbe probe=restored.probeStop(VoiceAnswerTest.PEER,2,now);yes(probe!=null);
    yes(restored.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(!restored.finish()&&!owner.release());
    yes(restored.engineSealed(restored.token(),true,now)&&restored.finish());
    waitFor(owner::release);yes(NativeTransfer.owner.isEmpty()&&!cutoff.pending()&&automaticStops.get()==0);
@@ -267,7 +299,7 @@ final class Host107RecordingTest {
    yes(recovered.bytes==null&&!old.draft.stopSubmitted(old.draft.token(),VoiceAnswerTest.PEER,1,now));
    yes(old.draft.stopSubmitted(old.draft.token(),VoiceAnswerTest.PEER,2,now));
    yes(old.draft.engineSealed(old.draft.token(),true,now));
-   VoiceAnswerSession.StopProbe probe=old.draft.probeStop(VoiceAnswerTest.PEER,2,now);yes(old.draft.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(old.draft.finish());
+   CaptureSession.StopProbe probe=old.draft.probeStop(VoiceAnswerTest.PEER,2,now);yes(old.draft.deviceIdle(probe,VoiceAnswerTest.PEER,2,now,true));yes(old.draft.finish());
    waitFor(owner[0]::release);yes(NativeTransfer.owner.isEmpty());
   }finally{old.sink.unblock.countDown();old.cutoff.close();Host107Ota.generation=1;}
  }
@@ -289,7 +321,7 @@ final class Host107RecordingTest {
     recovery.stop();RecordingPlatform.last("RECORDING_SERVICE",4).receipt(true);waitFor(()->fresh.events.contains("sent:4:true"));
     recovery.inspectIdle();emit(VoiceAnswerTest.PEER,9,11,WireJson.object("Result",true),null);waitFor(()->fresh.events.contains("idle:true"));
     yes(!recovery.release());long now=SystemClock.elapsedRealtime();yes(draft.stopSubmitted(draft.token(),VoiceAnswerTest.PEER,3,now));
-    yes(draft.engineSealed(draft.token(),true,now));VoiceAnswerSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,3,now);
+    yes(draft.engineSealed(draft.token(),true,now));CaptureSession.StopProbe probe=draft.probeStop(VoiceAnswerTest.PEER,3,now);
     yes(draft.deviceIdle(probe,VoiceAnswerTest.PEER,3,now,true)&&draft.finish());waitFor(recovery::release);yes(NativeTransfer.owner.isEmpty());
    }finally{RecordingPlatform.autoQueue=true;Host107Ota.generation=1;}
   }

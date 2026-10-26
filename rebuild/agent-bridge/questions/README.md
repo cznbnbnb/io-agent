@@ -1,8 +1,28 @@
 # 当前调用方的原任务问答
 
-`cli.mjs ask|wait|status`复用现有HTTPS队列、bridge、运行锁、耐久outbox和QuestionTools。当前Codex用实际执行环境中的对话标识登记，问题与答案固定绑定原任务、项目、会话和问题版本；不调用Codex启动/恢复命令，也不创建替代模型会话。Hermes原有固定CLI和适配器保持，两个入口复用相同问题状态机。
+`cli.mjs ask|wait|status|notify`复用现有HTTPS队列、bridge、运行锁、耐久outbox和QuestionTools。当前Agent用实际执行环境中的对话标识登记，问题与答案固定绑定原任务、项目、会话和问题版本；不调用Agent启动/恢复命令，也不创建替代模型会话。
+
+## 调用方识别
+
+CLI 只认宿主放进命令环境的对话标识，恰好一个来源：
+
+| runtime | 来源 | 私有目录 |
+|---|---|---|
+| `codex` | `CODEX_THREAD_ID` | `private/codex-*`（与早期登记兼容） |
+| `claude-code` | `CLAUDE_CODE_SESSION_ID` | `private/claude-code-*` |
+| 其他 Agent | 宿主设置 `IO_AGENT_CALLER_RUNTIME`（小写，不能占用上面两个名字）和 `IO_AGENT_CALLER_SESSION` | `private/<runtime>-*` |
+
+多个来源同时出现返回 `CALLER_RUNTIME_AMBIGUOUS`，缺失返回 `CALLER_SESSION_REQUIRED`。登记记录 runtime，之后 runtime 或会话不一致都拒绝。任务 ID 前缀为 `<runtime>-task-`，登记结果带 `runtime` 和 `creates_agent_session=false`（Codex 另保留 `creates_codex_session=false`）。Hermes原有固定CLI和适配器保持，两个入口复用相同问题状态机。
 
 ## 宿主登记
+
+macOS 已有本项目的受控准备入口：先由 `tools/android/caller-test-credentials.py` 为独立的 `callerNNN-*` 测试身份签发短期凭据，再从当前 Agent 的仓库工作目录运行：
+
+```sh
+node tools/android/prepare-current-caller.mjs --run-id <同一测试运行ID> --python <Python 3.10+ 的绝对路径>
+```
+
+准备入口按上表读取当前进程的对话标识，不接受命令行手填会话 ID；Codex 沿用 `io-mac-codex-computer / io-current-codex`，其他 Agent 登记为 `io-mac-computer / io-<runtime>`。先核对隔离 owner、凭据期限及 `tasks:write` 权限，再调用下述已有登记接口，生成手机登记文件。可选 `--topic <主题>`（登记配置的 `topic`，单行、不超过40字、无控制字符）作为任务命令，手机任务列表和眼镜提词稿开头显示“<Agent> 提问：<主题>”；不填则显示项目。重复执行只允许相同配置，不覆盖不同登记；不启动新的 Agent 会话。当前宿主还应对照应用聊天清单核对会话，保留该环境和版本的适配证据。测试结束后暂停手机连接、关闭测试任务并撤销凭据。
 
 宿主准备私有JSON文件，字段为`bridge / project_id / operation_key / python`。`bridge`沿用电脑连接配置，额外需要`tasks:write`以创建原调用的任务镜像；`python`是绝对解释器路径。调用：
 
@@ -10,22 +30,41 @@
 & D:/openclaw/nodejs/node.exe rebuild/agent-bridge/questions/cli.mjs register --config <私有登记文件>
 ```
 
-命令须从本项目工作目录、原Codex执行环境运行。当前桌面构建实际提供`CODEX_THREAD_ID`；本批另以Codex应用的聊天清单核对了当前项目/会话。缺失或不匹配时拒绝，不能选“最近会话”兜底。这是当前宿主适配边界，不把未查证的环境变量行为当作跨版本稳定API。
+命令须从本项目工作目录、原Agent执行环境运行。当前桌面构建实际提供`CODEX_THREAD_ID`；本批另以Codex应用的聊天清单核对了当前项目/会话。缺失或不匹配时拒绝，不能选“最近会话”兜底。这是当前宿主适配边界，不把未查证的环境变量行为当作跨版本稳定API。
 
-登记写入受限ACL的`private/codex-*/registrations/*`，先保存不可变镜像事件再发送，未知回包只核对原事件。重复登记使用原任务；更换身份/操作产生独立记录，旧记录保留，存在待答或未消费答案时拒绝切换。登记不分发办公指令，适配器只接管精确匹配的原调用任务。
+登记写入受限ACL的`private/<runtime>-*/registrations/*`，先保存不可变镜像事件再发送，未知回包只核对原事件。重复登记使用原任务；更换身份/操作产生独立记录，旧记录保留，存在待答或未消费答案时拒绝切换。登记不分发办公指令，适配器只接管精确匹配的原调用任务。
 
 ## 调用
 
 JSON参数走stdin，UTF-8 JSON结果走stdout。配套说明已安装为`turboio-ask-user`；完整参数及恢复规则以[skill](../skill/turboio-ask-user/SKILL.md)为准。
 
 - `ask`：`question_key, question, mode, options, expires_at`。同问题重试保持所有参数。问题先落盘；`server_stored=true`须经实际服务器核对。
-- `wait`：`request_id`及可选`wait_seconds`（0–30）。原请求有完整答案且原任务新鲜有效时消费一次，保留唯一继续事实。已成功领取的同一答案可离线重读，不重复继续或执行。
+- `wait`：`request_id`及可选`wait_seconds`（0–600，默认30；超过30秒时每3秒轮询一次）。能长时间阻塞或后台运行工具的Agent一次等足即可，同一时间只挂一个wait。原请求有完整答案且原任务新鲜有效时消费一次，保留唯一继续事实。已成功领取的同一答案可离线重读，不重复继续或执行。
 - `status`：只接受`request_id`，只读本机，明确`network_checked=false`；不会消费答案或建立联网状态承诺。
 
-`awaiting_parent_check`保留完整答案但不授权继续；`operation_closed`禁止继续旧任务。失联、撤回和消失均不推定用户拒绝；`cancel_requested`仅记录停止请求，不表示已强制停止Codex。网络不可用时原问题/答案及待发事件保留，不以新问题绕过不确定状态。
+`awaiting_parent_check`保留完整答案但不授权继续；`operation_closed`禁止继续旧任务。失联、撤回和消失均不推定用户拒绝；`cancel_requested`仅记录停止请求，不表示已强制停止Agent。网络不可用时原问题/答案及待发事件保留，不以新问题绕过不确定状态。
 
 ## 证据与边界
 
 本批通过9项Python检查和一个实际CLI/真实本地服务器/bridge集成场景，含重复、离线、只读、关闭父任务和待答禁止换登记。当前Codex也已亲自完成公网→真实红米正常答案页→同一CLI原调用的合成两行文字回传；输入由代理完成，不当作真人决策或眼镜效果。[证据](../../android-app/current-codex-text-2026-10-20.json)。
 
 全局skill仅安装本项目调用说明，按[官方技能说明](https://learn.chatgpt.com/docs/build-skills)组织。没有修改Codex启动配置、hook或MCP。正式长期凭据/续期、手机多路上下文、眼镜原请求卡、完整口述及后台日常仍待后续。任务镜像记录最近的接收/继续事实，不提供Codex进程存活监控或强停能力，也不因工具结束虚报任务完成。
+
+## 当前对话的阻塞通知
+
+`notify` 使用同一真实调用方登记与原任务，只创建 `progress` 消息，不创建问题或等待答案。参数 JSON 为 `notification_key`、`text`（最多1800字）、`expires_at`（未来一小时内 UTC `Z` 时间）。同一通知重试须保持全部参数；同一键更改内容会拒绝。先耐久保存事件再发送，重试沿用事件和幂等键。
+
+安装支持通知的手机版本后，通知在眼镜空闲时走提词器，最长3分钟；长按退出及超时均不开始口述。过期、任务已结束或其他对话的消息不显示。普通问答/录音进行中，通知等待，不覆盖当前交互。`server_stored` 只证明服务器保存；`glasses_display_confirmed=false` 不冒充镜片到达，需另核对设备回报或本人观察。网络失败保留 `message_id` 和本机事件，按原参数重试。
+
+## 每一步的进度报告与服务器看门狗（2026-10-23）
+
+`checkpoint`（`checkpoint_key / done / next / next_checkin_minutes?`）把"已完成 + 下一步"作为进度通知推到眼镜，并在服务器 `PUT /v1/watches/<task_id>` 登记下次报到时间。服务器每分钟检查一次：已开启、超时 2 分钟以上、且任务仍有效的报到，由服务器自己生成一条进度通知（`producer_id=io-server-watchdog`，消息格式不变，手机不用改），每次报到只提醒一次。`config`（`glasses_progress / checkin_minutes`）由 Agent 端开关，关闭时同步关闭服务器报到。`help` 打印合同；`ask/wait/status/notify` 的回复带 `progress` 义务。合同全文：[AGENT-CONTRACT.md](AGENT-CONTRACT.md)。
+
+## 一次配对，不再导入连接文件（2026-10-24）
+
+- **电脑登记一次**：`node tools/collab/enroll-computer.mjs --computer-id io-mac-computer --label "Mac mini"` 通过运维 SSH 在服务器上调用 `cli.mjs enroll`，把这台电脑登记为用户账号（`turboio-user`）下的一台设备，凭据写进 `~/.turboio/agent-device.json`（0600，可用 `IO_AGENT_DEVICE_FILE` 改位置），不打印。
+- **手机配对一次**：`node rebuild/agent-bridge/device.mjs pair-phone "我的手机"` 生成一次性配对码（10 分钟、只能用一次），在手机上输入即可；服务器 `POST /v1/pair` 用码换手机凭据，错误码按 10 分钟窗口全局限 30 次。
+- **每个会话**：`echo '{"topic":"…"}' | node rebuild/agent-bridge/questions/cli.mjs join` 用设备凭据登记本会话任务（12 小时），手机侧那一条配对连接就能看到；同话题重复 `join` 复用原任务。
+- **后台续期**：设备凭据 24 小时，过了 `refresh_after`（一半时间）后 `BridgeClient` 在下次请求前调用 `POST /v1/credentials/refresh` 原地换新；旧凭据保留 5 分钟宽限，同一凭据只能续一次（并发时另一进程重读文件）。
+- **管理**：`device.mjs devices` 列出、`device.mjs unpair <device_id>` 吊销（吊销设备即作废它的所有凭据）；手机可自己解除配对。服务器管理员也可 `cli.mjs devices / unpair`。
+- 旧的 `register --config` + 手机导入连接文件只留给自动化测试。

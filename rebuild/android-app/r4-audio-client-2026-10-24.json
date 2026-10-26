@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T20:38:01.292Z",
+  "node": "v22.23.2",
+  "passed": true,
+  "unit_assertions": 56,
+  "scope": "Production Java audio connection/wire/outbox over isolated HTTP/SQLite; opaque synthetic payload bytes, not codec, official source or phone-runtime proof.",
+  "new_sources_android_36_bootclasspath_compile": 4,
+  "product_style_java_8_compile": true,
+  "android_d8_min_api": 29,
+  "part_response_process_halt_recovered": true,
+  "finalize_response_process_halt_recovered": true,
+  "partial_copy_process_halt_recovered": true,
+  "renamed_copy_process_halt_recovered": true,
+  "exact_full_byte_download": true,
+  "missing_parts_only_after_restart": true,
+  "three_day_receipt_never_renewed": true,
+  "text_only_identity_denied_before_audio_post": true,
+  "pause_after_commit_reconciled": true,
+  "bad_receipt_retained_payload": true,
+  "corrupt_payload_not_transmitted": true,
+  "owned_cleanup_recovery_preserves_source": true,
+  "canonical_body_control_escapes_agree": true,
+  "mid_request_credential_revocation_renewal": true,
+  "producer_completeness_claim_not_verified": true,
+  "explicit_bad_receipt_retry_reconciles": true,
+  "phone_accessed": false,
+  "public_service_accessed": false,
+  "product_runtime_wired": false,
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/AudioConnection.java",
+      "sha256": "250b4ee60548b7a4d3f432221c95db17ef3a04db0f615c3bb73c51bee9be7afa"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadWire.java",
+      "sha256": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioHttp.java",
+      "sha256": "3c9dc190c716f74942d7b54fd566133ae18d62df0dbb8ef777b0ab77b00014f9"
+    },
+    {
+      "path": "src/com/turboio/addon/AudioUploadOutbox.java",
+      "sha256": "63753b67491e29faa7272d53ad55473da6133ec5d34f914c10f2ad5552fb9ce0"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialConnection.java",
+      "sha256": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialWire.java",
+      "sha256": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialApi.java",
+      "sha256": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialTransfer.java",
+      "sha256": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialOutbox.java",
+      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+    },
+    {
+      "path": "src/com/turboio/addon/AtomicDocument.java",
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+    },
+    {
+      "path": "src/com/turboio/addon/WireJson.java",
+      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskWire.java",
+      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskConnection.java",
+      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+    },
+    {
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "../../tools/android/AudioUploadHttpTest.java",
+      "sha256": "3da712aeb0d5c536ee461f3d688cf7df6adaca2ca6c331ab97483b00b27dd2a1"
+    },
+    {
+      "path": "../../tools/android/AudioUploadOutboxTest.java",
+      "sha256": "fb870112efdc6f118a134da54b6aecccc1994a96a2f089cae9c5b017eabf50b6"
+    },
+    {
+      "path": "../../tools/android/test-audio-upload.mjs",
+      "sha256": "d52a73e91f5ea7bb430c1718287a6c2eb4faa6cb64b8b93367b01417cec8e450"
+    }
+  ],
+  "temporary_fixture_removed": true,
+  "fixture_credentials_revoked": 4,
+  "base_commit": "8c87ce9591a4cffdb4c44a26eda3b3898f503c7b",
+  "phases": [
+    {
+      "name": "recover",
+      "assertions": 21
+    },
+    {
+      "name": "repeat",
+      "assertions": 15
+    },
+    {
+      "name": "scope-block",
+      "assertions": 17
+    },
+    {
+      "name": "scope-resume",
+      "assertions": 44
+    },
+    {
+      "name": "pause-part",
+      "assertions": 22
+    },
+    {
+      "name": "pause-recover",
+      "assertions": 32
+    },
+    {
+      "name": "bad-ack",
+      "assertions": 41
+    },
+    {
+      "name": "retry-receipt",
+      "assertions": 23
+    },
+    {
+      "name": "corrupt-stage",
+      "assertions": 13
+    },
+    {
+      "name": "corrupt-send",
+      "assertions": 18
+    },
+    {
+      "name": "copy-recover",
+      "assertions": 50
+    },
+    {
+      "name": "copy-recover",
+      "assertions": 50
+    },
+    {
+      "name": "auth-mid-request",
+      "assertions": 23
+    },
+    {
+      "name": "scope-resume",
+      "assertions": 44
+    },
+    {
+      "name": "outbox",
+      "assertions": 56
+    },
+    {
+      "name": "expired",
+      "assertions": 15
+    }
+  ],
+  "installed_product": {
+    "version": "0.5.3-dev83",
+    "version_code": 10505,
+    "sha256": "42f0f382ffad54844d029525937d5a5cda24699f917e1ab0a26b8a113174fdb0",
+    "changed_this_batch": false,
+    "contains_new_upload_client": false
+  },
+  "stable_rollback": "0.5.3-dev76 /10498",
+  "self_review_fixes": [
+    "Deep-copy persisted send claim before processing network ACK",
+    "Whitelist exact receipt fields and persist normalized durable ACK before owned cache deletion",
+    "Normalize mid-request HTTP401/403 for renewal recovery",
+    "No-follow source/staging reads and account/target-scoped queue paths",
+    "Keep producer completeness declaration separate from verified storage"
+  ],
+  "failure_history": [
+    {
+      "phase": "additional_android_api_compile",
+      "result": "failed",
+      "cause": "Android bootclasspath omits LambdaMetafactory compiler bootstrap for unchanged MaterialOutbox method reference",
+      "resolution": "Compile unchanged dependencies with the existing product Java8/classpath pipeline; additionally compile all four new sources with Android36 bootclasspath, then D8 the complete set",
+      "product_source_changed_to_bypass_failure": false
+    }
+  ],
+  "not_verified": [
+    "Actual AudioHttp HTTPS peer/TLS transport; HTTP integration uses loopback test transport",
+    "Original codec, source association or complete all-day recording",
+    "Physical dev83 buffered input (previous independent observer had no input)",
+    "Phone runtime/config/import/UI/automatic audio producer",
+    "Deployed server audio release, rollback and independent expiry cleanup",
+    "Real original-audio grant, upload or deletion"
+  ],
+  "next": "Implement verified sealed-archive payload producer and read-only catalog barrier, then separate Keystore configuration and guarded automatic upload runtime; prepare dedicated server release before real-audio grant.",
+  "progress_checkpoint": {
+    "checkpoint_key": "codex-r4-audio-client-core-complete-20261024",
+    "server_stored": true,
+    "caller_verified": true,
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T21:00:49.177Z"
+  }
+}

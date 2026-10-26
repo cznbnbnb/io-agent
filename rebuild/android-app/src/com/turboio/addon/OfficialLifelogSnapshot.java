@@ -14,6 +14,22 @@ public final class OfficialLifelogSnapshot {
  private static String optional(Object v,int max){return v==null?"":text(v,max,true);}
  /** Read a previously preserved canonical source; this is not freshness proof. */
  static Source original(byte[] json){return new Source(WireJson.map(WireJson.read(json)));}
+ /** The host may split one source across several aggregate events. Only exact
+  * duplicates or disjoint ranges with equal non-range metadata can be joined.
+  * No fragment wins a conflict, and no inferred text fills the gaps. */
+ static Source fragments(List<Source> input){
+  require(input!=null&&!input.isEmpty()&&input.size()<=16,"LIFELOG_SOURCE_BUDGET");
+  List<Source> ordered=new ArrayList<>(input);ordered.sort(Comparator.comparingLong((Source s)->s.start).thenComparingLong(s->s.end));
+  List<Source> unique=new ArrayList<>();for(Source s:ordered){boolean same=false;for(Source p:unique)if(Arrays.equals(p.original,s.original)){same=true;break;}if(!same)unique.add(s);}
+  if(unique.size()==1)return unique.get(0);
+  Map<String,Object> merged=WireJson.map(WireJson.read(unique.get(0).original)),metadata=new TreeMap<>(merged);for(String k:new String[]{"startTime","endTime","clips"})metadata.remove(k);
+  List<Object> clips=new ArrayList<>();Set<String> ids=new HashSet<>();long until=unique.get(0).start;
+  for(Source source:unique){Map<String,Object> value=WireJson.map(WireJson.read(source.original)),other=new TreeMap<>(value);for(String k:new String[]{"startTime","endTime","clips"})other.remove(k);
+   require(metadata.equals(other)&&source.start>=until,"LIFELOG_FRESH_SOURCE_CONFLICT");until=source.end;
+   for(Object raw:WireJson.list(value.get("clips"))){require(ids.add((String)WireJson.map(raw).get("clipId")),"LIFELOG_FRESH_SOURCE_CONFLICT");clips.add(raw);}require(clips.size()<=10000,"LIFELOG_CLIP_BUDGET");
+  }
+  merged.put("endTime",Long.toString(until));merged.put("clips",clips);require(WireJson.bytes(merged).length<=1048576,"LIFELOG_SOURCE_BUDGET");return new Source(merged);
+ }
  public static final class Clip {
   public final String id,text,speakerType,speakerName;public final long start,end;
   private Clip(Map<String,Object> v,long from,long until){id=id(v.get("clipId"));text=text(v.get("content"),65536,true);start=time(v.get("startTime"));end=time(v.get("endTime"));require(start>=from&&end>=start&&end<=until,"LIFELOG_CLIP_RANGE");speakerType=optional(v.get("speakerType"),64);speakerName=optional(v.get("speakerName"),80);}

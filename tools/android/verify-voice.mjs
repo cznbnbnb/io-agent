@@ -1,5 +1,7 @@
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
 import {classFile,HOST} from '../../rebuild/android-app/host-107.mjs';
+// apktool writes host line endings; pinned hashes are over the Windows (CRLF) form.
+const crlf=raw=>Buffer.from(raw.toString('latin1').replaceAll('\r\n','\n').replaceAll('\n','\r\n'),'latin1');
 export function verifyVoice(root){
  const checks=[
   ['Lcom/rayneo/airuntime/controller/ASRController;',['.method public final createTask(Ljava/lang/String;)Lcom/rayneo/airuntime/controller/ASRTask;','.method public final destroyTask(Ljava/lang/String;)V']],
@@ -21,7 +23,7 @@ export function verifyVoice(root){
   ['LAb/a;',['.method public abstract invoke()Ljava/lang/Object;']],
   ['Lcom/rayneo/airuntime/utils/OpusDecoder;',['.method public constructor <init>()V','.method public final init-uN6NtqM(II)Z','.method public final decode2Bytes([B)[B','.method public final release()V']],
  ];
- const proofs=checks.map(([descriptor,required])=>{const file=classFile(root,descriptor),raw=fs.readFileSync(file),text=raw.toString('utf8').replaceAll('\r\n','\n');for(const line of required)if(!text.split('\n').includes(line))throw Error('Voice ABI mismatch: '+descriptor+' '+line);return {descriptor,path:path.relative(root,file),sha256:crypto.createHash('sha256').update(raw).digest('hex'),required};});
+ const proofs=checks.map(([descriptor,required])=>{const file=classFile(root,descriptor),raw=fs.readFileSync(file),text=raw.toString('utf8').replaceAll('\r\n','\n');for(const line of required)if(!text.split('\n').includes(line))throw Error('Voice ABI mismatch: '+descriptor+' '+line);return {descriptor,path:path.relative(root,file),sha256:crypto.createHash('sha256').update(crlf(raw)).digest('hex'),required};});
  const recorder=proofs.find(p=>p.descriptor==='Lp8/o;');if(recorder.sha256!=='4cb19c13933f8eef556fc0d7363b67f8f9ce60f338e9015f6834ca9874c6d326')throw Error('External-data recorder implementation changed');
  return {host:HOST.version,host_sha256:HOST.sha256,proofs,external_data_adapter_opens_microphone:false,physical_engine_tested:false};
 }

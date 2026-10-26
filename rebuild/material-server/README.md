@@ -1,5 +1,7 @@
 # P30 独立资料服务
 
+2026-10-24：原音侧库与 `audio_archive_v1` 已完成本地合成验证，尚未部署。需要独立 `audio:write` / `audio:read`，现有文字和配对权限不扩展。原音写入 `<db>.audio.sqlite`，不进入文字库备份；完整提交后固定保留 72 小时，启动及每分钟清理，到期立即拒绝读取。详见[原音归档接入](../../docs/contracts/lifelog-audio-archive.md)。旧文字发布 profile 已拒绝包含原音模块依赖的新源码，正式发布仍需新的完整模块/回退/清理演练。
+
 实现文字和元数据的真实 SQLite 收存、修订 CAS、去重、查询及增量游标。独立进程/数据库，不依赖现有网站 Cookie、业务表或电脑 Agent。**已于 2026-10-11 部署到 `https://cznbnb.cn/io-api/v1/`**（独立 systemd 服务＋独立 Node22＋独立数据目录，站点业务未改；见[部署记录](../../docs/product/phase1-server-reuse-2026-10-11.md)与[部署包](./deploy/README.md)）。后续手机合成同步与电脑连接程序的受控云端验证已有独立记录，见本文验证范围；原音上传与完整产品验收仍未完成。
 
 首次部署后的服务器本机 HTTPS 实测（合成数据）：未认证 401、身份绑定、写入 201 且回执 `server_stored`、同事件重发 200 且值一致、原文精确读回＋来源引用、增量游标可见——证据 [server-live-verification.json](../../rebuild/phase1/server-live-verification.json)、[server-deployment-facts.json](../../rebuild/phase1/server-deployment-facts.json)。该历史记录自身不证明公网或手机同步；后续公网/手机单项分别列在下文。凭据 24 小时上限、无自动轮换；`probe-*`／`live-check-*` 为自检合成行。
@@ -54,7 +56,7 @@ Authorization 为 `Bearer <token>`，不接受查询参数凭据。由凭据推�
 
 手机发送前先核对identity与已登记的owner/producer/server三者完全一致，并且具备materials:write；不能只相信配置里为令牌写下的标签。server_id为数据库内持久随机UUID，服务重启/备份保留，新建空库产生新ID。迁移到另一服务需要显式登记并重新对账，不能继承原服务的已存回执。
 
-所有事件UTF-8≤256KiB；超限413，全文不截断、不伪造拆分。JSON重复键（包括转义后相同名称）、非法UTF-8/孤立代理项、超过64层嵌套均拒绝。按 [RFC8785](https://www.rfc-editor.org/rfc/rfc8785.html) 的ECMAScript序列化和UTF-16键排序计算SHA256；不会通过先排序到普通Object再stringify导致数字键被重排。
+直接事件请求 UTF-8≤256KiB；超限413。2026-10-24 新增可协商的[长资料传输](../../docs/contracts/material-transfer-v1.md)：保持单请求上限，分块组装至 8 MiB，仍提交同一完整资料修订，不截断、不伪造拆分；目前仅源码与合成验证，未发布。JSON重复键（包括转义后相同名称）、非法UTF-8/孤立代理项、超过64层嵌套均拒绝。按 [RFC8785](https://www.rfc-editor.org/rfc/rfc8785.html) 的ECMAScript序列化和UTF-16键排序计算SHA256；不会通过先排序到普通Object再stringify导致数字键被重排。
 
 成功响应例（结构示意，ID均由实际提交产生）：
 

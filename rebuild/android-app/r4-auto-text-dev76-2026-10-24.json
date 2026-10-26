@@ -1,0 +1,4148 @@
+{
+  "schema": 1,
+  "scope": "Authorized 24h text only; no audio uploads or authoritative deletions",
+  "status": "text_auto_sync_verified",
+  "grant": {
+    "run_id": "r4-text-20261024-codex",
+    "status": "ready",
+    "credentials": {
+      "phone": {
+        "expires_at": "2026-10-25T11:21:31.920Z",
+        "token_id": "e33bf2dd-a927-4372-9403-88b3f936385b"
+      },
+      "reader": {
+        "expires_at": "2026-10-25T11:21:32.517Z",
+        "token_id": "dda0e9eb-65df-49d1-b5ba-a018c5edc3b2"
+      }
+    },
+    "ttl_ms": 86400000,
+    "single_issuance": true,
+    "normal_ui_import": true,
+    "temporary_external_import_removed": true
+  },
+  "failure_before_fix": {
+    "audit": {
+      "queue_states": {
+        "server_stored": 6
+      },
+      "duplicate_sources": [
+        {
+          "source_sha256": "e0a83f48686c14f18c53ef12f544ea2279a33e1610e6ec07e3651d038d6a181a",
+          "first_event_sha256": "8b45c6351ee22867449e6384f7a8dde1c9fc5d63368529d2cf23b5459c2301c1",
+          "second_event_sha256": "667b9b3ad08e1daeb200216bfed0947944ad21d1fab5ded218ff9f331858a42a",
+          "raw_equal": false,
+          "mapped_equal": false,
+          "changed_fields": [
+            "clips",
+            "endTime",
+            "startTime"
+          ],
+          "old_clips": 15,
+          "new_clips": 44,
+          "same_start": false,
+          "same_end": false
+        }
+      ],
+      "day_lists": [
+        {
+          "date": "2026-10-24",
+          "events": 4
+        },
+        {
+          "date": "2026-10-23",
+          "events": 5
+        }
+      ],
+      "requests": 7
+    },
+    "completed": true,
+    "credentials_or_text_exported": false,
+    "error": "LIFELOG_FRESH_SOURCE_CONFLICT",
+    "failure_location": "com.turboio.addon.MaterialWire:10",
+    "passed": false,
+    "probe_id": "5b8128af822d4a21b553a71177a485c9",
+    "state_unchanged": true
+  },
+  "diagnosis": {
+    "audit": {
+      "queue_states": {
+        "server_stored": 6
+      },
+      "duplicate_sources": [
+        {
+          "shared_clip_ids": 0,
+          "different_shared_clips": 0,
+          "changed_clip_fields": [],
+          "overlap_ms": 0,
+          "gap_ms": 144063,
+          "source_type": "conversation",
+          "source_id_length": 32,
+          "same_calendar_day": true,
+          "source_sha256": "e0a83f48686c14f18c53ef12f544ea2279a33e1610e6ec07e3651d038d6a181a",
+          "first_event_sha256": "8b45c6351ee22867449e6384f7a8dde1c9fc5d63368529d2cf23b5459c2301c1",
+          "second_event_sha256": "667b9b3ad08e1daeb200216bfed0947944ad21d1fab5ded218ff9f331858a42a",
+          "raw_equal": false,
+          "mapped_equal": false,
+          "changed_fields": [
+            "clips",
+            "endTime",
+            "startTime"
+          ],
+          "old_clips": 15,
+          "new_clips": 44,
+          "same_start": false,
+          "same_end": false
+        }
+      ],
+      "day_lists": [
+        {
+          "date": "2026-10-24",
+          "events": 4
+        },
+        {
+          "date": "2026-10-23",
+          "events": 5
+        },
+        {
+          "date": "2026-10-24",
+          "events": 4
+        },
+        {
+          "date": "2026-10-23",
+          "events": 5
+        }
+      ],
+      "requests": 13,
+      "diagnostic_scan_only": true,
+      "distinct_source_keys": 56,
+      "aggregate_events": 9,
+      "response_bytes": 646326
+    },
+    "completed": true,
+    "credentials_or_text_exported": false,
+    "passed": true,
+    "probe_id": "f42477b66a264e9180251948f5b9fa2a",
+    "state_unchanged": true
+  },
+  "dev75_install": {
+    "at": "2026-10-24T11:40:43.194645+00:00",
+    "version": "0.5.3-dev75",
+    "version_code": 10497,
+    "installed_sha256": "18868299994f3f4bb669016c1b991ecb73caa7b5f3e129ef202ad56c72d854b0",
+    "sha256_matches": true
+  },
+  "dev75_delta": {
+    "baseline_sha256": "5b6e9a8264e90b9e7c4cf6ecd846421b74aedf6a49ef272ce07e1b9628af50a1",
+    "target_sha256": "18868299994f3f4bb669016c1b991ecb73caa7b5f3e129ef202ad56c72d854b0",
+    "delta_bytes": 1437284,
+    "push_seconds": 10.091,
+    "remote_reconstruction_verified": true
+  },
+  "source_discovery": {
+    "audit": {
+      "queue_states": {
+        "queued": 57,
+        "server_stored": 6
+      },
+      "duplicate_sources": [
+        {
+          "shared_clip_ids": 0,
+          "different_shared_clips": 0,
+          "changed_clip_fields": [],
+          "overlap_ms": 0,
+          "gap_ms": 144063,
+          "source_type": "conversation",
+          "source_id_length": 32,
+          "same_calendar_day": true,
+          "source_sha256": "e0a83f48686c14f18c53ef12f544ea2279a33e1610e6ec07e3651d038d6a181a",
+          "first_event_sha256": "8b45c6351ee22867449e6384f7a8dde1c9fc5d63368529d2cf23b5459c2301c1",
+          "second_event_sha256": "667b9b3ad08e1daeb200216bfed0947944ad21d1fab5ded218ff9f331858a42a",
+          "raw_equal": false,
+          "mapped_equal": false,
+          "changed_fields": [
+            "clips",
+            "endTime",
+            "startTime"
+          ],
+          "old_clips": 15,
+          "new_clips": 44,
+          "same_start": false,
+          "same_end": false
+        }
+      ],
+      "day_lists": [
+        {
+          "date": "2026-10-24",
+          "events": 4
+        },
+        {
+          "date": "2026-10-23",
+          "events": 5
+        },
+        {
+          "date": "2026-10-24",
+          "events": 4
+        },
+        {
+          "date": "2026-10-23",
+          "events": 5
+        }
+      ],
+      "requests": 13,
+      "production_discovery": true,
+      "fresh_sources": 57,
+      "source_text": [
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+          "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+          "full_text_codepoints": 110,
+          "utterances": 12
+        },
+        {
+          "material_id": "rayneo-lifelog-74545cb1729023c29f82ba02ef55670bf0dff2eb401ea83e79ca3e049f313ed6",
+          "full_text_sha256": "afd59ecd9012167f09ac970326c82d3f74cafb2791eeadc351772a54c84874cc",
+          "full_text_codepoints": 50,
+          "utterances": 5
+        },
+        {
+          "material_id": "rayneo-lifelog-b8a6c73a704a4c6c0dc6097ff35c4639cae98d3a89b94e5efbad71a4f2848d36",
+          "full_text_sha256": "7677b1c1cb8d00e5d1f4fd90d87aa9f3d59a18fb3f831841371b68267252a877",
+          "full_text_codepoints": 158,
+          "utterances": 13
+        },
+        {
+          "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-c516dd946c472cf25023b32367bd40e9756417749ad9e0f214c3f3659d95e6c9",
+          "full_text_sha256": "c14179ce959b99f176fe3c6634a1a0002ea678e57bdb4aa6f0b0d789b62e6bd0",
+          "full_text_codepoints": 362,
+          "utterances": 28
+        },
+        {
+          "material_id": "rayneo-lifelog-727859d4a6f90dadb3f5c982729c2e93f051ebca18cf6cc12c2e1b6dba93d167",
+          "full_text_sha256": "52436679f3ec62176a1ccc353628a884bc3aa2d23caf72ef6e826f49be98c289",
+          "full_text_codepoints": 4900,
+          "utterances": 273
+        },
+        {
+          "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+          "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+          "full_text_codepoints": 113,
+          "utterances": 9
+        },
+        {
+          "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+          "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+          "full_text_codepoints": 405,
+          "utterances": 23
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4
+        },
+        {
+          "material_id": "rayneo-lifelog-e69520547d3618e0a053cedc69ac6b9519ad10bb53612d0d13b9fb8baadf3643",
+          "full_text_sha256": "9e475163d88f30552675ff1f6cb45108e26702b57b585452cdd1938cddebbf6e",
+          "full_text_codepoints": 120,
+          "utterances": 7
+        },
+        {
+          "material_id": "rayneo-lifelog-a3793faf3d8e2b9e17aa7405cb4b5e58db1fa2ac4c9799456dbac53754ce1b07",
+          "full_text_sha256": "ef1b8b8335d542f1f1dd900e951d9c0a19f2b281407d0c15e7434deb03f5ddd0",
+          "full_text_codepoints": 1504,
+          "utterances": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-a3f1f05c6bf265ce1c1f6845b3d0e555f0e18b42fbfc0697eddcd8095e960ea5",
+          "full_text_sha256": "4453defa6c45a38acb821e123e8f0169bf5c35c2f01c47de1cd781f3c41aac26",
+          "full_text_codepoints": 71,
+          "utterances": 5
+        },
+        {
+          "material_id": "rayneo-lifelog-7e88cee23687cea046c97c5adca9aae99f87465348b1a8aac0c903752c8ecad6",
+          "full_text_sha256": "04599542ed62c5fa9d47942fa9450cb4fd7bb24bb51c3ac68bc300b6eee5e5d2",
+          "full_text_codepoints": 183,
+          "utterances": 11
+        },
+        {
+          "material_id": "rayneo-lifelog-8c63c55ae32d04b3828a46eca2adc766c6f623bdfb66652287bf211d2df4e734",
+          "full_text_sha256": "9a295070ca1d89a9a449cc2c719cded57520d37d5a3e28f2b21a57e3091b06cb",
+          "full_text_codepoints": 971,
+          "utterances": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-5c568983f0c9a80a2b942a5c8021d0cea087dba19bcc8628862d6524f15c277a",
+          "full_text_sha256": "475b86342b8c415c1f0044516a7a8af130240b59f48663d8440d379ab2e0edc1",
+          "full_text_codepoints": 311,
+          "utterances": 23
+        },
+        {
+          "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-7e46fb633fe38ccc8bed3b25dc6f6117b05c65024e275ff5f4032bb49eb93435",
+          "full_text_sha256": "07a0a13780bda256aa0e155b880826d84fe511214053d6499f4360c97ac7350f",
+          "full_text_codepoints": 993,
+          "utterances": 68
+        },
+        {
+          "material_id": "rayneo-lifelog-704a580dc9d2fab73536373ddbdda1b4932ca053c34f0f3bff68946c0580b202",
+          "full_text_sha256": "5497a73c04011b780d668ad891d50a689bd1ad47354cf4c7090d2ed2e886d9e2",
+          "full_text_codepoints": 392,
+          "utterances": 14
+        },
+        {
+          "material_id": "rayneo-lifelog-ce44ee1e9575a030744a279be5da728aa413b8306951a37434b98f747177adaf",
+          "full_text_sha256": "4858075e23d474d8c71b38956392fdcfaad8b08ae2ea27d86b68012721922f57",
+          "full_text_codepoints": 303,
+          "utterances": 16
+        },
+        {
+          "material_id": "rayneo-lifelog-62e00ad76921667ce1b5ff16183a504e591ae18abec5fe2b5ebab89e146d4420",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+          "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+          "full_text_codepoints": 939,
+          "utterances": 44
+        },
+        {
+          "material_id": "rayneo-lifelog-753060a2882d67558974c11accc42f2cd5ea58e5522aa7ffb19b4ae18f5adaa3",
+          "full_text_sha256": "223d091f07c04aa2cfbd5c3f9e57a1475f7b37eb6c1d30da0e47cc166389caae",
+          "full_text_codepoints": 33,
+          "utterances": 3
+        },
+        {
+          "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+          "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+          "full_text_codepoints": 184,
+          "utterances": 17
+        },
+        {
+          "material_id": "rayneo-lifelog-a73e5a066ff34d9e672c66e8fa9fc90d197bb570f9649c0bc63a9e5547f6bfdf",
+          "full_text_sha256": "1ae29429aa6e8bfa2e402f5aa3d60ceaaabf9adc0ad984eb1dba826af83c95eb",
+          "full_text_codepoints": 68,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-cdc9b327a85b903e758346f042a9b11fb29980a49df00391ad2afa7f7446b99a",
+          "full_text_sha256": "faeb9fa8c98b676dc6de4545cb2442f89d6fda0b989d2020e73a55bdbc047261",
+          "full_text_codepoints": 666,
+          "utterances": 35
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+          "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+          "full_text_codepoints": 583,
+          "utterances": 42
+        },
+        {
+          "material_id": "rayneo-lifelog-b9430bc7ba7d2f4161bd96e2771420febca2647e219e23c1b30865479387033c",
+          "full_text_sha256": "20f9f53a6ceb5a86ebd14c2b313fd06fe7b19576fde32d12af0e04074e648fdf",
+          "full_text_codepoints": 1026,
+          "utterances": 66
+        },
+        {
+          "material_id": "rayneo-lifelog-c206822358968cfe6590bfe0e342bcc2a7069c878560d4413896013e3053289e",
+          "full_text_sha256": "95d56a192e18abc44ad94d70f144de3cc1f389dcd2ef6cb75c390ffee953d6bd",
+          "full_text_codepoints": 993,
+          "utterances": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-d2ed4434fd00e1cf47d0f626b64a8112bfae00069e3a308ae96013d7612bad23",
+          "full_text_sha256": "a6133b90b70a497c99285748d42d38f3d4377cb33b07479aa4ceb028d4dab784",
+          "full_text_codepoints": 1512,
+          "utterances": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+          "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+          "full_text_codepoints": 345,
+          "utterances": 25
+        },
+        {
+          "material_id": "rayneo-lifelog-add9761117d577fe1cf858a087f7181101b22bcb5e2e461712bc328862124c19",
+          "full_text_sha256": "64f113d4531aef77ae43ce4302ee1502a4f8dde79fc589dc3fb3e9c21e7cca58",
+          "full_text_codepoints": 62,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-7791b3c446d5df5afb3473e0d48f35248fbd9925350c4a34558d66e6fd952137",
+          "full_text_sha256": "5aaf701f757ea647e417f5e3d0f82ccd02ef9cbe9535e1ea8134d3d045c8ffcb",
+          "full_text_codepoints": 101,
+          "utterances": 8
+        },
+        {
+          "material_id": "rayneo-lifelog-85f1b0f6819241c188f1c66a60810a7e8a533b8bcd2659b90f4abe5c61cc9683",
+          "full_text_sha256": "e81470feb4fb05b773f9a8a56fd3af060b5f90c7d879a11fbdf589f87cef8e21",
+          "full_text_codepoints": 832,
+          "utterances": 62
+        },
+        {
+          "material_id": "rayneo-lifelog-ef6cac815a4f7c34bc525325264ecda2d3b568758136d55e7f9ec8123a590d93",
+          "full_text_sha256": "eb64ba05406b843c09e5cad9947b48413a0fd123d1ed932357bdfe9d2bd89c2d",
+          "full_text_codepoints": 621,
+          "utterances": 27
+        },
+        {
+          "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+          "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+          "full_text_codepoints": 42,
+          "utterances": 9
+        },
+        {
+          "material_id": "rayneo-lifelog-aecc6e716a4ac9596b1fc921391d76c21cdab4107fe2f873a301382564631ffc",
+          "full_text_sha256": "d950ac9c344c005ccf4eed60677c2d8c20799d37dcf13895304efa43e1b16165",
+          "full_text_codepoints": 44,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-f9bb7474fc3445e3c780328128a7d948718a70290ddb0e4ce42f155f22cd46b5",
+          "full_text_sha256": "485e6d48dfaf453499eeb106a4fbde7a4f0d108163d231977448cef16c05c81d",
+          "full_text_codepoints": 111,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+          "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+          "full_text_codepoints": 38,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-b9fa60d95ac3bf2c0c10f427537dc912abcb6e041c8b30ca2cb6bc3008998796",
+          "full_text_sha256": "a98e754d26f9b341bbf8e65b9271db45ce1770657c63606f8a4e35474084ad87",
+          "full_text_codepoints": 653,
+          "utterances": 38
+        },
+        {
+          "material_id": "rayneo-lifelog-ac73c8221fa2504fb950885a798449ccce9dd8d84ef2ac24019f4ea4cc7b59c5",
+          "full_text_sha256": "559c121c891227cafa51e0fa109344fa11f096338b53b9777fd5a6b01954b41b",
+          "full_text_codepoints": 7,
+          "utterances": 2
+        },
+        {
+          "material_id": "rayneo-lifelog-8818474dc64001d0bf7a3abf9547fa44f46c82905f8e09975295ef15e4ace348",
+          "full_text_sha256": "54552989fa88dbc862628467db11d0e8a5ecd1f0a5f44720e61090b8745085be",
+          "full_text_codepoints": 1529,
+          "utterances": 82
+        },
+        {
+          "material_id": "rayneo-lifelog-e4ecaf46c4361d51d9be7ff11b0827f694765e0cb43fb5ddee303cb7a93bed6f",
+          "full_text_sha256": "003260cb18f786f86624555bc4a8527c8b4b286b3f2b9e648ed900f1f7cbd780",
+          "full_text_codepoints": 2138,
+          "utterances": 125
+        },
+        {
+          "material_id": "rayneo-lifelog-9c9b7cfe795b26185dd7ea0af33b502122a0fc4f1f4d066072f18b95fd63b56f",
+          "full_text_sha256": "69af505882c81b1328e1931c240403e68875ce2efc1d8e199b88c59c05ccac03",
+          "full_text_codepoints": 52,
+          "utterances": 8
+        },
+        {
+          "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+          "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+          "full_text_codepoints": 745,
+          "utterances": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-777e3dd36f8398d4a6721ec25f1632f703b31a09c7cf4658c99df4e809743988",
+          "full_text_sha256": "ca1ecf4883f5716c54d25f660f23abb55ed0001e0abe34cb391b1ce84d2ccab1",
+          "full_text_codepoints": 263,
+          "utterances": 25
+        },
+        {
+          "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+          "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+          "full_text_codepoints": 383,
+          "utterances": 31
+        },
+        {
+          "material_id": "rayneo-lifelog-d9b888640b5faf0f3dd4ab7c1f73fc1a326ab0fa0d4ac4c3dafc99878f879d4a",
+          "full_text_sha256": "7b1ba22af17accf95425dd5e7cd7d886c7dacc5cf25da9d053e7e9076efd469c",
+          "full_text_codepoints": 47,
+          "utterances": 6
+        },
+        {
+          "material_id": "rayneo-lifelog-99a2fc717a7e3c5eca96b5804e330431f13efd612158bf7ec3a0c4e680e0dc1a",
+          "full_text_sha256": "8fb9f9762701df7e625b38137bef87fdac1e67992360b189c033a9261c56203a",
+          "full_text_codepoints": 141,
+          "utterances": 13
+        },
+        {
+          "material_id": "rayneo-lifelog-e6bc20a320a1d725b651a1ba077f9062fb51fe942882fb65f4477835fee59b2b",
+          "full_text_sha256": "4dc770056d1b932aefb0c93465193e23f61810244d3db2aea2a92224bd956a7c",
+          "full_text_codepoints": 23,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-f125a985d4faf94b9401c948808c7707ed090bb87b3708459f3c6c01b5ea0c8e",
+          "full_text_sha256": "b260f53a75893a5005c571292432e8b549f69f40cb3d8471733d8bdd8826b604",
+          "full_text_codepoints": 100,
+          "utterances": 11
+        },
+        {
+          "material_id": "rayneo-lifelog-b2bf47d812dad869b8f745fa68d2fc579c6c242d21cfedcbcc81e36b0b98aa19",
+          "full_text_sha256": "707502b84681d4c3b1757f7e29af0bed5565636b422b4639068ff21e27f5b301",
+          "full_text_codepoints": 468,
+          "utterances": 28
+        },
+        {
+          "material_id": "rayneo-lifelog-6b0984ff24d265f6b97b325d48e758726fdde7664fcbfdfb0992afd8bb93d6cb",
+          "full_text_sha256": "35d7f646024e76817b9067bdbffa099e098f0746432c89fdd06dd33e838c7bd0",
+          "full_text_codepoints": 103,
+          "utterances": 7
+        },
+        {
+          "material_id": "rayneo-lifelog-80a8b4fe227c2903bdf36140c3aa369d0c3c9f362b9be1e8405bc091b5e405e4",
+          "full_text_sha256": "c0dad597dc82a31dd69060476ba8d5a0bc081bd7005ed6641f89ca6ade33857a",
+          "full_text_codepoints": 3,
+          "utterances": 1
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7
+        },
+        {
+          "material_id": "rayneo-lifelog-9cf89148a8bc2d40b023889f55ce17efc76102ee9ebb3b9728dc3a86b512ea9b",
+          "full_text_sha256": "e4a37d5fa5bdb1e413f62f1ad1b162d45ead549d6756dac5cfb26d61905c1c87",
+          "full_text_codepoints": 954,
+          "utterances": 87
+        }
+      ]
+    },
+    "completed": true,
+    "credentials_or_text_exported": false,
+    "passed": true,
+    "probe_id": "f92296621e58448e891c257aa5d6fbf8",
+    "state_unchanged": true
+  },
+  "initial_queue": {
+    "audit": {
+      "items": [
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 1,
+          "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+          "commit_seq": 52
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 1,
+          "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+          "commit_seq": 53
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 1,
+          "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+          "commit_seq": 54
+        },
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 2,
+          "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+          "commit_seq": 55
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 2,
+          "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+          "commit_seq": 56
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 2,
+          "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+          "commit_seq": 57
+        }
+      ],
+      "queue_schema": 4,
+      "queue_sha256": "38d997289f662a2dce4c89f7a584eefbf8f44e35ecd5c2cf138088f70b260a70",
+      "configuration_enabled": true,
+      "preserved_repair_payloads": 3,
+      "discovery_test_days": [],
+      "states": {
+        "server_stored": 6,
+        "queued": 57
+      },
+      "errors": {},
+      "retired_versions": 0,
+      "auto_schedule": {
+        "zone": "",
+        "through": "",
+        "attempt": 1792842063934,
+        "next": 1792842123934,
+        "failures": 5
+      },
+      "credential_expires_at": "2026-10-25T11:21:31.920Z",
+      "credential_token_id": "e33bf2dd-a927-4372-9403-88b3f936385b",
+      "captured_at_ms": 1792842092395
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "56e7d034c1cc4761b414cb24238666cb",
+    "state_unchanged": true
+  },
+  "background_first_batch": {
+    "audit": {
+      "items": [
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 1,
+          "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+          "commit_seq": 52
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 1,
+          "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+          "commit_seq": 53
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 1,
+          "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+          "commit_seq": 54
+        },
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 2,
+          "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+          "commit_seq": 55
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 2,
+          "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+          "commit_seq": 56
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 2,
+          "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+          "commit_seq": 57
+        },
+        {
+          "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+          "revision": 1,
+          "body_sha256": "c5a8a144d77915d7d2e59916eb5f0a8e2bd132a78d904b97461a3945dd2fd58d",
+          "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+          "full_text_codepoints": 383,
+          "utterances": 31,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c13575c567144809549e1d8c3e8e8edd88f3019ba56a0059d5bc620548a68254",
+          "commit_seq": 58
+        },
+        {
+          "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+          "revision": 1,
+          "body_sha256": "3e20100ea71b27556c4025f8c4aae33c5f877c68af6e0b0e7510511bd8854b61",
+          "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+          "full_text_codepoints": 113,
+          "utterances": 9,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-19d171ab40658477b7c992af047d2dff5a491add90be3ba37befb95959e60947",
+          "commit_seq": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "revision": 1,
+          "body_sha256": "2280f7ed5e939dd0affdc3a4eada1dc90fa0720ce96e1c242d7d209c185d9ad8",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-ac90feb34c9844ec347b32456c0c2ed3502bc8600cf331fc687aadebb671a357",
+          "commit_seq": 60
+        },
+        {
+          "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+          "revision": 1,
+          "body_sha256": "b24b80b6761b163583808eb920005ec4f88e1e4382d65f55f7373b17ed771c50",
+          "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+          "full_text_codepoints": 583,
+          "utterances": 42,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-1456db9bded76c41c4745141856f0547b72d4ce68e2e73e4c1f82c7bc3610d00",
+          "commit_seq": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "revision": 1,
+          "body_sha256": "d18b165658bcc5aa30d4d53c4f261d981759fa5f5dbcc9c335fa0588e85ca60d",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-ad492ce369e02db6837bf06f1290f3a9054732cec4e0ca3112d452e943ff9d7c",
+          "commit_seq": 62
+        },
+        {
+          "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+          "revision": 1,
+          "body_sha256": "2317a093f9de6ce128d58a06a610c8c14807a959e78c64a3e7f0da754afe53fd",
+          "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+          "full_text_codepoints": 42,
+          "utterances": 9,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4b4ec079c5cc717b304166232a6c33d6f74c11696b53e49cb6f8bf0f97f8ae42",
+          "commit_seq": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+          "revision": 1,
+          "body_sha256": "c2240fb121efcf423eb8700433e872eab5520280c6974af45b1c38457b490a35",
+          "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+          "full_text_codepoints": 184,
+          "utterances": 17,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-738ddef34d9d1a8e836f0b30f8dcf32cde4db22a64fe975b2d434046a38ab514",
+          "commit_seq": 64
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "revision": 1,
+          "body_sha256": "49442a93c7b20c17666cc1baa5c59a7e01f0a2c3eeba6e2707c36f73252a3a6d",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-160f0bf713135ec2924e1185ba98c24682754059c0934675de366f52accd089b",
+          "commit_seq": 65
+        },
+        {
+          "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+          "revision": 1,
+          "body_sha256": "8ec24edbdb16c4b613fcbcf3aeebbba001bac0250a50224a005266eb0035440f",
+          "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+          "full_text_codepoints": 405,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c3090400ccdb9e6da8ec582fe918b54ee47b0a35b8e99a513eba794c6326f8bd",
+          "commit_seq": 66
+        },
+        {
+          "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+          "revision": 1,
+          "body_sha256": "ca098715ec933d37d584466bf209e519049a5a796ad98233c0e170c973703aed",
+          "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+          "full_text_codepoints": 38,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-23f2f1abe4601c75db7ba45f1abea2357715b4a3a38896cce98ae66e84a07b09",
+          "commit_seq": 67
+        },
+        {
+          "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+          "revision": 1,
+          "body_sha256": "fca121b21d6eb41fcd493c0cbc13d76cd65882043c198df7da815b2653f68141",
+          "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+          "full_text_codepoints": 110,
+          "utterances": 12,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-a0e78b12c8ad7e6c7f93f9602288d6afa5ed348f1610ff5939d85c2a3a275ba4",
+          "commit_seq": 68
+        },
+        {
+          "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+          "revision": 1,
+          "body_sha256": "e76dc44a34181d22b430c93c111aea4e56f0954859932354c9aeeda2b91f60af",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-03122d31b6b6e34c2b58868c19dda920649a1ad65e1099b8706f595e3f06fbe3",
+          "commit_seq": 69
+        },
+        {
+          "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+          "revision": 1,
+          "body_sha256": "72ab510e0dfd4e5212afc25ce98dc5b9bc93acc74c6381056787f9cc5d470770",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-94152caa709bb00aea88130faca1dd64fb3dada3314e5ce8cde4333d7e8886c3",
+          "commit_seq": 70
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "revision": 1,
+          "body_sha256": "75d78a9c0c94e6ccb510374b797f852eb66dac879e23aad3dae212ee2a9b2679",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6ff9e6bdba7e241941a6224355edd854bcec3b5bd6d3b3112d20e77aeefaf678",
+          "commit_seq": 71
+        },
+        {
+          "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+          "revision": 1,
+          "body_sha256": "c5683905a7651a3219966f974a02d7e3e4cebfeefccb311e8b350d94af248246",
+          "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+          "full_text_codepoints": 745,
+          "utterances": 59,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3128e82d647af0d5e057fd510b6aee547b806eaf631d7724ee82a141378c7f72",
+          "commit_seq": 72
+        },
+        {
+          "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+          "revision": 1,
+          "body_sha256": "8f6043f8a81a9a3189ae6ab6b741002026204864e07967f0daa0a0fbd1454e26",
+          "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+          "full_text_codepoints": 939,
+          "utterances": 44,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-14f4662a320277c4046efdc617b83703c1d106ff76d5b2819d3d6de7706b01e2",
+          "commit_seq": 73
+        }
+      ],
+      "queue_schema": 4,
+      "queue_sha256": "e55a14a5b2d9b21c5b121479dccab712e776f441215b68e4a138897006ed6cfd",
+      "configuration_enabled": true,
+      "preserved_repair_payloads": 3,
+      "discovery_test_days": [],
+      "states": {
+        "server_stored": 22,
+        "queued": 41
+      },
+      "errors": {},
+      "retired_versions": 0,
+      "auto_schedule": {
+        "zone": "",
+        "through": "",
+        "attempt": 1792842102228,
+        "next": 1792843029068,
+        "failures": 5
+      },
+      "credential_expires_at": "2026-10-25T11:21:31.920Z",
+      "credential_token_id": "e33bf2dd-a927-4372-9403-88b3f936385b",
+      "captured_at_ms": 1792842197314
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "d35bd82a5e32483e9a9f9258c8f8fe2d",
+    "state_unchanged": true
+  },
+  "dev76_delta": {
+    "baseline_sha256": "18868299994f3f4bb669016c1b991ecb73caa7b5f3e129ef202ad56c72d854b0",
+    "target_sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4",
+    "delta_bytes": 1437284,
+    "push_seconds": 12.738,
+    "remote_reconstruction_verified": true
+  },
+  "dev76_install": {
+    "at": "2026-10-24T11:48:42.864190+00:00",
+    "version": "0.5.3-dev76",
+    "version_code": 10498,
+    "installed_sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4",
+    "sha256_matches": true
+  },
+  "background_start": {
+    "at": "2026-10-24T11:48:42.864190+00:00",
+    "version": "0.5.3-dev76",
+    "version_code": 10498,
+    "installed_sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4",
+    "sha256_matches": true,
+    "background_started_at": "2026-10-24T11:48:44.567830+00:00",
+    "pid": "6491",
+    "screen_asleep": true
+  },
+  "synthetic_tests": {
+    "formal_tool": 17,
+    "inventory": 41,
+    "source_discovery": 37,
+    "refresh": 24,
+    "revision_journal": 73,
+    "date_sync_session": 60,
+    "catalog_document": 32,
+    "local_library": 40,
+    "runtime_schedule": 392
+  },
+  "not_verified": [
+    "72h audio retention/export",
+    "authoritative deletion",
+    "8h background or battery",
+    "live material above256KiB"
+  ],
+  "at": "2026-10-24T12:13:14.629135+00:00",
+  "passed": true,
+  "current_version": "0.5.3-dev76",
+  "rollback_version": "0.5.3-dev75",
+  "queue_after_account_unavailable": {
+    "audit": {
+      "items": [
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 1,
+          "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+          "commit_seq": 52
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 1,
+          "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+          "commit_seq": 53
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 1,
+          "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+          "commit_seq": 54
+        },
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 2,
+          "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+          "commit_seq": 55
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 2,
+          "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+          "commit_seq": 56
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 2,
+          "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+          "commit_seq": 57
+        },
+        {
+          "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+          "revision": 1,
+          "body_sha256": "c5a8a144d77915d7d2e59916eb5f0a8e2bd132a78d904b97461a3945dd2fd58d",
+          "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+          "full_text_codepoints": 383,
+          "utterances": 31,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c13575c567144809549e1d8c3e8e8edd88f3019ba56a0059d5bc620548a68254",
+          "commit_seq": 58
+        },
+        {
+          "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+          "revision": 1,
+          "body_sha256": "3e20100ea71b27556c4025f8c4aae33c5f877c68af6e0b0e7510511bd8854b61",
+          "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+          "full_text_codepoints": 113,
+          "utterances": 9,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-19d171ab40658477b7c992af047d2dff5a491add90be3ba37befb95959e60947",
+          "commit_seq": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "revision": 1,
+          "body_sha256": "2280f7ed5e939dd0affdc3a4eada1dc90fa0720ce96e1c242d7d209c185d9ad8",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-ac90feb34c9844ec347b32456c0c2ed3502bc8600cf331fc687aadebb671a357",
+          "commit_seq": 60
+        },
+        {
+          "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+          "revision": 1,
+          "body_sha256": "b24b80b6761b163583808eb920005ec4f88e1e4382d65f55f7373b17ed771c50",
+          "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+          "full_text_codepoints": 583,
+          "utterances": 42,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-1456db9bded76c41c4745141856f0547b72d4ce68e2e73e4c1f82c7bc3610d00",
+          "commit_seq": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "revision": 1,
+          "body_sha256": "d18b165658bcc5aa30d4d53c4f261d981759fa5f5dbcc9c335fa0588e85ca60d",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-ad492ce369e02db6837bf06f1290f3a9054732cec4e0ca3112d452e943ff9d7c",
+          "commit_seq": 62
+        },
+        {
+          "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+          "revision": 1,
+          "body_sha256": "2317a093f9de6ce128d58a06a610c8c14807a959e78c64a3e7f0da754afe53fd",
+          "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+          "full_text_codepoints": 42,
+          "utterances": 9,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4b4ec079c5cc717b304166232a6c33d6f74c11696b53e49cb6f8bf0f97f8ae42",
+          "commit_seq": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+          "revision": 1,
+          "body_sha256": "c2240fb121efcf423eb8700433e872eab5520280c6974af45b1c38457b490a35",
+          "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+          "full_text_codepoints": 184,
+          "utterances": 17,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-738ddef34d9d1a8e836f0b30f8dcf32cde4db22a64fe975b2d434046a38ab514",
+          "commit_seq": 64
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "revision": 1,
+          "body_sha256": "49442a93c7b20c17666cc1baa5c59a7e01f0a2c3eeba6e2707c36f73252a3a6d",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-160f0bf713135ec2924e1185ba98c24682754059c0934675de366f52accd089b",
+          "commit_seq": 65
+        },
+        {
+          "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+          "revision": 1,
+          "body_sha256": "8ec24edbdb16c4b613fcbcf3aeebbba001bac0250a50224a005266eb0035440f",
+          "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+          "full_text_codepoints": 405,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c3090400ccdb9e6da8ec582fe918b54ee47b0a35b8e99a513eba794c6326f8bd",
+          "commit_seq": 66
+        },
+        {
+          "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+          "revision": 1,
+          "body_sha256": "ca098715ec933d37d584466bf209e519049a5a796ad98233c0e170c973703aed",
+          "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+          "full_text_codepoints": 38,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-23f2f1abe4601c75db7ba45f1abea2357715b4a3a38896cce98ae66e84a07b09",
+          "commit_seq": 67
+        },
+        {
+          "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+          "revision": 1,
+          "body_sha256": "fca121b21d6eb41fcd493c0cbc13d76cd65882043c198df7da815b2653f68141",
+          "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+          "full_text_codepoints": 110,
+          "utterances": 12,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-a0e78b12c8ad7e6c7f93f9602288d6afa5ed348f1610ff5939d85c2a3a275ba4",
+          "commit_seq": 68
+        },
+        {
+          "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+          "revision": 1,
+          "body_sha256": "e76dc44a34181d22b430c93c111aea4e56f0954859932354c9aeeda2b91f60af",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-03122d31b6b6e34c2b58868c19dda920649a1ad65e1099b8706f595e3f06fbe3",
+          "commit_seq": 69
+        },
+        {
+          "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+          "revision": 1,
+          "body_sha256": "72ab510e0dfd4e5212afc25ce98dc5b9bc93acc74c6381056787f9cc5d470770",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-94152caa709bb00aea88130faca1dd64fb3dada3314e5ce8cde4333d7e8886c3",
+          "commit_seq": 70
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "revision": 1,
+          "body_sha256": "75d78a9c0c94e6ccb510374b797f852eb66dac879e23aad3dae212ee2a9b2679",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6ff9e6bdba7e241941a6224355edd854bcec3b5bd6d3b3112d20e77aeefaf678",
+          "commit_seq": 71
+        },
+        {
+          "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+          "revision": 1,
+          "body_sha256": "c5683905a7651a3219966f974a02d7e3e4cebfeefccb311e8b350d94af248246",
+          "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+          "full_text_codepoints": 745,
+          "utterances": 59,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3128e82d647af0d5e057fd510b6aee547b806eaf631d7724ee82a141378c7f72",
+          "commit_seq": 72
+        },
+        {
+          "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+          "revision": 1,
+          "body_sha256": "8f6043f8a81a9a3189ae6ab6b741002026204864e07967f0daa0a0fbd1454e26",
+          "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+          "full_text_codepoints": 939,
+          "utterances": 44,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-14f4662a320277c4046efdc617b83703c1d106ff76d5b2819d3d6de7706b01e2",
+          "commit_seq": 73
+        },
+        {
+          "material_id": "rayneo-lifelog-5c568983f0c9a80a2b942a5c8021d0cea087dba19bcc8628862d6524f15c277a",
+          "revision": 1,
+          "body_sha256": "6271460d61d3dcd7bc4431989f890435be4a12274200a56aae86d13b1cacee61",
+          "full_text_sha256": "475b86342b8c415c1f0044516a7a8af130240b59f48663d8440d379ab2e0edc1",
+          "full_text_codepoints": 311,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8f23c9705daedbc3f5cac04460621ba7a6c8705e325c63f248eaaa9de8e77d6",
+          "commit_seq": 74
+        },
+        {
+          "material_id": "rayneo-lifelog-62e00ad76921667ce1b5ff16183a504e591ae18abec5fe2b5ebab89e146d4420",
+          "revision": 1,
+          "body_sha256": "caa82b8ba7c43566cfc79be0d4e9207d7394f9ed5c4a4444e84682df1c37aee5",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-dc897b3ba586e89162a3c0759e98dcf93298ee53b3d8c20462acac427ec13c02",
+          "commit_seq": 75
+        },
+        {
+          "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+          "revision": 1,
+          "body_sha256": "0759b30d1b156e21d79e3689dfbddb24d5c36d4a9948a470bca41c4c30f53a0a",
+          "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+          "full_text_codepoints": 345,
+          "utterances": 25,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-0845dd1ea47421ad9a5bfcfcee703f3c69bafb5868f547b90dd54d789d9b1b00",
+          "commit_seq": 76
+        },
+        {
+          "material_id": "rayneo-lifelog-6b0984ff24d265f6b97b325d48e758726fdde7664fcbfdfb0992afd8bb93d6cb",
+          "revision": 1,
+          "body_sha256": "4a975b63a37d382a1ebd1dc651ce8933b463e45ba29a7cbc1ec54be9a6db88de",
+          "full_text_sha256": "35d7f646024e76817b9067bdbffa099e098f0746432c89fdd06dd33e838c7bd0",
+          "full_text_codepoints": 103,
+          "utterances": 7,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-5aa21062bebc61524ec1bb8ee722b161befe717a8d4ec3194e3a6b9ccdb02c7b",
+          "commit_seq": 77
+        },
+        {
+          "material_id": "rayneo-lifelog-704a580dc9d2fab73536373ddbdda1b4932ca053c34f0f3bff68946c0580b202",
+          "revision": 1,
+          "body_sha256": "c0039b635ed732a8be0012d7b2e507698397a6902943831cdfd5531946ae9682",
+          "full_text_sha256": "5497a73c04011b780d668ad891d50a689bd1ad47354cf4c7090d2ed2e886d9e2",
+          "full_text_codepoints": 392,
+          "utterances": 14,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6776943f0849e23218098bbcfbc18d4f15ad799b1966c303b3ba4edffa662388",
+          "commit_seq": 78
+        },
+        {
+          "material_id": "rayneo-lifelog-727859d4a6f90dadb3f5c982729c2e93f051ebca18cf6cc12c2e1b6dba93d167",
+          "revision": 1,
+          "body_sha256": "317d687d995b40cb27c9cb6567fff3734a037cc842b04c5e214c389e8a9a0f97",
+          "full_text_sha256": "52436679f3ec62176a1ccc353628a884bc3aa2d23caf72ef6e826f49be98c289",
+          "full_text_codepoints": 4900,
+          "utterances": 273,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-befc764b16b6110b245a34c6aa5607164d28210fa429a33a0f994b1c557a5c7e",
+          "commit_seq": 79
+        },
+        {
+          "material_id": "rayneo-lifelog-74545cb1729023c29f82ba02ef55670bf0dff2eb401ea83e79ca3e049f313ed6",
+          "revision": 1,
+          "body_sha256": "d4b73568691f1d59f1abf2baee484d2f8182b64338a9de7e2acf4b47e1d5b6f0",
+          "full_text_sha256": "afd59ecd9012167f09ac970326c82d3f74cafb2791eeadc351772a54c84874cc",
+          "full_text_codepoints": 50,
+          "utterances": 5,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-d53112eef16b4a71efad1835eff56cc50b02b67286c9d9fab3ed86eed9c8a936",
+          "commit_seq": 80
+        },
+        {
+          "material_id": "rayneo-lifelog-753060a2882d67558974c11accc42f2cd5ea58e5522aa7ffb19b4ae18f5adaa3",
+          "revision": 1,
+          "body_sha256": "9df1acf934efa5f9e4ef9992d23b4d7aff50ab49bad3165700ae2a9d68616f4d",
+          "full_text_sha256": "223d091f07c04aa2cfbd5c3f9e57a1475f7b37eb6c1d30da0e47cc166389caae",
+          "full_text_codepoints": 33,
+          "utterances": 3,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-5f5d53017a4b498718b03e6f09ef6ca025b8b7244b659a31b2df944246970f28",
+          "commit_seq": 81
+        },
+        {
+          "material_id": "rayneo-lifelog-777e3dd36f8398d4a6721ec25f1632f703b31a09c7cf4658c99df4e809743988",
+          "revision": 1,
+          "body_sha256": "d5bff24ee2aed1dfbbc232baa53176aa0fb5bc3df09aff88e7ab320a0f0a9584",
+          "full_text_sha256": "ca1ecf4883f5716c54d25f660f23abb55ed0001e0abe34cb391b1ce84d2ccab1",
+          "full_text_codepoints": 263,
+          "utterances": 25,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-41c5b148cdf6a70f05c30eb8346b3c4819b950359055d14b6f4b23b70335cfad",
+          "commit_seq": 82
+        },
+        {
+          "material_id": "rayneo-lifelog-7791b3c446d5df5afb3473e0d48f35248fbd9925350c4a34558d66e6fd952137",
+          "revision": 1,
+          "body_sha256": "69b1a28d04238a78f4356731b8a11f692a8713cf683e2ed7469849046a340a8b",
+          "full_text_sha256": "5aaf701f757ea647e417f5e3d0f82ccd02ef9cbe9535e1ea8134d3d045c8ffcb",
+          "full_text_codepoints": 101,
+          "utterances": 8,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3406cbef8db8fee62f4492bf3093b0adbd1de64e3f6c9ea5585624e898feb61c",
+          "commit_seq": 83
+        },
+        {
+          "material_id": "rayneo-lifelog-7e46fb633fe38ccc8bed3b25dc6f6117b05c65024e275ff5f4032bb49eb93435",
+          "revision": 1,
+          "body_sha256": "2ebe12cf6f0ae2d4dbf9df364b63b9c78d957f9b52aaf5608cd8162557898542",
+          "full_text_sha256": "07a0a13780bda256aa0e155b880826d84fe511214053d6499f4360c97ac7350f",
+          "full_text_codepoints": 993,
+          "utterances": 68,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-9d12a6514730c0911a21d4a4ba2823381703d24164273b0712cc5a61b270e324",
+          "commit_seq": 84
+        },
+        {
+          "material_id": "rayneo-lifelog-7e88cee23687cea046c97c5adca9aae99f87465348b1a8aac0c903752c8ecad6",
+          "revision": 1,
+          "body_sha256": "3f55fdf94914f2a520d53da3ecf458b01191331c93daf903cb7f7254732d8fec",
+          "full_text_sha256": "04599542ed62c5fa9d47942fa9450cb4fd7bb24bb51c3ac68bc300b6eee5e5d2",
+          "full_text_codepoints": 183,
+          "utterances": 11,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-f2165d0d882acd3e46b9bef3b9c965d54eb4ba42a8029b8a6b3665e4a22f4600",
+          "commit_seq": 85
+        },
+        {
+          "material_id": "rayneo-lifelog-80a8b4fe227c2903bdf36140c3aa369d0c3c9f362b9be1e8405bc091b5e405e4",
+          "revision": 1,
+          "body_sha256": "210114ef5047bd1f19ccd0e06b0421a2dad0ca31c7ff561bc345e98b4ba43523",
+          "full_text_sha256": "c0dad597dc82a31dd69060476ba8d5a0bc081bd7005ed6641f89ca6ade33857a",
+          "full_text_codepoints": 3,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-fc23853e380da8e294d8273f7ba8b45e4960ec5d95e676bc34d7e56ab77e7207",
+          "commit_seq": 86
+        },
+        {
+          "material_id": "rayneo-lifelog-85f1b0f6819241c188f1c66a60810a7e8a533b8bcd2659b90f4abe5c61cc9683",
+          "revision": 1,
+          "body_sha256": "ec6a6dd69d40c16c457c82efcd0df0ba5f2b47785b146027bb28f46ff05d9921",
+          "full_text_sha256": "e81470feb4fb05b773f9a8a56fd3af060b5f90c7d879a11fbdf589f87cef8e21",
+          "full_text_codepoints": 832,
+          "utterances": 62,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-5a9a5ca40e98a7f8ff9a0b3ab120bed01654a11526bd6db9885255cab380a952",
+          "commit_seq": 87
+        },
+        {
+          "material_id": "rayneo-lifelog-8818474dc64001d0bf7a3abf9547fa44f46c82905f8e09975295ef15e4ace348",
+          "revision": 1,
+          "body_sha256": "53e59d4319852a8cffb260edac41cde5ae4ed4d48736491e377e08fd4910e5a2",
+          "full_text_sha256": "54552989fa88dbc862628467db11d0e8a5ecd1f0a5f44720e61090b8745085be",
+          "full_text_codepoints": 1529,
+          "utterances": 82,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-13d60d73a2c6517ab386bc0237d16bcbce6c879922f2835e7b6735de2ffd9cfe",
+          "commit_seq": 88
+        },
+        {
+          "material_id": "rayneo-lifelog-8c63c55ae32d04b3828a46eca2adc766c6f623bdfb66652287bf211d2df4e734",
+          "revision": 1,
+          "body_sha256": "c7e591807b999974985d22508b7b7a180edf2c5e02c5296f14c62701f7d17e2f",
+          "full_text_sha256": "9a295070ca1d89a9a449cc2c719cded57520d37d5a3e28f2b21a57e3091b06cb",
+          "full_text_codepoints": 971,
+          "utterances": 63,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8de8e30889c39ad05434736c1b429d6c7a58a41ce23cc1cf203b3fde7050037",
+          "commit_seq": 89
+        }
+      ],
+      "queue_schema": 4,
+      "queue_sha256": "1047411b710d1478b63c58ed140db08211f626b944eba95f3b25a6b59cc7625c",
+      "configuration_enabled": true,
+      "preserved_repair_payloads": 3,
+      "discovery_test_days": [],
+      "states": {
+        "server_stored": 38,
+        "cancelled": 13,
+        "queued": 12
+      },
+      "errors": {},
+      "retired_versions": 0,
+      "auto_schedule": {
+        "zone": "",
+        "through": "",
+        "attempt": 1792842489199,
+        "next": 1792843418290,
+        "failures": 5
+      },
+      "credential_expires_at": "2026-10-25T11:21:31.920Z",
+      "credential_token_id": "e33bf2dd-a927-4372-9403-88b3f936385b",
+      "captured_at_ms": 1792843297911
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "23d6d5504e0f47f1a72c846edf19b7ea",
+    "state_unchanged": true
+  },
+  "account_unavailable_observation": {
+    "ui_error": "OFFICIAL_LOGIN_REQUIRED",
+    "root_cause_unconfirmed": true,
+    "restored_after_normal_stock_page": true,
+    "no_credentials_changed": true
+  },
+  "progress_before_drain": {
+    "audit": {
+      "items": [
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 1,
+          "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+          "commit_seq": 52
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 1,
+          "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+          "commit_seq": 53
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 1,
+          "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+          "commit_seq": 54
+        },
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 2,
+          "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+          "commit_seq": 55
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 2,
+          "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+          "commit_seq": 56
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 2,
+          "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+          "commit_seq": 57
+        },
+        {
+          "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+          "revision": 1,
+          "body_sha256": "c5a8a144d77915d7d2e59916eb5f0a8e2bd132a78d904b97461a3945dd2fd58d",
+          "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+          "full_text_codepoints": 383,
+          "utterances": 31,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c13575c567144809549e1d8c3e8e8edd88f3019ba56a0059d5bc620548a68254",
+          "commit_seq": 58
+        },
+        {
+          "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+          "revision": 1,
+          "body_sha256": "3e20100ea71b27556c4025f8c4aae33c5f877c68af6e0b0e7510511bd8854b61",
+          "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+          "full_text_codepoints": 113,
+          "utterances": 9,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-19d171ab40658477b7c992af047d2dff5a491add90be3ba37befb95959e60947",
+          "commit_seq": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "revision": 1,
+          "body_sha256": "2280f7ed5e939dd0affdc3a4eada1dc90fa0720ce96e1c242d7d209c185d9ad8",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-ac90feb34c9844ec347b32456c0c2ed3502bc8600cf331fc687aadebb671a357",
+          "commit_seq": 60
+        },
+        {
+          "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+          "revision": 1,
+          "body_sha256": "b24b80b6761b163583808eb920005ec4f88e1e4382d65f55f7373b17ed771c50",
+          "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+          "full_text_codepoints": 583,
+          "utterances": 42,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-1456db9bded76c41c4745141856f0547b72d4ce68e2e73e4c1f82c7bc3610d00",
+          "commit_seq": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "revision": 1,
+          "body_sha256": "d18b165658bcc5aa30d4d53c4f261d981759fa5f5dbcc9c335fa0588e85ca60d",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-ad492ce369e02db6837bf06f1290f3a9054732cec4e0ca3112d452e943ff9d7c",
+          "commit_seq": 62
+        },
+        {
+          "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+          "revision": 1,
+          "body_sha256": "2317a093f9de6ce128d58a06a610c8c14807a959e78c64a3e7f0da754afe53fd",
+          "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+          "full_text_codepoints": 42,
+          "utterances": 9,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4b4ec079c5cc717b304166232a6c33d6f74c11696b53e49cb6f8bf0f97f8ae42",
+          "commit_seq": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+          "revision": 1,
+          "body_sha256": "c2240fb121efcf423eb8700433e872eab5520280c6974af45b1c38457b490a35",
+          "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+          "full_text_codepoints": 184,
+          "utterances": 17,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-738ddef34d9d1a8e836f0b30f8dcf32cde4db22a64fe975b2d434046a38ab514",
+          "commit_seq": 64
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "revision": 1,
+          "body_sha256": "49442a93c7b20c17666cc1baa5c59a7e01f0a2c3eeba6e2707c36f73252a3a6d",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-160f0bf713135ec2924e1185ba98c24682754059c0934675de366f52accd089b",
+          "commit_seq": 65
+        },
+        {
+          "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+          "revision": 1,
+          "body_sha256": "8ec24edbdb16c4b613fcbcf3aeebbba001bac0250a50224a005266eb0035440f",
+          "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+          "full_text_codepoints": 405,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c3090400ccdb9e6da8ec582fe918b54ee47b0a35b8e99a513eba794c6326f8bd",
+          "commit_seq": 66
+        },
+        {
+          "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+          "revision": 1,
+          "body_sha256": "ca098715ec933d37d584466bf209e519049a5a796ad98233c0e170c973703aed",
+          "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+          "full_text_codepoints": 38,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-23f2f1abe4601c75db7ba45f1abea2357715b4a3a38896cce98ae66e84a07b09",
+          "commit_seq": 67
+        },
+        {
+          "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+          "revision": 1,
+          "body_sha256": "fca121b21d6eb41fcd493c0cbc13d76cd65882043c198df7da815b2653f68141",
+          "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+          "full_text_codepoints": 110,
+          "utterances": 12,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-a0e78b12c8ad7e6c7f93f9602288d6afa5ed348f1610ff5939d85c2a3a275ba4",
+          "commit_seq": 68
+        },
+        {
+          "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+          "revision": 1,
+          "body_sha256": "e76dc44a34181d22b430c93c111aea4e56f0954859932354c9aeeda2b91f60af",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-03122d31b6b6e34c2b58868c19dda920649a1ad65e1099b8706f595e3f06fbe3",
+          "commit_seq": 69
+        },
+        {
+          "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+          "revision": 1,
+          "body_sha256": "72ab510e0dfd4e5212afc25ce98dc5b9bc93acc74c6381056787f9cc5d470770",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-94152caa709bb00aea88130faca1dd64fb3dada3314e5ce8cde4333d7e8886c3",
+          "commit_seq": 70
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "revision": 1,
+          "body_sha256": "75d78a9c0c94e6ccb510374b797f852eb66dac879e23aad3dae212ee2a9b2679",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6ff9e6bdba7e241941a6224355edd854bcec3b5bd6d3b3112d20e77aeefaf678",
+          "commit_seq": 71
+        },
+        {
+          "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+          "revision": 1,
+          "body_sha256": "c5683905a7651a3219966f974a02d7e3e4cebfeefccb311e8b350d94af248246",
+          "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+          "full_text_codepoints": 745,
+          "utterances": 59,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3128e82d647af0d5e057fd510b6aee547b806eaf631d7724ee82a141378c7f72",
+          "commit_seq": 72
+        },
+        {
+          "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+          "revision": 1,
+          "body_sha256": "8f6043f8a81a9a3189ae6ab6b741002026204864e07967f0daa0a0fbd1454e26",
+          "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+          "full_text_codepoints": 939,
+          "utterances": 44,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-14f4662a320277c4046efdc617b83703c1d106ff76d5b2819d3d6de7706b01e2",
+          "commit_seq": 73
+        },
+        {
+          "material_id": "rayneo-lifelog-5c568983f0c9a80a2b942a5c8021d0cea087dba19bcc8628862d6524f15c277a",
+          "revision": 1,
+          "body_sha256": "6271460d61d3dcd7bc4431989f890435be4a12274200a56aae86d13b1cacee61",
+          "full_text_sha256": "475b86342b8c415c1f0044516a7a8af130240b59f48663d8440d379ab2e0edc1",
+          "full_text_codepoints": 311,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8f23c9705daedbc3f5cac04460621ba7a6c8705e325c63f248eaaa9de8e77d6",
+          "commit_seq": 74
+        },
+        {
+          "material_id": "rayneo-lifelog-62e00ad76921667ce1b5ff16183a504e591ae18abec5fe2b5ebab89e146d4420",
+          "revision": 1,
+          "body_sha256": "caa82b8ba7c43566cfc79be0d4e9207d7394f9ed5c4a4444e84682df1c37aee5",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-dc897b3ba586e89162a3c0759e98dcf93298ee53b3d8c20462acac427ec13c02",
+          "commit_seq": 75
+        },
+        {
+          "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+          "revision": 1,
+          "body_sha256": "0759b30d1b156e21d79e3689dfbddb24d5c36d4a9948a470bca41c4c30f53a0a",
+          "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+          "full_text_codepoints": 345,
+          "utterances": 25,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-0845dd1ea47421ad9a5bfcfcee703f3c69bafb5868f547b90dd54d789d9b1b00",
+          "commit_seq": 76
+        },
+        {
+          "material_id": "rayneo-lifelog-6b0984ff24d265f6b97b325d48e758726fdde7664fcbfdfb0992afd8bb93d6cb",
+          "revision": 1,
+          "body_sha256": "4a975b63a37d382a1ebd1dc651ce8933b463e45ba29a7cbc1ec54be9a6db88de",
+          "full_text_sha256": "35d7f646024e76817b9067bdbffa099e098f0746432c89fdd06dd33e838c7bd0",
+          "full_text_codepoints": 103,
+          "utterances": 7,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-5aa21062bebc61524ec1bb8ee722b161befe717a8d4ec3194e3a6b9ccdb02c7b",
+          "commit_seq": 77
+        },
+        {
+          "material_id": "rayneo-lifelog-704a580dc9d2fab73536373ddbdda1b4932ca053c34f0f3bff68946c0580b202",
+          "revision": 1,
+          "body_sha256": "c0039b635ed732a8be0012d7b2e507698397a6902943831cdfd5531946ae9682",
+          "full_text_sha256": "5497a73c04011b780d668ad891d50a689bd1ad47354cf4c7090d2ed2e886d9e2",
+          "full_text_codepoints": 392,
+          "utterances": 14,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6776943f0849e23218098bbcfbc18d4f15ad799b1966c303b3ba4edffa662388",
+          "commit_seq": 78
+        },
+        {
+          "material_id": "rayneo-lifelog-727859d4a6f90dadb3f5c982729c2e93f051ebca18cf6cc12c2e1b6dba93d167",
+          "revision": 1,
+          "body_sha256": "317d687d995b40cb27c9cb6567fff3734a037cc842b04c5e214c389e8a9a0f97",
+          "full_text_sha256": "52436679f3ec62176a1ccc353628a884bc3aa2d23caf72ef6e826f49be98c289",
+          "full_text_codepoints": 4900,
+          "utterances": 273,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-befc764b16b6110b245a34c6aa5607164d28210fa429a33a0f994b1c557a5c7e",
+          "commit_seq": 79
+        },
+        {
+          "material_id": "rayneo-lifelog-74545cb1729023c29f82ba02ef55670bf0dff2eb401ea83e79ca3e049f313ed6",
+          "revision": 1,
+          "body_sha256": "d4b73568691f1d59f1abf2baee484d2f8182b64338a9de7e2acf4b47e1d5b6f0",
+          "full_text_sha256": "afd59ecd9012167f09ac970326c82d3f74cafb2791eeadc351772a54c84874cc",
+          "full_text_codepoints": 50,
+          "utterances": 5,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-d53112eef16b4a71efad1835eff56cc50b02b67286c9d9fab3ed86eed9c8a936",
+          "commit_seq": 80
+        },
+        {
+          "material_id": "rayneo-lifelog-753060a2882d67558974c11accc42f2cd5ea58e5522aa7ffb19b4ae18f5adaa3",
+          "revision": 1,
+          "body_sha256": "9df1acf934efa5f9e4ef9992d23b4d7aff50ab49bad3165700ae2a9d68616f4d",
+          "full_text_sha256": "223d091f07c04aa2cfbd5c3f9e57a1475f7b37eb6c1d30da0e47cc166389caae",
+          "full_text_codepoints": 33,
+          "utterances": 3,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-5f5d53017a4b498718b03e6f09ef6ca025b8b7244b659a31b2df944246970f28",
+          "commit_seq": 81
+        },
+        {
+          "material_id": "rayneo-lifelog-777e3dd36f8398d4a6721ec25f1632f703b31a09c7cf4658c99df4e809743988",
+          "revision": 1,
+          "body_sha256": "d5bff24ee2aed1dfbbc232baa53176aa0fb5bc3df09aff88e7ab320a0f0a9584",
+          "full_text_sha256": "ca1ecf4883f5716c54d25f660f23abb55ed0001e0abe34cb391b1ce84d2ccab1",
+          "full_text_codepoints": 263,
+          "utterances": 25,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-41c5b148cdf6a70f05c30eb8346b3c4819b950359055d14b6f4b23b70335cfad",
+          "commit_seq": 82
+        },
+        {
+          "material_id": "rayneo-lifelog-7791b3c446d5df5afb3473e0d48f35248fbd9925350c4a34558d66e6fd952137",
+          "revision": 1,
+          "body_sha256": "69b1a28d04238a78f4356731b8a11f692a8713cf683e2ed7469849046a340a8b",
+          "full_text_sha256": "5aaf701f757ea647e417f5e3d0f82ccd02ef9cbe9535e1ea8134d3d045c8ffcb",
+          "full_text_codepoints": 101,
+          "utterances": 8,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3406cbef8db8fee62f4492bf3093b0adbd1de64e3f6c9ea5585624e898feb61c",
+          "commit_seq": 83
+        },
+        {
+          "material_id": "rayneo-lifelog-7e46fb633fe38ccc8bed3b25dc6f6117b05c65024e275ff5f4032bb49eb93435",
+          "revision": 1,
+          "body_sha256": "2ebe12cf6f0ae2d4dbf9df364b63b9c78d957f9b52aaf5608cd8162557898542",
+          "full_text_sha256": "07a0a13780bda256aa0e155b880826d84fe511214053d6499f4360c97ac7350f",
+          "full_text_codepoints": 993,
+          "utterances": 68,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-9d12a6514730c0911a21d4a4ba2823381703d24164273b0712cc5a61b270e324",
+          "commit_seq": 84
+        },
+        {
+          "material_id": "rayneo-lifelog-7e88cee23687cea046c97c5adca9aae99f87465348b1a8aac0c903752c8ecad6",
+          "revision": 1,
+          "body_sha256": "3f55fdf94914f2a520d53da3ecf458b01191331c93daf903cb7f7254732d8fec",
+          "full_text_sha256": "04599542ed62c5fa9d47942fa9450cb4fd7bb24bb51c3ac68bc300b6eee5e5d2",
+          "full_text_codepoints": 183,
+          "utterances": 11,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-f2165d0d882acd3e46b9bef3b9c965d54eb4ba42a8029b8a6b3665e4a22f4600",
+          "commit_seq": 85
+        },
+        {
+          "material_id": "rayneo-lifelog-80a8b4fe227c2903bdf36140c3aa369d0c3c9f362b9be1e8405bc091b5e405e4",
+          "revision": 1,
+          "body_sha256": "210114ef5047bd1f19ccd0e06b0421a2dad0ca31c7ff561bc345e98b4ba43523",
+          "full_text_sha256": "c0dad597dc82a31dd69060476ba8d5a0bc081bd7005ed6641f89ca6ade33857a",
+          "full_text_codepoints": 3,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-fc23853e380da8e294d8273f7ba8b45e4960ec5d95e676bc34d7e56ab77e7207",
+          "commit_seq": 86
+        },
+        {
+          "material_id": "rayneo-lifelog-85f1b0f6819241c188f1c66a60810a7e8a533b8bcd2659b90f4abe5c61cc9683",
+          "revision": 1,
+          "body_sha256": "ec6a6dd69d40c16c457c82efcd0df0ba5f2b47785b146027bb28f46ff05d9921",
+          "full_text_sha256": "e81470feb4fb05b773f9a8a56fd3af060b5f90c7d879a11fbdf589f87cef8e21",
+          "full_text_codepoints": 832,
+          "utterances": 62,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-5a9a5ca40e98a7f8ff9a0b3ab120bed01654a11526bd6db9885255cab380a952",
+          "commit_seq": 87
+        },
+        {
+          "material_id": "rayneo-lifelog-8818474dc64001d0bf7a3abf9547fa44f46c82905f8e09975295ef15e4ace348",
+          "revision": 1,
+          "body_sha256": "53e59d4319852a8cffb260edac41cde5ae4ed4d48736491e377e08fd4910e5a2",
+          "full_text_sha256": "54552989fa88dbc862628467db11d0e8a5ecd1f0a5f44720e61090b8745085be",
+          "full_text_codepoints": 1529,
+          "utterances": 82,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-13d60d73a2c6517ab386bc0237d16bcbce6c879922f2835e7b6735de2ffd9cfe",
+          "commit_seq": 88
+        },
+        {
+          "material_id": "rayneo-lifelog-8c63c55ae32d04b3828a46eca2adc766c6f623bdfb66652287bf211d2df4e734",
+          "revision": 1,
+          "body_sha256": "c7e591807b999974985d22508b7b7a180edf2c5e02c5296f14c62701f7d17e2f",
+          "full_text_sha256": "9a295070ca1d89a9a449cc2c719cded57520d37d5a3e28f2b21a57e3091b06cb",
+          "full_text_codepoints": 971,
+          "utterances": 63,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8de8e30889c39ad05434736c1b429d6c7a58a41ce23cc1cf203b3fde7050037",
+          "commit_seq": 89
+        },
+        {
+          "material_id": "rayneo-lifelog-99a2fc717a7e3c5eca96b5804e330431f13efd612158bf7ec3a0c4e680e0dc1a",
+          "revision": 1,
+          "body_sha256": "34cdcd014dd313badc663efa66e267f5eefac109629c5d6b50f5d68c44b8cabd",
+          "full_text_sha256": "8fb9f9762701df7e625b38137bef87fdac1e67992360b189c033a9261c56203a",
+          "full_text_codepoints": 141,
+          "utterances": 13,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-105299197c4b4e29d0142538eb03f9499ad8a7523bce276227d00b985a80e764",
+          "commit_seq": 90
+        },
+        {
+          "material_id": "rayneo-lifelog-9c9b7cfe795b26185dd7ea0af33b502122a0fc4f1f4d066072f18b95fd63b56f",
+          "revision": 1,
+          "body_sha256": "5c9877fdc6e3e186687667856b434c294e28c43cb33c3c1b7192ef9794a76129",
+          "full_text_sha256": "69af505882c81b1328e1931c240403e68875ce2efc1d8e199b88c59c05ccac03",
+          "full_text_codepoints": 52,
+          "utterances": 8,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3593a7f3c4cd5613fb68246e6695983058b1c4a9d4801e80d577310cb5752ae7",
+          "commit_seq": 91
+        },
+        {
+          "material_id": "rayneo-lifelog-9cf89148a8bc2d40b023889f55ce17efc76102ee9ebb3b9728dc3a86b512ea9b",
+          "revision": 1,
+          "body_sha256": "c5707a2f1550bf751acd76aea090839bcd62215498e2175d65b67f7e043d2965",
+          "full_text_sha256": "e4a37d5fa5bdb1e413f62f1ad1b162d45ead549d6756dac5cfb26d61905c1c87",
+          "full_text_codepoints": 954,
+          "utterances": 87,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-8fa55763f3cf0534be458e91a64d667a6255680e5f5e44c44a0084f838e70200",
+          "commit_seq": 92
+        },
+        {
+          "material_id": "rayneo-lifelog-a3793faf3d8e2b9e17aa7405cb4b5e58db1fa2ac4c9799456dbac53754ce1b07",
+          "revision": 1,
+          "body_sha256": "02393352a6495c1d0222c35c0dcf99e7b60e0bc41b27823a9a7debd2c0ff5f1e",
+          "full_text_sha256": "ef1b8b8335d542f1f1dd900e951d9c0a19f2b281407d0c15e7434deb03f5ddd0",
+          "full_text_codepoints": 1504,
+          "utterances": 59,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-549c983f5ee5a83fd61345698167bd3dbb7e02e00ea9564ef822c48e0945639b",
+          "commit_seq": 93
+        },
+        {
+          "material_id": "rayneo-lifelog-a3f1f05c6bf265ce1c1f6845b3d0e555f0e18b42fbfc0697eddcd8095e960ea5",
+          "revision": 1,
+          "body_sha256": "a3f829e47104d16793c9704cb1a774bb74651d7bb43a494bbd1ad9a09d95cd38",
+          "full_text_sha256": "4453defa6c45a38acb821e123e8f0169bf5c35c2f01c47de1cd781f3c41aac26",
+          "full_text_codepoints": 71,
+          "utterances": 5,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-b7657ca38ed75f70e84de87e01386996c18d1956436889964544db6591feab78",
+          "commit_seq": 94
+        },
+        {
+          "material_id": "rayneo-lifelog-a73e5a066ff34d9e672c66e8fa9fc90d197bb570f9649c0bc63a9e5547f6bfdf",
+          "revision": 1,
+          "body_sha256": "08ea85363562b5a23f3b2f905d8806e3f6f2b467cfad32103ea61e59085b54f1",
+          "full_text_sha256": "1ae29429aa6e8bfa2e402f5aa3d60ceaaabf9adc0ad984eb1dba826af83c95eb",
+          "full_text_codepoints": 68,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-65eb0ad756d2ad240ffadcba4a3c83805b9e7fbdf8e35262119df10d90cba306",
+          "commit_seq": 95
+        },
+        {
+          "material_id": "rayneo-lifelog-ac73c8221fa2504fb950885a798449ccce9dd8d84ef2ac24019f4ea4cc7b59c5",
+          "revision": 1,
+          "body_sha256": "53c72ffd82629f1682403e3af772f8bd3eff02304abbdec6be6d2cc180081e0c",
+          "full_text_sha256": "559c121c891227cafa51e0fa109344fa11f096338b53b9777fd5a6b01954b41b",
+          "full_text_codepoints": 7,
+          "utterances": 2,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-2dc283e5a7b8ddd60a3920c4a120a85291b0144f962241c5283aa586355335fb",
+          "commit_seq": 96
+        },
+        {
+          "material_id": "rayneo-lifelog-add9761117d577fe1cf858a087f7181101b22bcb5e2e461712bc328862124c19",
+          "revision": 1,
+          "body_sha256": "7e1d782ebcc417ee277d33809d2eebdd7e949257d3099a0444c8bb0eae8e3e17",
+          "full_text_sha256": "64f113d4531aef77ae43ce4302ee1502a4f8dde79fc589dc3fb3e9c21e7cca58",
+          "full_text_codepoints": 62,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-4dacd73cb181979ebe0b09cc6c405d4014ed5093921a00009efb94c33b151d77",
+          "commit_seq": 97
+        },
+        {
+          "material_id": "rayneo-lifelog-aecc6e716a4ac9596b1fc921391d76c21cdab4107fe2f873a301382564631ffc",
+          "revision": 1,
+          "body_sha256": "a4632fd714098bf69d1e45865e9642fc8fa55ced5d53b0db6a4a5ae052b01b42",
+          "full_text_sha256": "d950ac9c344c005ccf4eed60677c2d8c20799d37dcf13895304efa43e1b16165",
+          "full_text_codepoints": 44,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4d7feb15099c8f72a606d7c64b34eb8e713088ebec601e75a13a562d87cdd99a",
+          "commit_seq": 98
+        },
+        {
+          "material_id": "rayneo-lifelog-b2bf47d812dad869b8f745fa68d2fc579c6c242d21cfedcbcc81e36b0b98aa19",
+          "revision": 1,
+          "body_sha256": "951d998797b461517ca067bfc859b8bc53883e3638f8de754df49f92981b4c1a",
+          "full_text_sha256": "707502b84681d4c3b1757f7e29af0bed5565636b422b4639068ff21e27f5b301",
+          "full_text_codepoints": 468,
+          "utterances": 28,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-52737dd0b2941aa1ccb9caf9268694d8c9feaeab79a78e678326d609389a7f60",
+          "commit_seq": 99
+        },
+        {
+          "material_id": "rayneo-lifelog-b8a6c73a704a4c6c0dc6097ff35c4639cae98d3a89b94e5efbad71a4f2848d36",
+          "revision": 1,
+          "body_sha256": "8302593768b02f6eee613fce5991fd67c4eb737ee78b02fb77017aba3e84d969",
+          "full_text_sha256": "7677b1c1cb8d00e5d1f4fd90d87aa9f3d59a18fb3f831841371b68267252a877",
+          "full_text_codepoints": 158,
+          "utterances": 13,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3226c2e594715fb5498a191e49b7e4ed99c7da18a85385618ab64ca9d800224d",
+          "commit_seq": 100
+        },
+        {
+          "material_id": "rayneo-lifelog-b9430bc7ba7d2f4161bd96e2771420febca2647e219e23c1b30865479387033c",
+          "revision": 1,
+          "body_sha256": "dda72dcaf53fc860d9d3365d06a300f65cfe45c6168ec229f914c063b561835d",
+          "full_text_sha256": "20f9f53a6ceb5a86ebd14c2b313fd06fe7b19576fde32d12af0e04074e648fdf",
+          "full_text_codepoints": 1026,
+          "utterances": 66,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-44386c0febf34f73f2cf0ed95daf4fc2f2521b4f50300bf1f67fe0d7d1770204",
+          "commit_seq": 101
+        },
+        {
+          "material_id": "rayneo-lifelog-b9fa60d95ac3bf2c0c10f427537dc912abcb6e041c8b30ca2cb6bc3008998796",
+          "revision": 1,
+          "body_sha256": "0b51ccbb7fdac65b54fa2745538bacc85b3a583b960af9af5ea38c100977b040",
+          "full_text_sha256": "a98e754d26f9b341bbf8e65b9271db45ce1770657c63606f8a4e35474084ad87",
+          "full_text_codepoints": 653,
+          "utterances": 38,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-efe3aa40d2ce1eddc73223a57b5ba966fb4af0a7363325c0fc2dc4be78cb8238",
+          "commit_seq": 102
+        },
+        {
+          "material_id": "rayneo-lifelog-c206822358968cfe6590bfe0e342bcc2a7069c878560d4413896013e3053289e",
+          "revision": 1,
+          "body_sha256": "d793f426ca47de13aa64076e163fb7acac998c39478ad84f3112c47b974f85b3",
+          "full_text_sha256": "95d56a192e18abc44ad94d70f144de3cc1f389dcd2ef6cb75c390ffee953d6bd",
+          "full_text_codepoints": 993,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-82a2d16d5027d93fa50193032b0db60cb94ffe6b71052aed77b90ad914aaeff2",
+          "commit_seq": 103
+        },
+        {
+          "material_id": "rayneo-lifelog-c516dd946c472cf25023b32367bd40e9756417749ad9e0f214c3f3659d95e6c9",
+          "revision": 1,
+          "body_sha256": "ea84f6477be89dac67281b3087d4565fef0903495d71d2f034227c72ef404fc3",
+          "full_text_sha256": "c14179ce959b99f176fe3c6634a1a0002ea678e57bdb4aa6f0b0d789b62e6bd0",
+          "full_text_codepoints": 362,
+          "utterances": 28,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c9e20deaa88a28be6dbf4ec5ff307dea75e1f5b22056e1b0a1854f8ec2da39b1",
+          "commit_seq": 104
+        },
+        {
+          "material_id": "rayneo-lifelog-cdc9b327a85b903e758346f042a9b11fb29980a49df00391ad2afa7f7446b99a",
+          "revision": 1,
+          "body_sha256": "8021437be75e293bca7289b718b252b68d61dfb1e9e6819a89af001c667e770c",
+          "full_text_sha256": "faeb9fa8c98b676dc6de4545cb2442f89d6fda0b989d2020e73a55bdbc047261",
+          "full_text_codepoints": 666,
+          "utterances": 35,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-2c4b8d6ba19c2af28456511404d3d1a32ad0755d77cceed20169422e2f9599dc",
+          "commit_seq": 105
+        },
+        {
+          "material_id": "rayneo-lifelog-ce44ee1e9575a030744a279be5da728aa413b8306951a37434b98f747177adaf",
+          "revision": 1,
+          "body_sha256": "fe7b6db28f99ba6d30378ce9231663d5d1f78462fb8b2e02202d87075d3f5070",
+          "full_text_sha256": "4858075e23d474d8c71b38956392fdcfaad8b08ae2ea27d86b68012721922f57",
+          "full_text_codepoints": 303,
+          "utterances": 16,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-de315780cdc53d6332451471faf4a5bfe06c69d8d5d41186852e445e9bb382bf",
+          "commit_seq": 106
+        },
+        {
+          "material_id": "rayneo-lifelog-d2ed4434fd00e1cf47d0f626b64a8112bfae00069e3a308ae96013d7612bad23",
+          "revision": 1,
+          "body_sha256": "97daf8f36cdd6cf066d7bdb2bb9008112823376c6a7d9ee85bc10fe397e11947",
+          "full_text_sha256": "a6133b90b70a497c99285748d42d38f3d4377cb33b07479aa4ceb028d4dab784",
+          "full_text_codepoints": 1512,
+          "utterances": 63,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-b21fb27a2ef0d79fe1ca43f1be221a0087ba4a0ffc6b74f4dace44309b34c773",
+          "commit_seq": 107
+        },
+        {
+          "material_id": "rayneo-lifelog-d9b888640b5faf0f3dd4ab7c1f73fc1a326ab0fa0d4ac4c3dafc99878f879d4a",
+          "revision": 1,
+          "body_sha256": "2a1fca0027fbd03e3dfc2d843225384ba794bc43a40ad72436546803bfa76a70",
+          "full_text_sha256": "7b1ba22af17accf95425dd5e7cd7d886c7dacc5cf25da9d053e7e9076efd469c",
+          "full_text_codepoints": 47,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-f0214408fb6fadf8f81e10f57f96cba7a0794f9031af3258d64d30f20270d21f",
+          "commit_seq": 108
+        },
+        {
+          "material_id": "rayneo-lifelog-e4ecaf46c4361d51d9be7ff11b0827f694765e0cb43fb5ddee303cb7a93bed6f",
+          "revision": 1,
+          "body_sha256": "6895b7122bc344b637eed0431d6064913ccc9bc1950b928c9b97f5d931aeb439",
+          "full_text_sha256": "003260cb18f786f86624555bc4a8527c8b4b286b3f2b9e648ed900f1f7cbd780",
+          "full_text_codepoints": 2138,
+          "utterances": 125,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-ee2a6c6109d610c1848631769a81bd89b3b899a4618a2852839525f1a62f1abd",
+          "commit_seq": 109
+        },
+        {
+          "material_id": "rayneo-lifelog-e69520547d3618e0a053cedc69ac6b9519ad10bb53612d0d13b9fb8baadf3643",
+          "revision": 1,
+          "body_sha256": "0b44dc8691898d35df488230818477848ec152fd141075a94bfed249a372a1df",
+          "full_text_sha256": "9e475163d88f30552675ff1f6cb45108e26702b57b585452cdd1938cddebbf6e",
+          "full_text_codepoints": 120,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-908f6b363d1f27cbd977bf74e437396bc6dcd3cdfd49e3383502776dd08b71a6",
+          "commit_seq": 110
+        },
+        {
+          "material_id": "rayneo-lifelog-e6bc20a320a1d725b651a1ba077f9062fb51fe942882fb65f4477835fee59b2b",
+          "revision": 1,
+          "body_sha256": "3f5b9d6347035bc06233d1f8ba479629529b976d457cb2e2e84a785ef4bf5acd",
+          "full_text_sha256": "4dc770056d1b932aefb0c93465193e23f61810244d3db2aea2a92224bd956a7c",
+          "full_text_codepoints": 23,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3bc0761305204d5eba26f8d8e0f8a056fb80851aaa3e9e8c8d19326f6203c65b",
+          "commit_seq": 111
+        },
+        {
+          "material_id": "rayneo-lifelog-ef6cac815a4f7c34bc525325264ecda2d3b568758136d55e7f9ec8123a590d93",
+          "revision": 1,
+          "body_sha256": "fd16c80ea4b9476925df65d93cd5cf54b6a18719008f9df4136dd01195142a7e",
+          "full_text_sha256": "eb64ba05406b843c09e5cad9947b48413a0fd123d1ed932357bdfe9d2bd89c2d",
+          "full_text_codepoints": 621,
+          "utterances": 27,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3c8a1b239a7186abe169e7a88a99d165d9edf5df4f9b299acdbd997088726454",
+          "commit_seq": 112
+        },
+        {
+          "material_id": "rayneo-lifelog-f125a985d4faf94b9401c948808c7707ed090bb87b3708459f3c6c01b5ea0c8e",
+          "revision": 1,
+          "body_sha256": "b6b6597d470b7342c0b6cf473f6f99fdf4b39e979c3b96694feedb192b185f9b",
+          "full_text_sha256": "b260f53a75893a5005c571292432e8b549f69f40cb3d8471733d8bdd8826b604",
+          "full_text_codepoints": 100,
+          "utterances": 11,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-8632fcd8330597b90313c3a9e49f59ec6529d4b03a9e0697b621a54a1623bbd4",
+          "commit_seq": 113
+        },
+        {
+          "material_id": "rayneo-lifelog-f9bb7474fc3445e3c780328128a7d948718a70290ddb0e4ce42f155f22cd46b5",
+          "revision": 1,
+          "body_sha256": "595db17ed6117a8fc3868d4b49f8a2ac59783b0710a6440148646a26433b1b89",
+          "full_text_sha256": "485e6d48dfaf453499eeb106a4fbde7a4f0d108163d231977448cef16c05c81d",
+          "full_text_codepoints": 111,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-7db22568517fda48b84599fed548d80b24f6fa7cbdca9428461a248ceaeaf032",
+          "commit_seq": 114
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "revision": 2,
+          "body_sha256": "284f36b77dacd93b3832eee010c63a67cefd7434074a1aaedd698c6cf0a0c818",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-43047fb8d9931af41710dd4ad552ff8531488b70120ad66f35f1fbed68bc9e72",
+          "commit_seq": 117
+        },
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "revision": 2,
+          "body_sha256": "109036c3be517b4fa7f014983e1e4fb334d84716cc5528ea3e0fce2ff937b24e",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-025b905d2ed333a640b8d0710b225861f6306aeb0cea885bc221a45df0b63fca",
+          "commit_seq": 118
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "revision": 2,
+          "body_sha256": "9eed96e47a6c97a06bfc03481d626234256649a471ace991da8eea651fc5dea7",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-66dabc58d6927e9b68cff28d4119f30c57d6c93afbde80a23e9a1663db3902e0",
+          "commit_seq": 119
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "revision": 2,
+          "body_sha256": "1731b2b6aff5bf39fccb8c97c68967794bcbbb769120400f99ad2d7ee55340c4",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-a160c8a4339a318125efa9e36864da636469656829de5b3611ac248a25b0777d",
+          "commit_seq": 120
+        },
+        {
+          "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+          "revision": 2,
+          "body_sha256": "6e126ead0e8c1ad58c4b69094691b4e4769b95d9e46146360f529681e8d2fad0",
+          "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+          "full_text_codepoints": 345,
+          "utterances": 25,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-b7c84b9d20853ae16f6ac794332407cb9e26e38bbec9991db4bbbd01477836ee",
+          "commit_seq": 121
+        },
+        {
+          "material_id": "rayneo-lifelog-bef3794a5be4e82fd5eb5695457b761ea3fd8cd491b65535834a66e9dd4a5dad",
+          "revision": 1,
+          "body_sha256": "5e9b858057c3f7d2d5b9f069e164d8fd3b843c62ef3b4aa6f88646c11ffe494a",
+          "full_text_sha256": "7f03e083afffab7c261c6448f196583dde710f592e059d9f5cd12fa5b162b3c6",
+          "full_text_codepoints": 95,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-0c1e5af7f046c7a282a0b6f8e2b645693cac1cb67996e30309db28491a95ba58",
+          "commit_seq": 115
+        },
+        {
+          "material_id": "rayneo-lifelog-33c19f86fc5115e2378bab9513c5d36af7505fc56cf4cfbbbf7b949e17ed853c",
+          "revision": 1,
+          "body_sha256": "a08c4f09780356f711b7d60b4a533eeda4f59a0e985e222cb874ff33022787bf",
+          "full_text_sha256": "dd1b67621e9e16833edec7f65ee3bdab3ea9fa10c99694e94e2e3f2f7dd02e80",
+          "full_text_codepoints": 323,
+          "utterances": 20,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3e410d56e8642414a302b12f66cdeaedb0052f03203b0f6d6d230435e919d023",
+          "commit_seq": 116
+        }
+      ],
+      "queue_schema": 4,
+      "queue_sha256": "19b73e17992a781dd52fbec5cb92e095f00014d130b573749d2ded5996f36e4d",
+      "configuration_enabled": true,
+      "preserved_repair_payloads": 3,
+      "discovery_test_days": [],
+      "states": {
+        "server_stored": 70,
+        "queued": 12
+      },
+      "errors": {},
+      "retired_versions": 0,
+      "auto_schedule": {
+        "zone": "",
+        "through": "",
+        "attempt": 1792843549188,
+        "next": 1792843662736,
+        "failures": 0
+      },
+      "credential_expires_at": "2026-10-25T11:21:31.920Z",
+      "credential_token_id": "e33bf2dd-a927-4372-9403-88b3f936385b",
+      "captured_at_ms": 1792843618778
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "3a02e5e3cf874aa680db7a0fd8fb2dcd",
+    "state_unchanged": true
+  },
+  "queue_drained": {
+    "audit": {
+      "items": [
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 1,
+          "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+          "commit_seq": 52
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 1,
+          "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+          "commit_seq": 53
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 1,
+          "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+          "commit_seq": 54
+        },
+        {
+          "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+          "revision": 2,
+          "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+          "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+          "full_text_codepoints": 1809,
+          "utterances": 163,
+          "speakers": 2,
+          "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+          "commit_seq": 55
+        },
+        {
+          "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+          "revision": 2,
+          "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+          "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+          "full_text_codepoints": 2170,
+          "utterances": 235,
+          "speakers": 2,
+          "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+          "commit_seq": 56
+        },
+        {
+          "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+          "revision": 2,
+          "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+          "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+          "full_text_codepoints": 1985,
+          "utterances": 161,
+          "speakers": 2,
+          "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+          "commit_seq": 57
+        },
+        {
+          "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+          "revision": 1,
+          "body_sha256": "c5a8a144d77915d7d2e59916eb5f0a8e2bd132a78d904b97461a3945dd2fd58d",
+          "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+          "full_text_codepoints": 383,
+          "utterances": 31,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c13575c567144809549e1d8c3e8e8edd88f3019ba56a0059d5bc620548a68254",
+          "commit_seq": 58
+        },
+        {
+          "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+          "revision": 1,
+          "body_sha256": "3e20100ea71b27556c4025f8c4aae33c5f877c68af6e0b0e7510511bd8854b61",
+          "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+          "full_text_codepoints": 113,
+          "utterances": 9,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-19d171ab40658477b7c992af047d2dff5a491add90be3ba37befb95959e60947",
+          "commit_seq": 59
+        },
+        {
+          "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+          "revision": 1,
+          "body_sha256": "b24b80b6761b163583808eb920005ec4f88e1e4382d65f55f7373b17ed771c50",
+          "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+          "full_text_codepoints": 583,
+          "utterances": 42,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-1456db9bded76c41c4745141856f0547b72d4ce68e2e73e4c1f82c7bc3610d00",
+          "commit_seq": 61
+        },
+        {
+          "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+          "revision": 1,
+          "body_sha256": "2317a093f9de6ce128d58a06a610c8c14807a959e78c64a3e7f0da754afe53fd",
+          "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+          "full_text_codepoints": 42,
+          "utterances": 9,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4b4ec079c5cc717b304166232a6c33d6f74c11696b53e49cb6f8bf0f97f8ae42",
+          "commit_seq": 63
+        },
+        {
+          "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+          "revision": 1,
+          "body_sha256": "c2240fb121efcf423eb8700433e872eab5520280c6974af45b1c38457b490a35",
+          "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+          "full_text_codepoints": 184,
+          "utterances": 17,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-738ddef34d9d1a8e836f0b30f8dcf32cde4db22a64fe975b2d434046a38ab514",
+          "commit_seq": 64
+        },
+        {
+          "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+          "revision": 1,
+          "body_sha256": "8ec24edbdb16c4b613fcbcf3aeebbba001bac0250a50224a005266eb0035440f",
+          "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+          "full_text_codepoints": 405,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c3090400ccdb9e6da8ec582fe918b54ee47b0a35b8e99a513eba794c6326f8bd",
+          "commit_seq": 66
+        },
+        {
+          "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+          "revision": 1,
+          "body_sha256": "ca098715ec933d37d584466bf209e519049a5a796ad98233c0e170c973703aed",
+          "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+          "full_text_codepoints": 38,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-23f2f1abe4601c75db7ba45f1abea2357715b4a3a38896cce98ae66e84a07b09",
+          "commit_seq": 67
+        },
+        {
+          "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+          "revision": 1,
+          "body_sha256": "fca121b21d6eb41fcd493c0cbc13d76cd65882043c198df7da815b2653f68141",
+          "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+          "full_text_codepoints": 110,
+          "utterances": 12,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-a0e78b12c8ad7e6c7f93f9602288d6afa5ed348f1610ff5939d85c2a3a275ba4",
+          "commit_seq": 68
+        },
+        {
+          "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+          "revision": 1,
+          "body_sha256": "e76dc44a34181d22b430c93c111aea4e56f0954859932354c9aeeda2b91f60af",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-03122d31b6b6e34c2b58868c19dda920649a1ad65e1099b8706f595e3f06fbe3",
+          "commit_seq": 69
+        },
+        {
+          "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+          "revision": 1,
+          "body_sha256": "72ab510e0dfd4e5212afc25ce98dc5b9bc93acc74c6381056787f9cc5d470770",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-94152caa709bb00aea88130faca1dd64fb3dada3314e5ce8cde4333d7e8886c3",
+          "commit_seq": 70
+        },
+        {
+          "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+          "revision": 1,
+          "body_sha256": "c5683905a7651a3219966f974a02d7e3e4cebfeefccb311e8b350d94af248246",
+          "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+          "full_text_codepoints": 745,
+          "utterances": 59,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3128e82d647af0d5e057fd510b6aee547b806eaf631d7724ee82a141378c7f72",
+          "commit_seq": 72
+        },
+        {
+          "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+          "revision": 1,
+          "body_sha256": "8f6043f8a81a9a3189ae6ab6b741002026204864e07967f0daa0a0fbd1454e26",
+          "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+          "full_text_codepoints": 939,
+          "utterances": 44,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-14f4662a320277c4046efdc617b83703c1d106ff76d5b2819d3d6de7706b01e2",
+          "commit_seq": 73
+        },
+        {
+          "material_id": "rayneo-lifelog-5c568983f0c9a80a2b942a5c8021d0cea087dba19bcc8628862d6524f15c277a",
+          "revision": 1,
+          "body_sha256": "6271460d61d3dcd7bc4431989f890435be4a12274200a56aae86d13b1cacee61",
+          "full_text_sha256": "475b86342b8c415c1f0044516a7a8af130240b59f48663d8440d379ab2e0edc1",
+          "full_text_codepoints": 311,
+          "utterances": 23,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8f23c9705daedbc3f5cac04460621ba7a6c8705e325c63f248eaaa9de8e77d6",
+          "commit_seq": 74
+        },
+        {
+          "material_id": "rayneo-lifelog-62e00ad76921667ce1b5ff16183a504e591ae18abec5fe2b5ebab89e146d4420",
+          "revision": 1,
+          "body_sha256": "caa82b8ba7c43566cfc79be0d4e9207d7394f9ed5c4a4444e84682df1c37aee5",
+          "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+          "full_text_codepoints": 2,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-dc897b3ba586e89162a3c0759e98dcf93298ee53b3d8c20462acac427ec13c02",
+          "commit_seq": 75
+        },
+        {
+          "material_id": "rayneo-lifelog-704a580dc9d2fab73536373ddbdda1b4932ca053c34f0f3bff68946c0580b202",
+          "revision": 1,
+          "body_sha256": "c0039b635ed732a8be0012d7b2e507698397a6902943831cdfd5531946ae9682",
+          "full_text_sha256": "5497a73c04011b780d668ad891d50a689bd1ad47354cf4c7090d2ed2e886d9e2",
+          "full_text_codepoints": 392,
+          "utterances": 14,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6776943f0849e23218098bbcfbc18d4f15ad799b1966c303b3ba4edffa662388",
+          "commit_seq": 78
+        },
+        {
+          "material_id": "rayneo-lifelog-727859d4a6f90dadb3f5c982729c2e93f051ebca18cf6cc12c2e1b6dba93d167",
+          "revision": 1,
+          "body_sha256": "317d687d995b40cb27c9cb6567fff3734a037cc842b04c5e214c389e8a9a0f97",
+          "full_text_sha256": "52436679f3ec62176a1ccc353628a884bc3aa2d23caf72ef6e826f49be98c289",
+          "full_text_codepoints": 4900,
+          "utterances": 273,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-befc764b16b6110b245a34c6aa5607164d28210fa429a33a0f994b1c557a5c7e",
+          "commit_seq": 79
+        },
+        {
+          "material_id": "rayneo-lifelog-753060a2882d67558974c11accc42f2cd5ea58e5522aa7ffb19b4ae18f5adaa3",
+          "revision": 1,
+          "body_sha256": "9df1acf934efa5f9e4ef9992d23b4d7aff50ab49bad3165700ae2a9d68616f4d",
+          "full_text_sha256": "223d091f07c04aa2cfbd5c3f9e57a1475f7b37eb6c1d30da0e47cc166389caae",
+          "full_text_codepoints": 33,
+          "utterances": 3,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-5f5d53017a4b498718b03e6f09ef6ca025b8b7244b659a31b2df944246970f28",
+          "commit_seq": 81
+        },
+        {
+          "material_id": "rayneo-lifelog-777e3dd36f8398d4a6721ec25f1632f703b31a09c7cf4658c99df4e809743988",
+          "revision": 1,
+          "body_sha256": "d5bff24ee2aed1dfbbc232baa53176aa0fb5bc3df09aff88e7ab320a0f0a9584",
+          "full_text_sha256": "ca1ecf4883f5716c54d25f660f23abb55ed0001e0abe34cb391b1ce84d2ccab1",
+          "full_text_codepoints": 263,
+          "utterances": 25,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-41c5b148cdf6a70f05c30eb8346b3c4819b950359055d14b6f4b23b70335cfad",
+          "commit_seq": 82
+        },
+        {
+          "material_id": "rayneo-lifelog-7e46fb633fe38ccc8bed3b25dc6f6117b05c65024e275ff5f4032bb49eb93435",
+          "revision": 1,
+          "body_sha256": "2ebe12cf6f0ae2d4dbf9df364b63b9c78d957f9b52aaf5608cd8162557898542",
+          "full_text_sha256": "07a0a13780bda256aa0e155b880826d84fe511214053d6499f4360c97ac7350f",
+          "full_text_codepoints": 993,
+          "utterances": 68,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-9d12a6514730c0911a21d4a4ba2823381703d24164273b0712cc5a61b270e324",
+          "commit_seq": 84
+        },
+        {
+          "material_id": "rayneo-lifelog-85f1b0f6819241c188f1c66a60810a7e8a533b8bcd2659b90f4abe5c61cc9683",
+          "revision": 1,
+          "body_sha256": "ec6a6dd69d40c16c457c82efcd0df0ba5f2b47785b146027bb28f46ff05d9921",
+          "full_text_sha256": "e81470feb4fb05b773f9a8a56fd3af060b5f90c7d879a11fbdf589f87cef8e21",
+          "full_text_codepoints": 832,
+          "utterances": 62,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-5a9a5ca40e98a7f8ff9a0b3ab120bed01654a11526bd6db9885255cab380a952",
+          "commit_seq": 87
+        },
+        {
+          "material_id": "rayneo-lifelog-8818474dc64001d0bf7a3abf9547fa44f46c82905f8e09975295ef15e4ace348",
+          "revision": 1,
+          "body_sha256": "53e59d4319852a8cffb260edac41cde5ae4ed4d48736491e377e08fd4910e5a2",
+          "full_text_sha256": "54552989fa88dbc862628467db11d0e8a5ecd1f0a5f44720e61090b8745085be",
+          "full_text_codepoints": 1529,
+          "utterances": 82,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-13d60d73a2c6517ab386bc0237d16bcbce6c879922f2835e7b6735de2ffd9cfe",
+          "commit_seq": 88
+        },
+        {
+          "material_id": "rayneo-lifelog-8c63c55ae32d04b3828a46eca2adc766c6f623bdfb66652287bf211d2df4e734",
+          "revision": 1,
+          "body_sha256": "c7e591807b999974985d22508b7b7a180edf2c5e02c5296f14c62701f7d17e2f",
+          "full_text_sha256": "9a295070ca1d89a9a449cc2c719cded57520d37d5a3e28f2b21a57e3091b06cb",
+          "full_text_codepoints": 971,
+          "utterances": 63,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c8de8e30889c39ad05434736c1b429d6c7a58a41ce23cc1cf203b3fde7050037",
+          "commit_seq": 89
+        },
+        {
+          "material_id": "rayneo-lifelog-9c9b7cfe795b26185dd7ea0af33b502122a0fc4f1f4d066072f18b95fd63b56f",
+          "revision": 1,
+          "body_sha256": "5c9877fdc6e3e186687667856b434c294e28c43cb33c3c1b7192ef9794a76129",
+          "full_text_sha256": "69af505882c81b1328e1931c240403e68875ce2efc1d8e199b88c59c05ccac03",
+          "full_text_codepoints": 52,
+          "utterances": 8,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3593a7f3c4cd5613fb68246e6695983058b1c4a9d4801e80d577310cb5752ae7",
+          "commit_seq": 91
+        },
+        {
+          "material_id": "rayneo-lifelog-a3793faf3d8e2b9e17aa7405cb4b5e58db1fa2ac4c9799456dbac53754ce1b07",
+          "revision": 1,
+          "body_sha256": "02393352a6495c1d0222c35c0dcf99e7b60e0bc41b27823a9a7debd2c0ff5f1e",
+          "full_text_sha256": "ef1b8b8335d542f1f1dd900e951d9c0a19f2b281407d0c15e7434deb03f5ddd0",
+          "full_text_codepoints": 1504,
+          "utterances": 59,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-549c983f5ee5a83fd61345698167bd3dbb7e02e00ea9564ef822c48e0945639b",
+          "commit_seq": 93
+        },
+        {
+          "material_id": "rayneo-lifelog-add9761117d577fe1cf858a087f7181101b22bcb5e2e461712bc328862124c19",
+          "revision": 1,
+          "body_sha256": "7e1d782ebcc417ee277d33809d2eebdd7e949257d3099a0444c8bb0eae8e3e17",
+          "full_text_sha256": "64f113d4531aef77ae43ce4302ee1502a4f8dde79fc589dc3fb3e9c21e7cca58",
+          "full_text_codepoints": 62,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-4dacd73cb181979ebe0b09cc6c405d4014ed5093921a00009efb94c33b151d77",
+          "commit_seq": 97
+        },
+        {
+          "material_id": "rayneo-lifelog-aecc6e716a4ac9596b1fc921391d76c21cdab4107fe2f873a301382564631ffc",
+          "revision": 1,
+          "body_sha256": "a4632fd714098bf69d1e45865e9642fc8fa55ced5d53b0db6a4a5ae052b01b42",
+          "full_text_sha256": "d950ac9c344c005ccf4eed60677c2d8c20799d37dcf13895304efa43e1b16165",
+          "full_text_codepoints": 44,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4d7feb15099c8f72a606d7c64b34eb8e713088ebec601e75a13a562d87cdd99a",
+          "commit_seq": 98
+        },
+        {
+          "material_id": "rayneo-lifelog-b2bf47d812dad869b8f745fa68d2fc579c6c242d21cfedcbcc81e36b0b98aa19",
+          "revision": 1,
+          "body_sha256": "951d998797b461517ca067bfc859b8bc53883e3638f8de754df49f92981b4c1a",
+          "full_text_sha256": "707502b84681d4c3b1757f7e29af0bed5565636b422b4639068ff21e27f5b301",
+          "full_text_codepoints": 468,
+          "utterances": 28,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-52737dd0b2941aa1ccb9caf9268694d8c9feaeab79a78e678326d609389a7f60",
+          "commit_seq": 99
+        },
+        {
+          "material_id": "rayneo-lifelog-b8a6c73a704a4c6c0dc6097ff35c4639cae98d3a89b94e5efbad71a4f2848d36",
+          "revision": 1,
+          "body_sha256": "8302593768b02f6eee613fce5991fd67c4eb737ee78b02fb77017aba3e84d969",
+          "full_text_sha256": "7677b1c1cb8d00e5d1f4fd90d87aa9f3d59a18fb3f831841371b68267252a877",
+          "full_text_codepoints": 158,
+          "utterances": 13,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3226c2e594715fb5498a191e49b7e4ed99c7da18a85385618ab64ca9d800224d",
+          "commit_seq": 100
+        },
+        {
+          "material_id": "rayneo-lifelog-b9430bc7ba7d2f4161bd96e2771420febca2647e219e23c1b30865479387033c",
+          "revision": 1,
+          "body_sha256": "dda72dcaf53fc860d9d3365d06a300f65cfe45c6168ec229f914c063b561835d",
+          "full_text_sha256": "20f9f53a6ceb5a86ebd14c2b313fd06fe7b19576fde32d12af0e04074e648fdf",
+          "full_text_codepoints": 1026,
+          "utterances": 66,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-44386c0febf34f73f2cf0ed95daf4fc2f2521b4f50300bf1f67fe0d7d1770204",
+          "commit_seq": 101
+        },
+        {
+          "material_id": "rayneo-lifelog-c206822358968cfe6590bfe0e342bcc2a7069c878560d4413896013e3053289e",
+          "revision": 1,
+          "body_sha256": "d793f426ca47de13aa64076e163fb7acac998c39478ad84f3112c47b974f85b3",
+          "full_text_sha256": "95d56a192e18abc44ad94d70f144de3cc1f389dcd2ef6cb75c390ffee953d6bd",
+          "full_text_codepoints": 993,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-82a2d16d5027d93fa50193032b0db60cb94ffe6b71052aed77b90ad914aaeff2",
+          "commit_seq": 103
+        },
+        {
+          "material_id": "rayneo-lifelog-c516dd946c472cf25023b32367bd40e9756417749ad9e0f214c3f3659d95e6c9",
+          "revision": 1,
+          "body_sha256": "ea84f6477be89dac67281b3087d4565fef0903495d71d2f034227c72ef404fc3",
+          "full_text_sha256": "c14179ce959b99f176fe3c6634a1a0002ea678e57bdb4aa6f0b0d789b62e6bd0",
+          "full_text_codepoints": 362,
+          "utterances": 28,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-c9e20deaa88a28be6dbf4ec5ff307dea75e1f5b22056e1b0a1854f8ec2da39b1",
+          "commit_seq": 104
+        },
+        {
+          "material_id": "rayneo-lifelog-ce44ee1e9575a030744a279be5da728aa413b8306951a37434b98f747177adaf",
+          "revision": 1,
+          "body_sha256": "fe7b6db28f99ba6d30378ce9231663d5d1f78462fb8b2e02202d87075d3f5070",
+          "full_text_sha256": "4858075e23d474d8c71b38956392fdcfaad8b08ae2ea27d86b68012721922f57",
+          "full_text_codepoints": 303,
+          "utterances": 16,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-de315780cdc53d6332451471faf4a5bfe06c69d8d5d41186852e445e9bb382bf",
+          "commit_seq": 106
+        },
+        {
+          "material_id": "rayneo-lifelog-d2ed4434fd00e1cf47d0f626b64a8112bfae00069e3a308ae96013d7612bad23",
+          "revision": 1,
+          "body_sha256": "97daf8f36cdd6cf066d7bdb2bb9008112823376c6a7d9ee85bc10fe397e11947",
+          "full_text_sha256": "a6133b90b70a497c99285748d42d38f3d4377cb33b07479aa4ceb028d4dab784",
+          "full_text_codepoints": 1512,
+          "utterances": 63,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-b21fb27a2ef0d79fe1ca43f1be221a0087ba4a0ffc6b74f4dace44309b34c773",
+          "commit_seq": 107
+        },
+        {
+          "material_id": "rayneo-lifelog-d9b888640b5faf0f3dd4ab7c1f73fc1a326ab0fa0d4ac4c3dafc99878f879d4a",
+          "revision": 1,
+          "body_sha256": "2a1fca0027fbd03e3dfc2d843225384ba794bc43a40ad72436546803bfa76a70",
+          "full_text_sha256": "7b1ba22af17accf95425dd5e7cd7d886c7dacc5cf25da9d053e7e9076efd469c",
+          "full_text_codepoints": 47,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-f0214408fb6fadf8f81e10f57f96cba7a0794f9031af3258d64d30f20270d21f",
+          "commit_seq": 108
+        },
+        {
+          "material_id": "rayneo-lifelog-e4ecaf46c4361d51d9be7ff11b0827f694765e0cb43fb5ddee303cb7a93bed6f",
+          "revision": 1,
+          "body_sha256": "6895b7122bc344b637eed0431d6064913ccc9bc1950b928c9b97f5d931aeb439",
+          "full_text_sha256": "003260cb18f786f86624555bc4a8527c8b4b286b3f2b9e648ed900f1f7cbd780",
+          "full_text_codepoints": 2138,
+          "utterances": 125,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-ee2a6c6109d610c1848631769a81bd89b3b899a4618a2852839525f1a62f1abd",
+          "commit_seq": 109
+        },
+        {
+          "material_id": "rayneo-lifelog-e69520547d3618e0a053cedc69ac6b9519ad10bb53612d0d13b9fb8baadf3643",
+          "revision": 1,
+          "body_sha256": "0b44dc8691898d35df488230818477848ec152fd141075a94bfed249a372a1df",
+          "full_text_sha256": "9e475163d88f30552675ff1f6cb45108e26702b57b585452cdd1938cddebbf6e",
+          "full_text_codepoints": 120,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-908f6b363d1f27cbd977bf74e437396bc6dcd3cdfd49e3383502776dd08b71a6",
+          "commit_seq": 110
+        },
+        {
+          "material_id": "rayneo-lifelog-e6bc20a320a1d725b651a1ba077f9062fb51fe942882fb65f4477835fee59b2b",
+          "revision": 1,
+          "body_sha256": "3f5b9d6347035bc06233d1f8ba479629529b976d457cb2e2e84a785ef4bf5acd",
+          "full_text_sha256": "4dc770056d1b932aefb0c93465193e23f61810244d3db2aea2a92224bd956a7c",
+          "full_text_codepoints": 23,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3bc0761305204d5eba26f8d8e0f8a056fb80851aaa3e9e8c8d19326f6203c65b",
+          "commit_seq": 111
+        },
+        {
+          "material_id": "rayneo-lifelog-ef6cac815a4f7c34bc525325264ecda2d3b568758136d55e7f9ec8123a590d93",
+          "revision": 1,
+          "body_sha256": "fd16c80ea4b9476925df65d93cd5cf54b6a18719008f9df4136dd01195142a7e",
+          "full_text_sha256": "eb64ba05406b843c09e5cad9947b48413a0fd123d1ed932357bdfe9d2bd89c2d",
+          "full_text_codepoints": 621,
+          "utterances": 27,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-3c8a1b239a7186abe169e7a88a99d165d9edf5df4f9b299acdbd997088726454",
+          "commit_seq": 112
+        },
+        {
+          "material_id": "rayneo-lifelog-f125a985d4faf94b9401c948808c7707ed090bb87b3708459f3c6c01b5ea0c8e",
+          "revision": 1,
+          "body_sha256": "b6b6597d470b7342c0b6cf473f6f99fdf4b39e979c3b96694feedb192b185f9b",
+          "full_text_sha256": "b260f53a75893a5005c571292432e8b549f69f40cb3d8471733d8bdd8826b604",
+          "full_text_codepoints": 100,
+          "utterances": 11,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-8632fcd8330597b90313c3a9e49f59ec6529d4b03a9e0697b621a54a1623bbd4",
+          "commit_seq": 113
+        },
+        {
+          "material_id": "rayneo-lifelog-f9bb7474fc3445e3c780328128a7d948718a70290ddb0e4ce42f155f22cd46b5",
+          "revision": 1,
+          "body_sha256": "595db17ed6117a8fc3868d4b49f8a2ac59783b0710a6440148646a26433b1b89",
+          "full_text_sha256": "485e6d48dfaf453499eeb106a4fbde7a4f0d108163d231977448cef16c05c81d",
+          "full_text_codepoints": 111,
+          "utterances": 6,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-7db22568517fda48b84599fed548d80b24f6fa7cbdca9428461a248ceaeaf032",
+          "commit_seq": 114
+        },
+        {
+          "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+          "revision": 2,
+          "body_sha256": "284f36b77dacd93b3832eee010c63a67cefd7434074a1aaedd698c6cf0a0c818",
+          "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+          "full_text_codepoints": 37,
+          "utterances": 4,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-43047fb8d9931af41710dd4ad552ff8531488b70120ad66f35f1fbed68bc9e72",
+          "commit_seq": 117
+        },
+        {
+          "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+          "revision": 2,
+          "body_sha256": "109036c3be517b4fa7f014983e1e4fb334d84716cc5528ea3e0fce2ff937b24e",
+          "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+          "full_text_codepoints": 470,
+          "utterances": 61,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-025b905d2ed333a640b8d0710b225861f6306aeb0cea885bc221a45df0b63fca",
+          "commit_seq": 118
+        },
+        {
+          "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+          "revision": 2,
+          "body_sha256": "9eed96e47a6c97a06bfc03481d626234256649a471ace991da8eea651fc5dea7",
+          "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+          "full_text_codepoints": 5,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-66dabc58d6927e9b68cff28d4119f30c57d6c93afbde80a23e9a1663db3902e0",
+          "commit_seq": 119
+        },
+        {
+          "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+          "revision": 2,
+          "body_sha256": "1731b2b6aff5bf39fccb8c97c68967794bcbbb769120400f99ad2d7ee55340c4",
+          "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+          "full_text_codepoints": 145,
+          "utterances": 7,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-a160c8a4339a318125efa9e36864da636469656829de5b3611ac248a25b0777d",
+          "commit_seq": 120
+        },
+        {
+          "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+          "revision": 2,
+          "body_sha256": "6e126ead0e8c1ad58c4b69094691b4e4769b95d9e46146360f529681e8d2fad0",
+          "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+          "full_text_codepoints": 345,
+          "utterances": 25,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-b7c84b9d20853ae16f6ac794332407cb9e26e38bbec9991db4bbbd01477836ee",
+          "commit_seq": 121
+        },
+        {
+          "material_id": "rayneo-lifelog-6b0984ff24d265f6b97b325d48e758726fdde7664fcbfdfb0992afd8bb93d6cb",
+          "revision": 2,
+          "body_sha256": "e03775bddb035cd3a55b16c834bca8986b46c09ff9172b3a839f671f99c20def",
+          "full_text_sha256": "35d7f646024e76817b9067bdbffa099e098f0746432c89fdd06dd33e838c7bd0",
+          "full_text_codepoints": 103,
+          "utterances": 7,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-405158a97d20188504e8b81ac3ea35bc11937f75c65a1885b298d159968da379",
+          "commit_seq": 122
+        },
+        {
+          "material_id": "rayneo-lifelog-74545cb1729023c29f82ba02ef55670bf0dff2eb401ea83e79ca3e049f313ed6",
+          "revision": 2,
+          "body_sha256": "725347cab760a40d428b7888153e0b52ca3dc437f2f93ba37b17f12d6d1fcd17",
+          "full_text_sha256": "afd59ecd9012167f09ac970326c82d3f74cafb2791eeadc351772a54c84874cc",
+          "full_text_codepoints": 50,
+          "utterances": 5,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-6cc281bda40997a5ad2d3c60eaf4db97407a1942a3c6f1173e671f5e18ccab06",
+          "commit_seq": 123
+        },
+        {
+          "material_id": "rayneo-lifelog-7791b3c446d5df5afb3473e0d48f35248fbd9925350c4a34558d66e6fd952137",
+          "revision": 2,
+          "body_sha256": "c2a10f3df5a7975b0c4dd0c5c6317734b4092e4968b81e331411bf7ac08c7dc9",
+          "full_text_sha256": "5aaf701f757ea647e417f5e3d0f82ccd02ef9cbe9535e1ea8134d3d045c8ffcb",
+          "full_text_codepoints": 101,
+          "utterances": 8,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-04580a696eed298c58244174dd03d8edf801b8aad0d784980f5c4ec6e0f80944",
+          "commit_seq": 124
+        },
+        {
+          "material_id": "rayneo-lifelog-7e88cee23687cea046c97c5adca9aae99f87465348b1a8aac0c903752c8ecad6",
+          "revision": 2,
+          "body_sha256": "da263e7aa860a4ef02a7b9111f57ba9d1f434f71b1d6bc733d4d8981d12057f3",
+          "full_text_sha256": "04599542ed62c5fa9d47942fa9450cb4fd7bb24bb51c3ac68bc300b6eee5e5d2",
+          "full_text_codepoints": 183,
+          "utterances": 11,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-22b727b4b1d04b2663a3d9e6fdbde736f1f1baeca5c2a7c1e2f57565e382fd58",
+          "commit_seq": 125
+        },
+        {
+          "material_id": "rayneo-lifelog-80a8b4fe227c2903bdf36140c3aa369d0c3c9f362b9be1e8405bc091b5e405e4",
+          "revision": 2,
+          "body_sha256": "704bb4ee768f56591bd0365f594c9f3800611f2ff65b646200fb795d6b28368f",
+          "full_text_sha256": "c0dad597dc82a31dd69060476ba8d5a0bc081bd7005ed6641f89ca6ade33857a",
+          "full_text_codepoints": 3,
+          "utterances": 1,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-b0a8d184d172bdb1570d553b90e8f023859be4e608cff058760a5556ccdffa85",
+          "commit_seq": 126
+        },
+        {
+          "material_id": "rayneo-lifelog-bef3794a5be4e82fd5eb5695457b761ea3fd8cd491b65535834a66e9dd4a5dad",
+          "revision": 1,
+          "body_sha256": "5e9b858057c3f7d2d5b9f069e164d8fd3b843c62ef3b4aa6f88646c11ffe494a",
+          "full_text_sha256": "7f03e083afffab7c261c6448f196583dde710f592e059d9f5cd12fa5b162b3c6",
+          "full_text_codepoints": 95,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-0c1e5af7f046c7a282a0b6f8e2b645693cac1cb67996e30309db28491a95ba58",
+          "commit_seq": 115
+        },
+        {
+          "material_id": "rayneo-lifelog-33c19f86fc5115e2378bab9513c5d36af7505fc56cf4cfbbbf7b949e17ed853c",
+          "revision": 1,
+          "body_sha256": "a08c4f09780356f711b7d60b4a533eeda4f59a0e985e222cb874ff33022787bf",
+          "full_text_sha256": "dd1b67621e9e16833edec7f65ee3bdab3ea9fa10c99694e94e2e3f2f7dd02e80",
+          "full_text_codepoints": 323,
+          "utterances": 20,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3e410d56e8642414a302b12f66cdeaedb0052f03203b0f6d6d230435e919d023",
+          "commit_seq": 116
+        },
+        {
+          "material_id": "rayneo-lifelog-99a2fc717a7e3c5eca96b5804e330431f13efd612158bf7ec3a0c4e680e0dc1a",
+          "revision": 2,
+          "body_sha256": "a9de941eea6c92a8273401041aeb04c761c20b70823c1451f08d0c82f41d20cd",
+          "full_text_sha256": "8fb9f9762701df7e625b38137bef87fdac1e67992360b189c033a9261c56203a",
+          "full_text_codepoints": 141,
+          "utterances": 13,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-45ae1a78fb4edc5c0d72d57d48e31b239d434fc4a238aa5f611f13c4ea2ff6a7",
+          "commit_seq": 127
+        },
+        {
+          "material_id": "rayneo-lifelog-9cf89148a8bc2d40b023889f55ce17efc76102ee9ebb3b9728dc3a86b512ea9b",
+          "revision": 2,
+          "body_sha256": "9cf42351f2284b32fa1d7ccb34c85bcb856b9a1185411eabf0661dfd0808d94c",
+          "full_text_sha256": "e4a37d5fa5bdb1e413f62f1ad1b162d45ead549d6756dac5cfb26d61905c1c87",
+          "full_text_codepoints": 954,
+          "utterances": 87,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-77de985496948f5fe71950e316fe117f23e359ff2f6451b9a6dd0b5a02886fcd",
+          "commit_seq": 128
+        },
+        {
+          "material_id": "rayneo-lifelog-a3f1f05c6bf265ce1c1f6845b3d0e555f0e18b42fbfc0697eddcd8095e960ea5",
+          "revision": 2,
+          "body_sha256": "000a7ef2888d201ad2bacef4bdc4d20bba6f4e49bc98ace53c80493fa97d5072",
+          "full_text_sha256": "4453defa6c45a38acb821e123e8f0169bf5c35c2f01c47de1cd781f3c41aac26",
+          "full_text_codepoints": 71,
+          "utterances": 5,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-4521369a5eb899b8b753128e0ecbd523971472f236042d41a355779fc6dcd54c",
+          "commit_seq": 129
+        },
+        {
+          "material_id": "rayneo-lifelog-a73e5a066ff34d9e672c66e8fa9fc90d197bb570f9649c0bc63a9e5547f6bfdf",
+          "revision": 2,
+          "body_sha256": "d55def30c67ee05e6f2b6ac26b970ad79c06ec2c6a7f4a8066c0157be7e82a22",
+          "full_text_sha256": "1ae29429aa6e8bfa2e402f5aa3d60ceaaabf9adc0ad984eb1dba826af83c95eb",
+          "full_text_codepoints": 68,
+          "utterances": 6,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-e97025d768497d456a5b011a3354fbf1f9f0c0a97b86843fddf8f64e8215402c",
+          "commit_seq": 130
+        },
+        {
+          "material_id": "rayneo-lifelog-ac73c8221fa2504fb950885a798449ccce9dd8d84ef2ac24019f4ea4cc7b59c5",
+          "revision": 2,
+          "body_sha256": "6eea958193f4dbb428449adc51a4d38ed18aad9466a75f644186d0355bbfd3c2",
+          "full_text_sha256": "559c121c891227cafa51e0fa109344fa11f096338b53b9777fd5a6b01954b41b",
+          "full_text_codepoints": 7,
+          "utterances": 2,
+          "speakers": 1,
+          "event_id": "lifelog-refresh-3ef6e427008625c556d36a4899874389510caf3ac0176908e28d49cdbd14ffc3",
+          "commit_seq": 131
+        },
+        {
+          "material_id": "rayneo-lifelog-b9fa60d95ac3bf2c0c10f427537dc912abcb6e041c8b30ca2cb6bc3008998796",
+          "revision": 2,
+          "body_sha256": "677b9b72c5feb76cb9cff96954c7226b26e3376bede86415f520eb1901a95165",
+          "full_text_sha256": "a98e754d26f9b341bbf8e65b9271db45ce1770657c63606f8a4e35474084ad87",
+          "full_text_codepoints": 653,
+          "utterances": 38,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-fbfd7bba357d044efb1f14df4783645d74fc1b3a29287e838c33b98f1faacb90",
+          "commit_seq": 132
+        },
+        {
+          "material_id": "rayneo-lifelog-cdc9b327a85b903e758346f042a9b11fb29980a49df00391ad2afa7f7446b99a",
+          "revision": 2,
+          "body_sha256": "a16f2ceea2004313fa7f6049b3c0365a71b094209b406e085c8e8c188864852b",
+          "full_text_sha256": "faeb9fa8c98b676dc6de4545cb2442f89d6fda0b989d2020e73a55bdbc047261",
+          "full_text_codepoints": 666,
+          "utterances": 35,
+          "speakers": 2,
+          "event_id": "lifelog-refresh-361a89224cb0535d0e5e26617f7be0b84682ab0c4dba243b14954fbccc751c63",
+          "commit_seq": 133
+        }
+      ],
+      "queue_schema": 4,
+      "queue_sha256": "db3e77c52f0c1ec4799ed3007a61194c3135a8f13f727a9846d8c74f431470c4",
+      "configuration_enabled": true,
+      "preserved_repair_payloads": 3,
+      "discovery_test_days": [],
+      "states": {
+        "server_stored": 65
+      },
+      "errors": {},
+      "retired_versions": 17,
+      "auto_schedule": {
+        "zone": "Asia/Shanghai",
+        "through": "2026-10-23",
+        "attempt": 1792843759130,
+        "next": 1792843830235,
+        "failures": 0
+      },
+      "credential_expires_at": "2026-10-25T11:21:31.920Z",
+      "credential_token_id": "e33bf2dd-a927-4372-9403-88b3f936385b",
+      "captured_at_ms": 1792843829353
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "5a98240e058040b19ebe7ba737466870",
+    "state_unchanged": true
+  },
+  "readback": {
+    "schema": 1,
+    "at": "2026-10-24T12:11:18.894Z",
+    "passed": true,
+    "scope": "Readback of acknowledged versions only; queue completeness checked separately",
+    "audit_sha256": "c33f6596673329b637fb2b22996898d53687ddf17698f2d692c1c46ac6f37cf1",
+    "materials": 62,
+    "stored_versions": 65,
+    "unresolved_versions": 0,
+    "retired_versions": 17,
+    "latest_full_text_codepoints": 33800,
+    "latest_utterances": 2306,
+    "exact_body_readback": true,
+    "exact_full_text_readback": true,
+    "raw_text_or_credentials_persisted": false,
+    "items": [
+      {
+        "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+        "revision": 1,
+        "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+        "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+        "full_text_codepoints": 1809,
+        "utterances": 163,
+        "speakers": 2,
+        "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+        "commit_seq": 52,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+        "revision": 1,
+        "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+        "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+        "full_text_codepoints": 2170,
+        "utterances": 235,
+        "speakers": 2,
+        "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+        "commit_seq": 53,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+        "revision": 1,
+        "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+        "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+        "full_text_codepoints": 1985,
+        "utterances": 161,
+        "speakers": 2,
+        "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+        "commit_seq": 54,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+        "revision": 2,
+        "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+        "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+        "full_text_codepoints": 1809,
+        "utterances": 163,
+        "speakers": 2,
+        "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+        "commit_seq": 55,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+        "revision": 2,
+        "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+        "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+        "full_text_codepoints": 2170,
+        "utterances": 235,
+        "speakers": 2,
+        "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+        "commit_seq": 56,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+        "revision": 2,
+        "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+        "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+        "full_text_codepoints": 1985,
+        "utterances": 161,
+        "speakers": 2,
+        "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+        "commit_seq": 57,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-01d3462cd8d5d0120f2d1082ae78b0d87084224d1aa82b461759a5c36d685095",
+        "revision": 1,
+        "body_sha256": "c5a8a144d77915d7d2e59916eb5f0a8e2bd132a78d904b97461a3945dd2fd58d",
+        "full_text_sha256": "3d62593bccf3b5787408a3568afbdc3c10667d21a7f11f7c2bac66456f70147b",
+        "full_text_codepoints": 383,
+        "utterances": 31,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-c13575c567144809549e1d8c3e8e8edd88f3019ba56a0059d5bc620548a68254",
+        "commit_seq": 58,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-04877e3f653cc19e6e11eb4e8deaa74aa53ff357448d4635221aab9fbae270bd",
+        "revision": 1,
+        "body_sha256": "3e20100ea71b27556c4025f8c4aae33c5f877c68af6e0b0e7510511bd8854b61",
+        "full_text_sha256": "910007de9f3be3a0630214eac287fe62209011f37d26f730daab600465bc215e",
+        "full_text_codepoints": 113,
+        "utterances": 9,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-19d171ab40658477b7c992af047d2dff5a491add90be3ba37befb95959e60947",
+        "commit_seq": 59,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-1297cee360613e0726bf41b765e295aa5d1da2da6549c33510f4a16da2fcab98",
+        "revision": 1,
+        "body_sha256": "b24b80b6761b163583808eb920005ec4f88e1e4382d65f55f7373b17ed771c50",
+        "full_text_sha256": "af8b093c52a91a3aae23140e4b98cefe45616b736c9207f4f904fe474a6d8412",
+        "full_text_codepoints": 583,
+        "utterances": 42,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-1456db9bded76c41c4745141856f0547b72d4ce68e2e73e4c1f82c7bc3610d00",
+        "commit_seq": 61,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-2232fa62e1cae88e3ec618262cd4f6851977537562ed2385cdfd55f6f94cb093",
+        "revision": 1,
+        "body_sha256": "2317a093f9de6ce128d58a06a610c8c14807a959e78c64a3e7f0da754afe53fd",
+        "full_text_sha256": "d7328547fd393d7f1d98fb5e625c2c382b9e4d663d515e70a08030dcceb2d2ea",
+        "full_text_codepoints": 42,
+        "utterances": 9,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-4b4ec079c5cc717b304166232a6c33d6f74c11696b53e49cb6f8bf0f97f8ae42",
+        "commit_seq": 63,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-2b5cf3259ef05fd3fbe95654686d95627426a0732ed910ce7e3c310b132e3cb4",
+        "revision": 1,
+        "body_sha256": "c2240fb121efcf423eb8700433e872eab5520280c6974af45b1c38457b490a35",
+        "full_text_sha256": "bb26cca649b4d836b3771de3afa5c5c3a1eafc987690ad0a4cee49c88a63b909",
+        "full_text_codepoints": 184,
+        "utterances": 17,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-738ddef34d9d1a8e836f0b30f8dcf32cde4db22a64fe975b2d434046a38ab514",
+        "commit_seq": 64,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-3fd421b690037f8ea93329fc491163d369efcbbb055f7e9adafd513dcfc3a2d8",
+        "revision": 1,
+        "body_sha256": "8ec24edbdb16c4b613fcbcf3aeebbba001bac0250a50224a005266eb0035440f",
+        "full_text_sha256": "36606cc681492ccda1c932b26efb683b7a687bfb77591dac17d5d4ad5142f416",
+        "full_text_codepoints": 405,
+        "utterances": 23,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-c3090400ccdb9e6da8ec582fe918b54ee47b0a35b8e99a513eba794c6326f8bd",
+        "commit_seq": 66,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-4168de41445b51254d21d05ff012452633dc957245a2352ee8cca2b2396fcb69",
+        "revision": 1,
+        "body_sha256": "ca098715ec933d37d584466bf209e519049a5a796ad98233c0e170c973703aed",
+        "full_text_sha256": "5583246bfd445351eff3cadbf4ef1d561546639d38404d0a9cda35e739056cb6",
+        "full_text_codepoints": 38,
+        "utterances": 6,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-23f2f1abe4601c75db7ba45f1abea2357715b4a3a38896cce98ae66e84a07b09",
+        "commit_seq": 67,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-45d77f23e9801372253a00e4dfad8f18d25127517ac6f7b4153bbc604323599e",
+        "revision": 1,
+        "body_sha256": "fca121b21d6eb41fcd493c0cbc13d76cd65882043c198df7da815b2653f68141",
+        "full_text_sha256": "9c2d3a711a292f89df9f42b1a292fdd2a91c1b39dd5731e0ade564a7c0aa8327",
+        "full_text_codepoints": 110,
+        "utterances": 12,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-a0e78b12c8ad7e6c7f93f9602288d6afa5ed348f1610ff5939d85c2a3a275ba4",
+        "commit_seq": 68,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-4cb790c4eec39c27d9947c8dc5b7978437c1b2b9ddc04dffc284978e606e9fc7",
+        "revision": 1,
+        "body_sha256": "e76dc44a34181d22b430c93c111aea4e56f0954859932354c9aeeda2b91f60af",
+        "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+        "full_text_codepoints": 2,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-03122d31b6b6e34c2b58868c19dda920649a1ad65e1099b8706f595e3f06fbe3",
+        "commit_seq": 69,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-4d37fbe964cebdc620237df37c928b6fbacddbcbba55a6c66da14e2bcd9a0923",
+        "revision": 1,
+        "body_sha256": "72ab510e0dfd4e5212afc25ce98dc5b9bc93acc74c6381056787f9cc5d470770",
+        "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+        "full_text_codepoints": 2,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-94152caa709bb00aea88130faca1dd64fb3dada3314e5ce8cde4333d7e8886c3",
+        "commit_seq": 70,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-5046d1fdbed3e0e46ae40b276bc7cec1a852941d1a86ea97b9f825c7dd53aa9b",
+        "revision": 1,
+        "body_sha256": "c5683905a7651a3219966f974a02d7e3e4cebfeefccb311e8b350d94af248246",
+        "full_text_sha256": "5402349f99a597304eba2a77232af6173e59762e546ce7269df9167f8526e31b",
+        "full_text_codepoints": 745,
+        "utterances": 59,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-3128e82d647af0d5e057fd510b6aee547b806eaf631d7724ee82a141378c7f72",
+        "commit_seq": 72,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-58546368a64208954a71b5c0653e32a77c918d8890632c010c4ef476fbbef1e0",
+        "revision": 1,
+        "body_sha256": "8f6043f8a81a9a3189ae6ab6b741002026204864e07967f0daa0a0fbd1454e26",
+        "full_text_sha256": "89d0eb2168a6da6ba94aba3ec9249591ad5e4d953176443990eb61ae843ed914",
+        "full_text_codepoints": 939,
+        "utterances": 44,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-14f4662a320277c4046efdc617b83703c1d106ff76d5b2819d3d6de7706b01e2",
+        "commit_seq": 73,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-5c568983f0c9a80a2b942a5c8021d0cea087dba19bcc8628862d6524f15c277a",
+        "revision": 1,
+        "body_sha256": "6271460d61d3dcd7bc4431989f890435be4a12274200a56aae86d13b1cacee61",
+        "full_text_sha256": "475b86342b8c415c1f0044516a7a8af130240b59f48663d8440d379ab2e0edc1",
+        "full_text_codepoints": 311,
+        "utterances": 23,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-c8f23c9705daedbc3f5cac04460621ba7a6c8705e325c63f248eaaa9de8e77d6",
+        "commit_seq": 74,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-62e00ad76921667ce1b5ff16183a504e591ae18abec5fe2b5ebab89e146d4420",
+        "revision": 1,
+        "body_sha256": "caa82b8ba7c43566cfc79be0d4e9207d7394f9ed5c4a4444e84682df1c37aee5",
+        "full_text_sha256": "5c7a9f97adb5bed9d4c6aca666dffd0e37fda970ebcfc2c8c0060523a483e295",
+        "full_text_codepoints": 2,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-dc897b3ba586e89162a3c0759e98dcf93298ee53b3d8c20462acac427ec13c02",
+        "commit_seq": 75,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-704a580dc9d2fab73536373ddbdda1b4932ca053c34f0f3bff68946c0580b202",
+        "revision": 1,
+        "body_sha256": "c0039b635ed732a8be0012d7b2e507698397a6902943831cdfd5531946ae9682",
+        "full_text_sha256": "5497a73c04011b780d668ad891d50a689bd1ad47354cf4c7090d2ed2e886d9e2",
+        "full_text_codepoints": 392,
+        "utterances": 14,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-6776943f0849e23218098bbcfbc18d4f15ad799b1966c303b3ba4edffa662388",
+        "commit_seq": 78,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-727859d4a6f90dadb3f5c982729c2e93f051ebca18cf6cc12c2e1b6dba93d167",
+        "revision": 1,
+        "body_sha256": "317d687d995b40cb27c9cb6567fff3734a037cc842b04c5e214c389e8a9a0f97",
+        "full_text_sha256": "52436679f3ec62176a1ccc353628a884bc3aa2d23caf72ef6e826f49be98c289",
+        "full_text_codepoints": 4900,
+        "utterances": 273,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-befc764b16b6110b245a34c6aa5607164d28210fa429a33a0f994b1c557a5c7e",
+        "commit_seq": 79,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-753060a2882d67558974c11accc42f2cd5ea58e5522aa7ffb19b4ae18f5adaa3",
+        "revision": 1,
+        "body_sha256": "9df1acf934efa5f9e4ef9992d23b4d7aff50ab49bad3165700ae2a9d68616f4d",
+        "full_text_sha256": "223d091f07c04aa2cfbd5c3f9e57a1475f7b37eb6c1d30da0e47cc166389caae",
+        "full_text_codepoints": 33,
+        "utterances": 3,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-5f5d53017a4b498718b03e6f09ef6ca025b8b7244b659a31b2df944246970f28",
+        "commit_seq": 81,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-777e3dd36f8398d4a6721ec25f1632f703b31a09c7cf4658c99df4e809743988",
+        "revision": 1,
+        "body_sha256": "d5bff24ee2aed1dfbbc232baa53176aa0fb5bc3df09aff88e7ab320a0f0a9584",
+        "full_text_sha256": "ca1ecf4883f5716c54d25f660f23abb55ed0001e0abe34cb391b1ce84d2ccab1",
+        "full_text_codepoints": 263,
+        "utterances": 25,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-41c5b148cdf6a70f05c30eb8346b3c4819b950359055d14b6f4b23b70335cfad",
+        "commit_seq": 82,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-7e46fb633fe38ccc8bed3b25dc6f6117b05c65024e275ff5f4032bb49eb93435",
+        "revision": 1,
+        "body_sha256": "2ebe12cf6f0ae2d4dbf9df364b63b9c78d957f9b52aaf5608cd8162557898542",
+        "full_text_sha256": "07a0a13780bda256aa0e155b880826d84fe511214053d6499f4360c97ac7350f",
+        "full_text_codepoints": 993,
+        "utterances": 68,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-9d12a6514730c0911a21d4a4ba2823381703d24164273b0712cc5a61b270e324",
+        "commit_seq": 84,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-85f1b0f6819241c188f1c66a60810a7e8a533b8bcd2659b90f4abe5c61cc9683",
+        "revision": 1,
+        "body_sha256": "ec6a6dd69d40c16c457c82efcd0df0ba5f2b47785b146027bb28f46ff05d9921",
+        "full_text_sha256": "e81470feb4fb05b773f9a8a56fd3af060b5f90c7d879a11fbdf589f87cef8e21",
+        "full_text_codepoints": 832,
+        "utterances": 62,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-5a9a5ca40e98a7f8ff9a0b3ab120bed01654a11526bd6db9885255cab380a952",
+        "commit_seq": 87,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-8818474dc64001d0bf7a3abf9547fa44f46c82905f8e09975295ef15e4ace348",
+        "revision": 1,
+        "body_sha256": "53e59d4319852a8cffb260edac41cde5ae4ed4d48736491e377e08fd4910e5a2",
+        "full_text_sha256": "54552989fa88dbc862628467db11d0e8a5ecd1f0a5f44720e61090b8745085be",
+        "full_text_codepoints": 1529,
+        "utterances": 82,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-13d60d73a2c6517ab386bc0237d16bcbce6c879922f2835e7b6735de2ffd9cfe",
+        "commit_seq": 88,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-8c63c55ae32d04b3828a46eca2adc766c6f623bdfb66652287bf211d2df4e734",
+        "revision": 1,
+        "body_sha256": "c7e591807b999974985d22508b7b7a180edf2c5e02c5296f14c62701f7d17e2f",
+        "full_text_sha256": "9a295070ca1d89a9a449cc2c719cded57520d37d5a3e28f2b21a57e3091b06cb",
+        "full_text_codepoints": 971,
+        "utterances": 63,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-c8de8e30889c39ad05434736c1b429d6c7a58a41ce23cc1cf203b3fde7050037",
+        "commit_seq": 89,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-9c9b7cfe795b26185dd7ea0af33b502122a0fc4f1f4d066072f18b95fd63b56f",
+        "revision": 1,
+        "body_sha256": "5c9877fdc6e3e186687667856b434c294e28c43cb33c3c1b7192ef9794a76129",
+        "full_text_sha256": "69af505882c81b1328e1931c240403e68875ce2efc1d8e199b88c59c05ccac03",
+        "full_text_codepoints": 52,
+        "utterances": 8,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-3593a7f3c4cd5613fb68246e6695983058b1c4a9d4801e80d577310cb5752ae7",
+        "commit_seq": 91,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-a3793faf3d8e2b9e17aa7405cb4b5e58db1fa2ac4c9799456dbac53754ce1b07",
+        "revision": 1,
+        "body_sha256": "02393352a6495c1d0222c35c0dcf99e7b60e0bc41b27823a9a7debd2c0ff5f1e",
+        "full_text_sha256": "ef1b8b8335d542f1f1dd900e951d9c0a19f2b281407d0c15e7434deb03f5ddd0",
+        "full_text_codepoints": 1504,
+        "utterances": 59,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-549c983f5ee5a83fd61345698167bd3dbb7e02e00ea9564ef822c48e0945639b",
+        "commit_seq": 93,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-add9761117d577fe1cf858a087f7181101b22bcb5e2e461712bc328862124c19",
+        "revision": 1,
+        "body_sha256": "7e1d782ebcc417ee277d33809d2eebdd7e949257d3099a0444c8bb0eae8e3e17",
+        "full_text_sha256": "64f113d4531aef77ae43ce4302ee1502a4f8dde79fc589dc3fb3e9c21e7cca58",
+        "full_text_codepoints": 62,
+        "utterances": 6,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-4dacd73cb181979ebe0b09cc6c405d4014ed5093921a00009efb94c33b151d77",
+        "commit_seq": 97,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-aecc6e716a4ac9596b1fc921391d76c21cdab4107fe2f873a301382564631ffc",
+        "revision": 1,
+        "body_sha256": "a4632fd714098bf69d1e45865e9642fc8fa55ced5d53b0db6a4a5ae052b01b42",
+        "full_text_sha256": "d950ac9c344c005ccf4eed60677c2d8c20799d37dcf13895304efa43e1b16165",
+        "full_text_codepoints": 44,
+        "utterances": 6,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-4d7feb15099c8f72a606d7c64b34eb8e713088ebec601e75a13a562d87cdd99a",
+        "commit_seq": 98,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-b2bf47d812dad869b8f745fa68d2fc579c6c242d21cfedcbcc81e36b0b98aa19",
+        "revision": 1,
+        "body_sha256": "951d998797b461517ca067bfc859b8bc53883e3638f8de754df49f92981b4c1a",
+        "full_text_sha256": "707502b84681d4c3b1757f7e29af0bed5565636b422b4639068ff21e27f5b301",
+        "full_text_codepoints": 468,
+        "utterances": 28,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-52737dd0b2941aa1ccb9caf9268694d8c9feaeab79a78e678326d609389a7f60",
+        "commit_seq": 99,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-b8a6c73a704a4c6c0dc6097ff35c4639cae98d3a89b94e5efbad71a4f2848d36",
+        "revision": 1,
+        "body_sha256": "8302593768b02f6eee613fce5991fd67c4eb737ee78b02fb77017aba3e84d969",
+        "full_text_sha256": "7677b1c1cb8d00e5d1f4fd90d87aa9f3d59a18fb3f831841371b68267252a877",
+        "full_text_codepoints": 158,
+        "utterances": 13,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-3226c2e594715fb5498a191e49b7e4ed99c7da18a85385618ab64ca9d800224d",
+        "commit_seq": 100,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-b9430bc7ba7d2f4161bd96e2771420febca2647e219e23c1b30865479387033c",
+        "revision": 1,
+        "body_sha256": "dda72dcaf53fc860d9d3365d06a300f65cfe45c6168ec229f914c063b561835d",
+        "full_text_sha256": "20f9f53a6ceb5a86ebd14c2b313fd06fe7b19576fde32d12af0e04074e648fdf",
+        "full_text_codepoints": 1026,
+        "utterances": 66,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-44386c0febf34f73f2cf0ed95daf4fc2f2521b4f50300bf1f67fe0d7d1770204",
+        "commit_seq": 101,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-c206822358968cfe6590bfe0e342bcc2a7069c878560d4413896013e3053289e",
+        "revision": 1,
+        "body_sha256": "d793f426ca47de13aa64076e163fb7acac998c39478ad84f3112c47b974f85b3",
+        "full_text_sha256": "95d56a192e18abc44ad94d70f144de3cc1f389dcd2ef6cb75c390ffee953d6bd",
+        "full_text_codepoints": 993,
+        "utterances": 61,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-82a2d16d5027d93fa50193032b0db60cb94ffe6b71052aed77b90ad914aaeff2",
+        "commit_seq": 103,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-c516dd946c472cf25023b32367bd40e9756417749ad9e0f214c3f3659d95e6c9",
+        "revision": 1,
+        "body_sha256": "ea84f6477be89dac67281b3087d4565fef0903495d71d2f034227c72ef404fc3",
+        "full_text_sha256": "c14179ce959b99f176fe3c6634a1a0002ea678e57bdb4aa6f0b0d789b62e6bd0",
+        "full_text_codepoints": 362,
+        "utterances": 28,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-c9e20deaa88a28be6dbf4ec5ff307dea75e1f5b22056e1b0a1854f8ec2da39b1",
+        "commit_seq": 104,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-ce44ee1e9575a030744a279be5da728aa413b8306951a37434b98f747177adaf",
+        "revision": 1,
+        "body_sha256": "fe7b6db28f99ba6d30378ce9231663d5d1f78462fb8b2e02202d87075d3f5070",
+        "full_text_sha256": "4858075e23d474d8c71b38956392fdcfaad8b08ae2ea27d86b68012721922f57",
+        "full_text_codepoints": 303,
+        "utterances": 16,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-de315780cdc53d6332451471faf4a5bfe06c69d8d5d41186852e445e9bb382bf",
+        "commit_seq": 106,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-d2ed4434fd00e1cf47d0f626b64a8112bfae00069e3a308ae96013d7612bad23",
+        "revision": 1,
+        "body_sha256": "97daf8f36cdd6cf066d7bdb2bb9008112823376c6a7d9ee85bc10fe397e11947",
+        "full_text_sha256": "a6133b90b70a497c99285748d42d38f3d4377cb33b07479aa4ceb028d4dab784",
+        "full_text_codepoints": 1512,
+        "utterances": 63,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-b21fb27a2ef0d79fe1ca43f1be221a0087ba4a0ffc6b74f4dace44309b34c773",
+        "commit_seq": 107,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-d9b888640b5faf0f3dd4ab7c1f73fc1a326ab0fa0d4ac4c3dafc99878f879d4a",
+        "revision": 1,
+        "body_sha256": "2a1fca0027fbd03e3dfc2d843225384ba794bc43a40ad72436546803bfa76a70",
+        "full_text_sha256": "7b1ba22af17accf95425dd5e7cd7d886c7dacc5cf25da9d053e7e9076efd469c",
+        "full_text_codepoints": 47,
+        "utterances": 6,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-f0214408fb6fadf8f81e10f57f96cba7a0794f9031af3258d64d30f20270d21f",
+        "commit_seq": 108,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-e4ecaf46c4361d51d9be7ff11b0827f694765e0cb43fb5ddee303cb7a93bed6f",
+        "revision": 1,
+        "body_sha256": "6895b7122bc344b637eed0431d6064913ccc9bc1950b928c9b97f5d931aeb439",
+        "full_text_sha256": "003260cb18f786f86624555bc4a8527c8b4b286b3f2b9e648ed900f1f7cbd780",
+        "full_text_codepoints": 2138,
+        "utterances": 125,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-ee2a6c6109d610c1848631769a81bd89b3b899a4618a2852839525f1a62f1abd",
+        "commit_seq": 109,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-e69520547d3618e0a053cedc69ac6b9519ad10bb53612d0d13b9fb8baadf3643",
+        "revision": 1,
+        "body_sha256": "0b44dc8691898d35df488230818477848ec152fd141075a94bfed249a372a1df",
+        "full_text_sha256": "9e475163d88f30552675ff1f6cb45108e26702b57b585452cdd1938cddebbf6e",
+        "full_text_codepoints": 120,
+        "utterances": 7,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-908f6b363d1f27cbd977bf74e437396bc6dcd3cdfd49e3383502776dd08b71a6",
+        "commit_seq": 110,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-e6bc20a320a1d725b651a1ba077f9062fb51fe942882fb65f4477835fee59b2b",
+        "revision": 1,
+        "body_sha256": "3f5b9d6347035bc06233d1f8ba479629529b976d457cb2e2e84a785ef4bf5acd",
+        "full_text_sha256": "4dc770056d1b932aefb0c93465193e23f61810244d3db2aea2a92224bd956a7c",
+        "full_text_codepoints": 23,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-3bc0761305204d5eba26f8d8e0f8a056fb80851aaa3e9e8c8d19326f6203c65b",
+        "commit_seq": 111,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-ef6cac815a4f7c34bc525325264ecda2d3b568758136d55e7f9ec8123a590d93",
+        "revision": 1,
+        "body_sha256": "fd16c80ea4b9476925df65d93cd5cf54b6a18719008f9df4136dd01195142a7e",
+        "full_text_sha256": "eb64ba05406b843c09e5cad9947b48413a0fd123d1ed932357bdfe9d2bd89c2d",
+        "full_text_codepoints": 621,
+        "utterances": 27,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-3c8a1b239a7186abe169e7a88a99d165d9edf5df4f9b299acdbd997088726454",
+        "commit_seq": 112,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f125a985d4faf94b9401c948808c7707ed090bb87b3708459f3c6c01b5ea0c8e",
+        "revision": 1,
+        "body_sha256": "b6b6597d470b7342c0b6cf473f6f99fdf4b39e979c3b96694feedb192b185f9b",
+        "full_text_sha256": "b260f53a75893a5005c571292432e8b549f69f40cb3d8471733d8bdd8826b604",
+        "full_text_codepoints": 100,
+        "utterances": 11,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-8632fcd8330597b90313c3a9e49f59ec6529d4b03a9e0697b621a54a1623bbd4",
+        "commit_seq": 113,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f9bb7474fc3445e3c780328128a7d948718a70290ddb0e4ce42f155f22cd46b5",
+        "revision": 1,
+        "body_sha256": "595db17ed6117a8fc3868d4b49f8a2ac59783b0710a6440148646a26433b1b89",
+        "full_text_sha256": "485e6d48dfaf453499eeb106a4fbde7a4f0d108163d231977448cef16c05c81d",
+        "full_text_codepoints": 111,
+        "utterances": 6,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-7db22568517fda48b84599fed548d80b24f6fa7cbdca9428461a248ceaeaf032",
+        "commit_seq": 114,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-05bd47d875fc431945e4e81764363152e1c7caaaca1182704e8d78a9613ab378",
+        "revision": 2,
+        "body_sha256": "284f36b77dacd93b3832eee010c63a67cefd7434074a1aaedd698c6cf0a0c818",
+        "full_text_sha256": "43d30952d97fd0908333ecd5dc89db31970649bc33ce12491378a452233c8ec0",
+        "full_text_codepoints": 37,
+        "utterances": 4,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-43047fb8d9931af41710dd4ad552ff8531488b70120ad66f35f1fbed68bc9e72",
+        "commit_seq": 117,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-1a6f0984d5571dcd0c98204428d2cca72f5fbd03cebc78176490a47a15d0853c",
+        "revision": 2,
+        "body_sha256": "109036c3be517b4fa7f014983e1e4fb334d84716cc5528ea3e0fce2ff937b24e",
+        "full_text_sha256": "a0f1cea78911852191857b47d5b91f615652eb3b11ea268f75d55adcde7d4dc9",
+        "full_text_codepoints": 470,
+        "utterances": 61,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-025b905d2ed333a640b8d0710b225861f6306aeb0cea885bc221a45df0b63fca",
+        "commit_seq": 118,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-3a7c2bca06a16485d534c623cd705191f461b8d1a09b3eff365170f845f20680",
+        "revision": 2,
+        "body_sha256": "9eed96e47a6c97a06bfc03481d626234256649a471ace991da8eea651fc5dea7",
+        "full_text_sha256": "e88956c1cf42459c4d77e5757b4a60def20c3e5d1b0f29a7409260fc0a787f5a",
+        "full_text_codepoints": 5,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-66dabc58d6927e9b68cff28d4119f30c57d6c93afbde80a23e9a1663db3902e0",
+        "commit_seq": 119,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-4fb0555e799edaf85c455d711ed7c5a95ed0f0d2ea6ea7a7a682d432676ae207",
+        "revision": 2,
+        "body_sha256": "1731b2b6aff5bf39fccb8c97c68967794bcbbb769120400f99ad2d7ee55340c4",
+        "full_text_sha256": "2cf903519b202bc2990d6890d594973e786d5f9d542c1d56c5ede6615a63e21a",
+        "full_text_codepoints": 145,
+        "utterances": 7,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-a160c8a4339a318125efa9e36864da636469656829de5b3611ac248a25b0777d",
+        "commit_seq": 120,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-671c6e1ed540e7d61e1e6b216bfc0513080a23effcf7074df61b62cba672c397",
+        "revision": 2,
+        "body_sha256": "6e126ead0e8c1ad58c4b69094691b4e4769b95d9e46146360f529681e8d2fad0",
+        "full_text_sha256": "e6046ac583348a4529aaa8bb60c111334a34afa68fdd3f3d2c547a87738774b3",
+        "full_text_codepoints": 345,
+        "utterances": 25,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-b7c84b9d20853ae16f6ac794332407cb9e26e38bbec9991db4bbbd01477836ee",
+        "commit_seq": 121,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-6b0984ff24d265f6b97b325d48e758726fdde7664fcbfdfb0992afd8bb93d6cb",
+        "revision": 2,
+        "body_sha256": "e03775bddb035cd3a55b16c834bca8986b46c09ff9172b3a839f671f99c20def",
+        "full_text_sha256": "35d7f646024e76817b9067bdbffa099e098f0746432c89fdd06dd33e838c7bd0",
+        "full_text_codepoints": 103,
+        "utterances": 7,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-405158a97d20188504e8b81ac3ea35bc11937f75c65a1885b298d159968da379",
+        "commit_seq": 122,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-74545cb1729023c29f82ba02ef55670bf0dff2eb401ea83e79ca3e049f313ed6",
+        "revision": 2,
+        "body_sha256": "725347cab760a40d428b7888153e0b52ca3dc437f2f93ba37b17f12d6d1fcd17",
+        "full_text_sha256": "afd59ecd9012167f09ac970326c82d3f74cafb2791eeadc351772a54c84874cc",
+        "full_text_codepoints": 50,
+        "utterances": 5,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-6cc281bda40997a5ad2d3c60eaf4db97407a1942a3c6f1173e671f5e18ccab06",
+        "commit_seq": 123,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-7791b3c446d5df5afb3473e0d48f35248fbd9925350c4a34558d66e6fd952137",
+        "revision": 2,
+        "body_sha256": "c2a10f3df5a7975b0c4dd0c5c6317734b4092e4968b81e331411bf7ac08c7dc9",
+        "full_text_sha256": "5aaf701f757ea647e417f5e3d0f82ccd02ef9cbe9535e1ea8134d3d045c8ffcb",
+        "full_text_codepoints": 101,
+        "utterances": 8,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-04580a696eed298c58244174dd03d8edf801b8aad0d784980f5c4ec6e0f80944",
+        "commit_seq": 124,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-7e88cee23687cea046c97c5adca9aae99f87465348b1a8aac0c903752c8ecad6",
+        "revision": 2,
+        "body_sha256": "da263e7aa860a4ef02a7b9111f57ba9d1f434f71b1d6bc733d4d8981d12057f3",
+        "full_text_sha256": "04599542ed62c5fa9d47942fa9450cb4fd7bb24bb51c3ac68bc300b6eee5e5d2",
+        "full_text_codepoints": 183,
+        "utterances": 11,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-22b727b4b1d04b2663a3d9e6fdbde736f1f1baeca5c2a7c1e2f57565e382fd58",
+        "commit_seq": 125,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-80a8b4fe227c2903bdf36140c3aa369d0c3c9f362b9be1e8405bc091b5e405e4",
+        "revision": 2,
+        "body_sha256": "704bb4ee768f56591bd0365f594c9f3800611f2ff65b646200fb795d6b28368f",
+        "full_text_sha256": "c0dad597dc82a31dd69060476ba8d5a0bc081bd7005ed6641f89ca6ade33857a",
+        "full_text_codepoints": 3,
+        "utterances": 1,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-b0a8d184d172bdb1570d553b90e8f023859be4e608cff058760a5556ccdffa85",
+        "commit_seq": 126,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-bef3794a5be4e82fd5eb5695457b761ea3fd8cd491b65535834a66e9dd4a5dad",
+        "revision": 1,
+        "body_sha256": "5e9b858057c3f7d2d5b9f069e164d8fd3b843c62ef3b4aa6f88646c11ffe494a",
+        "full_text_sha256": "7f03e083afffab7c261c6448f196583dde710f592e059d9f5cd12fa5b162b3c6",
+        "full_text_codepoints": 95,
+        "utterances": 6,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-0c1e5af7f046c7a282a0b6f8e2b645693cac1cb67996e30309db28491a95ba58",
+        "commit_seq": 115,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-33c19f86fc5115e2378bab9513c5d36af7505fc56cf4cfbbbf7b949e17ed853c",
+        "revision": 1,
+        "body_sha256": "a08c4f09780356f711b7d60b4a533eeda4f59a0e985e222cb874ff33022787bf",
+        "full_text_sha256": "dd1b67621e9e16833edec7f65ee3bdab3ea9fa10c99694e94e2e3f2f7dd02e80",
+        "full_text_codepoints": 323,
+        "utterances": 20,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-3e410d56e8642414a302b12f66cdeaedb0052f03203b0f6d6d230435e919d023",
+        "commit_seq": 116,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-99a2fc717a7e3c5eca96b5804e330431f13efd612158bf7ec3a0c4e680e0dc1a",
+        "revision": 2,
+        "body_sha256": "a9de941eea6c92a8273401041aeb04c761c20b70823c1451f08d0c82f41d20cd",
+        "full_text_sha256": "8fb9f9762701df7e625b38137bef87fdac1e67992360b189c033a9261c56203a",
+        "full_text_codepoints": 141,
+        "utterances": 13,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-45ae1a78fb4edc5c0d72d57d48e31b239d434fc4a238aa5f611f13c4ea2ff6a7",
+        "commit_seq": 127,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-9cf89148a8bc2d40b023889f55ce17efc76102ee9ebb3b9728dc3a86b512ea9b",
+        "revision": 2,
+        "body_sha256": "9cf42351f2284b32fa1d7ccb34c85bcb856b9a1185411eabf0661dfd0808d94c",
+        "full_text_sha256": "e4a37d5fa5bdb1e413f62f1ad1b162d45ead549d6756dac5cfb26d61905c1c87",
+        "full_text_codepoints": 954,
+        "utterances": 87,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-77de985496948f5fe71950e316fe117f23e359ff2f6451b9a6dd0b5a02886fcd",
+        "commit_seq": 128,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-a3f1f05c6bf265ce1c1f6845b3d0e555f0e18b42fbfc0697eddcd8095e960ea5",
+        "revision": 2,
+        "body_sha256": "000a7ef2888d201ad2bacef4bdc4d20bba6f4e49bc98ace53c80493fa97d5072",
+        "full_text_sha256": "4453defa6c45a38acb821e123e8f0169bf5c35c2f01c47de1cd781f3c41aac26",
+        "full_text_codepoints": 71,
+        "utterances": 5,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-4521369a5eb899b8b753128e0ecbd523971472f236042d41a355779fc6dcd54c",
+        "commit_seq": 129,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-a73e5a066ff34d9e672c66e8fa9fc90d197bb570f9649c0bc63a9e5547f6bfdf",
+        "revision": 2,
+        "body_sha256": "d55def30c67ee05e6f2b6ac26b970ad79c06ec2c6a7f4a8066c0157be7e82a22",
+        "full_text_sha256": "1ae29429aa6e8bfa2e402f5aa3d60ceaaabf9adc0ad984eb1dba826af83c95eb",
+        "full_text_codepoints": 68,
+        "utterances": 6,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-e97025d768497d456a5b011a3354fbf1f9f0c0a97b86843fddf8f64e8215402c",
+        "commit_seq": 130,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-ac73c8221fa2504fb950885a798449ccce9dd8d84ef2ac24019f4ea4cc7b59c5",
+        "revision": 2,
+        "body_sha256": "6eea958193f4dbb428449adc51a4d38ed18aad9466a75f644186d0355bbfd3c2",
+        "full_text_sha256": "559c121c891227cafa51e0fa109344fa11f096338b53b9777fd5a6b01954b41b",
+        "full_text_codepoints": 7,
+        "utterances": 2,
+        "speakers": 1,
+        "event_id": "lifelog-refresh-3ef6e427008625c556d36a4899874389510caf3ac0176908e28d49cdbd14ffc3",
+        "commit_seq": 131,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-b9fa60d95ac3bf2c0c10f427537dc912abcb6e041c8b30ca2cb6bc3008998796",
+        "revision": 2,
+        "body_sha256": "677b9b72c5feb76cb9cff96954c7226b26e3376bede86415f520eb1901a95165",
+        "full_text_sha256": "a98e754d26f9b341bbf8e65b9271db45ce1770657c63606f8a4e35474084ad87",
+        "full_text_codepoints": 653,
+        "utterances": 38,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-fbfd7bba357d044efb1f14df4783645d74fc1b3a29287e838c33b98f1faacb90",
+        "commit_seq": 132,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-cdc9b327a85b903e758346f042a9b11fb29980a49df00391ad2afa7f7446b99a",
+        "revision": 2,
+        "body_sha256": "a16f2ceea2004313fa7f6049b3c0365a71b094209b406e085c8e8c188864852b",
+        "full_text_sha256": "faeb9fa8c98b676dc6de4545cb2442f89d6fda0b989d2020e73a55bdbc047261",
+        "full_text_codepoints": 666,
+        "utterances": 35,
+        "speakers": 2,
+        "event_id": "lifelog-refresh-361a89224cb0535d0e5e26617f7be0b84682ab0c4dba243b14954fbccc751c63",
+        "commit_seq": 133,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      }
+    ]
+  },
+  "before_upgrade_readback": {
+    "schema": 1,
+    "at": "2026-10-24T11:38:43.260Z",
+    "passed": true,
+    "scope": "Readback of acknowledged versions only; queue completeness checked separately",
+    "audit_sha256": "86f3f07ed6bbf94f5d1cddcabfa738475eccfcd5aa3ff5072bb0ae619257a986",
+    "materials": 3,
+    "stored_versions": 6,
+    "unresolved_versions": 0,
+    "retired_versions": 0,
+    "latest_full_text_codepoints": 5964,
+    "latest_utterances": 559,
+    "exact_body_readback": true,
+    "exact_full_text_readback": true,
+    "raw_text_or_credentials_persisted": false,
+    "items": [
+      {
+        "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+        "revision": 1,
+        "body_sha256": "b00a5b705fe3c33bd053711583a79ff0df54ed57db97eab85df97d4e858d9cc7",
+        "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+        "full_text_codepoints": 1809,
+        "utterances": 163,
+        "speakers": 2,
+        "event_id": "lifelog-707498a0f505ed31e69cd3b5ec2eb021f78db2c388c8eb866c434a64b10d63bc",
+        "commit_seq": 52,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+        "revision": 1,
+        "body_sha256": "e43b47bad47aca34416efc5aa5fbe9c4e6e97e5d24d2474c6629921fb65ef30a",
+        "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+        "full_text_codepoints": 2170,
+        "utterances": 235,
+        "speakers": 2,
+        "event_id": "lifelog-1fe43d54e982538a9591ddd55ae64551dc5df995db2bb96a0805b0f5e446d8e6",
+        "commit_seq": 53,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+        "revision": 1,
+        "body_sha256": "bb6a4c62e2a94d3c4088336e663ae5e3809f546deaa03aca1e9ba337fd230a41",
+        "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+        "full_text_codepoints": 1985,
+        "utterances": 161,
+        "speakers": 2,
+        "event_id": "lifelog-4ce0e0ebf746285ecd716f3022ca59e4be53718cd15023520e560e76eb638d10",
+        "commit_seq": 54,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-de81b314b9f86be9b970fc3704374778135d810ec4ec10456ce9f9a21fdf6e8a",
+        "revision": 2,
+        "body_sha256": "68dbcd4ae910d66006376c6d297fb8b8c448436c445f55226624c0db57c70a39",
+        "full_text_sha256": "41622c9570b6a2770f4567f4d555b5d72f86876a3427719c35ee7f9fc7253c20",
+        "full_text_codepoints": 1809,
+        "utterances": 163,
+        "speakers": 2,
+        "event_id": "material-text-fix-f293f77069ad97e1685bd119a9eed70ee14dc41e05dd0bcd29a28ff697469304",
+        "commit_seq": 55,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f138dba56f7c1ce1c3ee1a673d82bfada49aeb3717d380e9c403beb6964cce14",
+        "revision": 2,
+        "body_sha256": "f196625f93529bed568917e8d42fd97784b0ad8b18ed23d09602fc6d1c1fd020",
+        "full_text_sha256": "c3abb1120a10dd5dcd430184ee6dfaf104cafc9209e01b4f70c32426a95cf018",
+        "full_text_codepoints": 2170,
+        "utterances": 235,
+        "speakers": 2,
+        "event_id": "material-text-fix-1dfa90113a784def1651754fd2652773b7b8483105cfa4cc13a9f6b4861dc0e1",
+        "commit_seq": 56,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      },
+      {
+        "material_id": "rayneo-lifelog-f370bec8118f9fdba5a74482819b21dde6aa7b56705a671fb9848eb00d1a7283",
+        "revision": 2,
+        "body_sha256": "cc49f2d56ddeafdc069cd82159c6cc642979e4308eb67f5fa93f86d17e9ce9ee",
+        "full_text_sha256": "d42c15cf0f7c22df6ed75b597332517f7c972de5b7007f910b6361fed1db9eaf",
+        "full_text_codepoints": 1985,
+        "utterances": 161,
+        "speakers": 2,
+        "event_id": "material-text-fix-deb9532edd1f1a35bd152d1f4a8398da5e6edad8cb99bfdaea9a7580a275020d",
+        "commit_seq": 57,
+        "exact_server_body_match": true,
+        "exact_full_text_match": true
+      }
+    ]
+  },
+  "old_materials_and_six_versions_unchanged": true,
+  "final_summary": {
+    "materials": 62,
+    "new_materials": 59,
+    "new_stored_revisions": 76,
+    "retained_stored_versions": 65,
+    "retired_versions": 17,
+    "pending_versions": 0,
+    "latest_full_text_codepoints": 33800,
+    "latest_utterances": 2306,
+    "manual_sync_clicked": false
+  },
+  "background_observations": [
+    {
+      "file_label": "dev76-background-observation.jsonl",
+      "samples": [
+        {
+          "new_receipts": 32,
+          "materials": 32,
+          "latest_at": "2026-10-24T11:43:55.503Z",
+          "upsert_receipts": 32,
+          "observed_at": "2026-10-24T11:58:31.387335+00:00"
+        },
+        {
+          "new_receipts": 32,
+          "materials": 32,
+          "latest_at": "2026-10-24T11:43:55.503Z",
+          "upsert_receipts": 32,
+          "observed_at": "2026-10-24T11:59:02.052901+00:00"
+        },
+        {
+          "new_receipts": 32,
+          "materials": 32,
+          "latest_at": "2026-10-24T11:43:55.503Z",
+          "upsert_receipts": 32,
+          "observed_at": "2026-10-24T11:59:33.102314+00:00"
+        },
+        {
+          "new_receipts": 32,
+          "materials": 32,
+          "latest_at": "2026-10-24T11:43:55.503Z",
+          "upsert_receipts": 32,
+          "observed_at": "2026-10-24T12:00:03.771554+00:00"
+        },
+        {
+          "new_receipts": 32,
+          "materials": 32,
+          "latest_at": "2026-10-24T11:43:55.503Z",
+          "upsert_receipts": 32,
+          "observed_at": "2026-10-24T12:00:34.900330+00:00"
+        }
+      ]
+    },
+    {
+      "file_label": "dev76-after-stock-refresh-observation.jsonl",
+      "samples": [
+        {
+          "new_receipts": 48,
+          "materials": 48,
+          "latest_at": "2026-10-24T12:02:54.650Z",
+          "upsert_receipts": 48,
+          "observed_at": "2026-10-24T12:03:01.716715+00:00"
+        },
+        {
+          "new_receipts": 48,
+          "materials": 48,
+          "latest_at": "2026-10-24T12:02:54.650Z",
+          "upsert_receipts": 48,
+          "observed_at": "2026-10-24T12:03:32.819599+00:00"
+        },
+        {
+          "new_receipts": 48,
+          "materials": 48,
+          "latest_at": "2026-10-24T12:02:54.650Z",
+          "upsert_receipts": 48,
+          "observed_at": "2026-10-24T12:04:03.526827+00:00"
+        },
+        {
+          "new_receipts": 48,
+          "materials": 48,
+          "latest_at": "2026-10-24T12:02:54.650Z",
+          "upsert_receipts": 48,
+          "observed_at": "2026-10-24T12:04:34.605217+00:00"
+        },
+        {
+          "new_receipts": 48,
+          "materials": 48,
+          "latest_at": "2026-10-24T12:02:54.650Z",
+          "upsert_receipts": 48,
+          "observed_at": "2026-10-24T12:05:05.282295+00:00"
+        }
+      ]
+    },
+    {
+      "file_label": "dev76-final-drain-observation.jsonl",
+      "samples": [
+        {
+          "new_receipts": 76,
+          "materials": 59,
+          "latest_at": "2026-10-24T12:08:14.058Z",
+          "upsert_receipts": 76,
+          "observed_at": "2026-10-24T12:08:56.286582+00:00"
+        },
+        {
+          "new_receipts": 76,
+          "materials": 59,
+          "latest_at": "2026-10-24T12:08:14.058Z",
+          "upsert_receipts": 76,
+          "observed_at": "2026-10-24T12:09:27.409023+00:00"
+        },
+        {
+          "new_receipts": 76,
+          "materials": 59,
+          "latest_at": "2026-10-24T12:08:14.058Z",
+          "upsert_receipts": 76,
+          "observed_at": "2026-10-24T12:09:58.066075+00:00"
+        },
+        {
+          "new_receipts": 76,
+          "materials": 59,
+          "latest_at": "2026-10-24T12:08:14.058Z",
+          "upsert_receipts": 76,
+          "observed_at": "2026-10-24T12:10:29.079578+00:00"
+        },
+        {
+          "new_receipts": 76,
+          "materials": 59,
+          "latest_at": "2026-10-24T12:08:14.058Z",
+          "upsert_receipts": 76,
+          "observed_at": "2026-10-24T12:10:59.785804+00:00"
+        }
+      ]
+    }
+  ],
+  "restart_after_partial_queue": {
+    "at": "2026-10-24T12:07:26.353404+00:00",
+    "pid": "14751",
+    "screen_asleep": false,
+    "manual_sync_clicked": false
+  },
+  "restart_after_drain": {
+    "at": "2026-10-24T12:11:08.825806+00:00",
+    "pid": "17647",
+    "power_state": [
+      "mWakefulness=Dozing"
+    ],
+    "manual_sync_clicked": false
+  },
+  "driver_cleanup": {
+    "at": "2026-10-24T12:12:14.119402+00:00",
+    "driver_uninstalled": true,
+    "app_pid": "17647",
+    "power_state": [
+      "mWakefulness=Dozing"
+    ]
+  },
+  "remote_cleanup": {
+    "verified_temporary_directories_removed": [
+      75,
+      76
+    ]
+  },
+  "retained_apks": [
+    {
+      "version": "0.5.3-dev76",
+      "bytes": 429719833,
+      "sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4"
+    },
+    {
+      "version": "0.5.3-dev75",
+      "bytes": 429719833,
+      "sha256": "18868299994f3f4bb669016c1b991ecb73caa7b5f3e129ef202ad56c72d854b0"
+    }
+  ],
+  "current_source_hashes_verified": 198,
+  "final_test_source_check": [
+    {
+      "report": "lifelog-inventory-test-results.json",
+      "source_hashes_matched": 43
+    },
+    {
+      "report": "lifelog-refresh-test-results.json",
+      "source_hashes_matched": 43
+    },
+    {
+      "report": "lifelog-revision-journal-test-results.json",
+      "source_hashes_matched": 43
+    },
+    {
+      "report": "material-discovery-session-test-results.json",
+      "source_hashes_matched": 43
+    },
+    {
+      "report": "material-month-runtime-test-results.json",
+      "source_hashes_matched": 26
+    }
+  ],
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-auto-text-dev76-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T12:42:10.943Z",
+    "requires_answer": false,
+    "message_id": "notice-1204ee21b4fd1a07875da15db7fef775a1286a8a74a6100d4cf34ec5ebcc9c69",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "glasses_human_observation_closed": false,
+  "generated_test_outputs_removed": [
+    {
+      "generated_only": "lifelog-source-tests",
+      "bytes": 71114016
+    },
+    {
+      "generated_only": "r4-compile",
+      "bytes": 2261057
+    }
+  ],
+  "device_lock_released": true,
+  "closed_at": "2026-10-24T12:14:51.000158+00:00"
+}

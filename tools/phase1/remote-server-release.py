@@ -367,6 +367,15 @@ def run_remote(metadata, archive_bytes, package):
         sync_dir(paths['stage'].parent)
         record('staged_verified')
 
+        # Audio has a separate lifetime obligation. Its reviewed profile must
+        # establish expiry outside this switched directory before accepting any
+        # bytes; the timer stays in place if new HTTP health triggers rollback.
+        if package.get('RELEASE_PROFILE') == 'material-audio-v1':
+            if not callable(package.get('prepare_expiry')) or not callable(package.get('audio_health')):
+                raise ValueError('AUDIO_EXPIRY_HOOK_REQUIRED')
+            state['independent_audio_expiry'] = package['prepare_expiry'](manifest)
+            record('audio_expiry_ready')
+
         def matches(directory, version):
             if source_hashes(directory, runtime) != (before if version == 'old' else new):
                 return False
@@ -406,6 +415,8 @@ def run_remote(metadata, archive_bytes, package):
                     with contextlib.closing(sqlite3.connect('file:' + DB + '?mode=ro', uri=True)) as db:
                         if db.execute('PRAGMA user_version').fetchone()[0] != 2:
                             raise ValueError('DATABASE_SCHEMA_CHANGED')
+                    if version == 'new' and package.get('RELEASE_PROFILE') == 'material-audio-v1':
+                        package['audio_health']()
                     return
                 except Exception:
                     if attempt == 9:

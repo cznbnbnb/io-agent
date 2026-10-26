@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T06:32:22.657036+00:00",
+  "status": "unimplemented_source_investigation",
+  "user_priority": "double-shake task prompter/recording before R2 then R3 R4",
+  "phone_version_at_observation": "0.5.3-dev36",
+  "reference": {
+    "repository": "https://github.com/Turbo1123/Turbo-IO",
+    "commit": "f57cc82d0c810435653b684fbdd8c07c533a012f",
+    "firmware": "Strix OS 1.0.4.12",
+    "ap_sha256": "53afdf5298815849eafca6f315a70606d2a605aff2e563f79050f797d615a988",
+    "embedded_symbols_verified": true,
+    "matches_current_glasses": false
+  },
+  "findings": [
+    {
+      "function": "SysStateMonitor::notifyRawHeadGestureOnUi",
+      "address": "0x106dd234",
+      "observation": "Reads head gesture mode and dispatches locally to notifyHeadGestureOnUi."
+    },
+    {
+      "function": "SysStateMonitor::notifyHeadGestureOnUi",
+      "address": "0x106dd16c",
+      "observation": "Copies registered callback entries and invokes callback pointers. This examined function is not a phone event publisher."
+    },
+    {
+      "function": "Notification::startHeadGestureDetection",
+      "address": "0x1099c730",
+      "observation": "Registers Notification::headGestureCallback through LauncherAPI and starts scene detection."
+    },
+    {
+      "function": "Notification::headGestureCallback",
+      "address": "0x1099cf04",
+      "observation": "Requires interactive visible suggestion, then operates the current suggestion. Does not identify input source in resulting semantic cmd."
+    }
+  ],
+  "limits": [
+    "Prior wearer prompter/recording shake probes produced no head signal in the phone handlers.",
+    "A reference internal callback is not evidence of a callable BLE API or exact current-firmware compatibility.",
+    "No detector, firmware patch or double-shake device support has been delivered.",
+    "Current long-press-to-record regression is being fixed before repeating a wearer test."
+  ],
+  "next": "Inspect current 1.0.5.5 protocol dispatch and head detection registration; prepare a narrow task-owned implementation if a verified event/firmware hook exists.",
+  "flashed": false,
+  "current_os_source": {
+    "version": "Strix OS 1.0.5.5",
+    "stock_zip_sha256": "2927917f976ef3c9b183253e2342a7a0c85a3e454e973876100f3158da5ec367",
+    "stock_ap_sha256": "b3d6d9d7a4ece97e1dbaa64fc080eb5db8a5f7c9fecf340888ebb97a9112cc6c",
+    "read_only_fota_version_received": true,
+    "stock_ap_is_installed_binary": false,
+    "rodata_copy": {
+      "flash_start": "0x101d01bc",
+      "flash_end": "0x103f141c",
+      "ram_start": "0x18000000"
+    },
+    "raw_head_callback_window": "0x1056c82c-0x1056c8a2",
+    "observed_dispatch": "Checks enabled; enqueues internal launcher event 0x1c, carries gesture byte. No external phone event contract is proven.",
+    "ota_query_handler_call": "0x105a6c06 -> 0x105635a0",
+    "ota_idle_predicate": "0x105635a0-0x1056364a",
+    "ota_predicate_scope": "Contains current top app, charging/fold, life-log setting and AssistantService conditions; is not a recording-only availability predicate."
+  }
+}

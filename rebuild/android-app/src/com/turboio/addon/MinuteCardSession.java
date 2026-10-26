@@ -59,7 +59,7 @@ final class MinuteCardSession {
     boolean asked=flight!=null&&flight.business==9&&flight.type==f.type||!queue.stream().anyMatch(e->e.business==9&&e.type==f.type);
     if(!asked)return;
     if(f.type==1){version="Strix OS 1.0.5.5".equals(j.get("OsVersion"))&&"idle".equals(j.get("OtaValidationState"))&&Boolean.TRUE.equals(j.get("OtaValidationConfirmed"))&&BoundedJson.list(j.get("PackageTypes")).contains("files");if(!version){stop("版本或验证状态未满足");return;}}
-    else if(f.type==11){idle=Boolean.TRUE.equals(j.get("Result"));if(!idle){stop("眼镜当前不空闲");return;}}else return;
+    else if(f.type==11){idle=LifelogState.idle(j.get("Result"));if(!idle){stop("眼镜当前不空闲");return;}}else return;
     if(version&&idle){if(!showAfterCheck){phase="READY";note="只读检查通过；发送前仍会重新检查";}else show(now);}return;
    }
    if(business!=21||f.type!=34||!pending||!(phase.equals("ACTIVE")||phase.equals("SHOWING"))||action!=0||now>=started+GUARD_MS)return;

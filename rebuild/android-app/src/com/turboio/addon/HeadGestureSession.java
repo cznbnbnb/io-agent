@@ -23,6 +23,9 @@ final class HeadGestureSession {
  private String phase="IDLE",note="",owner="",peerHash="",peer="",readPurpose="",guardToken="";
  private Setting original,desired,reply;
  private boolean healthy=true,pending,cardPending,override,uncertain,querySent,queryReceipt,coldRecovery,offConfirmed,restoreConfirmed;
+ // 2026-10-23 (user): the last confirm card for a dictated answer is low risk, so the wearer may opt in
+ // to answer it by nod (accept) / shake (reject). Such a guard reads the setting and holds it as is.
+ private boolean keep;
  private int disableAttempts,restoreAttempts;
  private long generation,serial,flightUntil,readUntil,queryAt,heldUntil,writesSettledAt;
  private Emission flight,queued;
@@ -53,11 +56,13 @@ final class HeadGestureSession {
  synchronized boolean interested(String target){return targetMatches(target)&&(pending||working());}
  synchronized boolean ready(String request,String target,long gen,long now){return healthy&&pending&&!override&&phase.equals("HELD")&&owner.equals(request)&&same(target,gen)&&now<heldUntil;}
 
- synchronized boolean acquire(String request,String target,long gen,long now){
+ synchronized boolean acquire(String request,String target,long gen,long now){return acquire(request,target,gen,now,false);}
+ synchronized boolean keepsGestures(){return keep&&pending;}
+ synchronized boolean acquire(String request,String target,long gen,long now,boolean keepGestures){
   if(!healthy||pending||working()||target==null||target.isEmpty()||target.length()>256||now<0)return false;
   try{key(request);}catch(RuntimeException bad){return false;}
   owner=request;peer=target;peerHash=FixedPeerHash.of(target);guardToken=UUID.randomUUID().toString().replace("-","");generation=gen;original=desired=null;override=cardPending=uncertain=false;
-  offConfirmed=restoreConfirmed=false;disableAttempts=restoreAttempts=0;phase="READING_ORIGINAL";note="读取待办头势原设置";read("original",now);return true;
+  offConfirmed=restoreConfirmed=false;keep=keepGestures;disableAttempts=restoreAttempts=0;phase="READING_ORIGINAL";note="读取待办头势原设置";read("original",now);return true;
  }
  /** Must be durably marked BEFORE a native show can enter the SDK queue. */
  synchronized boolean markCardPossible(String request,String target,long gen,long now){
@@ -119,7 +124,8 @@ final class HeadGestureSession {
   if(purpose.equals("original")){
    original=desired=actual;pending=true;phase="PREPARING";
    if(!save())return;
-   if(actual.enabled){queued=new Emission(++serial,"disable",new Setting(false,actual.mode));phase="DISABLING";note="临时关闭待办点头/摇头确认";}
+   if(actual.enabled&&keep){offConfirmed=false;phase="HELD";heldUntil=now+LEASE_MS;note="确认卡保留点头/摇头：点头提交，摇头留手机";}
+   else if(actual.enabled){queued=new Emission(++serial,"disable",new Setting(false,actual.mode));phase="DISABLING";note="临时关闭待办点头/摇头确认";}
    else held(now);
   }else if(purpose.equals("disabled")){
    if(actual.same(new Setting(false,original.mode))&&!override)held(now);

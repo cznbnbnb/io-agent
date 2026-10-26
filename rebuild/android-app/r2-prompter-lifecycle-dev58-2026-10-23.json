@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T13:55:31.713653+00:00",
+  "scope": "R2 prompter cancellation, expiry and silent notice recovery; no new question or recording",
+  "candidate": {
+    "version": "0.5.3-dev58",
+    "version_code": 10480,
+    "revision": "io-agent-android-107-notice-recovery-query",
+    "sha256": "f0afc0697db934b591a0f3cbc3667bde7378345e9e627fa094709ee8601ccc39",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad"
+  },
+  "rollback": "0.5.3-dev55 / 10477",
+  "changes": [
+    "Question display expires at the earlier of request expiry, connection expiry and 180 seconds.",
+    "Connection pause, phone takeover, disabled reminders and invalidated requests withdraw only the matching question manuscript.",
+    "Phone cancellation clears the dictation callback before startup guard or exit-ACK races.",
+    "Deferred startup stop is bound to its original DID and survives transition to playing.",
+    "Restart adoption of expired/cancelled/legacy-owner manuscripts is stop-only; unexpired questions are checked against their original request before dictation.",
+    "Progress and busy notices now retain peer/DID/deadline across App process loss; adoption has no dictation callback.",
+    "When a durable notice is silent after restart, query only its original DID and peer. State1/4 resumes its original remaining deadline or exits if expired; no dictation callback."
+  ],
+  "validation": {
+    "task_prompter_checks": 92,
+    "agent_card_checks": 790,
+    "task_voice_bridge_checks": 248,
+    "apk_delta_guard_checks": 15,
+    "android_source_count": 190,
+    "javac_d8_signing_and_apk_audit": true,
+    "test_source_hashes_match": true,
+    "device_installed": true,
+    "installed_apk_hash_matches_candidate": true,
+    "installed_version_code": 10480,
+    "original_notice_deadline_preserved_in_host_tests": true,
+    "native_expired_silent_notice_query_and_exit_ack": true,
+    "notice_three_minute_exit_ack_on_dev57": true,
+    "paused_connection_survived_process_restart_on_dev56": true
+  },
+  "recovery_trace": {
+    "source": "device logcat TurboIOTransfer, dev58 pid15492; phone log time shown as emitted",
+    "lines": [
+      "10-23 21:52:00.521 prompter rx type=10 action=2 code=-1 phase=recovering",
+      "10-23 21:52:00.521 prompter notice recovered state=4 remaining=0",
+      "10-23 21:52:00.521 prompter question timeout phase=ready",
+      "10-23 21:52:00.752 prompter rx type=6 action=2 code=1 phase=closing",
+      "10-23 21:52:00.752 prompter clear phase=closing audio=0"
+    ],
+    "meaning": "New process queried the preexisting expired dev57 notice, received same-DID state4 and stop ACK. Lens was not observed by wearer."
+  },
+  "post_recovery_status": {
+    "version": "0.5.3-dev58",
+    "attention": "",
+    "pending": false,
+    "answer_busy": false,
+    "notifications_held": 0,
+    "phase": "RETIRED",
+    "healthy": true
+  },
+  "boundaries": {
+    "new_question_sent": false,
+    "task_recording_started": false,
+    "wearer_lens_confirmation": false,
+    "phone_reboot": false,
+    "wifi_or_bluetooth_toggled": false,
+    "r2_complete": false,
+    "r3_started": false,
+    "r4_started": false
+  },
+  "remaining": [
+    "Valid original-question long-press voice handoff needs later controlled regression.",
+    "Question takeover/cancellation/expiry on lens needs wearer observation; host receiver/policy cases passed.",
+    "Bluetooth disconnect/return, full phone reboot, 8-hour endurance remain open.",
+    "Quiet question (as opposed to notice) recovery still uses original unsolicited control-frame adoption; no proactive question query added."
+  ],
+  "remote": {
+    "new_user_provided_port_connected": true,
+    "phone_identity_verified": true,
+    "tailscale_ping": "DERP(hkg), 690 ms; direct connection not established",
+    "usb_used": false
+  },
+  "delta_install": {
+    "baseline_sha256": "0456abaf1685b963b536972af677332caa5d00fa452b020171c70f23a9845bd2",
+    "candidate_sha256": "f0afc0697db934b591a0f3cbc3667bde7378345e9e627fa094709ee8601ccc39",
+    "apk_bytes": 429695257,
+    "delta_bytes": 1413005,
+    "commands": 8089,
+    "delta_sha256": "e43127c4eb006296d6923e3747d8488f3313e554f8a0dbed5df48f6969b512a5",
+    "reconstruction_hash_verified": true,
+    "dex_transport_hash_verified": true,
+    "android_app_process_reconstruction": true,
+    "remote_output_hash_verified": true,
+    "package_manager_result": "Success",
+    "device_temporary_files_removed": true,
+    "temporary_file_hashes_verified_before_removal": true
+  },
+  "work_identity": {
+    "caller": "caller602-20261023-codex",
+    "expires_at": "2026-10-23T13:48:05.986Z",
+    "new_registration_was_actual_current_conversation": true,
+    "default_changed": false,
+    "delivery_file_removed": true,
+    "milestone_server_stored": true,
+    "lens_confirmed": false,
+    "final_checkpoint_sent": false,
+    "final_checkpoint_reason": "Credential expired during installation; progress continued in chat.",
+    "previous_caller601_revoked_roles_401": 3,
+    "credentials_revoked": true,
+    "roles_verified_401": 3,
+    "watch_cleanup": {
+      "watch_disabled": true,
+      "exact_synthetic_owner": true,
+      "task_command_expired": true,
+      "task_state_modified": false,
+      "progress_preference_modified": false,
+      "method": "existing authorized server administrator; own expired test watch only"
+    },
+    "phone_registration": "Expired and retained; not removed this batch. No usable credential remains.",
+    "task_command_expired": true
+  },
+  "historical_evidence": [
+    "r2-prompter-lifecycle-dev56-2026-10-23.json",
+    "r2-prompter-lifecycle-dev57-2026-10-23.json",
+    "notice-restart-dev57-2026-10-23.json"
+  ],
+  "push_to_origin": false,
+  "claude_worktree_modified": false,
+  "retention_evidence": "retention-r2-dev58-2026-10-23.json",
+  "working_tree_source_hashes_verified": 190,
+  "phone_ui_scope": "dev56 normal entry and pause/restart UI passed. dev58 launch/process/status/protocol verified; fresh accessibility dump had no readable controls, so material page and visible screen were not re-asserted.",
+  "device_lock_released": true
+}

@@ -1,6 +1,7 @@
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
 import {PRODUCT,OFFICIAL_SOURCE_ROUTING} from './profile.mjs';
+import {PYTHON,exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app');
 const build=path.join(root,'build'),privateDir=path.join(root,'.private/signing'),sdk=path.join(root,'.tools/sdk/build-tools/36.0.0');
 const source=path.join(build,PRODUCT.apk_stem+'-unsigned.apk'),aligned=path.join(build,'aligned.apk');
@@ -13,21 +14,23 @@ if(fs.existsSync(dest)&&!(process.argv.includes('--resume')&&!fs.existsSync(path
 fs.mkdirSync(privateDir,{recursive:true});fs.mkdirSync(path.dirname(dest),{recursive:true});
 if(fs.existsSync(key)&&!fs.existsSync(passFile))throw new Error('Signing password missing; do not replace the persistent key');
 if(!fs.existsSync(key)&&fs.existsSync(passFile))throw new Error('Partial key generation; inspect before retrying');
+// A fresh key cannot update the installed App; only create one for a package that was never installed.
+if(!fs.existsSync(key)&&!process.argv.includes('--new-key'))throw new Error('Persistent signing key missing; copy .private/signing from the original machine');
 if(!fs.existsSync(passFile))fs.writeFileSync(passFile,crypto.randomBytes(32).toString('base64url'),{flag:'wx',mode:0o600});
 const env={...process.env,IO_AGENT_SIGN_PASS:fs.readFileSync(passFile,'utf8')};
 function run(command,args,capture=false){const r=spawnSync(command,args,{env,encoding:'utf8',stdio:capture?'pipe':'inherit'});if(r.error)throw r.error;if(r.status!==0)throw new Error(command+' failed: '+r.status);return r.stdout;}
 if(!fs.existsSync(key))run('keytool',['-genkeypair','-alias','io-agent','-keystore',key,'-storepass:env','IO_AGENT_SIGN_PASS','-keypass:env','IO_AGENT_SIGN_PASS','-keyalg','RSA','-keysize','3072','-validity','10000','-dname','CN=iO Agent Android, OU=Development, O=iO Agent, C=CN','-storetype','JKS','-noprompt']);
-run('python',['-S','-X','utf8',path.join(root,'assemble.py'),'--add-notices',source]);
-run(path.join(sdk,'zipalign.exe'),['-P','16','-f','4',source,aligned]);
+run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),'--add-notices',source]);
+run(path.join(sdk,exe('zipalign')),['-P','16','-f','4',source,aligned]);
 const signer=path.join(sdk,'lib/apksigner.jar');
 run('java',['-jar',signer,'sign','--ks',key,'--ks-key-alias','io-agent','--ks-pass','env:IO_AGENT_SIGN_PASS','--key-pass','env:IO_AGENT_SIGN_PASS','--v1-signing-enabled','false','--v2-signing-enabled','true','--v3-signing-enabled','true','--v4-signing-enabled','false','--out',dest,aligned]);
 const verification=run('java',['-Duser.language=en','-Duser.country=US','-jar',signer,'verify','--min-sdk-version','24','--verbose','--print-certs',dest],true);
 if(!/Verified using v2 scheme.*true/.test(verification)||!/Verified using v3 scheme.*true/.test(verification))throw new Error('Required APK signatures missing');
 fs.writeFileSync(path.join(build,'signature-verification.txt'),verification);
-run(path.join(sdk,'zipalign.exe'),['-c','-P','16','4',dest]);
-const audit=JSON.parse(run('python',['-S','-X','utf8',path.join(root,'assemble.py'),path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),dest,'--audit'],true));
-const privateAudit=JSON.parse(run('python',['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-private.py'),dest],true));
-const dexAudit=JSON.parse(run('python',['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-dex.py'),dest],true));
+run(path.join(sdk,exe('zipalign')),['-c','-P','16','4',dest]);
+const audit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),dest,'--audit'],true));
+const privateAudit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-private.py'),dest],true));
+const dexAudit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-dex.py'),dest],true));
 const sourceRecord=JSON.parse(fs.readFileSync(path.join(build,'compile-status.json'),'utf8'));
 if(sourceRecord.product_sha256!==hash(path.join(root,'product.json'))||sourceRecord.addon_sha256!==hash(path.join(build,'dex/classes.dex'))||sourceRecord.host_dex_sha256!==hash(path.join(build,'classes2-hooked.dex')))throw new Error('Compile provenance mismatch');
 if((sourceRecord.native_route_policy_sha256??null)!==(OFFICIAL_SOURCE_ROUTING?hash(path.join(root,"native_route107.py")):null))throw new Error("Native source-routing policy changed after compilation");

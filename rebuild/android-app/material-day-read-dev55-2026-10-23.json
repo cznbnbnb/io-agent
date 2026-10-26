@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T11:23:36.119792+00:00",
+  "scope": "Current-account official daily lifelog read, independent from remote upload; native UI on authorized Redmi",
+  "candidate": {
+    "version": "0.5.3-dev55",
+    "version_code": 10477,
+    "sha256": "fdab3d83963eefda8924aa99f7d0cc2e6b15402dbfb9918540d4ed5291c36cbf",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "installed": true,
+    "source_count": 188,
+    "source_hashes_verified": true
+  },
+  "rollback": {
+    "version": "0.5.3-dev54",
+    "sha256": "46dd5c511e6d4cab7599dc05000f8ec6d0bad8989d873c443035b3acb9b7cdbb"
+  },
+  "root_cause": [
+    "Material catalog only read earlier upload outbox snapshots; selecting dates did not discover official daily records",
+    "Fresh day discovery was behind remote-sync enabled/expiry gates; the retained formal remote connection had expired"
+  ],
+  "implementation": [
+    "Current-account day list/full/list verification into separate bounded atomic local library",
+    "Opening active materials page or selecting a date reads that day; closing/switching cancels only its owned read",
+    "Phone timezone is shared by query/header/calendar; official day membership retained across midnight",
+    "Remote settings/outbox errors are reported separately; account/local-library corruption still fails closed",
+    "Empty or failed source reads do not delete retained records; old upload renewal times cannot overwrite local text",
+    "Only matching content inherits upload receipt; local-only records are not marked uploaded or pending upload"
+  ],
+  "automated_checks": {
+    "runtime_day_month_lifecycle": 342,
+    "catalog_document_export": 32,
+    "local_library": 38,
+    "material_task_draft": 18,
+    "android_javac_d8": true,
+    "source_and_apk_audits": true,
+    "native_radio_or_glasses_regression_repeated": false
+  },
+  "device": {
+    "data_cleared": false,
+    "same_signer_update": true,
+    "recording_started": false,
+    "formal_credentials_renewed": false,
+    "formal_remote_upload_requested": false,
+    "day": "2026-10-23",
+    "phone_record_timezone": "Asia/Shanghai",
+    "before_saved_rows": 0,
+    "after_official_sources": 19,
+    "after_catalog_rows_for_day": 19,
+    "after_total_local_rows": 22,
+    "existing_uploaded_rows": 3,
+    "repeat_refresh_day_rows": 19,
+    "repeat_refresh_duplicated": false,
+    "day22_official_sources": 0,
+    "day23_retained_after_empty_day": true,
+    "day23_calendar_dot": true,
+    "detail_opened": true,
+    "transcript_and_export_control_visible": true,
+    "detail_export_to_file_repeated": false,
+    "sync_settings_home_resume_loaded": true,
+    "sync_settings_return_waiting_placeholder": false,
+    "final_day23_rows": 20,
+    "final_day23_official_source_count": 20,
+    "final_phone_read_time": "2026-10-23 19:24 Asia/Shanghai",
+    "fresh_source_growth_observed": true
+  },
+  "private_evidence": {
+    "day23-detail.xml": "5433693d6eb8720c4e594f9433cd325ecc7d895e65d0bea6c136d97cdcb76b64",
+    "day23-detail-body.xml": "0d96b334d3526db3b99a451ce5342552e99ebc61051a6e3a49453948b3494fe5",
+    "day23-first.xml": "8530862693019824ca43fb869f264720ab2aa7b88b318b75ad30d01c90d18372",
+    "day23-refresh.xml": "3fabb5eceaa7a26b6b92edd1a84245e961f6db4f3dec9f215a6acfc1f9d1ac06",
+    "day23-final-growth.xml": "3ef67b95674964e4943993c8d523c29ba374e081b85ca8647d0838b0571b8e5f"
+  },
+  "identity_cleanup": {
+    "claude401": {
+      "task": "cancelled",
+      "watch_enabled": false,
+      "credentials": "revoked",
+      "phone_profile": "not present in active connections; no unrelated profile modified"
+    },
+    "claude402": {
+      "task": "cancelled",
+      "watch_enabled": false,
+      "credentials": "revoked",
+      "phone_profile": "paused"
+    },
+    "codex600": {
+      "task": "cancelled",
+      "watch_enabled": false,
+      "credentials": "revoked",
+      "phone_profile": "expired nondefault registration removed; queue/history retained"
+    },
+    "codex601": {
+      "registered_real_caller": true,
+      "phone_enabled": true,
+      "default_unchanged": true,
+      "expires_at": "2026-10-23T12:11:05.878Z",
+      "temporary_phone_import_file_removed": true,
+      "checkpoint_server_stored": true,
+      "glasses_display_confirmed": false,
+      "watch_enabled_after_batch": false
+    }
+  },
+  "retention": {
+    "retained": [
+      "dev55",
+      "dev54"
+    ],
+    "removed_verified_dev53_bytes": 429687065,
+    "never_installed_superseded_dev55_removed_before_resign": true
+  },
+  "limits": [
+    "Foreground day reading only; background automatic upload remains pending",
+    "No new real audio storage/export or 72-hour remote retention",
+    "Account switch and interruption protections tested synthetically, not by changing the user account on device",
+    "Missing official days are not authoritative deletion",
+    "No R2/R3/R4 overall completion claim",
+    "Cross-network debugging was explained only; no remote app installation or wireless-debugging configuration performed"
+  ]
+}

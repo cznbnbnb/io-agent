@@ -1,0 +1,352 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T15:25:49.674420+00:00",
+  "status": "one_current_session_identity_and_sampled_opus_decode_verified",
+  "product": "dev78 /10500 unchanged; stable rollback dev76",
+  "scope": "Existing live audio sampled only in phone memory; no new recording, audio file, playback or upload",
+  "source_identity": {
+    "observed_task_sha256": "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b",
+    "current_account_conversation_source_match": true,
+    "native_config": {
+      "config_present": true,
+      "exact_conversation_cache_match": true,
+      "input_format": "opus",
+      "input_rate": 16000,
+      "session_origin_verified": false,
+      "task_equals_dialog": true,
+      "task_sha256": "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b",
+      "username_equals_account_id": true
+    },
+    "normal_process_snapshot_before_diagnostic": {
+      "audio_persisted": false,
+      "bytes": 3740826,
+      "dropped_packets": 0,
+      "error": "",
+      "ignored_types": 0,
+      "invalid_wire": 0,
+      "kinds": {
+        "A3": 506
+      },
+      "last_received_at": 1792855069002,
+      "native_context": {
+        "available": true,
+        "contexts": [
+          {
+            "config_present": true,
+            "exact_conversation_cache_match": true,
+            "input_format": "opus",
+            "input_rate": 16000,
+            "session_origin_verified": false,
+            "task_equals_dialog": true,
+            "task_sha256": "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b",
+            "username_equals_account_id": true
+          }
+        ],
+        "observation_only": true,
+        "session_origin_verified": false
+      },
+      "observer_only": true,
+      "packets": 506,
+      "process_epoch": "d0dce29b8b8f4963b4ec0b5c74cc59d4",
+      "samples": [
+        {
+          "account_observed": "c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63",
+          "account_origin_verified": false,
+          "batches": 506,
+          "clamped": false,
+          "codec_verified": false,
+          "context_observed_after_receive": false,
+          "context_observed_at": 1792855068604,
+          "data_bytes": 5760,
+          "exact_conversation_cache_match": true,
+          "first_byte_profiles": [
+            "5b"
+          ],
+          "frame_count": 24,
+          "kind": "A3",
+          "message_bytes": 94,
+          "metadata_field_count": 5,
+          "modern": true,
+          "observed_at": 1792855069002,
+          "peer_sha256": "e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995",
+          "source_link_verified": false,
+          "task_id_present": true,
+          "task_id_sha256": "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b",
+          "unparsed_bytes": 0,
+          "wire_version": 1
+        }
+      ],
+      "schema": 1,
+      "source_link_verified": false
+    },
+    "later_current_cache_conversation_sources": 66,
+    "interpretation": "The same A3 task absent in the earlier cache was present later. Keep pending association until an exact current-account source appears; absence in a stale cache is not a permanent mismatch."
+  },
+  "historical_log_links": {
+    "files": 14,
+    "scanned_bytes": 67108864,
+    "budget_limited": true,
+    "counts": {
+      "full_responses": 2,
+      "native_response": 621,
+      "native_trace": 5986
+    },
+    "round_hash_count": 207,
+    "full_conversation_sources": 2,
+    "unique_clips": 452,
+    "exact_round_to_clip_matches": 118,
+    "example_matches": [
+      {
+        "round_sha256": "46d51155bc3ed9bb5ee815440144764939719a247a943daf91a03f7ac0c6c976",
+        "source_sha256": "2f5518f54753dcc0962b9cf2bc16283782e26702183f9678e20cf485fe5a9ef4",
+        "exact_round_clip_match": true
+      },
+      {
+        "round_sha256": "d8dbb4df831b5f8d2b76e4c1bb0072987d34ced65b61fa8fe58b7912b8f20239",
+        "source_sha256": "2f5518f54753dcc0962b9cf2bc16283782e26702183f9678e20cf485fe5a9ef4",
+        "exact_round_clip_match": true
+      },
+      {
+        "round_sha256": "706688bfbd2172c0852ba935d243154aff046a23ace9fc69decb272ef95d6b55",
+        "source_sha256": "2f5518f54753dcc0962b9cf2bc16283782e26702183f9678e20cf485fe5a9ef4",
+        "exact_round_clip_match": true
+      }
+    ],
+    "complete_task_round_source_chain_proven": false,
+    "limitation": "The bounded scan/relationship cap does not establish every historical task-to-round-to-source chain; live identity proof above is independent."
+  },
+  "codec": {
+    "audio_persisted_uploaded_played": "false",
+    "batches": "4",
+    "decoder_output_channels": "2",
+    "decoder_output_rate": "16000",
+    "exact_current_source_matches": [
+      "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b"
+    ],
+    "frames": "124",
+    "new_recording_started": "false",
+    "original_queue_mutated": "false",
+    "passed": "true",
+    "peer_hashes": [
+      "e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995"
+    ],
+    "private_decoder_released": "true",
+    "probe_id": "0cfc1339a16944bd89e280093c8267f7",
+    "profiles": [
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=169,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=174,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=179,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=180,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=183,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=186,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=187,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=188,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=189,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=190,pcm16k_stereo_bytes=3840",
+        "packets": 3
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=191,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=192,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=193,pcm16k_stereo_bytes=3840",
+        "packets": 8
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=194,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=195,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=196,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=197,pcm16k_stereo_bytes=3840",
+        "packets": 6
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=198,pcm16k_stereo_bytes=3840",
+        "packets": 7
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=199,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=200,pcm16k_stereo_bytes=3840",
+        "packets": 14
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=201,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=202,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=203,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=204,pcm16k_stereo_bytes=3840",
+        "packets": 6
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=205,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=206,pcm16k_stereo_bytes=3840",
+        "packets": 4
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=207,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=208,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=209,pcm16k_stereo_bytes=3840",
+        "packets": 5
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=210,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=211,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=213,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=214,pcm16k_stereo_bytes=3840",
+        "packets": 2
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=218,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      },
+      {
+        "layout": "toc=91,channels=1,samples48=2880,packet_bytes=240,padding=221,pcm16k_stereo_bytes=3840",
+        "packets": 1
+      }
+    ],
+    "sampled_packets_decode_as_opus": "true",
+    "task_hashes": [
+      "4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b"
+    ],
+    "whole_recording_complete": "false",
+    "at": "2026-10-24T15:23:36.050941+00:00"
+  },
+  "driver_sha256": "2f90bdd4efb6430ede3716ca02fbf99b7c17c639172b278d144ad0ced833f9dd",
+  "sources": [
+    {
+      "path": "tools/android/LifelogAudioLinkProbe.java",
+      "sha256": "2a6d42032f3a4e7910c35e4136f249eb93478c776e4eeb60a0b4df513245b434"
+    },
+    {
+      "path": "tools/android/AlwaysOnLiveCodecProbe.java",
+      "sha256": "3c638459629b7f8f98b39ec2572ad21ce9469524fc3838ede71391b7371b54af"
+    },
+    {
+      "path": "tools/android/build-emulator-input.mjs",
+      "sha256": "91e7d8b8d92f81f64bd65ba7cb31f941693d49c1214789b39b3e2cd2b86c5bf4"
+    },
+    {
+      "path": "tools/android/emulator-input-manifest.xml",
+      "sha256": "cbb8122dea6c93e77e96dd3ef991ef558335d8511b7e6ce97be79a5ceffade97"
+    }
+  ],
+  "evidence_hashes": [
+    {
+      "path": "build/dev78-link-audit.json",
+      "sha256": "03f216fb84e6f7904631d6da4a47f015307e6c0daf4a5d1cec5b2e76e0ea604a"
+    },
+    {
+      "path": "build/dev78-live-codec-audit.json",
+      "sha256": "bcc29c437e1e59f95470e6a417e4ee7dc3b06ab71879be2ab3004ad9a576a2e8"
+    }
+  ],
+  "limitations": [
+    "Only 4 real A3 batches /124 packets decoded; not every stream or firmware profile",
+    "No end-of-recording / full transport completeness proof",
+    "Durable original audio collection not connected to product",
+    "Remote 72h storage/expiry, phone audio export and authoritative deletion remain unfinished",
+    "Current formal grant covers text only"
+  ],
+  "cleanup": {
+    "at": "2026-10-24T15:26:17.162149+00:00",
+    "driver_uninstalled": true,
+    "normal_launcher_restored": true,
+    "app_pid": "14944",
+    "background_screen_off": true,
+    "no_crash_or_observer_error": true,
+    "observer_saved": true
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-link-codec-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T15:57:00.051Z",
+    "requires_answer": false,
+    "message_id": "notice-6db86b211a4e9a1124b89a4a6751eeabd88edf2bc9ee4be0242e141060ba1d83",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_released": true,
+  "reference_source_files": [
+    {
+      "path": "rebuild/core-probe/Vendor/opus-1.5.2/src/opus.c",
+      "sha256": "dd16a615c6c27df4a58c007fbf3c04a219aac268d9051cd5e69ea1ed952ca4e5"
+    },
+    {
+      "path": "rebuild/core-probe/Vendor/opus-1.5.2/src/opus_decoder.c",
+      "sha256": "563aa6a4602f05c39893822d02b17432591b912d1ae32d862d037073054ddfc7"
+    }
+  ]
+}

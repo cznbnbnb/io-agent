@@ -4,6 +4,7 @@ import {HOST,verifyHost} from '../../rebuild/android-app/host-107.mjs';
 import {verifySnapshot} from './verify-source.mjs';
 import {verifyVoice} from './verify-voice.mjs';
 import {PRODUCT,productInfoSource,OFFICIAL_SOURCE_ROUTING} from './profile.mjs';
+import {PYTHON} from './host-tools.mjs';
 const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=path.join(workspace,'rebuild/android-app'),build=path.join(root,'build'),sdk=path.join(root,'.tools/sdk');
 const source=path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),host=path.join(build,'host-107');
@@ -30,7 +31,11 @@ try{
  };
  if(mode!=='assemble'){
   for(const [name,signature,registers,callback] of [['onAsrResult','(Ljava/lang/String;ZLjava/lang/String;)V','p0 .. p3','dispatchAsr(Ljava/lang/Object;Ljava/lang/String;ZLjava/lang/String;)V'],['onNlpResult','(Lcom/rayneo/airuntime/controller/NlpResult;)V','p0 .. p1','dispatchNlp(Ljava/lang/Object;Ljava/lang/Object;)V'],['onResponseComplete','()V','p0 .. p0','dispatchComplete(Ljava/lang/Object;)V']])replaceMethod(abi.listener,name,signature,`    :io_try\n    invoke-static/range {${registers}}, Lcom/turboio/addon/TurboAddon;->${callback}\n    :io_end\n    return-void\n    :io_error\n    move-exception v0\n    invoke-virtual/range {${registers}}, ${HOST.listener}->turboioOriginal_${name}${signature}\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error`);
+  // Observe a bounded copy, then call the original exactly once, including observer failures.
+  replaceMethod(abi.audio,'c','(Ljava/lang/String;[B)V','    :io_try\n    invoke-static {p1, p2}, Lcom/turboio/addon/LifelogAudioObservationRuntime;->incoming(Ljava/lang/String;[B)V\n    :io_end\n    goto :io_original\n    :io_error\n    move-exception v0\n    :io_original\n    invoke-virtual {p0, p1, p2}, Lcom/rayneo/rayneo_venus_sdk_plugin/e;->turboioOriginal_c(Ljava/lang/String;[B)V\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error');
   replaceMethod(abi.activity,'onPostResume','()V','    invoke-virtual {p0}, Lcom/rayneo/venus/MainActivity;->turboioOriginal_onPostResume()V\n    :io_try\n    invoke-static {p0}, Lcom/turboio/addon/TurboAddon;->install(Landroid/app/Activity;)V\n    :io_end\n    return-void\n    :io_error\n    move-exception v0\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error');
+  // 2026-10-24 (user): boot the task channel when the stock process starts without a screen (phone reboot).
+  replaceMethod(path.join(host,'smali_classes2/com/rayneo/venus/VenusApplication.smali'),'onCreate','()V','    invoke-virtual {p0}, Lcom/rayneo/venus/VenusApplication;->turboioOriginal_onCreate()V\n    :io_try\n    invoke-static {p0}, Lcom/turboio/addon/TurboAddon;->boot(Landroid/app/Application;)V\n    :io_end\n    return-void\n    :io_error\n    move-exception v0\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error');
   replaceMethod(abi.event,'z','(Ljava/lang/String;Ljava/util/Map;)V',`    :io_route_try\n    invoke-static {p0, p1, p2}, Lcom/turboio/addon/Host107Connection;->event(Ljava/lang/Object;Ljava/lang/String;Ljava/util/Map;)Z\n    move-result v0\n    :io_route_end\n    if-eqz v0, :io_original\n    return-void\n    :io_route_error\n    move-exception v0\n    :io_original\n    invoke-virtual {p0, p1, p2}, ${HOST.event}->turboioOriginal_z(Ljava/lang/String;Ljava/util/Map;)V\n    :io_try\n    invoke-static {p1, p2}, Lcom/turboio/addon/NativeTransfer;->event(Ljava/lang/String;Ljava/util/Map;)V\n    :io_end\n    return-void\n    :io_error\n    move-exception v0\n    return-void\n    .catch Ljava/lang/Throwable; {:io_route_try .. :io_route_end} :io_route_error\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error`);
   replaceMethod(abi.manager,'u','(Ljava/io/File;Ljava/lang/String;Lk4/q;Ljava/lang/String;)Ljava/lang/String;','    invoke-static {}, Lcom/turboio/addon/Host107Abi;->allowFile()Z\n    move-result v0\n    if-eqz v0, :io_file_blocked\n    invoke-virtual/range {p0 .. p4}, LY3/u;->turboioOriginal_u(Ljava/io/File;Ljava/lang/String;Lk4/q;Ljava/lang/String;)Ljava/lang/String;\n    move-result-object v0\n    return-object v0\n    :io_file_blocked\n    const/4 v0, 0x0\n    return-object v0');
   // Allowed messages still use vendor framing/ACK; raw file sending cannot bypass OTA ownership.
@@ -45,7 +50,14 @@ try{
   fs.writeFileSync(generated,productInfoSource());
   const sources=[...files.values(),generated];
   if(mode!=='smali'){
-  const classes=path.join(build,'classes');fs.mkdirSync(classes,{recursive:true});
+  const classes=path.join(build,'classes');
+  // D8 must not package class files left behind by a renamed/deleted source.
+  // This directory is generated-only and protected by the build owner lock.
+  if(fs.existsSync(classes)){
+   let entries=0;const inspect=directory=>{for(const item of fs.readdirSync(directory,{withFileTypes:true})){const file=path.join(directory,item.name);if(++entries>20000||item.isSymbolicLink())throw new Error('Unexpected compiled stage entry');if(item.isDirectory())inspect(file);else if(!item.isFile()||!item.name.endsWith('.class'))throw new Error('Unknown file in compiled stage');}};
+   if(fs.lstatSync(classes).isSymbolicLink()||!fs.statSync(classes).isDirectory())throw new Error('Compiled stage path changed');inspect(classes);fs.rmSync(classes,{recursive:true});
+  }
+  fs.mkdirSync(classes,{recursive:true});
   const args=path.join(build,'javac.args');fs.writeFileSync(args,['-encoding','UTF-8','-source','8','-target','8','-cp','"'+androidJar.replaceAll('\\','/')+'"','-d','"'+classes.replaceAll('\\','/')+'"',...sources.map(p=>'"'+p.replaceAll('\\','/')+'"')].join('\n'));
   run('javac',['-J-Dfile.encoding=UTF-8','@'+args]);
   run('jar',['cf',path.join(build,'addon.jar'),'-C',classes,'.']);
@@ -62,7 +74,7 @@ try{
  if(mode!=='compile'&&mode!=='smali'&&mode!=='addon'){
   const unsigned=path.join(build,PRODUCT.apk_stem+'-unsigned.apk');
   if(fs.existsSync(unsigned))throw new Error('Unsigned output exists; inspect before replacing');
-  run('python',['-S','-X','utf8',path.join(root,'assemble.py'),source,path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),unsigned]);
+  run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),source,path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),unsigned]);
   result.unsigned={path:path.relative(root,unsigned),bytes:fs.statSync(unsigned).size,sha256:hash(unsigned)};
  }
  result.phase='complete';result.finished=new Date().toISOString();write(path.join(root,'build-status.json'),result);

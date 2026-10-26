@@ -34,16 +34,16 @@ final class Host107Recording {
   final Host107Recording owner;final byte[] bytes;final boolean opening;final int type;final long until;boolean consumed;
   Ticket(Host107Recording owner,byte[] bytes,int type){this.owner=owner;this.bytes=bytes.clone();this.type=type;opening=type==14||(type==1&&TaskWire.nonnegative(WireJson.map(OtaFrame.decode(bytes).json).get("action"))==1);until=SystemClock.elapsedRealtime()+5000;}
  }
- private final VoiceAnswerSession draft;private final VoiceCaptureCutoff cutoff;private final Receiver receiver;
+ private final CaptureSession draft;private final VoiceCaptureCutoff cutoff;private final Receiver receiver;
  private final String token,peer,peerHash,lease;private final long generation;private final boolean recoveryOnly;private long deadline;
  private final ThreadPoolExecutor incoming;
  private final AtomicBoolean faultPosted=new AtomicBoolean();
  private final AtomicBoolean faultDelivered=new AtomicBoolean();private final AtomicInteger posting=new AtomicInteger();
  private final AtomicLong events=new AtomicLong();
  private volatile String faultCode="";private volatile boolean closed;
- private boolean begun;private volatile boolean startAttempted,stopRequested,stopAccepted;
+ private boolean begun,preparedReleased,idleRetryPending,glassesBusy;private volatile boolean startAttempted,stopRequested,stopAccepted;
  private long idleSent,idleUntil,idleFence,checkSent,checkUntil,checkFence,readyUntil;private boolean checkedVersion,checkedIdle;
- private Host107Recording(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
+ private Host107Recording(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver,String peer,long generation,boolean recoveryOnly){
   this.draft=draft;this.cutoff=cutoff;this.receiver=receiver;token=draft.token();this.peer=peer;peerHash=FixedPeerHash.of(peer);this.generation=generation;this.recoveryOnly=recoveryOnly;lease="agent-voice-"+token;
   incoming=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(32),r->{Thread t=new Thread(r,"iO-Agent-recording-source");t.setDaemon(true);return t;});
  }
@@ -55,7 +55,7 @@ final class Host107Recording {
   Map<String,Object> state=WireJson.map(draft.snapshot());
   return token.equals(state.get("token"))&&peerHash.equals(state.get("peer"))&&generation==TaskWire.positive(state.get("generation"))&&deadline==TaskWire.positive(state.get("deadline"));
  }
- static Host107Recording acquire(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
+ static Host107Recording acquire(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
   main();if(active!=null||draft==null||cutoff==null||receiver==null||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED"))return null;
   Fixed60Session.Link link=Host107Ota.link();if(link.peer==null||link.peer.isEmpty())return null;
   if(link.generation<=0)return null;
@@ -65,7 +65,7 @@ final class Host107Recording {
  }
  /** The IO owner must first persist resumeCleanup for this exact peer/epoch.
   * Acquisition never resumes audio, edits the draft or invents stop evidence. */
- static Host107Recording acquireRecovery(VoiceAnswerSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
+ static Host107Recording acquireRecovery(CaptureSession draft,VoiceCaptureCutoff cutoff,Receiver receiver){
   main();if(draft==null||cutoff==null||receiver==null||cutoff.pending()||!draft.healthy()||!draft.needsStop()||!"STOPPING".equals(draft.phase()))return null;
   Fixed60Session.Link link=Host107Ota.link();if(link.peer==null||link.peer.isEmpty()||link.generation<=0)return null;
   Map<String,Object> proof=WireJson.map(draft.snapshot());
@@ -88,9 +88,10 @@ final class Host107Recording {
  }
  void inspect(){
   main();if(recoveryOnly||!current()||faultPosted.get()||begun||cutoff.pending()||!draft.phase().equals("PREPARED")||!sameLink()||checkSent!=0)throw new IllegalStateException("VOICE_PREFLIGHT_NOT_READY");
-  readyUntil=0;checkedVersion=checkedIdle=false;checkSent=SystemClock.elapsedRealtime();checkUntil=checkSent+8000;checkFence=events.get();
+  readyUntil=0;checkedVersion=checkedIdle=glassesBusy=false;checkSent=SystemClock.elapsedRealtime();checkUntil=checkSent+8000;checkFence=events.get();
   for(int type:new int[]{1,11})send(9,type,null,(ok,at)->{if(!ok){checkUntil=readyUntil=0;fault("VOICE_PREFLIGHT_SUBMISSION_FAILED");}});
-  long requested=checkSent;MAIN.postDelayed(()->{if(current()&&checkSent==requested&&checkUntil!=0){checkUntil=0;fault("VOICE_PREFLIGHT_TIMEOUT");}},8000);
+  long until=checkUntil;MAIN.postDelayed(()->{// Busy for the whole window is the glasses refusing (e.g. 全天智记 listening), not a lost reply.
+  if(current()&&checkUntil==until){checkUntil=0;fault(glassesBusy?"VOICE_GLASSES_BUSY":"VOICE_PREFLIGHT_TIMEOUT");}},8000);
  }
  void begin(){
   main();deadline=TaskWire.nonnegative(WireJson.map(draft.snapshot()).get("deadline"));
@@ -154,7 +155,7 @@ final class Host107Recording {
    if(ticket.consumed)return false;ticket.consumed=true;
    Host107Recording issued=ticket.owner;
    if(owner!=issued||!issued.current()||!issued.sameLink()||!"RECORDING_SERVICE".equals(business)||!issued.peer.equals(peer)||bytes==null||!Arrays.equals(ticket.bytes,bytes)||SystemClock.elapsedRealtime()>=ticket.until)return false;
-   VoiceAnswerSession.CapturePermit durable=issued.draft.capturePermit();
+   CaptureSession.CapturePermit durable=issued.draft.capturePermit();
    if(!durable.needsStop||!issued.token.equals(durable.token)||!issued.peerHash.equals(durable.peer)||issued.generation!=durable.generation)return false;
    if(issued.recoveryOnly)return !ticket.opening&&ticket.type==4&&"STOPPING".equals(durable.phase);
    if(ticket.opening)return durable.opening&&durable.deadline==issued.deadline&&!issued.stopRequested&&!issued.faultPosted.get()&&issued.cutoff.armed(issued.token,issued.peerHash,issued.generation,issued.deadline);
@@ -180,8 +181,12 @@ final class Host107Recording {
   });}catch(RejectedExecutionException full){fault("VOICE_RECORDING_BACKPRESSURE");}
  }
  /** Only called from an already verified stock/owned plugin event path. */
+ // Probe (2026-10-23, user wants a double head shake to stop task dictation): each event kind seen
+ // during a task capture is logged once by name only, to find a head-gesture signal if one exists.
+ private static final Set<String> probed=Collections.synchronizedSet(new HashSet<>());
  static boolean observe(String kind,Map<?,?> data){
   Host107Recording owner=active;if(owner==null||data==null||kind==null)return false;
+  if(probed.size()<64&&probed.add(kind))System.out.println("TurboIOVoice capture probe kind="+kind+" keys="+data.keySet());// logcat tag System.out; this class also builds in JVM tests
   if(Arrays.asList("bleStateChanged","brStateChanged","bondStateChanged").contains(kind)){
    MAIN.post(()->{if(owner.current()&&!owner.sameLink())owner.fault("VOICE_CONNECTION_CHANGED");});return false;
   }
@@ -201,7 +206,7 @@ final class Host107Recording {
     if(frame.binary.length==0&&(frame.type==1||frame.type==11))MAIN.post(()->owner.preflight(frame.type,body,received,event));
     if(frame.type==11&&frame.binary.length==0&&body.get("Result") instanceof Boolean)MAIN.post(()->{
      if(owner.current()&&owner.sameLink()&&owner.idleUntil!=0&&event>owner.idleFence&&received>=owner.idleSent&&received<=owner.idleUntil){
-      owner.idleSent=owner.idleUntil=0;owner.dispatch(()->owner.receiver.idle((Boolean)body.get("Result"),received));
+      owner.idleSent=owner.idleUntil=0;owner.dispatch(()->owner.receiver.idle(LifelogState.idle(body.get("Result")),received));
      }
     });
     return false;
@@ -219,16 +224,30 @@ final class Host107Recording {
   }catch(RuntimeException invalid){if(recording)owner.fault("VOICE_RECORDING_ENVELOPE_INVALID");return false;}
  }
  private void preflight(int type,Map<String,Object> body,long received,long event){
-  main();if(!current()||!sameLink()||faultPosted.get()||checkUntil==0||event<=checkFence||received<checkSent||received>=checkUntil)return;
-  boolean valid=type==1?"Strix OS 1.0.5.5".equals(body.get("OsVersion"))&&"idle".equals(body.get("OtaValidationState"))&&Boolean.TRUE.equals(body.get("OtaValidationConfirmed"))&&body.get("PackageTypes") instanceof List&&((List<?>)body.get("PackageTypes")).contains("files"):Boolean.TRUE.equals(body.get("Result"));
-  if(!valid){checkUntil=readyUntil=0;dispatch(()->receiver.ready(false,received));fault("VOICE_PREFLIGHT_NOT_IDLE_OR_VALIDATED");return;}
+  main();if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||event<=checkFence||received<checkSent||received>=checkUntil)return;
+  boolean valid=type==1?"Strix OS 1.0.5.5".equals(body.get("OsVersion"))&&"idle".equals(body.get("OtaValidationState"))&&Boolean.TRUE.equals(body.get("OtaValidationConfirmed"))&&body.get("PackageTypes") instanceof List&&((List<?>)body.get("PackageTypes")).contains("files"):LifelogState.idle(body.get("Result"));
+  // The prompter can ACK exit before its audio/display owners are idle. Keep the
+  // original 8 s deadline and query again; never turn busy into capture permission
+  // (a busy reply that only 全天智记 explains is already idle above, see LifelogState).
+  if(type==11&&!valid&&Boolean.FALSE.equals(body.get("Result"))){
+   checkedIdle=false;glassesBusy=true;
+   if(!idleRetryPending){idleRetryPending=true;MAIN.postDelayed(()->{
+    idleRetryPending=false;
+    if(!current()||!sameLink()||stopRequested||faultPosted.get()||checkUntil==0||SystemClock.elapsedRealtime()>=checkUntil)return;
+    checkFence=events.get();checkSent=SystemClock.elapsedRealtime();
+    send(9,11,null,(ok,at)->{if(!ok){checkUntil=readyUntil=0;fault("VOICE_PREFLIGHT_SUBMISSION_FAILED");}});
+   },500);}
+   return;
+  }
+  if(!valid){checkUntil=readyUntil=0;fault(type==1?"VOICE_PREFLIGHT_VERSION_INVALID":"VOICE_PREFLIGHT_IDLE_INVALID");return;}
   if(type==1)checkedVersion=true;else checkedIdle=true;
   if(checkedVersion&&checkedIdle){readyUntil=checkUntil;checkUntil=0;dispatch(()->receiver.ready(true,received));}
  }
  /** Only an unarmed preparation can be abandoned without physical stop evidence. */
  boolean releasePrepared(){
-  main();if(!current()||begun||startAttempted||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED")||posting.get()!=0||incoming.getActiveCount()!=0||!incoming.getQueue().isEmpty())return false;
-  cutoff.close();dispose();return true;
+  main();if(preparedReleased)return true;
+  if(!current()||begun||startAttempted||cutoff.pending()||!draft.healthy()||!draft.phase().equals("PREPARED")||posting.get()!=0||incoming.getActiveCount()!=0||!incoming.getQueue().isEmpty())return false;
+  cutoff.close();preparedReleased=true;dispose();return true;
  }
  private void dispose(){closed=true;active=null;incoming.shutdown();NativeTransfer.releaseMessages(lease);}
  boolean release(){

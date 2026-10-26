@@ -7,7 +7,7 @@ from pathlib import Path
 import stat
 import time
 
-from runtime_journal import RuntimeJournal, RuntimeJournalError, encode
+from runtime_journal import RuntimeJournal, RuntimeJournalError, deadline_window, encode
 
 
 class QuestionTools:
@@ -85,7 +85,9 @@ async def serve(tools):
             result = await tools.call(params.name, params.arguments or {})
             return types.CallToolResult(content=[types.TextContent(type='text', text=encode(result))])
         except RuntimeJournalError as error:
-            return types.CallToolResult(content=[types.TextContent(type='text', text=encode({'error': error.code}))], is_error=True)
+            # Same retry window as the CLI path when the model's expires_at is rejected.
+            body = deadline_window() if params.name == 'ask_user' and error.code == 'RUNTIME_DEADLINE_INVALID' else {'error': error.code}
+            return types.CallToolResult(content=[types.TextContent(type='text', text=encode(body))], is_error=True)
         except Exception:
             # Do not return DB paths, configuration, provider errors or traces.
             return types.CallToolResult(content=[types.TextContent(type='text', text='{"error":"RUNTIME_TOOL_FAILED"}')], is_error=True)

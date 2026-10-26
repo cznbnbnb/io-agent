@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "caller": {
+    "runtime": "claude-code",
+    "topic": "眼镜提问 CLI 改造"
+  },
+  "runs": [
+    "caller309-20261022-a",
+    "caller310-20261022-a",
+    "caller311-20261022-a"
+  ],
+  "builds": {
+    "dev27": {
+      "code": 10449,
+      "fix": "an agent question on the prompter exits after 3 min (user request); no dictation then, the question stays answerable on the phone"
+    },
+    "dev28": {
+      "code": 10450,
+      "fix": "prompter header shows the conversation topic registered by the agent (task command), chosen by the user by voice; CLI/prepare script accept an optional one-line topic (<=40)"
+    },
+    "dev29": {
+      "code": 10451,
+      "fix": "opt-in: the final dictation confirm card keeps the wearer's nod/shake setting (nod submits, shake keeps it on the phone); timing traces TurboIOCard/TurboIOVoice; probes for head-gesture signals during task prompter and task dictation"
+    },
+    "dev30": {
+      "code": 10452,
+      "fix": "computer tasks page: current delegate first, closed items and idle sessions folded"
+    },
+    "dev31": {
+      "code": 10453,
+      "fix": "fold toggles re-render; remove-expired button stays outside the fold"
+    },
+    "dev32": {
+      "code": 10454,
+      "fix": "recording buffer, archive and evidence sized from the 60 s limit + 4 s (was 32 s; a 35 s answer failed with VOICE_RECORDING_RANGE_INVALID)"
+    },
+    "dev33": {
+      "code": 10455,
+      "sha256": "d626dcd5b69985d74151d5b3710a9bb8d284d6a16d608d23ce9e452cfefdc4b2",
+      "fix": "any clean stop keeps an unfinalised last sentence and goes to review (a 40 s answer ended INCOMPLETE because the engine ended 0.1 s after stop)",
+      "rollback": "dev32"
+    }
+  },
+  "answers": [
+    {
+      "question": "prompter header wording",
+      "option_id": "topic",
+      "text": "啊，选第二个就好。",
+      "input_source": "voice",
+      "consumed_by_cli": true
+    },
+    {
+      "question": "background dictation",
+      "option_id": "do-it",
+      "text": "选第一个。",
+      "input_source": "voice",
+      "consumed_by_cli": true
+    },
+    {
+      "question": "phone notice while the phone is in a pocket",
+      "option_id": "glasses-only",
+      "text": "选一。",
+      "input_source": "voice",
+      "consumed_by_cli": true,
+      "note": "an earlier 40 s dictation of the same question (read from the phone draft) adds: phone notifications mirrored to the glasses must not cover the task popup"
+    }
+  ],
+  "timing_dev33": {
+    "dictation_stop_to_review_s": 3.0,
+    "review_to_card_shown_s": 0.6,
+    "wearer_action_to_server_s": 4.0,
+    "earlier_minute_delay": "not reproduced; no trace existed then"
+  },
+  "head_gesture_probe": {
+    "task_prompter_unknown_frames": 0,
+    "task_capture_event_kinds": [
+      "messageSendSuccess",
+      "messageReceived"
+    ],
+    "conclusion": "no head-gesture signal reached the phone while the wearer was asked to shake twice during the prompter; double-shake exit is not available from what the phone receives"
+  },
+  "cleanup": {
+    "tasks": "cancelled",
+    "phone_session": "paused",
+    "credentials": "revoked for caller309/310/311",
+    "agent_identity": "401",
+    "phone_identity": "401"
+  },
+  "open": [
+    "dictation after the wearer exits still needs the phone awake with the App in front",
+    "whether the last confirm was a nod or a button press is not distinguishable in the log",
+    "phone notifications mirrored to the glasses must not cover task popups (user concern, not yet handled)"
+  ]
+}

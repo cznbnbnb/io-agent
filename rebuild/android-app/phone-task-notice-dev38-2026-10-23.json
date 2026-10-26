@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T07:04:10.599887+00:00",
+  "version": "0.5.3-dev38",
+  "version_code": 10460,
+  "sha256": "4581c0fae91aa5d26bd7509bbbdf25f4ac20c201003970df590194ceefcde3ef",
+  "rollback": "0.5.3-dev37",
+  "installed_same_signer": true,
+  "app_data_cleared": false,
+  "current_caller_verified": true,
+  "creates_agent_session": false,
+  "cli": {
+    "action": "notify",
+    "server_stored": true,
+    "requires_answer": false,
+    "retry_same_message_id": true,
+    "glasses_display_confirmed": false
+  },
+  "device": {
+    "manuscript_prepare_accepted": true,
+    "file_all_received_ack": true,
+    "background_stop_ignored": true,
+    "timeout_elapsed_ms": 180000,
+    "exit_ack_type6_action2_code1": true,
+    "attention_released": true,
+    "dictation_started_after_notice": false,
+    "wearer_reading_position_received": false,
+    "wearer_visibility_confirmed": false
+  },
+  "tests": {
+    "agent_card_and_notice_assertions": 790,
+    "recording_recovery_assertions": 478,
+    "registered_cli_integrations": [
+      "codex",
+      "claude-code"
+    ],
+    "covers": [
+      "original route and task binding",
+      "no question or answer created by notice",
+      "idempotent retries and conflict rejection",
+      "offline event retained",
+      "closed/expired/foreign task notices rejected"
+    ]
+  },
+  "known_open": [
+    "Long-press-to-dictation failed on dev36 and dev37 in the latest session; device FOTA idle remains false after wearer-confirmed home page.",
+    "Double head-shake exit not implemented; current firmware internal path inspected, no verified phone event bridge.",
+    "Notification lens readability and wearer long-press notice exit have not been confirmed."
+  ],
+  "active_connection": {
+    "temporary": true,
+    "expires_utc": "2026-10-23T07:47:11.862Z",
+    "old_run315_revoked_and_identity_401_verified": true
+  }
+}

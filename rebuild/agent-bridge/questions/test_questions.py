@@ -22,7 +22,7 @@ class CallerTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='io-existing-caller-')
         self.root = Path(self.temp.name).resolve()
-        self.env = patch.dict(os.environ, {'CODEX_THREAD_ID': 'test-existing-thread'})
+        self.env = patch.dict(os.environ, {'CODEX_THREAD_ID': 'test-existing-thread', 'CLAUDE_CODE_SESSION_ID': '', 'IO_AGENT_CALLER_RUNTIME': '', 'IO_AGENT_CALLER_SESSION': ''})
         self.env.start()
         self.binding = dict(server_id='server-test', owner_id='owner-test', producer_id='pc-test', computer_id='pc-test', agent_id='codex-test')
         self.route = dict(computer_id='pc-test', agent_id='codex-test', project_id='project-test', session_id='test-existing-thread')
@@ -112,6 +112,25 @@ class CallerTests(unittest.TestCase):
         self.assertEqual(asyncio.run(execute('ask',args,self.file))['request_id'],reply['request_id'])
         self.assertEqual(self.journal.operation(self.op)['state'],'claimed')
         self.assertIsNone(self.journal.native_observation(self.op))
+
+    def test_caller_runtime_comes_from_exactly_one_host_source(self):
+        from context import caller_session
+        self.assertEqual(caller_session({'CLAUDE_CODE_SESSION_ID': 'abc-1'}), ('claude-code', 'abc-1'))
+        self.assertEqual(caller_session({'IO_AGENT_CALLER_RUNTIME': 'other-agent', 'IO_AGENT_CALLER_SESSION': 's.1'}), ('other-agent', 's.1'))
+        for env, code in [({}, 'CALLER_SESSION_REQUIRED'), ({'CODEX_THREAD_ID': 'a', 'CLAUDE_CODE_SESSION_ID': 'b'}, 'CALLER_RUNTIME_AMBIGUOUS'),
+                          ({'IO_AGENT_CALLER_RUNTIME': 'codex', 'IO_AGENT_CALLER_SESSION': 'a'}, 'CALLER_RUNTIME_INVALID'),
+                          ({'IO_AGENT_CALLER_RUNTIME': 'other-agent'}, 'CALLER_SESSION_REQUIRED'), ({'CLAUDE_CODE_SESSION_ID': 'a/b'}, 'CALLER_SESSION_REQUIRED')]:
+            with self.assertRaisesRegex(RuntimeJournalError, code):caller_session(env)
+        with patch.dict(os.environ, {'CODEX_THREAD_ID': '', 'CLAUDE_CODE_SESSION_ID': 'test-existing-thread'}):
+            with self.assertRaisesRegex(RuntimeJournalError, 'CALLER_SESSION_MISMATCH'):load_context(self.file)
+
+    def test_registered_topic_is_the_task_command(self):
+        from context import registered_command
+        self.assertEqual(registered_command(self.config), 'Continue the already-running registered Codex task.')
+        self.assertEqual(registered_command({**self.config, 'command': '眼镜提问 CLI 改造'}), '眼镜提问 CLI 改造')
+        for bad in ['', '换行\n主题', '长' * 41]:
+            self.file.write_text(encode({**self.config, 'command': bad}), encoding='utf-8')
+            with self.assertRaisesRegex(RuntimeJournalError, 'CALLER_CONFIG_INVALID'):load_context(self.file)
 
     def test_current_thread_and_project_required_before_opening_a_journal(self):
         with patch.dict(os.environ,{'CODEX_THREAD_ID':'another-thread'}):

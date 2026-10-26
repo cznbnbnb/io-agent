@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "installed": "0.5.3-dev51",
+  "version_code": 10473,
+  "rollback": "0.5.3-dev50",
+  "scope": "R2 exits: App restart during the task prompter, App restart during task dictation, network loss at answer submission",
+  "tests": [
+    {
+      "name": "restart during prompter",
+      "found_on": "dev45",
+      "defect": "glasses kept the old manuscript; the new process ignored its frames, so the long-press exit opened nothing and the question was never offered again (offered set is durable)",
+      "fix": "dev46 NewsTele adoption: the task prompter DID is kept durably (prompter_owner, until the 3 min show period); a same-DID frame while idle re-adopts the session, so the exit opens dictation and the show timeout resumes",
+      "device": "dev46: force-stop 14 s after the prompter, relaunch, 'prompter adopted', long-press opened dictation, confirm card submitted, answer option ok"
+    },
+    {
+      "name": "restart during dictation",
+      "found_on": "dev46",
+      "defect": "glasses kept recording until the wearer ended it (stock App acked the stop); nothing recovered the interrupted draft until a voice page opened; question not offered again",
+      "fix": "dev47 VoiceAnswerRuntime.recoverInterrupted at App start: once loaded and linked, retryCleanup sends the stop for the persisted uuid, marks the draft CANCELLED/VOICE_INTERRUPTED and the question is offered on the glasses once more; dev50: the voice page no longer switches auto-start off on the same question's interrupted snapshot while its own prepare runs (root cause found with dev48/dev49 traces)",
+      "device": "dev50: force-stop 5 s into capture, relaunch, stop sent ~6 s after relaunch, question re-offered, long-press started capture, answer '选一，恢复后能进入录音。'"
+    },
+    {
+      "name": "network loss",
+      "found_on": "dev50",
+      "defect": "voice prepare and REVIEW save required a fresh server read of the original question (TASK_UNAVAILABLE offline)",
+      "fix": "dev51 TaskHub.voiceRequest: only an unreachable server (UnknownHost/Connect/NoRoute/SocketTimeout) falls back to the last observed copy, still checked answerable; the answer stays awaiting_refresh so the pump verifies it with the server before sending; coded server refusals unchanged",
+      "device": "dictation online, Wi-Fi off 18:06:52 (cellular unavailable), card submitted 18:06:55, SAVED 18:06:58 offline, Wi-Fi on 18:07:11, server answered once: '啊，选一。已经断网并恢复网络。'",
+      "limit": "dictation itself cannot run offline: the stock speech recognizer needs the network (VOICE_ENGINE_ERROR right after start); a glasses notice was sent"
+    }
+  ],
+  "offline_tests": {
+    "task_voice_bridge": 248,
+    "voice": 1960,
+    "agent_card": 790,
+    "host": "passed (mailbox, contexts)"
+  },
+  "diagnostics_kept": [
+    "TurboIOVoice handoff blocked / prepared check / page step logs (dev48-dev49)"
+  ],
+  "cleanup": {
+    "identity": "caller400-20261023-claude",
+    "task_cancelled": true,
+    "questions_settled": true,
+    "revoked": true,
+    "verified_401": true,
+    "device_lock_released": true,
+    "note": "one answered question was consumed locally after revocation (consume_answer); settle questions before revoking"
+  },
+  "not_verified": [
+    "glasses Bluetooth disconnect during a card or dictation",
+    "8-hour wear and power",
+    "phone reboot (not only process kill)"
+  ]
+}

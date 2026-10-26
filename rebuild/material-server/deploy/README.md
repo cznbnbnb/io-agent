@@ -1,3 +1,5 @@
+> 2026-10-24 原音发布必须使用专用 `tools/phase1/package-audio-release.py` 与 `deploy-audio-release.py`，先完成 `rehearse-audio-release.mjs` 五阶段报告，再指定已提交来源打包。默认只读检查，`--apply` 才激活。独立原音到期 timer 在 HTTP 代码回退后保留，不跟随代码删除；不复制/恢复原音数据库。旧文字发布入口明确拒绝音频依赖。当前准备证据见 [R4 原音发布准备](../../android-app/r4-audio-release-preparation-2026-10-24.json)，实际发布状态以交接顶部为准。
+
 # 资料服务部署包（2026-10-11 深夜已在本机生产主机实测通过）
 
 面向已登记的腾讯云主机（Ubuntu 24.04 + Nginx，现有站点 `cznbnb.cn`，见[接入边界](../../../docs/product/phase1-server-reuse-2026-10-11.md)）。目标：为雷鸟资料/队列服务建立**独立**进程、数据库与备份目录，只新增一个 Nginx 位置，不改动现有网站代码、Cookie、tRPC 路由和业务表。

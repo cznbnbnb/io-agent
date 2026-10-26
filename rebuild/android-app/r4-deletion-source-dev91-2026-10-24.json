@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T04:12:16.465778+00:00",
+  "status": "installed_explicit_deletion_source_adapter; R4 remains open",
+  "stage_estimate": {
+    "R3": 100,
+    "R4": 90,
+    "kind": "unchanged rough delivery estimate"
+  },
+  "corrected_prior_blocker": {
+    "previous_unscoped_xml_lookup_was_incomplete": true,
+    "public_dart_source_not_required_for_this_step": true,
+    "authoritative_source": "official local committed explicit deletion ledger, not missing list rows or retry IDs",
+    "does_not_prove_official_cloud_deletion": true
+  },
+  "source_analysis": {
+    "original_version": "1.0.7(230)",
+    "original_apk_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+    "original_libapp_sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c",
+    "blutter_commit": "4a60ac648bf448c5a7596437243bcd0b9376fdf0",
+    "dart_version": "3.11.5",
+    "dart_sdk_commit": "c70f78e7d682c158c15ca0c26c729b3ccb932284",
+    "snapshot": "78da37fed6bf1489361a312568249f3f",
+    "pool_sha256": "662a42f399d52f316df470f790405901970a9776a63f364ecc9e3f6c18a7531f",
+    "adapter_patch": "tools/phase1/blutter-macos-r4.patch",
+    "namespace": "user_<current_account_id>_recording_deletion_ledger_v1",
+    "backend": "existing za.a0.k getter over stock DataStore; not legacy XML",
+    "addresses": {
+      "namespace_factory": "0x1634100",
+      "key_prefix_getter": "0x152f27c",
+      "ledger_load": "0x27e7d8c",
+      "state_decode": "0x161c4d0",
+      "state_encode": "0x161cd2c",
+      "operation_encode": "0x161cebc",
+      "ledger_persist": "0x2823210",
+      "rollback_closure": "0x2aed544",
+      "commit_closure": "0x2aee030"
+    },
+    "serialization_keys": [
+      "deletedTaskIds",
+      "serverDeletionRetryTaskIds",
+      "pending",
+      "deleteAll"
+    ],
+    "inference_limit": "Semantic labels come from byte/field/call analysis; linear pool annotations alone are not control-flow or deletion evidence.",
+    "adapter_patch_sha256": "c71dee16cbb1441a70d94ead72abd0fc5e97a51883decd12c342c07f90ba68f6"
+  },
+  "implementation": {
+    "committed_explicit_conversations_only": true,
+    "pending_blocks_sync": true,
+    "retry_only_is_not_delete": true,
+    "missing_key_is_not_delete": true,
+    "account_and_exact_snapshot_rechecked": true,
+    "old_pending_uploads_reconciled_and_cancelled_before_replacement": true,
+    "durable_existing_outbox_and_fixed_credential_expiry": true,
+    "stale_fresh_sources_filtered": true,
+    "budgeted_tombstones_only_allowed_to_send": true,
+    "original_audio_and_cache_physically_removed": false,
+    "phone_exports_modified": false,
+    "historical_delete_all": "fail closed with explicit UI status; cutoff/protected-task predicate remains to implement"
+  },
+  "tests": {
+    "reader_checks": 67,
+    "http_sqlite_jvm_phases": 18,
+    "http_scope": "Actual material session/outbox/API and local HTTP/SQLite/audio withdrawal across JVMs; original source is synthetic; no phone or real deletion",
+    "http_phases": [
+      "stored:seed",
+      "stored:delete",
+      "stored:delete",
+      "cancelled:offline-seed",
+      "cancelled:pending",
+      "cancelled:historical",
+      "cancelled:delete",
+      "cancelled:delete",
+      "rollback:offline-seed",
+      "rollback:pending",
+      "rollback:rollback",
+      "lost-cancel:offline-seed",
+      "lost-cancel:lost-cancel",
+      "lost-cancel:delete",
+      "lost-delete:seed",
+      "lost-delete:lost-delete",
+      "lost-delete:recover",
+      "budget:budget"
+    ],
+    "http_passed": true,
+    "server_audio": "Immediate read denial after tombstone; independent prune then withdrawn/zero audio_parts. Synthetic opaque bytes, not captured sound.",
+    "runtime_checks": 458,
+    "runtime_scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
+    "legacy_material_core_checks": 71,
+    "legacy_http_regression_passed": true,
+    "discovery_regression_checks": 60,
+    "test_fixture_cleanup": true
+  },
+  "installation": {
+    "installed": true,
+    "version": "0.5.3-dev91",
+    "version_code": 10513,
+    "sha256": "31f5a878a086806905158fd2f5087fdb47222b2eae15909fa4739002f71ea6a0",
+    "sources": 234,
+    "all_sources_current": true,
+    "protected_exports_unchanged": 2,
+    "normal_launch_requested": true
+  },
+  "delta": {
+    "baseline_sha256": "18b7ed3e635805816e823620f3d1b7f93a45a0d4d8b47f27d552a291901d3ea2",
+    "target_sha256": "31f5a878a086806905158fd2f5087fdb47222b2eae15909fa4739002f71ea6a0",
+    "delta_bytes": 1543493,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 5.641
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 4.593
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 4.175
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 5.979
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 5.453
+      },
+      {
+        "bytes": 232773,
+        "through": 1543493,
+        "seconds": 3.698
+      }
+    ],
+    "resume_seconds": 34.358,
+    "earlier_attempts": []
+  },
+  "phone_read_only_probe": {
+    "passed": true,
+    "state_unchanged": true,
+    "installed_native_reader": {
+      "passed": true,
+      "present": false,
+      "pending": false,
+      "historical": false,
+      "committed_tasks": 0,
+      "account_matches": true
+    },
+    "explicit_http_requests": 0,
+    "deletions_attempted": 0,
+    "account_and_raw_source_ids_exported": false
+  },
+  "normal_ui_observation": {
+    "page": "Agent materials",
+    "local_readable": 74,
+    "server_stored_texts": 58,
+    "pending_texts": 0,
+    "today_sources": 6,
+    "automatic_sync_enabled": true,
+    "catalog_loaded": true,
+    "human_glasses_or_listening_validation": false
+  },
+  "formal_audio_read_only_audit": {
+    "at": "2026-10-25T04:09:12.017724+00:00",
+    "stored_objects": 79,
+    "bytes": 75399277,
+    "full_and_part_hashes_verified": true,
+    "fixed_retention_seconds": 259200,
+    "timer_active": "active",
+    "timer_enabled": "enabled",
+    "expiry_result": "success",
+    "audio_bytes_returned_to_mac": false,
+    "real_user_deletion_exercised": false
+  },
+  "remaining": [
+    "historical deleteAll cutoff/protected-task predicate",
+    "genuine original successful deletion observation using a developer-provided disposable synthetic session",
+    "receipt-backed local original retirement/cleanup",
+    "passive long-running continuity, multi-object export feedback and user listening"
+  ],
+  "cleanup": {
+    "driver_uninstalled": true,
+    "remote_stage_removed_after_full_hash_verification": true,
+    "local_delta_removed": true,
+    "old_dev90_apk_removed_after_dev91_verification": true,
+    "signed_product_apks": [
+      "iO-Agent-Android-0.5.3-dev76.apk",
+      "iO-Agent-Android-0.5.3-dev91.apk"
+    ],
+    "rollback_verified": true,
+    "normal_process_alive": true,
+    "normal_pid_unchanged_during_cleanup": true,
+    "phone_home_and_sleep_requested": true,
+    "exports_not_touched": true
+  },
+  "device_lock_released": true,
+  "checkpoint": {
+    "key": "codex-r4-dev91-source-deletion-installed-20261024",
+    "message_id": "notice-3b107ca40d848865f7fa452fed91cc65e335fea9c1dfb7b75eb6040a404b0633",
+    "server_stored": true,
+    "caller_verified": true,
+    "glasses_display_confirmed": false
+  },
+  "automatic_goal_state": "blocked (unchanged; not marked complete)"
+}

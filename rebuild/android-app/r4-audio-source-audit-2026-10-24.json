@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T12:25:31.947214+00:00",
+  "scope": "Read-only current-account cached source and local file metadata; no audio reads, capture, playback or network requests",
+  "status": "source_investigation_progress_not_audio_delivery",
+  "probe": {
+    "audio_read_or_capture": false,
+    "audit": {
+      "always_on_cached_audio": [],
+      "always_on_cached_audio_directory_present": false,
+      "cache_entries": 8,
+      "known_source_count": 66,
+      "source_type_occurrences": {
+        "conversation": 87,
+        "recording": 7
+      },
+      "cached_sessions": [],
+      "global_preferences": [
+        {
+          "key": "recording_cache_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "flutter.recording_cache_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "session_task_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "flutter.session_task_list",
+          "present": false,
+          "account_ownership_unverified": true
+        }
+      ],
+      "file_extensions": {
+        "mp3": 1,
+        "opus": 9,
+        "pcm": 55
+      },
+      "filename_matches": [
+        {
+          "source_id_sha256": "8a1ebffed3cc0da83e0221264037fcb4c27a59e35be6b9a8702df75b2c7bfabf",
+          "path_sha256": "d9b29a6943b4840a7f58b4231e88400db14e923c4546b5140e87e970a7d4a95f",
+          "bytes": 529327,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "18cea1f2eddae33147e4e3389ee614268a1826de5bb07a14036d450a89b67ea5",
+          "path_sha256": "d1c52654308bdc7992e796b5ec5382fa68af7d2aae8d1c1d1fe10716258e0483",
+          "bytes": 68714,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "efdbdca219f0502458a84d3dc3c3a67e6e9dae26f57599f59f92f3f4b8613cc1",
+          "path_sha256": "7bd63a305d86b66a4925008f27f1842bdbbd8e5d61d32660a4932d7c6e8993f5",
+          "bytes": 89012,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "33cb86d25827600d8f22f0767966166c7a36ea99145980542576e107b4c76c76",
+          "path_sha256": "ca90b3eb6db744c93347cfc8bba99bb77ab2516149dbcb6175dc5a8b7a80d386",
+          "bytes": 0,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": false,
+          "filename_match_only": true,
+          "association_verified": false
+        }
+      ],
+      "file_scan_max_depth": 8,
+      "file_scan_visited": 1388,
+      "file_scan_limited": false,
+      "association_verified": false
+    },
+    "credentials_or_text_exported": false,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "0c8352abc0f74ced97eb74dcec82574e",
+    "state_unchanged": true,
+    "at": "2026-10-24T12:23:29.999657+00:00"
+  },
+  "static_a4_path": {
+    "static_only": true,
+    "native_file_mapping": "files/always_on_cached_audio/<resolvedTaskId>.opus",
+    "completion_callback_required": true,
+    "resolved_task_id_can_fallback": true,
+    "conversation_source_association_verified": false,
+    "sources": [
+      {
+        "path": "smali_classes2/o8/e.smali",
+        "sha256": "cb4ba7b8b461974d9db22c0a5e567bebecd7991479fd7cd73bbf1eb25f02af49",
+        "clues": [
+          "always_on_cached_audio",
+          ".opus",
+          "onCachedAudioReady",
+          "isFinish="
+        ]
+      },
+      {
+        "path": "smali_classes2/t8/b$b.smali",
+        "sha256": "8e5108b3802ae51814daba2749555ec5dcbb0c8ce570f08543997573844b6ed1",
+        "clues": [
+          "glass_cached_audio",
+          "isFinish="
+        ]
+      }
+    ]
+  },
+  "native_and_dart_static_clues": {
+    "host_library_sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c",
+    "static_clues_only": true,
+    "literals": [
+      {
+        "offset": 825415,
+        "literal": "/clsapi/aiTask/getDataAllByTaskId"
+      },
+      {
+        "offset": 826067,
+        "literal": "/clsapi/aiTask/delAll"
+      },
+      {
+        "offset": 922391,
+        "literal": "/clsapi/aiTask/del"
+      },
+      {
+        "offset": 1032461,
+        "literal": "package:venus_flutter_app/features/voice_record_page/data/models/recording_cache_model.dart"
+      },
+      {
+        "offset": 1064275,
+        "literal": "package:venus_flutter_app/features/session_page/data/services/session_audio_export_service.dart"
+      },
+      {
+        "offset": 1113560,
+        "literal": "package:venus_flutter_app/features/lifelog_page/data/models/conversation_detail_response.freezed.dart"
+      },
+      {
+        "offset": 1342243,
+        "literal": "package:venus_flutter_app/common_services/session_service/api/models/session_api_response.dart"
+      },
+      {
+        "offset": 1346586,
+        "literal": "/clsapi/aiChat/selectPage"
+      },
+      {
+        "offset": 1357072,
+        "literal": "/clsapi/aiTask/create"
+      },
+      {
+        "offset": 1595637,
+        "literal": "/clsapi/user-data/exports"
+      },
+      {
+        "offset": 3657265,
+        "literal": "/clsapi/aiChat/del"
+      },
+      {
+        "offset": 8558244,
+        "literal": "/clsapi/aiShare/create"
+      },
+      {
+        "offset": 8890036,
+        "literal": "/clsapi/aiChat/update"
+      },
+      {
+        "offset": 9124885,
+        "literal": "/clsapi/aiTask/update"
+      },
+      {
+        "offset": 9334233,
+        "literal": "package:venus_flutter_app/features/lifelog_page/data/models/conversation_detail_response.g.dart"
+      },
+      {
+        "offset": 9896129,
+        "literal": "package:venus_flutter_app/common_services/session_service/api/models/session_api_response.freezed.dart"
+      },
+      {
+        "offset": 10061021,
+        "literal": "/clsapi/aiFeedbackMsg/selectList"
+      },
+      {
+        "offset": 10103446,
+        "literal": "package:venus_flutter_app/common_services/session_service/api/models/session_api_response.g.dart"
+      },
+      {
+        "offset": 10486461,
+        "literal": "/clsapi/user-data/deletions/"
+      },
+      {
+        "offset": 10519180,
+        "literal": "/clsapi/aiTask/v2/selectPage"
+      },
+      {
+        "offset": 10945973,
+        "literal": "/clsapi/user-data/exports/"
+      },
+      {
+        "offset": 12935782,
+        "literal": "/clsapi/aiChatFeedback/del"
+      },
+      {
+        "offset": 12948061,
+        "literal": "/clsapi/aiChatMsg/selectPage"
+      },
+      {
+        "offset": 13015793,
+        "literal": "/clsapi/user-data"
+      },
+      {
+        "offset": 13243760,
+        "literal": "package:venus_flutter_app/features/lifelog_page/data/models/conversation_detail_response.dart"
+      },
+      {
+        "offset": 13416622,
+        "literal": "/clsapi/aiChatFeedback/edit"
+      }
+    ]
+  },
+  "cleanup": {
+    "at": "2026-10-24T12:24:47.826122+00:00",
+    "driver_uninstalled": true,
+    "app_pid": "25829",
+    "product_unchanged": "dev76 /10498",
+    "checkpoint": {
+      "checkpoint": true,
+      "checkpoint_key": "codex-r4-audio-source-audit-20261024",
+      "glasses_display": "notice",
+      "glasses_display_confirmed": false,
+      "next_checkin_at": "2026-10-24T12:54:47.090Z",
+      "requires_answer": false,
+      "message_id": "notice-c0845868935ec123eba2c0c642a914425bcc7a7bac421031573eb5c436aa34d6",
+      "server_stored": true,
+      "server_watch": "armed",
+      "caller_verified": true
+    }
+  },
+  "probe_source_sha256": "dff3e49764d53dcbe4cad27024a5c28edd6b8618f66fb5d51c08740e343df17e",
+  "driver_sha256": "8f49ca7198c966fe0cec9e80bea4236ca2c9288a8a7f503e585f5a5affb27711",
+  "findings": [
+    "66 unique cached lifelog source IDs; mixed conversation and recording types",
+    "Four exact filename matches are recording sources, three nonempty and one zero-byte",
+    "Native A4 callback writes files/always_on_cached_audio/<resolvedTaskId>.opus and reports taskId/filePath/sizeBytes on completion",
+    "That A4 directory is absent on this phone; absence does not prove remote audio is unavailable",
+    "Native A3 realtime audio path is distinct from A4 cached audio; debug dumping is separate",
+    "Static Dart query path /always-on/message/conversation/query is only a clue; no request replayed"
+  ],
+  "not_verified": [
+    "Mapping resolved or fallback taskId to conversation sourceId",
+    "Actual byte framing/codec/container and end-of-recording validity",
+    "Reliable account binding and no dropped/duplicated frames",
+    "Remote 72-hour durability/expiry and phone export",
+    "Authoritative deletion"
+  ]
+}

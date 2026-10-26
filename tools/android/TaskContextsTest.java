@@ -28,14 +28,38 @@ public final class TaskContextsTest {
   TaskConnection a=connection("https://codex.example.test/v1/agent","codex-original"),b=connection("https://hermes.example.test/v1/agent","hermes-original"),c=connection("https://codex.example.test/v1/agent","dedicated-qa");
   byte[] legacy=WireJson.bytes(WireJson.object("connection",WireJson.read(a.encode()),"enabled",true));TaskProfiles p=TaskProfiles.decode(legacy);check(p.profiles.size()==1&&p.selected().enabled&&p.selected.equals(a.binding()));
   p=p.upsert(b,true,NOW).upsert(c,true,NOW);check(p.profiles.size()==3&&p.selected.equals(c.binding())&&p.get(a.binding()).enabled);byte[] persisted=p.encode();TaskProfiles loaded=TaskProfiles.decode(persisted);check(Arrays.equals(loaded.encode(),persisted));
+  // Importing without the explicit default checkbox must not change where a
+  // new task goes. Keep the v2 non-empty-selection invariant for old readers.
+  rejects(()->TaskProfiles.empty().upsert(a,true,NOW,false));
+  TaskProfiles first=TaskProfiles.empty().upsert(a,true,NOW,true);
+  TaskProfiles imported=first.upsert(b,true,NOW,false);
+  check(imported.selected.equals(a.binding())&&imported.profiles.size()==2);
+  check(imported.get(a.binding()).enabled&&imported.get(b.binding()).enabled);
+  check(Arrays.equals(imported.get(a.binding()).connection.encode(),a.encode()));
+  check(TaskProfiles.decode(imported.encode()).selected.equals(a.binding()));
+  TaskProfiles explicit=imported.upsert(b,true,NOW,true);
+  check(explicit.selected.equals(b.binding())&&explicit.get(a.binding()).enabled);
+  TaskProfiles importedPaused=imported.upsert(c,false,NOW,false);
+  check(importedPaused.selected.equals(a.binding())&&!importedPaused.get(c.binding()).enabled&&importedPaused.get(b.binding()).enabled);
+  TaskProfiles resumed=importedPaused.enabled(c.binding(),true,NOW);
+  check(resumed.selected.equals(a.binding())&&resumed.get(a.binding()).enabled&&resumed.get(b.binding()).enabled&&resumed.get(c.binding()).enabled);
+  check(TaskWire.same(resumed.get(c.binding()).connection.route(),c.route()));
   TaskProfiles selected=p.select(b.binding());check(selected.get(a.binding()).enabled&&selected.get(c.binding()).enabled);check(p.selected.equals(c.binding()));
   TaskProfiles paused=p.enabled(b.binding(),false,NOW);check(!paused.get(b.binding()).enabled&&paused.get(a.binding()).enabled&&paused.selected.equals(c.binding()));
   Map<String,Object> renewed=WireJson.map(WireJson.read(a.encode()));renewed.put("token",String.join("",Collections.nCopies(40,"z")));renewed.put("expires_at",TaskWire.now(NOW+172800000));TaskConnection fresh=TaskConnection.parse(WireJson.bytes(renewed),NOW);TaskProfiles rotated=p.upsert(fresh,true,NOW);check(fresh.binding().equals(a.binding())&&rotated.profiles.size()==3&&rotated.get(b.binding()).enabled);check(!Arrays.equals(fresh.encode(),a.encode()));
+  TaskProfiles renewedWithoutDefault=p.upsert(fresh,true,NOW,false);
+  check(renewedWithoutDefault.selected.equals(c.binding())&&renewedWithoutDefault.profiles.size()==3);
+  check(Arrays.equals(renewedWithoutDefault.get(a.binding()).connection.encode(),fresh.encode()));
+  check(Arrays.equals(renewedWithoutDefault.get(b.binding()).connection.encode(),b.encode())&&renewedWithoutDefault.get(b.binding()).enabled);
   final TaskProfiles registered=p;rejects(()->registered.get("not-registered"));
   Map<String,Object> broken=WireJson.map(WireJson.read(persisted));broken.put("selected","absent");final Map<String,Object> missing=broken;rejects(()->TaskProfiles.decode(WireJson.bytes(missing)));
   broken=WireJson.map(WireJson.read(persisted));List<Object> rows=WireJson.list(broken.get("profiles"));rows.add(WireJson.copy(rows.get(0)));final Map<String,Object> duplicate=broken;rejects(()->TaskProfiles.decode(WireJson.bytes(duplicate)));
   Map<String,Object> forged=WireJson.map(WireJson.read(persisted));WireJson.map(WireJson.list(forged.get("profiles")).get(0)).put("binding",b.binding());rejects(()->TaskProfiles.decode(WireJson.bytes(forged)));
   TaskProfiles capacity=TaskProfiles.empty();for(int i=0;i<TaskProfiles.MAX;i++)capacity=capacity.upsert(connection(a.base,"context-"+i),false,NOW);final TaskProfiles full=capacity;rejects(()->full.upsert(b,false,NOW));check(full.profiles.size()==TaskProfiles.MAX);
+  // Removing an expired, non-default registration frees a slot; active or default ones stay.
+  String oldest=full.profiles.get(0).binding,newest=full.selected;rejects(()->full.remove(oldest,NOW));rejects(()->full.remove(newest,NOW+172800000));rejects(()->full.remove("missing",NOW+172800000));
+  TaskProfiles freed=full.remove(oldest,NOW+172800000);check(freed.profiles.size()==TaskProfiles.MAX-1&&freed.selected.equals(newest));rejects(()->freed.get(oldest));
+  TaskProfiles refilled=freed.upsert(b,false,NOW);check(refilled.profiles.size()==TaskProfiles.MAX&&TaskProfiles.decode(refilled.encode()).profiles.size()==TaskProfiles.MAX);
   TaskProfiles expired=TaskProfiles.decode(legacy);check(expired.profiles.size()==1);rejects(()->expired.enabled(a.binding(),true,NOW+172800000));check(!expired.enabled(a.binding(),false,NOW+172800000).selected().enabled);
   Map<String,Object> fixture=WireJson.map(WireJson.read(Files.readAllBytes(Paths.get("docs/contracts/normal.json"))));Map<String,Map<String,Object>> bodies=new HashMap<>();for(Object raw:WireJson.list(fixture.get("events"))){Map<String,Object> e=WireJson.map(raw);bodies.put((String)e.get("kind"),TaskWire.body(e));}
   File dir=Files.createTempDirectory("io-agent-contexts-").toFile();Map<String,Peer> peers=new HashMap<>();TaskHub.Factory factory=conn->{Peer peer=new Peer(conn,bodies);peers.put(conn.binding(),peer);return peer;};String originalPayload;

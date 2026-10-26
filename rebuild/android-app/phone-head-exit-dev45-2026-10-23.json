@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "installed": "0.5.3-dev45",
+  "version_code": 10467,
+  "sha256": "980d0d170437a976efe944d7761d966d85c05ab393f0210b92fcb0bddf76a00b",
+  "rollback": "0.5.3-dev44",
+  "purpose": "decide whether a phone-observable signal exists for 摇头两次退出任务提词器/任务录音 on stock Strix OS 1.0.5.5",
+  "gap_closed": "HostBusiness names only 9/15/17/19/20/21, so the dev33 probe (unknown frames=0) could not see other businesses; RawRxTrace logs every vendor event kind and every received message's raw business, length and first bytes",
+  "wearer_steps": "prompter: shake twice, pause 3 s, nod twice; long-press into recording; shake twice, pause, nod twice; end",
+  "observed": {
+    "prompter_17:05:32-17:06:01": [
+      "TELEPROMPTER type8 previewSync pageOffset 43,44,117,44 at 37.3s/42.1s/46.5s/49.3s",
+      "LAUNCHER type76 status frames (content not logged, >160 bytes)",
+      "TELEPROMPTER type6 exit on long-press"
+    ],
+    "recording_17:06:04-17:06:18": [
+      "nothing until RECORDING_SERVICE {action:2,state:3} stop from the glasses after ~13 s"
+    ],
+    "other_event_kinds": 0,
+    "other_businesses": 0
+  },
+  "limits": [
+    "recording audio did not pass this event path either, so a signal on another SDK path would still be unseen",
+    "LAUNCHER type76 content not inspected"
+  ],
+  "answer": "wearer stayed silent (probe only); draft INCOMPLETE, nothing submitted; question withdrawn by cancelling the task",
+  "cleanup": {
+    "identity": "caller319-20261023-a",
+    "task_cancelled": true,
+    "question": "withdrawn",
+    "revoked": true,
+    "verified_401": true
+  },
+  "status": "deferred_firmware: on stock Strix OS 1.0.5.5 no head-gesture signal reaches the phone during the task prompter or task recording; user 2026-10-23: record it, solve via firmware later, move on to R2",
+  "wearer_answers": {
+    "recording_end": "wearer ended it by hand, not by shaking",
+    "prompter_scroll": "text did not scroll when shaking or nodding"
+  }
+}

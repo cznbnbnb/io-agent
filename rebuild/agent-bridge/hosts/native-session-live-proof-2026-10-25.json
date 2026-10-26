@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "status": "isolated_native_core_passed_product_integration_pending",
+  "scope": "Synthetic disposable native sessions only; no product dispatch, Desktop takeover or device testing",
+  "runtimes": {
+    "node": "24.14.0",
+    "codex": "0.163.0-alpha.11.1",
+    "claude": "2.1.308",
+    "claude_existing_provider_model": "deepseek-v4-pro[1m] (inherited, not changed)"
+  },
+  "runs": [
+    {
+      "kind": "live_codex_shared_session",
+      "started_at": "2026-10-25T09:22:43.951Z",
+      "finished_at": "2026-10-25T09:23:10.550Z",
+      "thread_id": "01a1725e-97e1-79e2-9880-83347337ecc9",
+      "ok": false,
+      "error": "TIMEOUT_CHILD_EXIT",
+      "checks": [
+        {
+          "name": "isolated_thread_attached",
+          "at": "2026-10-25T09:22:44.761Z",
+          "same_thread": true
+        },
+        {
+          "name": "idle_wake_completed",
+          "at": "2026-10-25T09:22:49.696Z",
+          "turn_id": "01a1725e-9a18-7150-9f19-e8d18fbc6338",
+          "final_present": true
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:22:55.354Z",
+          "turn_id": "01a1725e-ace1-7670-94fa-36ae13afe6fb"
+        },
+        {
+          "name": "busy_input_queued_without_steer",
+          "at": "2026-10-25T09:22:55.369Z"
+        }
+      ],
+      "archived": true,
+      "cleanup": {
+        "server_exited": true,
+        "controlled_child_exited": true
+      },
+      "private_report_sha256": "c2e9fbafbcb6e60406894f600abc86bcc8392ca7a7c0211807ea1cfe0ec882f5",
+      "private_report_basename": "io-codex-native-proof-20261025.json"
+    },
+    {
+      "kind": "live_codex_shared_session",
+      "started_at": "2026-10-25T09:33:03.882Z",
+      "finished_at": "2026-10-25T09:33:28.696Z",
+      "thread_id": "01a17268-0d79-7c03-b408-666ab6c07577",
+      "ok": false,
+      "error": "TIMEOUT_CHILD_EXIT",
+      "checks": [
+        {
+          "name": "isolated_thread_attached",
+          "at": "2026-10-25T09:33:04.674Z",
+          "same_thread": true
+        },
+        {
+          "name": "idle_wake_completed",
+          "at": "2026-10-25T09:33:09.970Z",
+          "turn_id": "01a17268-0f99-7423-92f0-5c069a9bdcce",
+          "final_present": true
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:33:13.535Z",
+          "turn_id": "01a17268-23d5-7f20-ac4a-5263850cfe30"
+        },
+        {
+          "name": "busy_input_queued_without_steer",
+          "at": "2026-10-25T09:33:13.546Z"
+        },
+        {
+          "name": "exact_native_turn_interrupted",
+          "at": "2026-10-25T09:33:13.559Z",
+          "turn_id": "01a17268-23d5-7f20-ac4a-5263850cfe30",
+          "controlled_child_still_running": true
+        }
+      ],
+      "archived": true,
+      "cleanup": {
+        "server_exited": true,
+        "controlled_child_exited": true
+      },
+      "terminal_stop": {
+        "conversationId": "01a17268-0d79-7c03-b408-666ab6c07577",
+        "turnId": "01a17268-23d5-7f20-ac4a-5263850cfe30",
+        "complete": true,
+        "terminals": [],
+        "descendantsStopped": false
+      },
+      "private_report_sha256": "49d606bb58575f82d5bc98d70a2b4958fe0dd5d3a26405ea8d719b47f05c9855",
+      "private_report_basename": "io-codex-native-proof-20261025-v2.json"
+    },
+    {
+      "kind": "live_codex_shared_session",
+      "started_at": "2026-10-25T09:43:16.556Z",
+      "finished_at": "2026-10-25T09:43:54.901Z",
+      "thread_id": "01a17271-66bd-7b63-ae28-33b8e4aa58e2",
+      "ok": true,
+      "checks": [
+        {
+          "name": "isolated_thread_attached",
+          "at": "2026-10-25T09:43:17.370Z",
+          "same_thread": true
+        },
+        {
+          "name": "idle_wake_completed",
+          "at": "2026-10-25T09:43:22.304Z",
+          "turn_id": "01a17271-68f6-7d50-90a1-ce058f3377c3",
+          "final_present": true
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:43:47.327Z",
+          "turn_id": "01a17271-7bc2-7c62-a552-42f4401d97a9"
+        },
+        {
+          "name": "busy_input_queued_without_steer",
+          "at": "2026-10-25T09:43:50.518Z"
+        },
+        {
+          "name": "exact_native_turn_interrupted",
+          "at": "2026-10-25T09:43:50.536Z",
+          "turn_id": "01a17271-7bc2-7c62-a552-42f4401d97a9",
+          "controlled_child_still_running": true
+        },
+        {
+          "name": "exact_turn_and_controlled_child_stopped",
+          "at": "2026-10-25T09:43:50.545Z",
+          "turn_id": "01a17271-7bc2-7c62-a552-42f4401d97a9",
+          "child_alive": false,
+          "child_elapsed_ms": 3360.15380859375,
+          "heartbeat": "3"
+        },
+        {
+          "name": "explicit_original_queue_item_started",
+          "at": "2026-10-25T09:43:50.555Z"
+        },
+        {
+          "name": "same_session_context_continued",
+          "at": "2026-10-25T09:43:54.878Z",
+          "thread_id": "01a17271-66bd-7b63-ae28-33b8e4aa58e2",
+          "turn_id": "01a17271-ea17-7571-bfd4-5f666299157e",
+          "context_matches": true
+        },
+        {
+          "name": "no_duplicate_turns",
+          "at": "2026-10-25T09:43:54.881Z",
+          "turn_count": 3
+        }
+      ],
+      "archived": true,
+      "cleanup": {
+        "server_exited": true,
+        "controlled_child_exited": true
+      },
+      "terminal_stop": {
+        "conversationId": "01a17271-66bd-7b63-ae28-33b8e4aa58e2",
+        "turnId": "01a17271-7bc2-7c62-a552-42f4401d97a9",
+        "complete": true,
+        "terminals": [
+          {
+            "itemId": "exec-aa68d08e-1bef-43f2-bde8-23ae6556f1b0",
+            "processId": "73594",
+            "sources": [
+              "item/started"
+            ],
+            "requested": true,
+            "terminated": true,
+            "outcomeUnknown": false
+          }
+        ],
+        "descendantsStopped": false
+      },
+      "native_turn_count": 3,
+      "private_report_sha256": "9c93dae7ec8ec1589e145209aa6585707638f2cbd451ebba390fd7ed056175c1",
+      "private_report_basename": "io-codex-native-proof-20261025-v3.json"
+    },
+    {
+      "kind": "live_codex_shared_session",
+      "started_at": "2026-10-25T09:45:16.408Z",
+      "finished_at": "2026-10-25T09:45:33.964Z",
+      "thread_id": "01a17273-3ae3-7ba0-99d5-4a341bfbc45f",
+      "ok": true,
+      "checks": [
+        {
+          "name": "isolated_thread_attached",
+          "at": "2026-10-25T09:45:17.205Z",
+          "same_thread": true
+        },
+        {
+          "name": "idle_wake_completed",
+          "at": "2026-10-25T09:45:24.293Z",
+          "turn_id": "01a17273-3d0a-77e1-be1f-abb017f1a108",
+          "final_present": true
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:45:29.248Z",
+          "turn_id": "01a17273-5847-7003-b534-7c8a566091f4"
+        },
+        {
+          "name": "busy_input_queued_without_steer",
+          "at": "2026-10-25T09:45:29.253Z"
+        },
+        {
+          "name": "exact_native_turn_interrupted",
+          "at": "2026-10-25T09:45:29.261Z",
+          "turn_id": "01a17273-5847-7003-b534-7c8a566091f4",
+          "controlled_child_still_running": false
+        },
+        {
+          "name": "exact_turn_and_controlled_child_stopped",
+          "at": "2026-10-25T09:45:29.265Z",
+          "turn_id": "01a17273-5847-7003-b534-7c8a566091f4",
+          "child_alive": false,
+          "child_elapsed_ms": 51.46923828125,
+          "heartbeat": "0"
+        },
+        {
+          "name": "explicit_original_queue_item_started",
+          "at": "2026-10-25T09:45:29.272Z"
+        },
+        {
+          "name": "same_session_context_continued",
+          "at": "2026-10-25T09:45:33.944Z",
+          "thread_id": "01a17273-3ae3-7ba0-99d5-4a341bfbc45f",
+          "turn_id": "01a17273-6bb5-7172-b68b-a17641506304",
+          "context_matches": true
+        },
+        {
+          "name": "no_duplicate_turns",
+          "at": "2026-10-25T09:45:33.945Z",
+          "turn_count": 3
+        }
+      ],
+      "archived": true,
+      "cleanup": {
+        "server_exited": true,
+        "controlled_child_exited": true
+      },
+      "early_interrupt": true,
+      "terminal_stop": {
+        "conversationId": "01a17273-3ae3-7ba0-99d5-4a341bfbc45f",
+        "turnId": "01a17273-5847-7003-b534-7c8a566091f4",
+        "complete": true,
+        "terminals": [],
+        "descendantsStopped": false
+      },
+      "native_turn_count": 3,
+      "private_report_sha256": "571a26af67cd6b8207c87a9bd92753c5843752d22dbd794ef1815926018ce774",
+      "private_report_basename": "io-codex-native-proof-20261025-v4-early.json"
+    },
+    {
+      "kind": "live_claude_mod_engine",
+      "started_at": "2026-10-25T09:32:45.659Z",
+      "finished_at": "2026-10-25T09:34:19.505Z",
+      "session_id": "5a806d59-354a-4de0-a331-56209e34fcdf",
+      "ok": false,
+      "error": "TIMEOUT_REMOTE_IDLE_WAKE",
+      "checks": [
+        {
+          "name": "real_engine_session_and_mod_bound",
+          "at": "2026-10-25T09:32:48.961Z"
+        }
+      ],
+      "cleanup": {
+        "engine_exited": true,
+        "controlled_child_exited": true
+      },
+      "desktop_ui_verified": false,
+      "private_report_sha256": "347df1749599b041b4c02910fc64abad560e6d608eeb42ca84b1d01da41f9495",
+      "private_report_basename": "io-claude-mod-proof-20261025-v3.json"
+    },
+    {
+      "kind": "live_claude_mod_engine",
+      "started_at": "2026-10-25T09:45:15.253Z",
+      "finished_at": "2026-10-25T09:45:39.462Z",
+      "session_id": "62b3be5b-cdc9-49e3-b01d-daa99ebed956",
+      "ok": false,
+      "error": "TIMEOUT_CONTROLLED_CHILD_EXIT",
+      "checks": [
+        {
+          "name": "real_engine_session_and_mod_bound",
+          "at": "2026-10-25T09:45:18.800Z"
+        },
+        {
+          "name": "remote_idle_wake_keeps_context",
+          "at": "2026-10-25T09:45:20.835Z",
+          "turn_id": "10bb93a8-98c8-46eb-aa83-e403ee76103c"
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:45:23.118Z",
+          "turn_id": "bf821398-bd97-4545-bc7a-4bb133b88c1e"
+        }
+      ],
+      "cleanup": {
+        "engine_exited": true,
+        "controlled_child_exited": true,
+        "broker_closed": true,
+        "errors": []
+      },
+      "desktop_ui_verified": false,
+      "stop_attempt": {
+        "turn_id": "bf821398-bd97-4545-bc7a-4bb133b88c1e",
+        "elapsed_seconds": 0.088,
+        "remaining_seconds": 119.912,
+        "heartbeat": 0,
+        "natural_completion": false
+      },
+      "private_report_sha256": "2bdecf98cdf4bbb380fbc57adb6901eddfd09262b4d5751653eccc5ede0f231f",
+      "private_report_basename": "io-claude-mod-proof-20261025-v4.json"
+    },
+    {
+      "kind": "live_claude_mod_engine",
+      "started_at": "2026-10-25T09:55:13.875Z",
+      "finished_at": "2026-10-25T09:55:28.872Z",
+      "session_id": "3c19239a-b6d5-4b14-8b05-017dfdc248d2",
+      "ok": true,
+      "checks": [
+        {
+          "name": "real_engine_session_and_mod_bound",
+          "at": "2026-10-25T09:55:17.426Z"
+        },
+        {
+          "name": "remote_idle_wake_keeps_context",
+          "at": "2026-10-25T09:55:19.709Z",
+          "turn_id": "8a513d8d-0353-4df8-a646-c2778a4a870f"
+        },
+        {
+          "name": "bounded_child_running",
+          "at": "2026-10-25T09:55:22.250Z",
+          "turn_id": "cd3a9fb1-a820-41e9-bbab-6436403bc506"
+        },
+        {
+          "name": "precise_turn_and_controlled_child_stopped",
+          "at": "2026-10-25T09:55:24.545Z",
+          "turn_id": "cd3a9fb1-a820-41e9-bbab-6436403bc506",
+          "requested": {
+            "elapsed_seconds": 0.147,
+            "remaining_seconds": 119.853,
+            "heartbeat": 0,
+            "natural_completion": false
+          },
+          "exited": {
+            "elapsed_seconds": 1.429,
+            "remaining_seconds": 118.571,
+            "heartbeat": 0,
+            "natural_completion": false
+          },
+          "heartbeat_quiet_ms": 1000,
+          "signal_marker_present": true,
+          "proof_scope": "this controlled Python child only; not arbitrary descendants"
+        },
+        {
+          "name": "remote_continue_same_session",
+          "at": "2026-10-25T09:55:28.332Z",
+          "context_matches": true
+        }
+      ],
+      "cleanup": {
+        "engine_exited": true,
+        "controlled_child_exited": true,
+        "broker_closed": true,
+        "errors": []
+      },
+      "desktop_ui_verified": false,
+      "stop_attempt": {
+        "turn_id": "cd3a9fb1-a820-41e9-bbab-6436403bc506",
+        "elapsed_seconds": 0.147,
+        "remaining_seconds": 119.853,
+        "heartbeat": 0,
+        "natural_completion": false
+      },
+      "native_stop": {
+        "conversationId": "3c19239a-b6d5-4b14-8b05-017dfdc248d2",
+        "turnId": "cd3a9fb1-a820-41e9-bbab-6436403bc506",
+        "terminal": true,
+        "descendantsStopped": false,
+        "childStops": [
+          {
+            "tool_use_id": "call_00_gajivqhDUkzOGjLVq2zF7584",
+            "task_id": "b49m4n2wx",
+            "turn_id": "cd3a9fb1-a820-41e9-bbab-6436403bc506",
+            "phase": "stop_prepared"
+          }
+        ]
+      },
+      "private_report_sha256": "d9ef5e41a69f20653b8f8b39168941d5a0ce39e9d7361bed18316a27cd32da34",
+      "private_report_basename": "io-claude-mod-proof-20261025-v5.json"
+    }
+  ],
+  "unit_checks": {
+    "session_control": 28,
+    "codex_app_server": 39,
+    "claude_mod": 28,
+    "total": 95,
+    "scope": "real local storage/IPC plus simulated host protocol; separate from live engine runs",
+    "node22_target_rerun": false
+  },
+  "limitations": [
+    "Claude Desktop UI reload and arbitrary existing Codex Desktop thread takeover were not tested; Mac UI was locked.",
+    "Codex proof used one isolated shared app-server and the same newly created native thread throughout, archived after testing.",
+    "Claude proof temporarily loaded the Mod into one isolated 2.1.308 engine process using its existing configured provider. No global plugin or provider configuration changed.",
+    "Only the exact bounded synthetic Python child was independently observed exiting. Production adapters retain descendantsStopped:false and SessionControl therefore does not yet confirm a production stopped state.",
+    "Native queued submissions have no guaranteed execution-time expiry or product queue cancellation yet; both adapters explicitly expose native_queue_expiry:false.",
+    "No server task-dispatch, phone, glasses or product CLI integration is asserted by these tests.",
+    "Claude v5 native_stop snapshot was captured before final child-stop receipt (stop_prepared); observed OS exit and stable heartbeat prove the controlled child stopped, but no final native receipt is fabricated.",
+    "The Codex test prequeued its continuation, then explicitly started the original queue item after observing child exit. This is native protocol evidence, not a SessionControl resume_of integration test."
+  ],
+  "final_candidate_sha256": {
+    "rebuild/agent-bridge/hosts/session-control.mjs": "7bda8484be667d717c3845ce60fd76c203bfe156cde7e37bd4158168c466e1ee",
+    "rebuild/agent-bridge/hosts/codex-app-server.mjs": "6f9082af35e84a558d5f2128b65e9177b4c02ad1060f351e20dc11a2c568e86d",
+    "rebuild/agent-bridge/hosts/claude-mod/broker.mjs": "20221e2653f01fb2c4e8aa47ad3a3f7917cae316f2317475c52b8b0976daae6f",
+    "rebuild/agent-bridge/hosts/claude-mod/plugin/hooks/register.js": "670984311afe7e0463a4a3797c1378c1076b06873f5b0ebe2f20c8b26bbb72f7",
+    "rebuild/agent-bridge/hosts/claude-mod/plugin/hooks/protocol.js": "56dce2e4ade18167825c5812e2ee070bbdb22edf85952211d9e715ac062390e4"
+  }
+}

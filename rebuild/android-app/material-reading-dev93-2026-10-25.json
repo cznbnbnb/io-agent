@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T07:15:17.104303+00:00",
+  "scope": "Materials reading latency; approved default-agent control plan is separate and still in progress",
+  "candidate": {
+    "version": "0.5.3-dev93",
+    "version_code": 10515,
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev93.apk",
+    "bytes": 429830425,
+    "sha256": "e86f72826d89f02a3cd536c750fd077d8ac7f175024b98f1a95477a986d097f6",
+    "installed": false
+  },
+  "previous_installed": {
+    "version": "0.5.3-dev92",
+    "sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
+    "verified_this_round": false
+  },
+  "rollback": "0.5.3-dev76",
+  "android_compile": {
+    "java8_d8": true,
+    "sources": 234,
+    "source_hashes_match": true
+  },
+  "tests": {
+    "material_runtime_checks": 478,
+    "material_io_and_guard_held_reading_succeeds": true,
+    "account_switch_and_lifecycle_still_deny": true,
+    "audio": {
+      "checks": 507,
+      "input_checks": 2560,
+      "upload_catalog_checks": 44,
+      "boundary_checks": 185,
+      "old_blocking_guard_regression_detected": true,
+      "old_drop_on_expiry_regression_detected": true
+    },
+    "status_without_archive_manager_and_without_main_account_io": true,
+    "status_preserves_archive_and_provenance_hash": true,
+    "scope": "Actual Java runtime and filesystem with simulated Android/account/network boundaries; no phone latency or layout measurement"
+  },
+  "device": {
+    "old_adb_address_offline": true,
+    "new_address_requested": true,
+    "installed_this_round": false,
+    "user_material_or_audio_modified_by_test": false
+  },
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/AgentMaterialPage.java",
+      "sha256": "c64cfc4e423f4708faba4a5232d0fad77cee7b39e0122bb4465772866307df2d"
+    },
+    {
+      "path": "src/com/turboio/addon/MaterialRuntime.java",
+      "sha256": "0901a8f15688bb552f0b6489b90650396e3a1f957da6078ce54d63e3c13e5e01"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogAudioRuntime.java",
+      "sha256": "5c2c66b64de527c34e6bd33781c22d4fdf39f5d577bc95cc7828f6eef9a650b0"
+    },
+    {
+      "path": "../../tools/android/MaterialMonthRuntimeTest.java",
+      "sha256": "bc5f4aff7ad670bdca36f14374e86c98cfb04c38c1343a62140d1de241374e35"
+    },
+    {
+      "path": "../../tools/android/LifelogAudioUploadCatalogTest.java",
+      "sha256": "457d523da79201c96224337adc957ce3c3925134393f3bbde6819afd1eb3625d"
+    },
+    {
+      "path": "../../tools/android/test-lifelog-audio-runtime.mjs",
+      "sha256": "5650db522f5805130209843b7e0737e15dc1994fc7967dbc4e366af7564765b9"
+    }
+  ],
+  "remaining": [
+    "Install via dev92 delta after new ADB address arrives and full baseline SHA matches",
+    "Measure normal phone list/detail latency and confirm protected exports retained",
+    "Continue approved native-session control and phone/glasses features"
+  ],
+  "delta": {
+    "baseline": "0.5.3-dev92",
+    "bytes": 1547589,
+    "sha256": "d3baf105c72cb9a83e955f5aab8bfddd7fdb095fce87001c2c52289a10ae1fcd",
+    "local_reconstruction_hash_verified": true,
+    "transferred": false
+  }
+}

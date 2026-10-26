@@ -61,6 +61,8 @@ public final class TurboAddon {
         BackgroundWork.init(app);MusicPlayer.init(app);ReaderLibrary.init(app);CloudCaption.init(app);BackgroundWork.register("新闻",NewsTele::stop);
         NativeTransfer.init(app);FocusController.init(app);AppController.init(app);CardTransport.init();NativeNavigation.init(app);
         TaskRuntime.get(host).read(null);
+        MaterialRuntime.get(host);
+        LifelogAudioObservationRuntime.boot(host);
         Host107Connection.attach(host);
         Fixed60Runtime.get(host);
         Fixed60OfficialPreparation.init(host);
@@ -68,6 +70,27 @@ public final class TurboAddon {
         MinuteCardRuntime.init(host);
         HeadGestureRuntime.init(host);
         AgentCardRuntime.init(host);
+    }
+    /** 2026-10-24 (user): after a phone reboot the stock process is started by its companion-device
+     * service and no screen opens, so questions, notices and dictation waited until the App was opened.
+     * VenusApplication.onCreate now boots the task channel without a screen; the full install still runs
+     * when MainActivity resumes. */
+    public static void boot(android.app.Application application) {
+        MAIN.postDelayed(() -> {
+            if (app != null) return;
+            try {
+                // OTA guards first: their journals keep cards and dictation off the lens during an upgrade.
+                OtaController.init(application); OfficialOtaBridge.init(application);
+                BackgroundWork.init(application); BackgroundWork.register("新闻", NewsTele::stop); NativeTransfer.init(application); CardTransport.init();
+                Host107Login.warm(application);
+                MaterialRuntime.boot(application);
+                LifelogAudioObservationRuntime.boot(application);
+                Host107Connection.boot(application);
+                HeadGestureRuntime.boot(application);
+                AgentCardRuntime.boot(application);
+                android.util.Log.i("TurboIOCard", "headless task runtime started");
+            } catch (Throwable failure) { android.util.Log.w("TurboIOCard", "headless task runtime unavailable " + failure.getClass().getSimpleName()); }
+        }, 8000);
     }
     public static void install(Activity host) {
         if (Looper.myLooper() != Looper.getMainLooper()) { MAIN.post(() -> install(host)); return; }

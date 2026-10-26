@@ -6,6 +6,7 @@ import java.util.*;
 
 /** Durable Android port of the existing mailbox: immutable wire + explicit facts. */
 final class TaskMailbox implements AutoCloseable {
+ interface SendGate {String reason(Map<String,Object> event);}
  private final AtomicDocument disk;private final TaskConnection connection;final String binding;
  private Map<String,Object> state;
  static final class Claim {
@@ -33,9 +34,10 @@ final class TaskMailbox implements AutoCloseable {
    Map<String,Object> e=WireJson.map(WireJson.read(payload.getBytes(StandardCharsets.UTF_8)));String kind=TaskWire.id(e.get("kind"));
    TaskWire.require(TaskWire.set("task","answer").contains(kind)&&"1.0".equals(e.get("schema_version"))&&connection.producer.equals(e.get("producer_id"))&&events.add(TaskWire.id(e.get("event_id"))),"TASK_STORE_EVENT");
    TaskWire.body(kind,TaskWire.body(e));TaskWire.require(TaskWire.same(TaskWire.body(e).get("route"),connection.route())&&TaskWire.stamp(e.get("expires_at"))>TaskWire.stamp(e.get("created_at")),"TASK_STORE_ROUTE");TaskWire.text(e.get("idempotency_key"),256,false);
-   String phase=TaskWire.id(row.get("state"));TaskWire.require(TaskWire.set("awaiting_refresh","queued","sending","reconcile","retry_wait","server_stored","expired","blocked","withdrawn_local").contains(phase)&&row.get("needs_lookup") instanceof Boolean,"TASK_STORE_STATE");
+   String phase=TaskWire.id(row.get("state"));TaskWire.require(TaskWire.set("awaiting_refresh","awaiting_target","queued","sending","reconcile","retry_wait","server_stored","expired","blocked","withdrawn_local").contains(phase)&&row.get("needs_lookup") instanceof Boolean,"TASK_STORE_STATE");
    TaskWire.nonnegative(row.get("attempts"));TaskWire.nonnegative(row.get("next_attempt_at"));TaskWire.text(row.get("error"),64,true);
    if(phase.equals("sending"))sending++;
+   if(phase.equals("awaiting_target"))TaskWire.require(kind.equals("task")&&!Boolean.TRUE.equals(row.get("needs_lookup")),"TASK_STORE_DRAFT");
    if(phase.equals("awaiting_refresh"))TaskWire.require(kind.equals("answer")&&TaskWire.nonnegative(row.get("attempts"))==0&&!Boolean.TRUE.equals(row.get("needs_lookup")),"TASK_STORE_DRAFT");
    if(phase.equals("server_stored")){TaskWire.ack(WireJson.map(row.get("ack")),e);TaskWire.require(!Boolean.TRUE.equals(row.get("needs_lookup")),"TASK_STORE_ACK");}else TaskWire.require(row.get("ack")==null,"TASK_STORE_ACK");
   }
@@ -47,6 +49,19 @@ final class TaskMailbox implements AutoCloseable {
  synchronized List<Object> pending(){return rows(copy(),"outbox");}
  synchronized List<Object> objects(){return rows(copy(),"objects");}
  synchronized Map<String,Object> cached(String kind,String id){return find(rows(copy(),"objects"),kind,id);}
+ /** Inbox cursors advance over immutable events, not answers/receipts on an old request.
+  * Recheck one oldest unresolved request in this route; an expired copy needs one final read. */
+ synchronized String staleRequest(long now){
+  String selected=null;long oldest=Long.MAX_VALUE;
+  for(Object value:rows(state,"objects")){
+   Map<String,Object> cached=WireJson.map(value),item=WireJson.map(cached.get("item"));
+   if(!"request".equals(item.get("kind"))||!TaskWire.same(TaskWire.body(item).get("route"),connection.route())||!TaskWire.set("pending","presented").contains(item.get("state"))||item.get("answer")!=null)continue;
+   long checked=TaskWire.nonnegative(cached.get("detail_at")),expires=TaskWire.stamp(item.get("expires_at"));
+   if(checked>0&&(now-checked<15000||checked>=expires))continue;
+   if(checked<oldest){oldest=checked;selected=(String)item.get("object_id");}
+  }
+  return selected;
+ }
  private static Map<String,Object> find(List<Object> objects,String kind,String id){for(Object value:objects){Map<String,Object> cached=WireJson.map(value),item=WireJson.map(cached.get("item"));if(kind.equals(item.get("kind"))&&id.equals(item.get("object_id")))return cached;}return null;}
  private Map<String,Object> enqueue(String operation,String kind,Map<String,Object> body,long now,long expires,String phase)throws IOException{
   TaskWire.id(operation);TaskWire.body(kind,body);TaskWire.require(TaskWire.same(body.get("route"),connection.route()),"TASK_ROUTE_MISMATCH");
@@ -58,6 +73,19 @@ final class TaskMailbox implements AutoCloseable {
  synchronized Map<String,Object> delegate(String operation,String command,long now,long expires)throws IOException{
   TaskWire.require(!TaskWire.text(command,65536,false).trim().isEmpty(),"TASK_COMMAND_INVALID");
   return enqueue(operation,"task",WireJson.object("task_id","task-android-"+TaskWire.hash((binding+"/"+operation).getBytes(StandardCharsets.UTF_8)),"revision",1,"route",connection.route(),"state","queued","command",command,"allow_create_session",false),now,expires,"queued");
+ }
+ synchronized Map<String,Object> control(String operation,String taskId,Map<String,Object> expected,String kind,String text,long now,long expires)throws IOException{
+  TaskWire.uuid(operation);TaskWire.id(taskId);TaskWire.execution(expected);TaskWire.require(TaskWire.set("stop","resume").contains(kind),"TASK_CONTROL_INVALID");
+  // Reconcile an already durable control before consulting a newer task state.
+  // Repeated callbacks retain the original bytes, expiry and expected turn.
+  for(Object raw:rows(state,"outbox")){Map<String,Object> row=WireJson.map(raw);if(!operation.equals(row.get("operation_id")))continue;
+   Map<String,Object> event=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8)));
+   TaskWire.require("task".equals(event.get("kind"))&&TaskControl.sameIntent(TaskWire.body(event),taskId,expected,operation,kind,text),"TASK_OPERATION_CONFLICT");return WireJson.map(WireJson.copy(row));
+  }
+  Map<String,Object> cached=cached("task",taskId);TaskWire.require(cached!=null,"TASK_REFRESH_REQUIRED");
+  Map<String,Object> task=TaskWire.object(cached.get("item"));TaskWire.require(TaskWire.same(TaskWire.body(task).get("route"),connection.route()),"TASK_ROUTE_MISMATCH");
+  TaskWire.require(TaskControl.pending(rows(state,"outbox"),task,kind)==null,"TASK_CONTROL_ALREADY_SAVED");
+  return enqueue(operation,"task",TaskControl.update(task,expected,operation,kind,text,now,expires),now,expires,"queued");
  }
  synchronized Map<String,Object> draftAnswer(String operation,String requestId,long revision,Object option,String text,long now)throws IOException{
   return draftAnswer(operation,requestId,revision,option,text,"phone",null,now);
@@ -89,6 +117,7 @@ final class TaskMailbox implements AutoCloseable {
    TaskWire.require(TaskWire.same(TaskWire.body(prior).get("route"),TaskWire.body(item).get("route")),"TASK_ROUTE_MISMATCH");if(rev<before)return;
    if(rev==before){TaskWire.require(prior.get("event_id").equals(item.get("event_id"))&&prior.get("commit_seq").equals(item.get("commit_seq"))&&TaskWire.same(TaskWire.body(prior),TaskWire.body(item)),"TASK_REVISION_CONFLICT");
     if(detailAt==0||TaskWire.set("answered","withdrawn","expired").contains(prior.get("state"))){if(prior.get("receipts")!=null)item.put("receipts",prior.get("receipts"));if(prior.get("answer")!=null)item.put("answer",prior.get("answer"));if(TaskWire.set("answered","withdrawn","expired").contains(prior.get("state")))item.put("state",prior.get("state"));}
+    if(detailAt==0)detailAt=TaskWire.nonnegative(old.get("detail_at"));
    }
    rows(next,"objects").remove(old);
   }
@@ -111,14 +140,22 @@ final class TaskMailbox implements AutoCloseable {
  }
  static Map<String,Object> operationRow(Map<String,Object> state,String operation){for(Object value:rows(state,"outbox")){Map<String,Object> row=WireJson.map(value);if(operation.equals(row.get("operation_id")))return row;}throw new IllegalArgumentException("TASK_OPERATION_NOT_FOUND");}
  synchronized void blockDraft(String operation,String code)throws IOException{Map<String,Object> next=copy(),row=operationRow(next,operation);TaskWire.require("awaiting_refresh".equals(row.get("state")),"TASK_DRAFT_STALE");row.put("state","blocked");row.put("error",code);publish(next);}
- synchronized Claim claim(long now)throws IOException{
+ synchronized Claim claim(long now)throws IOException{return claim(now,event->"");}
+ synchronized Claim claim(long now,SendGate gate)throws IOException{
   Map<String,Object> next=copy();for(Object value:rows(next,"outbox"))if(WireJson.map(value).get("state").equals("sending"))return null;boolean changed=false;
-  for(Object value:rows(next,"outbox")){Map<String,Object> row=WireJson.map(value);if(!TaskWire.set("queued","reconcile","retry_wait").contains(row.get("state"))||TaskWire.nonnegative(row.get("next_attempt_at"))>now)continue;
+  for(Object value:rows(next,"outbox")){Map<String,Object> row=WireJson.map(value);if(!TaskWire.set("queued","awaiting_target","reconcile","retry_wait").contains(row.get("state"))||TaskWire.nonnegative(row.get("next_attempt_at"))>now)continue;
    Map<String,Object> event=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8)));
    if(!Boolean.TRUE.equals(row.get("needs_lookup"))&&TaskWire.stamp(event.get("expires_at"))<=now){row.put("state","expired");row.put("error","EXPIRED");changed=true;continue;}
+   if(!Boolean.TRUE.equals(row.get("needs_lookup"))){String reason=gate.reason(event);if(!reason.isEmpty()){TaskWire.text(reason,64,false);row.put("state","awaiting_target");row.put("error",reason);row.put("next_attempt_at",now+5000);changed=true;continue;}}
    row.put("state","sending");row.put("attempts",TaskWire.nonnegative(row.get("attempts"))+1);publish(next);return new Claim(row,binding);
   }
   if(changed)publish(next);return null;
+ }
+ /** The caller has not begun POST. Lease checks must not fabricate an ambiguous send. */
+ synchronized void deferTarget(Claim claim,String reason,long now)throws IOException{
+  TaskWire.require("send".equals(claim.action)&&binding.equals(claim.binding),"TASK_CLAIM_STALE");Map<String,Object> next=copy(),row=operationRow(next,claim.operation);
+  TaskWire.require("sending".equals(row.get("state"))&&claim.payload.equals(row.get("payload"))&&claim.attempt==TaskWire.positive(row.get("attempts")),"TASK_CLAIM_STALE");TaskWire.text(reason,64,false);
+  row.put("state","awaiting_target");row.put("needs_lookup",false);row.put("error",reason);row.put("next_attempt_at",now+5000);publish(next);
  }
  synchronized void finish(Claim claim,int status,byte[] response,long now,long retryAfter)throws IOException{
   TaskWire.require(binding.equals(claim.binding),"TASK_CLAIM_STALE");Map<String,Object> next=copy(),row=operationRow(next,claim.operation);

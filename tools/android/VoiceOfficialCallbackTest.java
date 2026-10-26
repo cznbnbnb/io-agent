@@ -8,7 +8,7 @@ final class VoiceOfficialCallbackTest {
  static void yes(boolean value){VoiceAnswerTest.yes(value);}
  static void deviceStopped(VoiceAnswerSession draft)throws Exception{
   yes(draft.stopSubmitted(draft.token(),VoiceAnswerTest.PEER,1,5000));
-  VoiceAnswerSession.StopProbe p=draft.probeStop(VoiceAnswerTest.PEER,1,5001);
+  CaptureSession.StopProbe p=draft.probeStop(VoiceAnswerTest.PEER,1,5001);
   yes(draft.deviceIdle(p,VoiceAnswerTest.PEER,1,5002,true));yes(draft.finish());
  }
  static final class Events implements VoiceDraftCallbacks.Events {

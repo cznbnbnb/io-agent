@@ -4,6 +4,9 @@ import java.util.*;
 
 /** Material 1.2 shape/cross-field checks. Historic parent verification remains server-authoritative. */
 final class MaterialWire {
+ static final int MAX_EVENT_BYTES=4194304;
+ static Object copy(Object value){return WireJson.read(WireJson.bytes(value),33554432,2000000);}
+ static Object read(byte[] bytes){return WireJson.read(bytes,MAX_EVENT_BYTES,500000);}
  static void require(boolean value,String code){if(!value)throw new IllegalArgumentException(code);}
  static String text(Object value,int max,boolean empty){require(value instanceof String,"MATERIAL_TEXT_INVALID");String s=(String)value;require((empty||!s.isEmpty())&&s.codePointCount(0,s.length())<=max,"MATERIAL_TEXT_INVALID");return s;}
  static String id(Object v){return text(v,512,false);}
@@ -12,7 +15,7 @@ final class MaterialWire {
  static long time(Object v){try{return TaskConnection.stamp(v);}catch(RuntimeException invalid){throw new IllegalArgumentException("MATERIAL_TIME_INVALID");}}
  static boolean choice(Object v,String...allowed){return Arrays.asList(allowed).contains(v);}
  static Map<String,Object> event(byte[] raw,String producer){
-  require(raw!=null&&raw.length<=262144,"MATERIAL_EVENT_BUDGET");Map<String,Object> e=WireJson.map(WireJson.read(raw));
+  require(raw!=null&&raw.length<=MAX_EVENT_BYTES,"MATERIAL_EVENT_BUDGET");Map<String,Object> e=WireJson.map(WireJson.read(raw,MAX_EVENT_BYTES,500000));
   BoundedJson.keys(e,"schema_version","event_id","idempotency_key","kind","producer_id","created_at","expires_at","body");
   require("1.2".equals(e.get("schema_version"))&&"material.revision".equals(e.get("kind"))&&producer.equals(e.get("producer_id")),"MATERIAL_EVENT_INVALID");require(!choice(id(e.get("event_id")),".",".."),"MATERIAL_EVENT_INVALID");String key=text(e.get("idempotency_key"),256,false);require(key.length()>=8,"MATERIAL_EVENT_INVALID");long created=time(e.get("created_at")),expires=time(e.get("expires_at"));require(created<expires,"MATERIAL_EVENT_TIME_INVALID");body(WireJson.map(e.get("body")));return e;
  }
@@ -35,6 +38,13 @@ final class MaterialWire {
    if(u.containsKey("source_range")){Map<String,Object> range=WireJson.map(u.get("source_range"));BoundedJson.keys(range,"parent_utterance_id","parent_revision","start_ms","end_ms","text_start","text_end");id(range.get("parent_utterance_id"));long rstart=number(range.get("start_ms")),rend=number(range.get("end_ms"));require(positive(range.get("parent_revision"))<revision&&rend>=rstart&&rend<=duration&&number(range.get("text_end"))>number(range.get("text_start"))&&(start==null||start>=rstart&&end<=rend)&&(covered==null||rend<=covered),"MATERIAL_RANGE_INVALID");}
   }
   if(b.get("operation").equals("delete"))require(utterances.isEmpty()&&speakers.isEmpty()&&full.get("text").equals(""),"MATERIAL_TOMBSTONE_INVALID");
+ }
+ static Map<String,Object> cancellationIntent(Map<String,Object> event,String hash){Map<String,Object> body=WireJson.map(event.get("body"));return WireJson.object("event_id",event.get("event_id"),"idempotency_key",event.get("idempotency_key"),"material_id",body.get("material_id"),"revision",body.get("revision"),"payload_sha256",hash,"expires_at",event.get("expires_at"));}
+ static void cancellation(Map<String,Object> proof,Map<String,Object> event,String hash,MaterialConnection connection){
+  require(hash!=null&&hash.matches("[a-f0-9]{64}"),"MATERIAL_CANCELLATION_MISMATCH");
+  BoundedJson.keys(proof,"schema_version","state","event_id","idempotency_key","material_id","revision","payload_sha256","expires_at","owner_id","producer_id","server_id","cancelled_at");
+  require("1.0".equals(proof.get("schema_version"))&&"cancelled".equals(proof.get("state"))&&connection.owner.equals(proof.get("owner_id"))&&connection.producer.equals(proof.get("producer_id"))&&connection.server.equals(proof.get("server_id")),"MATERIAL_CANCELLATION_MISMATCH");
+  for(Map.Entry<String,Object> field:cancellationIntent(event,hash).entrySet())require(field.getValue().equals(proof.get(field.getKey())),"MATERIAL_CANCELLATION_MISMATCH");time(proof.get("cancelled_at"));
  }
  static void ack(Map<String,Object> ack,Map<String,Object> event){
   Map<String,Object> b=WireJson.map(event.get("body")),r=WireJson.map(ack.get("receipt"));

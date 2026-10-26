@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T08:59:38.958629+00:00",
+  "scope": "R3 once-paired original Codex caller and bounded phone question status reconciliation",
+  "installed": "0.5.3-dev72",
+  "version_code": 10494,
+  "apk_sha256": "738a515774db41970655285bd13b93fbdfabc1969cfd43b50831de0d0d2952fe",
+  "rollback": "0.5.3-dev71",
+  "inherited": "96b1dbb",
+  "r2": "complete by user decision; no reopened acceptance tests",
+  "hermes": "out of scope",
+  "progress_pushes": false,
+  "checks": {
+    "context_assertions": 59,
+    "status_assertions": 35,
+    "presentation_assertions": 37,
+    "voice_bridge_assertions": 248,
+    "join_runtime_cases": 2,
+    "bridge_regression_passed": 83,
+    "bridge_regression_skipped_windows": 3,
+    "android_sources_compiled": 193,
+    "signature_v2_v3": true,
+    "installed_full_apk_sha_verified": true
+  },
+  "changes": [
+    "Bounded refresh of unresolved request heads even when the inbox cursor has no new request revision",
+    "Hide confirmed stored same-revision answers from the decision list; preserve ambiguous delivery and revision isolation",
+    "Register drains the shared inbox until the exact current operation is admitted; preserve operation key across uncertain registration",
+    "Narrow existing caller dispatch to the original task plus complete route; leave other sessions untouched"
+  ],
+  "device": {
+    "phone_discovered_once_paired_task_without_import": true,
+    "same_original_task_reused_after_join_fix": true,
+    "task_changed_from_queued_to_running": true,
+    "old_claude_answered_question_removed": true,
+    "first_attempt": {
+      "request_id": "req-b3c2ee60357f6ecb272bd6977aa3b9838269b6ae6660778f335b6ca725cab1e8",
+      "state": "expired",
+      "answer": null,
+      "prepare_code": 18,
+      "user_confirmed_temples_folded": true,
+      "recording_started": false,
+      "lens_displayed": false
+    },
+    "second_attempt": {
+      "request_id": "req-ea8a10b94559bb5dc3927165ab5282521a9f4627ff60839cd17b852578826ac5",
+      "user_ready": true,
+      "phone_other_app_foreground": true,
+      "prompter_reading_frames": true,
+      "long_press_exit": true,
+      "answer_received": true,
+      "option_id": "text-auto",
+      "full_text": "选一就好了。",
+      "input_source": "voice",
+      "original_session_verified": true,
+      "task_resumed": true,
+      "stored_at": "2026-10-24T08:56:47.351Z",
+      "next_action": "Proceed with long-text upload and automatic incremental sync first"
+    },
+    "foreground_return_no_waiting_questions": true,
+    "original_task_running": true,
+    "history_expired_and_answered_labels_verified": true,
+    "full_voice_text_on_phone": true,
+    "agent_received_and_task_resumed_receipts_on_phone": true
+  },
+  "retention": {
+    "retained": [
+      "dev72",
+      "dev71"
+    ],
+    "removed_verified": "dev70"
+  },
+  "not_verified": [
+    "R4 chunk upload, automatic incremental sync, audio retention/export and authoritative source deletion remain open",
+    "No new R2 long-wear/Bluetooth/noise acceptance; user explicitly waived these"
+  ],
+  "r3_handoff_scope": "Passed: Codex once-paired original session; background answer then foreground refresh; stale answered question removal. Claude prior real-loop evidence inherited.",
+  "trace_sha256": "b837ddd62ff94657546ccf71c1487e5ecbe0a8e5e1292928a67097bce96eafce",
+  "device_lock": "released after R3 checks"
+}

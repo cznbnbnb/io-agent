@@ -10,13 +10,22 @@ final class TaskApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
  private final TaskConnection connection;private final Transport transport;
- private long nextCheck;private boolean running;
+ private long nextCheck,nextStatusCheck;private boolean running,inboxCurrent,sessionControl,sessionDirectory;
+ boolean inboxCurrent(){return inboxCurrent;}
+ boolean sessionControl(){return sessionControl;}
  String note="paused";
  TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
  static String encode(String value){try{return URLEncoder.encode(value,"UTF-8").replace("+","%20");}catch(Exception impossible){throw new IllegalStateException(impossible);}}
  static String error(Response response){try{Map<String,Object> value=WireJson.map(WireJson.read(response.body)),e=WireJson.map(value.get("error"));String code=(String)e.get("code");if(code!=null&&code.matches("[A-Z][A-Z0-9_]{0,63}"))return code;}catch(RuntimeException ignored){}return response.status==401?"AUTH_REQUIRED":response.status==403?"FORBIDDEN":"TASK_UNAVAILABLE";}
  void preflight(long now)throws IOException{
-  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);sessionControl=false;sessionDirectory=false;if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+  Object capabilities=WireJson.map(WireJson.read(result.body)).get("capabilities");
+  sessionControl=capabilities instanceof List&&WireJson.list(capabilities).contains("task_session_control_v1");
+  sessionDirectory=capabilities instanceof List&&WireJson.list(capabilities).contains(TaskSessionDirectory.CAPABILITY);
+ }
+ synchronized TaskSessionDirectory directory(long now)throws IOException{preflight(now);return readDirectory();}
+ private TaskSessionDirectory readDirectory()throws IOException{
+  TaskWire.require(sessionDirectory,"DIRECTORY_UNSUPPORTED");long start=TaskSessionDirectory.elapsed();Response reply=transport.exchange("/agent-sessions",null);long end=TaskSessionDirectory.elapsed();if(reply.status!=200)throw new IOException(error(reply));return TaskSessionDirectory.fresh(reply.body,connection.server,connection.owner,start,end);
  }
  private Map<String,Object> detail(String kind,String id)throws IOException{
   TaskWire.require(TaskWire.set("task","request","message").contains(kind)&&!TaskWire.set(".","..").contains(TaskWire.id(id)),"TASK_QUERY_INVALID");
@@ -38,9 +47,23 @@ final class TaskApi {
     catch(IOException error){if(TaskWire.set("REQUEST_NOT_FOUND","TASK_NOT_FOUND","REQUEST_CLOSED","EXPIRED").contains(error.getMessage()))mailbox.blockDraft((String)row.get("operation_id"),error.getMessage());else throw error;}
     break;
    }
-   claim=mailbox.claim(now);
+   TaskSessionDirectory directory=null;String directoryFailure="";boolean needsDirectory=false;
+   for(Object raw:mailbox.pending()){Map<String,Object> row=WireJson.map(raw);if(!Boolean.TRUE.equals(row.get("needs_lookup"))&&TaskWire.set("queued","awaiting_target","retry_wait").contains(row.get("state"))&&TaskWire.nonnegative(row.get("next_attempt_at"))<=now&&TaskSessionDirectory.guarded(WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))))){needsDirectory=true;break;}}
+   if(needsDirectory)try{directory=readDirectory();}catch(IOException|RuntimeException unavailable){directoryFailure=safeError(unavailable);}
+   final TaskSessionDirectory checkedDirectory=directory;final String gateFailure=directoryFailure;
+   claim=mailbox.claim(now,event->!TaskSessionDirectory.guarded(event)?"":checkedDirectory==null?(gateFailure.isEmpty()?"DIRECTORY_REFRESH_REQUIRED":gateFailure):checkedDirectory.gate(TaskWire.route(TaskWire.body(event).get("route")),TaskSessionDirectory.elapsed()));
    if(claim!=null){
     Map<String,Object> event=claim.event(),b=TaskWire.body(event);
+    if(claim.action.equals("send")&&event.get("kind").equals("task")&&b.containsKey("control")){
+     String rejection=sessionControl?"":"TASK_CONTROL_UNSUPPORTED";
+     if(rejection.isEmpty()){
+      Map<String,Object> task=detail("task",(String)b.get("task_id"));mailbox.acceptDetail(task,now);
+      if(!TaskControl.current(b,task))rejection="TASK_CONTROL_STALE";
+     }
+     if(!rejection.isEmpty()){
+      mailbox.finish(claim,409,WireJson.bytes(WireJson.object("schema_version","1.0","error",WireJson.object("code",rejection,"retryable",false))),now,0);claim=null;note=rejection;return true;
+     }
+    }
     // A queued answer is checked again immediately before the first actual POST.
     if(claim.action.equals("send")&&event.get("kind").equals("answer")){
      Map<String,Object> request=detail("request",(String)b.get("request_id")),parent=detail("task",(String)b.get("task_id"));
@@ -48,15 +71,28 @@ final class TaskApi {
       mailbox.finish(claim,409,WireJson.bytes(WireJson.object("schema_version","1.0","error",WireJson.object("code","REQUEST_CLOSED","retryable",false))),now,0);claim=null;note="REQUEST_CLOSED";return true;
      }
     }
-    String path=claim.action.equals("lookup")?"/events/"+encode((String)event.get("event_id")):event.get("kind").equals("answer")?"/answers":"/tasks";
-    note=claim.action.equals("lookup")?"reconciling":"sending";requestStarted=true;
-    Response response=transport.exchange(path,claim.action.equals("lookup")?null:claim.payload.getBytes(StandardCharsets.UTF_8));
-    mailbox.finish(claim,response.status,response.body,now,response.retryAfter);claim=null;
+    String lateGate=claim.action.equals("send")&&TaskSessionDirectory.guarded(event)?checkedDirectory.gate(TaskWire.route(b.get("route")),TaskSessionDirectory.elapsed()):"";
+    if(!lateGate.isEmpty()){mailbox.deferTarget(claim,lateGate,now);claim=null;}
+    else{
+     String path=claim.action.equals("lookup")?"/events/"+encode((String)event.get("event_id")):event.get("kind").equals("answer")?"/answers":"/tasks";
+     note=claim.action.equals("lookup")?"reconciling":"sending";requestStarted=true;
+     Response response=transport.exchange(path,claim.action.equals("lookup")?null:claim.payload.getBytes(StandardCharsets.UTF_8));
+     mailbox.finish(claim,response.status,response.body,now,response.retryAfter);claim=null;
+    }
    }
    String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
    if(inbox.status!=200){String code=error(inbox);if(inbox.status==410&&code.equals("CURSOR_RESET_REQUIRED"))mailbox.resetCursor(cursor);throw new IOException(code);}
-   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);return true;
+   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);inboxCurrent=!Boolean.TRUE.equals(page.get("has_more"));note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);
+   // One bounded status read per pump, after queue delivery/inbox work. Failure cannot undo a saved
+   // answer or starve incoming tasks; each route keeps its own cursor and status cooldown.
+   if(now>=nextStatusCheck){String request=mailbox.staleRequest(now);if(request!=null){
+    nextStatusCheck=now+3000;
+    try{Map<String,Object> fresh=detail("request",request);TaskWire.require(TaskWire.same(TaskWire.body(fresh).get("route"),connection.route()),"TASK_ROUTE_MISMATCH");mailbox.acceptDetail(fresh,now);}
+    catch(IOException|RuntimeException unavailable){nextStatusCheck=now+15000;note=safeError(unavailable);}
+   }}
+   return true;
   }catch(IOException|RuntimeException error){
+   inboxCurrent=false;
    if(claim!=null){mailbox.finish(claim,0,new byte[0],now,0);note=requestStarted?"TRANSPORT_UNKNOWN":"REFRESH_UNAVAILABLE";}
    else note=safeError(error);
    nextCheck=now+5000;throw error;

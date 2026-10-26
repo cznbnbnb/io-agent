@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>iO Agent · 交互原型</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="review-header">
+    <a class="wordmark" href="#" aria-label="返回任务原型"><span class="brand-symbol">iO</span><span>Agent <span class="wordmark-sub">/ 界面提案</span></span></a>
+    <div class="review-disclaimer"><span></span>交互原型 · 全部为示例数据</div>
+    <button class="review-reset" id="reset">重置演示</button>
+  </header>
+  <main class="review-layout">
+    <aside class="review-sidebar">
+      <p class="edition">设计预览 / 2026.10</p>
+      <h1>让任务回到<br>视线中心。</h1>
+      <p class="intro">熟悉的原厂质感，更清楚的 Agent 工作区。</p>
+      <nav class="scenario-nav" aria-label="预览页面">
+        <button data-scene="host"><span class="scenario-icon" data-icon="layers"></span><span>悬浮入口<small>轻量进入，随时收起</small></span></button>
+        <button data-scene="tasks" class="active"><span class="scenario-icon" data-icon="tasks"></span><span>任务<small>先处理需要你决定的事</small></span></button>
+        <button data-scene="materials"><span class="scenario-icon" data-icon="file"></span><span>资料<small>按日期查看与同步</small></span></button>
+        <button data-scene="settings"><span class="scenario-icon" data-icon="settings"></span><span>设置<small>连接与偏好各归其位</small></span></button>
+      </nav>
+      <div class="integration-control">
+        <span>入口形态</span>
+        <div class="segmented" aria-label="入口形态"><button id="mode-floating" class="active" aria-pressed="true">悬浮扩展</button><button id="mode-integrated" aria-pressed="false">集成入口</button></div>
+        <p id="mode-caption">Android：独立工作区，从原厂页面唤起。</p>
+      </div>
+    </aside>
+    <section class="preview-stage" aria-label="手机交互预览">
+      <div class="phone-shell">
+        <div class="phone-screen" id="phone">
+          <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="camera-dot"></span><span class="status-symbols">▴▴▴ <span class="wifi-symbol">◔</span><span class="battery-symbol"></span></span></div>
+          <div id="app"></div>
+          <div id="overlay"></div>
+          <div id="toast" role="status" aria-live="polite"></div>
+          <div class="home-indicator" aria-hidden="true"></div>
+        </div>
+      </div>
+      <p class="stage-caption"><span class="live-dot"></span>可以直接点击操作 <span>·</span> 不连接真实设备</p>
+    </section>
+    <aside class="design-notes" aria-live="polite">
+      <div class="note-rule"></div><span class="note-index" id="note-index">任务优先</span>
+      <h2 id="note-title">一打开，就知道<br>接下来做什么。</h2>
+      <p id="note-copy">待回答的问题放在最前面。连接信息缩成一行，历史任务留在筛选里。</p>
+      <div class="try-block"><span>试一试</span><p id="note-try">点击「查看并回复」，体验选择、补充条件与完整回执。</p></div>
+      <div class="design-principles"><span class="swatches"><i></i><i></i><i></i><i></i></span><p>青绿强调 · 深灰层次<br>一屏一个主要动作</p></div>
+      <p class="scope-note">本次只评审视觉与交互。<br>App 与眼镜功能保持原状。</p>
+    </aside>
+  </main>
+  <script src="flows.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

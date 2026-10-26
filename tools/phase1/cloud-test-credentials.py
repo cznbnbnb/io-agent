@@ -143,7 +143,8 @@ def main():
                     'owner_id': result['owner_id'], 'producer_id': 'cloud-' + role,
                     'server_id': result['server_id'], 'credential_file': str(file), 'timeout_ms': 10000}
             if 'agent' in bundle:
-                bundle['agent'].update(computer_id='io-cloud-test-computer', agent_id='io-cloud-test-hermes')
+                # Glasses cards show both names and allow at most 16 characters each.
+                bundle['agent'].update(computer_id='io-test-mac', agent_id='io-test-hermes')
             write_new(directory / 'bundle.json', bundle)
             report['credentials'] = {role: {key: value[key] for key in ['token_id', 'expires_at']} for role, value in credentials.items()}
             report['status'] = 'issued'

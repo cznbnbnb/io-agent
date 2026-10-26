@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-25",
+  "kind": "capture-session-interface-and-wake-abi",
+  "base_commit": "3a15958",
+  "scope": "Neutral capture interface extraction; existing question journal and recording behavior unchanged. Read-only wake ABI verification remains outside build hooks.",
+  "verification": {
+    "capture_interface_assertions": 104,
+    "voice_core_assertions": 1960,
+    "coordinator_assertions": 132,
+    "recovery_assertions": 127,
+    "archive_evidence_assertions": 70,
+    "original_question_bridge_assertions": 248,
+    "voice_total_assertions": 2641,
+    "diagnostic_probes": "compiled only; not executed",
+    "wake_abi_fixtures": 24,
+    "wake_abi_existing_stage_checks": 1,
+    "wake_abi_method_anchors": 15,
+    "full_android_compile": {
+      "source_count": 239,
+      "source_manifest_sha256": "ce0ed69f15345748e0afdc4dd3c5b30635a11eb2a754da6f3221712a3d10ab4a",
+      "product_source_sha256": "d8f5f6446c36d88b2e0ae9a3370ea763d371f489bf8eea21aecab578d35c194e",
+      "source_hash_unchanged": true,
+      "dex": [
+        {
+          "name": "classes.dex",
+          "bytes": 1667048,
+          "sha256": "6ac8f2c8eeee26e254e75ce13ab659ce07eef11ea96b5ccb4b75d0ab43905b6a"
+        }
+      ],
+      "java": "javac 17.0.20.1",
+      "temporary_output_removed": true,
+      "apk_built": false,
+      "device_used": false,
+      "shared_stage_modified": false
+    },
+    "node22_version": "22.23.2",
+    "node22_native_bridge_directory_tests": 67,
+    "node22_server_directory_and_control_tests": 28
+  },
+  "limits": [
+    "No real hook, phone/glasses operation, APK build or installation.",
+    "No independent delegated capture owner or new audio journal yet.",
+    "VoiceAudioArchive still requires original question provenance; changing its parameter type does not make it accept delegated audio.",
+    "Static wake ABI checks do not prove physical double-tap, mic handoff or release.",
+    "No public deployment; session directory/source-control candidates still await release packaging."
+  ],
+  "sources": {
+    "rebuild/android-app/src/com/turboio/addon/CaptureSession.java": "4a14a59a3d1ffa7e163538a06b2dde84c9725ad1d0ffacadb6ff0eb8046cf2e1",
+    "rebuild/android-app/src/com/turboio/addon/VoiceAnswerSession.java": "9137c4c45cbfab2f0f5dcc5ef772320dfbf414b7541be3baa6bf16aad0086d1d",
+    "rebuild/android-app/src/com/turboio/addon/Host107Recording.java": "d2757e8b34eca1c441ce7215496477c7f995cb84dab17ddf80af01482a72f459",
+    "rebuild/android-app/src/com/turboio/addon/VoiceCaptureCutoff.java": "da3f5f346e0cfae813e3ac92ef2c4569b1b90ec8bb72e370345cbf5ccc1a8cdb",
+    "rebuild/android-app/src/com/turboio/addon/VoiceAnswerCoordinator.java": "f60e51a34e06f5678c9d42e8a6ad8438b0372865f91566e5f6f7bdb5b1bf5cc8",
+    "rebuild/android-app/src/com/turboio/addon/VoiceRecoveryProof.java": "2b466a1546a4e2e6814358f72d8194558c44d496a23c7583f3d3d3f9b1617f50",
+    "rebuild/android-app/host-107.mjs": "b95e0658d93da82605fcd1a1692ddaf76685778d491062eb2aed48718cb2148f",
+    "tools/android/NormalVoiceGuardProbe.java": "f3a6c56622f1af1b35afa8a076be29c63189ffe02c92664234462a00474ffdb3",
+    "tools/android/RecordingProbe.java": "486e564fa4de3026720142d095c42bff3572c2e04b577a1b9cb760bcbc67c876"
+  }
+}

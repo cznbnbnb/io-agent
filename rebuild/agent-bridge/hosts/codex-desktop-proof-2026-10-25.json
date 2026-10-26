@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T07:35:12.220229+00:00",
+  "unit_tests": {
+    "passed": 13,
+    "transport": "Real isolated Unix sockets; synthetic desktop owner",
+    "covers": [
+      "split frames",
+      "private owner-only socket",
+      "canonical turn order",
+      "metadata-only revision projection",
+      "missing/out-of-order revision denial",
+      "original-owner and exact-thread dispatch",
+      "inherit model and permissions",
+      "busy input and stale interrupt denial",
+      "interrupt acknowledgement is not stopped proof",
+      "ambiguous/lost mutation receipt without retry",
+      "partial-history absence remains unknown",
+      "oversized frames and prototype paths"
+    ]
+  },
+  "real_desktop": {
+    "read_only": true,
+    "build_sources_verified": true,
+    "current_native_thread_sha256": "a7966c8f4a2c37e5b1889c0ac2ed4e80022bfafc21b4d88a4000098f66dba1b2",
+    "owner_discovery": true,
+    "model_settings_read": true,
+    "busy": true,
+    "active_turn_known": true,
+    "loaded_turns": 59,
+    "retained_metadata_bytes": 17526,
+    "busy_input_rejected_before_send": true,
+    "stale_interrupt_rejected_before_send": true,
+    "actual_input_sent": false,
+    "actual_interrupt_sent": false
+  },
+  "limitations": [
+    "Private desktop protocol pinned to inspected installed source hashes; unknown update is rejected",
+    "First snapshot is still full and bounded to 256 MiB; only metadata retained and continuously patched thereafter",
+    "No actual execution/interrupt/resume or child-process termination acceptance yet",
+    "No durable operation journal or phone/glasses dispatch integration yet",
+    "Claude existing owner control remains under investigation; Mac UI locked and automatic unlock failed"
+  ],
+  "sources": [
+    {
+      "path": "rebuild/agent-bridge/hosts/codex-desktop.mjs",
+      "sha256": "1b06ef66912c975a3e16ea48078fd891916e57f2f3b13636279e66060c1a9ada"
+    },
+    {
+      "path": "rebuild/agent-bridge/hosts/codex-desktop-profile.json",
+      "sha256": "403b21e9a39dfaf90bdd675747994c5ec63dc2dd9237b35fc6c8249241f83bad"
+    },
+    {
+      "path": "rebuild/agent-bridge/tests/codex-desktop.test.mjs",
+      "sha256": "8f473164bbd90d043ab4ec8b69d5d709f7a3612bed11513fa656c1cf5a0f8105"
+    },
+    {
+      "path": "tools/collab/probe-codex-desktop.mjs",
+      "sha256": "d487a3dc9ececf21e4064815ffc823f6e540aeacf0ecd80f691f1f0405aa6e43"
+    }
+  ]
+}

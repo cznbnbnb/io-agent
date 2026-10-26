@@ -39,6 +39,9 @@ final class Host107Login {
   OfficialAccountBinding current=OfficialAccountBinding.read(((String)values.get("user_info")).getBytes(StandardCharsets.UTF_8));MaterialWire.require(expected.same(current),"OFFICIAL_ACCOUNT_CHANGED");
   Map<?,?> token=WireJson.map(WireJson.read(((String)values.get("token")).getBytes(StandardCharsets.UTF_8),65536,100));String access=(String)token.get("accessToken");MaterialWire.require(access.length()<=16384&&access.indexOf('\r')<0&&access.indexOf('\n')<0,"OFFICIAL_TOKEN_INVALID");return new Session(current,access);
  }
+ /** Before any screen the stock cached Flutter engine may not exist yet; start it the way the stock
+  * background events do (y8.d.a), so the login records below can be read. */
+ static void warm(android.content.Context context)throws Exception{Class<?> holder=NavReflect.type("y8.d");if(holder.getField("b").get(null)!=null)return;Object d=holder.getField("a").get(null);holder.getMethod("a",android.content.Context.class).invoke(d,context);}
  static boolean loggedIn(){
   try{
    return validRecords(records());

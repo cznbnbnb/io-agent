@@ -8,7 +8,7 @@ import java.util.function.LongSupplier;
  * durable-store work runs on this timer. Android's sink queues the bound stop onto
  * the same serial SDK lane as start; it must not wait for transcription or disk I/O.
  * Issuing stop is not physical stop proof and never releases the durable obligation. */
-final class VoiceCaptureCutoff implements VoiceAnswerSession.Cutoff,AutoCloseable {
+final class VoiceCaptureCutoff implements CaptureSession.Cutoff,AutoCloseable {
  interface Stop {void request(String token,String peerHash,long generation)throws Exception;}
  private final ScheduledThreadPoolExecutor timer;private final LongSupplier clock;private final Stop stop;
  private static final class Lease {
@@ -22,7 +22,7 @@ final class VoiceCaptureCutoff implements VoiceAnswerSession.Cutoff,AutoCloseabl
  }
  synchronized boolean arm(String token,String peerHash,long generation,long deadline){
   long now=clock.getAsLong();
-  TaskWire.require(token!=null&&token.matches("[a-f0-9]{32}")&&peerHash!=null&&peerHash.matches("[a-f0-9]{64}")&&generation>0&&now>=0&&deadline>now&&deadline-now<=30000,"VOICE_CUTOFF_INVALID");
+  TaskWire.require(token!=null&&token.matches("[a-f0-9]{32}")&&peerHash!=null&&peerHash.matches("[a-f0-9]{64}")&&generation>0&&now>=0&&deadline>now&&deadline-now<=CaptureSession.CAPTURE_SECONDS*1000L,"VOICE_CUTOFF_INVALID");
   if(closed||active!=null)return false;
   Lease lease=new Lease(token,peerHash,generation,deadline);active=lease;
   try{lease.scheduled=timer.schedule(()->fire(lease),deadline-now,TimeUnit.MILLISECONDS);return true;}
@@ -31,7 +31,7 @@ final class VoiceCaptureCutoff implements VoiceAnswerSession.Cutoff,AutoCloseabl
  /** Reopen only the durable cleanup obligation. This lease never authorizes
   * capture and schedules no timer; the recovery adapter must submit owned stop.
   * No engine/device proof or durable draft field is changed here. */
- boolean adoptRecovery(VoiceAnswerSession draft){
+ boolean adoptRecovery(CaptureSession draft){
   // Do not hold the timer monitor while acquiring the durable draft monitor:
   // normal draft.arm calls back into cutoff.armed in the opposite order.
   if(draft==null||!draft.healthy())return false;
@@ -51,7 +51,7 @@ final class VoiceCaptureCutoff implements VoiceAnswerSession.Cutoff,AutoCloseabl
   try{stop.request(lease.token,lease.peer,lease.generation);}catch(Exception unavailable){synchronized(this){lease.failed=true;}}
  }
  synchronized boolean issued(){return active!=null&&active.issued;}synchronized boolean failed(){return active!=null&&active.failed;}synchronized boolean pending(){return active!=null;}
- boolean release(VoiceAnswerSession draft){
+ boolean release(CaptureSession draft){
   if(draft==null||!draft.healthy()||draft.needsStop())return false;
   Map<String,Object> proof=WireJson.map(draft.snapshot());
   if(!Boolean.TRUE.equals(proof.get("device_stopped"))||!Boolean.TRUE.equals(proof.get("engine_stopped")))return false;

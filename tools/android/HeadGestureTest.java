@@ -42,6 +42,11 @@ public final class HeadGestureTest {
   yes(!s.pending()&&s.phase().equals("IDLE")&&!s.active(OWNER));
  }
  public static void main(String[] args)throws Exception{
+  // Keep mode (opt-in confirm cards): an enabled setting is held with no write and released with no restore write.
+  for(int mode=0;mode<=1;mode++){clock=1000;HeadGestureSession k=new HeadGestureSession(new Memory());yes(k.acquire(OWNER,PEER,1,clock,true));query(k,true,mode);
+   yes(k.ready(OWNER,PEER,1,clock)&&k.keepsGestures());yes(k.release(OWNER,PEER,1,clock,false));query(k,true,mode);yes(!k.pending()&&k.phase().equals("IDLE")&&!k.keepsGestures());}
+  // Keep mode with gestures already off behaves as before: nothing to disable, nothing to restore.
+  clock=1000;HeadGestureSession off=new HeadGestureSession(new Memory());yes(off.acquire(OWNER,PEER,1,clock,true));query(off,false,0);yes(off.ready(OWNER,PEER,1,clock));
   for(boolean enabled:new boolean[]{true,false})for(int mode=0;mode<=1;mode++){
    Memory m=new Memory();HeadGestureSession s=held(m,enabled,mode);yes(!s.acquire(SECOND,PEER,1,clock));restore(s,enabled,mode);
    yes(!new HeadGestureSession(m).pending());

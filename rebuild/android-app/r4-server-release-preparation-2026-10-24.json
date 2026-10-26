@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T10:18:28.680813+00:00",
+  "node": "v22.23.2",
+  "passed": true,
+  "scope": "Read-only copies of production runtime plus committed candidate; synthetic Node 22 HTTP/SQLite upgrade, code rollback and resume",
+  "production_changed": false,
+  "phone_accessed": false,
+  "rehearsal_sha256": "97b26bf8e8ec67ebc4833565fdec3dee083eebcc754c5125085b1e0534df65e4",
+  "sources": {
+    "baseline": {
+      "rebuild/material-server/store.mjs": "e852f2b37805c0feebc1c76d2ac381229f0ea3301b5b21d67e5ee9d2e17f6f07",
+      "rebuild/material-server/http.mjs": "df493850b6ca393aa2a2d2f48b0d2d5f9996e7ded3b33fc4a2d64c3dde5b3bc4",
+      "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+      "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+      "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+      "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+      "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+      "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+      "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+      "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+      "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+      "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+      "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+      "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+      "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+      "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+    },
+    "candidate": {
+      "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+      "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+      "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+      "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+      "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+      "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+      "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+      "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+      "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+      "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+      "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+      "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+      "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+      "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+      "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+      "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+      "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+    }
+  },
+  "phases": [
+    {
+      "phase": "seed",
+      "passed": true,
+      "checks": [
+        "baseline creates original material and isolated credential"
+      ]
+    },
+    {
+      "phase": "upgrade",
+      "passed": true,
+      "checks": [
+        "original server identity, credential and immutable revision retained",
+        "new tables created without losing baseline data",
+        "large event transferred over HTTP and read back exactly",
+        "uncommitted third revision cancelled durably"
+      ]
+    },
+    {
+      "phase": "rollback",
+      "passed": true,
+      "checks": [
+        "original server identity, credential and immutable revision retained",
+        "old code opens migrated database and retains complete new material",
+        "old event lookup retains cancellation proof",
+        "old code rejects cancelled late event using existing digest conflict"
+      ]
+    },
+    {
+      "phase": "resume",
+      "passed": true,
+      "checks": [
+        "original server identity, credential and immutable revision retained",
+        "upgrade again keeps cancellation barrier",
+        "fresh replacement commits exactly once at revision three",
+        "temporary writer revoked"
+      ]
+    }
+  ],
+  "temporary_data_removed": true,
+  "production_database_read": false,
+  "production_service_restarted": false,
+  "remote_source_copies_removed": true,
+  "bundle": {
+    "archive": "build/r4-server-source-review.zip",
+    "sha256": "7c92a232a3262b839dbe14a5aff80115e6be11d5d808c65f3eb31684b1da9dff",
+    "source_files": 17,
+    "source_commit": "3954337290747df99f52fa3dd559b9f365d4370d",
+    "production_deployed": false,
+    "activation_verified": false
+  },
+  "package_rejections": {
+    "passed": true,
+    "rejected_before_output": [
+      "missing_runtime",
+      "changed_runtime",
+      "failed_phase",
+      "changed_rehearsal"
+    ]
+  },
+  "tool_sha256": {
+    "tools/phase1/rehearse-material-transfer-release.mjs": "97b26bf8e8ec67ebc4833565fdec3dee083eebcc754c5125085b1e0534df65e4",
+    "tools/phase1/package-material-transfer-release.py": "df268329a1eee8be1bc09fc2beec62a3965f2c17f1fab187ad4cdfe876a0bcef"
+  },
+  "remaining": [
+    "live source preflight, backup and controlled production activation",
+    "Android new-format rollback and phone validation after remote debug reconnect",
+    "fresh limited grant before formal material credentials or real uploads"
+  ]
+}

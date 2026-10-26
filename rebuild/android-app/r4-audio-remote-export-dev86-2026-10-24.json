@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T23:55:28.671462+00:00",
+  "source_base_commit": "3e84ba4",
+  "progress_estimate": {
+    "r3": 100,
+    "r4": 85
+  },
+  "version": "0.5.3-dev86",
+  "version_code": 10508,
+  "apk_sha256": "700d0faae8284a5b1899acfa00044d5e477833fa654b09da21e30f8bc56baa29",
+  "apk_bytes": 429818137,
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "installed": true,
+  "stable_rollback": "dev76 /10498",
+  "product_sources": 229,
+  "all_candidate_sources_match": true,
+  "delta": {
+    "baseline_sha256": "7b62f2335517fe4c27c1a015d94db76a1e31832131e2dbb5bc9bbf5cd191c2ba",
+    "target_sha256": "700d0faae8284a5b1899acfa00044d5e477833fa654b09da21e30f8bc56baa29",
+    "delta_bytes": 1535301,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 5.217
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 5.443
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 3.68
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 5.841
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 6.734
+      },
+      {
+        "bytes": 224581,
+        "through": 1535301,
+        "seconds": 5.56
+      }
+    ],
+    "resume_seconds": 37.269,
+    "earlier_attempts": []
+  },
+  "public_tls": {
+    "schema": 1,
+    "at": "2026-10-24T23:45:36.246Z",
+    "passed": true,
+    "scope": "Production Java AudioHttp upload and AudioReadHttp durable read-cache resume over real public TLS; synthetic opaque bytes only, not phone, source-format, native decoder or Keystore proof.",
+    "run_id": "caller687-audio-20261024-codex",
+    "synthetic_bytes": 262267,
+    "payload_sha256": "b1b3efab48a09d3088c7c783c420d0061b984f6bd53de79faca0e1c534785b2f",
+    "java_checks": 16,
+    "actual_process_halt_after_tls_part_response": 87,
+    "parts_sent_after_resume": 2,
+    "actual_read_tls_resumed": true,
+    "independent_reader_other_producer": true,
+    "derived_read_cache_removed": true,
+    "independent_node_exact_byte_readback": true,
+    "fixed_receipt_unchanged_on_repeat": true,
+    "text_only_and_reader_write_denied": true,
+    "recording_completeness_verified": false,
+    "sources": {
+      "rebuild/android-app/src/com/turboio/addon/AudioConnection.java": "cbcddfb16c45b6f5642eaf180f7ca0a57d4eb3cd8cbf7cfaade79b5f6df9b368",
+      "rebuild/android-app/src/com/turboio/addon/AudioHttp.java": "39c211174cc77fbb236b9ca4a61ef2552cb7abffd1a3233f299c1a3b459a8447",
+      "rebuild/android-app/src/com/turboio/addon/AudioUploadWire.java": "d52f7230fcedea4ae4fd918379f618ca426e5068a3cbecc201d004513b25e98c",
+      "rebuild/android-app/src/com/turboio/addon/AudioUploadOutbox.java": "d2cd718d6d314ff33ebdbdabc5ac3a78e054e5f8e989fe6a2a13b4a7c4dadf17",
+      "rebuild/android-app/src/com/turboio/addon/MaterialConnection.java": "13d28ace4ede52e5d3b0dbb23f8855328e49f6d9bbb25591fd3569bf9a008bf4",
+      "rebuild/android-app/src/com/turboio/addon/MaterialWire.java": "5be67d98ad1c9ccac187531e05f13297323c51da962863f5e7b2dd7903aca30d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialApi.java": "3b1c0b70c22fd3aff5f3532a1dea2ff0533800f30f64cc7f366679b0b488603d",
+      "rebuild/android-app/src/com/turboio/addon/MaterialOutbox.java": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207",
+      "rebuild/android-app/src/com/turboio/addon/MaterialTransfer.java": "9561080cecde90674ba17c29bbc502cef5f32a0a6908fb12b31f2cfd51378735",
+      "rebuild/android-app/src/com/turboio/addon/AtomicDocument.java": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0",
+      "rebuild/android-app/src/com/turboio/addon/WireJson.java": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735",
+      "rebuild/android-app/src/com/turboio/addon/TaskWire.java": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d",
+      "rebuild/android-app/src/com/turboio/addon/TaskConnection.java": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb",
+      "rebuild/android-app/src/com/turboio/addon/AudioDownloads.java": "023884fc0956e3399538f546c49f1403f6c1feb919bd89f53b4a0ff908faa2bf",
+      "rebuild/android-app/src/com/turboio/addon/AudioDownloadWire.java": "a1ab9114f132f0706eb611372085a5dc81d66a4232322e703cfa92db964137fc",
+      "rebuild/android-app/src/com/turboio/addon/AudioReadHttp.java": "0d947d89708a49d27d44743279839cf0847db377a15b7ee36d17e41a7a308d6c",
+      "rebuild/android-app/src/com/turboio/addon/AudioConfig.java": "b64530245a44ce5757d00dc4ceaa433eb182112098bcbc7a18482144bccd0e51",
+      "rebuild/android-app/src/com/turboio/addon/LifelogAudioArchive.java": "c830b3578ae781c7b277f3dde48b0d58cbfa95a8e7e810c72eb3521aabf31b44",
+      "rebuild/android-app/upstream/android-addon/src/com/turboio/addon/BoundedJson.java": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0",
+      "tools/android/AudioTlsIntegrationTest.java": "0a8c5f9f7a4a9c2a1f4c3bc59773664de73c81d79d0b91a6f0023128125e2637"
+    },
+    "receipt": {
+      "bytes": 262267,
+      "capture": {
+        "first_received_at": "2026-10-24T23:45:29.402Z",
+        "last_received_at": "2026-10-24T23:45:31.402Z",
+        "recording_complete": false
+      },
+      "expires_at": "2026-10-27T23:45:33.840Z",
+      "kind": "raw",
+      "material_id": "rayneo-lifelog-f7733498fb8f3d01fe340a7c5e87d1796f776329d0378ef4ea1440ad2c3b4099",
+      "material_revision": 1,
+      "media_type": "application/vnd.turboio.lifelog-archive",
+      "object_id": "e6b234e6183542d04a301047fd09f34aa61d9523c540185d7b075181fa97efb1",
+      "owner_id": "synthetic-cloud-caller687-audio-20261024-codex",
+      "part_bytes": 131072,
+      "parts": 3,
+      "producer_id": "cloud-phone",
+      "recording_completeness_verified": false,
+      "retention_seconds": 259200,
+      "schema_version": "1.0",
+      "sha256": "b1b3efab48a09d3088c7c783c420d0061b984f6bd53de79faca0e1c534785b2f",
+      "source_body_sha256": "366a8d2f025a61bd9083fb12a9fac6448b3dfd91553f2d53dbe000673e3eb1bb",
+      "state": "stored",
+      "storage_verified": true,
+      "stored_at": "2026-10-24T23:45:33.840Z"
+    },
+    "real_user_audio_uploaded": false,
+    "phone_accessed": false,
+    "synthetic_material_tombstoned": true,
+    "cleanup_error": "",
+    "temporary_files_removed": true
+  },
+  "public_tls_harness_sha256": "3e220d0353289692a78d91c51003fff53faa8d43d1555fb6a94e2c47855f8299",
+  "synthetic_cleanup": {
+    "live_credentials": 0,
+    "synthetic_text_tombstones": 1,
+    "audio_states": [
+      "withdrawn"
+    ],
+    "remaining_synthetic_parts": 0,
+    "other_owner_data_touched": false,
+    "revoked_remote_credential_files_removed": true,
+    "revoked_local_credential_files_removed": true,
+    "public_identity_status": {
+      "phone": 401,
+      "reader": 401,
+      "text": 401
+    }
+  },
+  "normal_phone_ui": {
+    "version": "dev86",
+    "normal_material_detail_remote_button_enabled": true,
+    "unconfigured_remote_click_toast_observed": false,
+    "system_picker_not_opened_without_configuration": true,
+    "normal_audio_settings_unconfigured_after_attempt": true,
+    "same_pid_through_normal_ui": true,
+    "audio_config_imported": false,
+    "audio_auto_backup_enabled": false,
+    "real_user_audio_uploaded": false,
+    "private_content_exported": false,
+    "existing_user_export_sha256_unchanged": true,
+    "probe_navigation_adjustment": "Prefer the explicit navigation content description; wait for asynchronous material detail before checking controls."
+  },
+  "artifact_cleanup": {
+    "at": "2026-10-24T23:54:52.077767+00:00",
+    "installed_sha256": "700d0faae8284a5b1899acfa00044d5e477833fa654b09da21e30f8bc56baa29",
+    "remote_owned_stage_removed": true,
+    "old_signed_version_removed": "0.5.3-dev85",
+    "old_delta_removed": true,
+    "retained_apks": [
+      "iO-Agent-Android-0.5.3-dev76.apk",
+      "iO-Agent-Android-0.5.3-dev86.apk"
+    ],
+    "no_original_or_user_export_deleted": true
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-remote-export-dev86-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T00:24:43.819Z",
+    "requires_answer": false,
+    "message_id": "notice-d61a55ad54c2d777c5074b886a192e3efa80a8a87aafa30af65d2875daa23ee6",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "no_new_formal_grant": true,
+  "real_user_audio_uploaded": false,
+  "limits": [
+    "Public TLS test ran production Java clients on Mac using opaque synthetic bytes; not Android TLS, raw format or native codec proof.",
+    "Phone verified the normal detail entry, unchanged original export and unconfigured path with no picker; no positive remote download/export or Keystore save.",
+    "Toast text was not observed by the event probe; not counted as physical feedback acceptance.",
+    "Original settings remain unconfigured and no real-user audio or deletion grant was issued."
+  ],
+  "next": "Isolated real Android Keystore/config and positive normal export tests, then formal audio grant and real-user audio chain; A4/A5, authority deletion and source cleanup remain open."
+}

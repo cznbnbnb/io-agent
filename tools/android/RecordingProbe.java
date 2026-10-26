@@ -122,8 +122,8 @@ public final class RecordingProbe extends Instrumentation {
  private void verifyCandidate()throws Exception{
   check("0.5.3-dev1".equals(field(type("ProductInfo"),"VERSION")),"PROBE_CANDIDATE_UNSUPPORTED");
   check(getTargetContext().getPackageManager().getPackageInfo(getTargetContext().getPackageName(),0).getLongVersionCode()==10423,"PROBE_CANDIDATE_UNSUPPORTED");
-  type("Host107Recording").getDeclaredMethod("acquireRecovery",type("VoiceAnswerSession"),type("VoiceCaptureCutoff"),type("Host107Recording$Receiver"));
-  type("VoiceAnswerSession").getDeclaredMethod("capturePermit");type("VoiceCaptureCutoff").getDeclaredMethod("adoptRecovery",type("VoiceAnswerSession"));
+  type("Host107Recording").getDeclaredMethod("acquireRecovery",type("CaptureSession"),type("VoiceCaptureCutoff"),type("Host107Recording$Receiver"));
+  type("VoiceAnswerSession").getDeclaredMethod("capturePermit");type("VoiceCaptureCutoff").getDeclaredMethod("adoptRecovery",type("CaptureSession"));
   type("VoiceAnswerCoordinator");type("VoiceProcessProof");
  }
  private void quiescent()throws Exception{
@@ -193,7 +193,7 @@ public final class RecordingProbe extends Instrumentation {
   }refresh();return null;
  });}
  private void inspect()throws Exception{
-  Object receiver=receiver();onMain(()->{quiescent();recording=call(type("Host107Recording"),"acquire",new Class<?>[]{type("VoiceAnswerSession"),type("VoiceCaptureCutoff"),type("Host107Recording$Receiver")},draft,cutoff,receiver);check(recording!=null,"PROBE_RECORDING_BUSY");sameLink();call(recording,"inspect",NONE);return null;});
+  Object receiver=receiver();onMain(()->{quiescent();recording=call(type("Host107Recording"),"acquire",new Class<?>[]{type("CaptureSession"),type("VoiceCaptureCutoff"),type("Host107Recording$Receiver")},draft,cutoff,receiver);check(recording!=null,"PROBE_RECORDING_BUSY");sameLink();call(recording,"inspect",NONE);return null;});
   phase="PREFLIGHT_QUERY";refresh();check(preflight.await(9,TimeUnit.SECONDS)&&ready.get()&&error.get().isEmpty(),"PROBE_PREFLIGHT_FAILED");preflightPassed=true;phase="PREFLIGHT_READY";refresh();
  }
  private void sameLink()throws Exception{Object link=call(type("Host107Ota"),"link",NONE);check(peer.equals(field(link,"peer"))&&generation==((Number)field(link,"generation")).longValue(),"PROBE_LINK_CHANGED");}
@@ -252,8 +252,8 @@ public final class RecordingProbe extends Instrumentation {
   });
   verifyControl(true);long now=SystemClock.elapsedRealtime();
   check(Boolean.TRUE.equals(call(cutoff,"arm",new Class<?>[]{String.class,String.class,long.class,long.class},token,peerHash,generation,now+15000)),"PROBE_CUTOFF_NOT_ARMED");armedEver=true;
-  check(Boolean.TRUE.equals(call(draft,"arm",new Class<?>[]{String.class,long.class,long.class,int.class,type("VoiceAnswerSession$Cutoff")},peer,generation,now,15,cutoff)),"PROBE_DRAFT_NOT_ARMED");
-  coordinator=make("VoiceAnswerCoordinator",new Class<?>[]{type("VoiceAnswerSession"),String.class,long.class,type("RecordingVoiceSource"),type("VoiceAudioArchive"),type("VoiceAnswerCoordinator$Device"),LongSupplier.class,type("VoiceAnswerCoordinator$Events")},draft,peer,generation,source,archive,device,(LongSupplier)SystemClock::elapsedRealtime,events);
+  check(Boolean.TRUE.equals(call(draft,"arm",new Class<?>[]{String.class,long.class,long.class,int.class,type("CaptureSession$Cutoff")},peer,generation,now,15,cutoff)),"PROBE_DRAFT_NOT_ARMED");
+  coordinator=make("VoiceAnswerCoordinator",new Class<?>[]{type("CaptureSession"),String.class,long.class,type("RecordingVoiceSource"),type("VoiceAudioArchive"),type("VoiceAnswerCoordinator$Device"),LongSupplier.class,type("VoiceAnswerCoordinator$Events")},draft,peer,generation,source,archive,device,(LongSupplier)SystemClock::elapsedRealtime,events);
   coordinatorListener=call(coordinator,"listener",NONE);call(coordinator,"attachEngine",new Class<?>[]{type("VoiceAnswerCoordinator$Engine")},engine);drain();
   if(aborted.get())call(coordinator,"stop",new Class<?>[]{boolean.class},false);else call(coordinator,"start",NONE);
   guard.scheduleAtFixedRate(()->{Object c=coordinator;if(c!=null&&!coordinatorReleased)try{call(c,"tick",NONE);}catch(Exception e){fault(code(e));}},0,250,TimeUnit.MILLISECONDS);

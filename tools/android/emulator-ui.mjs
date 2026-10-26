@@ -1,11 +1,12 @@
 // Small ADB UI driver, deliberately restricted to our two virtual transports.
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {PRODUCT} from './profile.mjs';
+import {exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app');
 const [action='snapshot',...args]=process.argv.slice(2);
 const runtime=JSON.parse(fs.readFileSync(path.join(root,'.private/emulator-runtime.json'),'utf8').replace(/^\uFEFF/,''));
 const serial=runtime.serial;if(!['emulator-5580','emulator-5582'].includes(serial))throw new Error('Only project emulator transports are allowed');
-const env={...process.env,ANDROID_USER_HOME:path.join(root,'.private/android-user')},adb=path.join(root,'.tools/sdk/platform-tools/adb.exe');
+const env={...process.env,ANDROID_USER_HOME:path.join(root,'.private/android-user')},adb=path.join(root,'.tools/sdk/platform-tools',exe('adb'));
 function run(args){const r=spawnSync(adb,['-s',serial,...args],{env,encoding:'utf8',timeout:30000,maxBuffer:2*1024**2});if(r.error)throw r.error;if(r.status!==0)throw new Error('ADB step failed: '+args.slice(0,2).join(' '));return r.stdout;}
 function unescape(value){return value.replace(/&(?:quot|apos|lt|gt|amp|#\d+|#x[a-fA-F0-9]+);/g,e=>{const known={'&quot;':'"','&apos;':"'",'&lt;':'<','&gt;':'>','&amp;':'&'};if(known[e])return known[e];return String.fromCodePoint(e.startsWith('&#x')?parseInt(e.slice(3,-1),16):parseInt(e.slice(2,-1),10));});}
 function snapshot(){

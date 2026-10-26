@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "installed": "0.5.3-dev39",
+  "version_code": 10461,
+  "sha256": "36b08f9f6b99f24c006b6fdc8bcf429841d68191054c3a493b52b1b7944a6ff2",
+  "rollback": "0.5.3-dev38",
+  "user_report": "看到提词器，长按退出之后，没有进入录音（dev36/dev37）",
+  "root_cause": {
+    "summary": "全天智记 was switched on and listening; the glasses OTA idle predicate reports busy whenever device setting 0x2b equals 1, so the voice preflight refused capture. Not a phone code regression.",
+    "predicate": "0x105635a0 returns 0 (busy) when: top app is neither com.rayneo.liteos.launcher nor EMPTY_PAGE; or 0x105632e0 -> DeviceStatusManager 0x105718dc reads setting 0x2b == 1 (lifelog module, next to the lifelog guide state read); or AssistantService store byte is set",
+    "phone_evidence": "stock home at 12:2x local showed the 开启全天智记 button; at 15:13 it showed today's lifelog 13:56 (1:02:44) and a 15:04 session 收听中",
+    "timeline_local": {"screen_off_dictation_passed": "13:36", "lifelog_recording_started": "13:56", "first_failed_long_press": "14:27"},
+    "earlier_read_only_probe": "phone-voice-idle-dev37-2026-10-23.json: idle query false on the time home page, consistent with lifelog on"
+  },
+  "change": [
+    "Host107Recording: busy for the whole 8 s preflight window is reported as VOICE_GLASSES_BUSY instead of VOICE_PREFLIGHT_TIMEOUT",
+    "Glasses-started dictation (page or headless) refused as busy shows one prompter notice explaining 全天智记/assistant and that the question stays on the phone; phone label says the same"
+  ],
+  "not_changed": "Capture is still refused while the glasses report busy; recording alongside 全天智记 is a user decision and was not attempted",
+  "tests": {"recording_recovery_assertions": 479, "voice_assertions": 1954, "agent_card_assertions": 790, "host_policy": "passed"},
+  "device_verified": false,
+  "not_verified": ["busy notice on the lens with 全天智记 listening", "dictation after pausing 全天智记"]
+}

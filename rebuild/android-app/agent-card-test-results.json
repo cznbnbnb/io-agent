@@ -1,82 +1,94 @@
 {
   "schema": 1,
-  "at": "2026-10-20T11:55:00.584Z",
-  "assertions": 517,
+  "at": "2026-10-24T11:13:58.991Z",
+  "assertions": 831,
   "sources": [
     {
-      "path": "src\\com\\turboio\\addon\\AgentCardRequest.java",
-      "sha256": "109adeab960dd0132d9a38466fe42cd69aa5733a82ecaed6c66fbd3d754e060a"
+      "path": "src/com/turboio/addon/TaskNoticeQueue.java",
+      "sha256": "e74ded88705e3ff9873b557d86e84b3a9ae09af6493b6e68cd61108539226f61"
     },
     {
-      "path": "src\\com\\turboio\\addon\\AgentCardSession.java",
-      "sha256": "3b4fbb72c915d3b361bb3f8a80b3a58145af599f447a0ee2f195d1771434e973"
+      "path": "src/com/turboio/addon/TaskNotice.java",
+      "sha256": "b3ed7476fc4bef4f565a0bca58e3ff98569d67c7b7b7b7fdaa7384a25e7fe663"
     },
     {
-      "path": "src\\com\\turboio\\addon\\HeadGestureSession.java",
-      "sha256": "7c2d30b5e6de5ec9da7ebca3be8e7a0200a55c629c4427531bca6cdb820410b5"
+      "path": "src/com/turboio/addon/AgentCardRequest.java",
+      "sha256": "916cf6896c9e78b421d32fb5b27c3d29ace16cd3fd7d959813b8610f54a4d6f9"
     },
     {
-      "path": "src\\com\\turboio\\addon\\FixedPeerHash.java",
+      "path": "src/com/turboio/addon/AgentCardSession.java",
+      "sha256": "651a29059fa22cdfb366ba56df29018927f328aecec2d6c90d6d53cf7ce42579"
+    },
+    {
+      "path": "src/com/turboio/addon/HeadGestureSession.java",
+      "sha256": "2a11dc278a475af3239c9f1f4e5e029d64d12d7e6b64bc4fb40fa5b2fb0563a6"
+    },
+    {
+      "path": "src/com/turboio/addon/FixedPeerHash.java",
       "sha256": "8fe77aa325f7d1135162d9635346d5cc3f872c0d4cdc92fed55d1c0d8441e353"
     },
     {
-      "path": "src\\com\\turboio\\addon\\CardInputClosure.java",
+      "path": "src/com/turboio/addon/CardInputClosure.java",
       "sha256": "20eea19b4ad8b8326d091b54dea1be41460838c11a2005c449d9c024f321932e"
     },
     {
-      "path": "src\\com\\turboio\\addon\\SuggestionGate.java",
-      "sha256": "e32458354572d0f2abb92119e36d977976f5ec97622bda6ad945600cc0addef1"
+      "path": "src/com/turboio/addon/SuggestionGate.java",
+      "sha256": "22c226191d99a7bafda122ad743edece3a7c101d00fd311366118f87e69355b8"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskConnection.java",
+      "path": "src/com/turboio/addon/TaskConnection.java",
       "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskProfiles.java",
-      "sha256": "6630cd70c8c03660d707e10ebd787ae891edbe52a9f5af94e7601829b9ee7a74"
+      "path": "src/com/turboio/addon/TaskProfiles.java",
+      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskHub.java",
-      "sha256": "91bacf01e243c40671f6a08304d8d4d107efaa64d9e8ea3794dd84aa526c313a"
+      "path": "src/com/turboio/addon/TaskHub.java",
+      "sha256": "4e0fcb365b6e159d3906d0eb98906f9d5696a5c18174c371e27923fcd674141e"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskMailbox.java",
-      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+      "path": "src/com/turboio/addon/TaskMailbox.java",
+      "sha256": "7b6b8a91400910bdec0bf41385bb82d401bf83f0fa966603206175712d42dff7"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskApi.java",
-      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+      "path": "src/com/turboio/addon/TaskApi.java",
+      "sha256": "0b67bb401bc3c206b5f73117099e00670779565ff674d7f88b92523d28374904"
     },
     {
-      "path": "src\\com\\turboio\\addon\\TaskWire.java",
+      "path": "src/com/turboio/addon/TaskWire.java",
       "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
     },
     {
-      "path": "src\\com\\turboio\\addon\\AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "path": "src/com/turboio/addon/AtomicDocument.java",
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
-      "path": "src\\com\\turboio\\addon\\WireJson.java",
+      "path": "src/com/turboio/addon/WireJson.java",
       "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
     },
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\BoundedJson.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
       "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
     },
     {
-      "path": "upstream\\android-addon\\src\\com\\turboio\\addon\\OtaFrame.java",
+      "path": "upstream/android-addon/src/com/turboio/addon/OtaFrame.java",
       "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
     },
     {
-      "path": "..\\..\\tools\\android\\AgentCardTest.java",
-      "sha256": "21facec978bbdb8b554ec2d1d0ff203934e7fec41af562ec8e8cc78e7b0e98cb"
+      "path": "../../tools/android/TaskNoticeQueueTest.java",
+      "sha256": "f9cfdfeed262294ccb986095ebdd6a977e51ee55bed20920007bcde8e46c5f2c"
     },
     {
-      "path": "..\\..\\tools\\android\\TaskConnectionTest.java",
+      "path": "../../tools/android/AgentCardTest.java",
+      "sha256": "f7d40353bbd592f889dc13b99956e79740059bcd91a6a5be5827e55c3e5a9104"
+    },
+    {
+      "path": "../../tools/android/TaskConnectionTest.java",
       "sha256": "13b9204dee5e01dd55dde6cbb89ff0d888ed6aaafbb0ed62660abac125ac7106"
     },
     {
-      "path": "..\\..\\tools\\android\\TaskMailboxTest.java",
+      "path": "../../tools/android/TaskMailboxTest.java",
       "sha256": "883829de7471c94ac652056d9c5a01ead99a08c7f394ad35c3038da511dc8ef3"
     }
   ],

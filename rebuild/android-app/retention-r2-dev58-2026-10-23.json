@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T13:56:53.666350+00:00",
+  "current": "artifacts/iO-Agent-Android-0.5.3-dev58.apk",
+  "rollback": "artifacts/iO-Agent-Android-0.5.3-dev55.apk",
+  "current_installed_sha256": "f0afc0697db934b591a0f3cbc3667bde7378345e9e627fa094709ee8601ccc39",
+  "removed": [
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev57.apk",
+      "sha256": "0456abaf1685b963b536972af677332caa5d00fa452b020171c70f23a9845bd2",
+      "bytes": 429695257
+    }
+  ],
+  "reclaimed_bytes": 429695257,
+  "prior_cleanup": "retention-r2-dev57-2026-10-23.json",
+  "single_current_source_stage": "build/host-107",
+  "user_data_and_credentials_untouched": true
+}

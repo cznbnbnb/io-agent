@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T04:12:00Z",
+  "product": "0.5.3-dev3 /10425",
+  "rollback": "0.5.3-dev2 /10424",
+  "build_host": "macOS arm64; Temurin 17.0.20.1; pinned build-tools 36.0.0 darwin; apktool 2.12.1",
+  "apk_sha256": "c2332d01b7ac734b0fea7ce31d0773b48c9e62dcb8af9c4b00f4c958978a4771",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "hook_dex_byte_identical_to_windows_dev2": true,
+  "changed_entries_vs_dev2": [
+    "AndroidManifest.xml",
+    "classes5.dex",
+    "assets/io-agent/product.json"
+  ],
+  "source_ui_sha256": "f81faa64f732bddd0f202b391ef95e984b212673182c571e79007ba5811540a7",
+  "same_signature_update": true,
+  "product_data_cleared": false,
+  "installed_hash_verified": true,
+  "after_upgrade_ui_counts": [
+    6,
+    0,
+    0,
+    0,
+    0
+  ],
+  "material_connection_enabled": true,
+  "month": "2026-10",
+  "discovered_date_count": 3,
+  "empty_selection_sync_disabled": true,
+  "cancel_button_cleared_progress_message": true,
+  "back_key_cancel_cleared_progress_message": true,
+  "cancel_preserved_ui_counts": [
+    6,
+    0,
+    0,
+    0,
+    0
+  ],
+  "selected_days_sync_verified": false,
+  "no_day_selection_or_month_import_started": true,
+  "no_new_capture": true,
+  "glasses_or_lens_observed": false
+}

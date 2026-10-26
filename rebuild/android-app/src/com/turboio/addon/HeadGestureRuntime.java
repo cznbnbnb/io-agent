@@ -22,25 +22,29 @@ final class HeadGestureRuntime {
  private String checkOwner="",checkExport="";private long checkStarted;private boolean checkFinishing;private TextView checkView;private final Set<String> checkPhases=new LinkedHashSet<>();
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("HEAD_GUARD_THREAD");}
- private HeadGestureRuntime(Activity activity)throws IOException{
-  app=(Application)activity.getApplication();foreground.add(activity);document=new AtomicDocument(new File(activity.getFilesDir(),"io-agent-head-guard-v1.json"));
+ private HeadGestureRuntime(Application application,Activity activity)throws IOException{
+  app=application;if(activity!=null)foreground.add(activity);document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-head-guard-v1.json"));
   session=new HeadGestureSession(new HeadGestureSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object raw)throws Exception{document.save(raw);}});
   HeadGestureGate.observe(new HeadGestureGate.Observer(){
    public boolean userWrite(String peer,HeadGestureSession.Setting setting){boolean allowed=session.userWrite(peer,setting);main.post(()->pump());return allowed;}
    public boolean unknownWrite(String peer){boolean allowed=session.unknownWrite(peer);main.post(()->pump());return allowed;}
   });
-  ((Application)activity.getApplication()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
+  app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){foreground.add(a);}
-   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("App进入后台；卡片停止接收答案，封存后恢复设置");}
+   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&!TaskAttention.background()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("App进入后台；卡片停止接收答案，封存后恢复设置");}
    public void onActivityDestroyed(Activity a){foreground.remove(a);}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });
   main.post(poll);
  }
- static void init(Activity activity){main();if(instance==null)try{instance=new HeadGestureRuntime(activity);}catch(IOException unavailable){/* No guard instance means no actionable task card. */}}
- static boolean begin(String owner,Listener callback){
+ static void init(Activity activity){main();if(instance==null)try{instance=new HeadGestureRuntime(activity.getApplication(),activity);}catch(IOException unavailable){/* No guard instance means no actionable task card. */}}
+ /** No screen yet (TurboAddon.boot): task cards need the head-gesture guard too. */
+ static void boot(Application application){main();if(instance==null)try{instance=new HeadGestureRuntime(application,null);}catch(IOException unavailable){/* No actionable task card. */}}
+ static boolean begin(String owner,Listener callback){return begin(owner,callback,false);}
+ /** keepGestures: hold the wearer's current nod/shake setting instead of turning it off (confirm cards only). */
+ static boolean begin(String owner,Listener callback,boolean keepGestures){
   main();HeadGestureRuntime r=instance;if(r==null||!r.session.healthy()||r.session.pending()||r.session.working()||!r.claim())return false;
-  Fixed60Session.Link link=Host107Ota.link();if(!r.session.acquire(owner,link.peer,link.generation,now())){r.releaseLease();return false;}
+  Fixed60Session.Link link=Host107Ota.link();if(!r.session.acquire(owner,link.peer,link.generation,now(),keepGestures)){r.releaseLease();return false;}
   r.listener=callback;r.notified="";r.pump();return true;
  }
  static boolean ready(String owner){main();HeadGestureRuntime r=instance;if(r==null||!r.claimed||!r.claim())return false;Fixed60Session.Link link=Host107Ota.link();return r.session.ready(owner,link.peer,link.generation,now());}
@@ -53,6 +57,7 @@ final class HeadGestureRuntime {
   main();HeadGestureRuntime r=instance;if(r==null||!r.claimRestore())return false;if(r.session.owner().equals(owner)&&r.session.restoring())return true;Fixed60Session.Link link=Host107Ota.link();boolean accepted=r.session.release(owner,link.peer,link.generation,now(),cardExitConfirmed);r.pump();return accepted;
  }
  static String status(){HeadGestureRuntime r=instance;return r==null?"头势保护暂不可用":r.session.status();}
+ static boolean keepsGestures(){HeadGestureRuntime r=instance;return r!=null&&r.session.keepsGestures();}
  static boolean pending(){HeadGestureRuntime r=instance;return r!=null&&r.session.pending();}
  /** Quiescence only; never claims a lease or changes restoration state. */
  static boolean voiceHandoffReady(){main();HeadGestureRuntime r=instance;return r!=null&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&!r.session.cardPending()&&!r.claimed&&r.queued.get()==0;}
@@ -72,7 +77,7 @@ final class HeadGestureRuntime {
   String value=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"started_at",checkStarted,"check_passed",passed,"states",new ArrayList<>(checkPhases),"facts",facts,"card_or_capture_started",false)),java.nio.charset.StandardCharsets.UTF_8);if(value.equals(checkExport))return;
   try{File dir=app.getExternalFilesDir(null);if(dir!=null){try(FileOutputStream out=new FileOutputStream(new File(dir,"io-agent-head-check.json"))){out.write(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));}checkExport=value;}}catch(IOException ignored){}
  }
- private boolean usable(){return !foreground.isEmpty()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending()&&!OtaController.busy()&&!OfficialOtaBridge.busy();}
+ private boolean usable(){return (!foreground.isEmpty()||TaskAttention.background())&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending()&&!OtaController.busy()&&!OfficialOtaBridge.busy();}
  private boolean claim(){if(!session.healthy()||!usable()||!NativeTransfer.acquireMessages(lease))return false;claimed=true;return true;}
  private boolean claimRestore(){Fixed60Session.Link link=Host107Ota.link();if(!session.healthy()||!session.pending()||!session.matchesTarget(link.peer)||FirmwareQueue.busy()||Fixed60OfficialRuntime.pending()||!NativeTransfer.acquireMessages(lease))return false;claimed=true;return true;}
  private void releaseLease(){if(claimed){NativeTransfer.releaseMessages(lease);claimed=false;}}

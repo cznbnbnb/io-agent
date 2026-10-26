@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 from question_tools import QuestionTools, load_tools
-from runtime_journal import RuntimeJournal, RuntimeJournalError, encode
+from runtime_journal import deadline_window, glasses_display, RuntimeJournal, RuntimeJournalError, encode
 from test_runtime_journal import BINDING, SOURCE, EVENT
 
 NOW = datetime(2026, 10, 12, tzinfo=timezone.utc).timestamp()
@@ -43,6 +43,27 @@ class QuestionTests(unittest.IsolatedAsyncioTestCase):
                   'body': {'answer_id': 'answer-a', 'request_id': request_id, 'request_revision': 1, 'task_id': 'task-a',
                            'route': SOURCE['body']['route'], 'option_id': 'B', 'text': '', 'input_source': 'rotary', 'raw_action': None}}
         return request, answer
+
+    async def test_deadline_window_is_shared_by_cli_and_mcp_paths(self):
+        self.assertEqual(deadline_window(1767225600.9), {'error': 'RUNTIME_DEADLINE_INVALID', 'now_utc': '2026-01-01T00:00:00Z',
+                                                         'valid_expires_at': ['2026-01-01T00:01:00Z', '2026-01-01T00:59:00Z']})
+
+    async def test_glasses_display_mirrors_the_phone_route(self):
+        # Same cases as AgentCardTest.routes on the phone.
+        def choice(*labels):
+            return [{'option_id': 'o%d' % i, 'label': label} for i, label in enumerate(labels)]
+        self.assertEqual(glasses_display('问' * 36, 'free_text', []), 'card')
+        self.assertEqual(glasses_display('问' * 37, 'free_text', []), 'prompter')
+        self.assertEqual(glasses_display('短问题\n第二行', 'free_text', []), 'prompter')
+        self.assertEqual(glasses_display('选哪个？', 'choice', choice('只预览', '保留资料')), 'prompter')
+        self.assertEqual(glasses_display('选哪个？', 'choice', choice('只预览', '保留资料', '先修改')), 'prompter')
+        self.assertEqual(glasses_display('选哪个？', 'choice', choice('只预览', '长' * 30)), 'prompter')
+        self.assertEqual(glasses_display('😀' * 18, 'free_text', []), 'card')
+        self.assertEqual(glasses_display('😀' * 19, 'free_text', []), 'prompter')
+        self.assertEqual(self.ask()['glasses_display'], 'prompter')
+        four = self.ask(question_key='confirm-b', options=[{'option_id': c, 'label': 'Synthetic ' + c} for c in 'ABCD'])
+        self.assertEqual(four['glasses_display'], 'prompter')
+        self.assertEqual(self.journal.reply('operation-a', four['request_id'], now=NOW)['glasses_display'], 'prompter')
 
     async def test_ask_and_event_commit_together_reopen_and_same_key_replay(self):
         reply = self.ask()

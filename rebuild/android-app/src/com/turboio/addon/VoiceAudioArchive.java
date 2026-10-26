@@ -36,7 +36,7 @@ final class VoiceAudioArchive implements AutoCloseable {
  synchronized boolean matches(String owner,int expectedBusiness){return !closed&&!sealed&&!freezing&&!failed&&token.equals(owner)&&business==expectedBusiness;}
  synchronized void incomplete(){failed=true;}
  synchronized void recordingComplete(String owner,int opusBytes,int packets)throws IOException{
-  if(!matches(owner,14)||packets<=0||packets>1600||opusBytes!=packets*240||pcmBytes!=packets*640L||frames!=decodedFrames)throw new IOException("VOICE_RECORDING_INCOMPLETE");recordingComplete=true;
+  if(!matches(owner,14)||packets<=0||packets>RecordingVoiceSource.MAX_PACKETS||opusBytes!=packets*240||pcmBytes!=packets*640L||frames!=decodedFrames)throw new IOException("VOICE_RECORDING_INCOMPLETE");recordingComplete=true;
  }
  private void decoded(byte[] bytes,boolean recording)throws IOException{
   if(closed||sealed||freezing)throw new IOException("VOICE_AUDIO_CLOSED");
@@ -44,7 +44,7 @@ final class VoiceAudioArchive implements AutoCloseable {
   try{pcm.write(bytes);pcmBytes+=bytes.length;for(int i=0;i<bytes.length;i+=2){int value=(short)((bytes[i]&255)|(bytes[i+1]<<8));samples++;if(value!=0)nonzero++;peak=Math.max(peak,Math.abs(value));}decodedFrames++;}
   catch(IOException error){failed=true;throw error;}
  }
- synchronized Object seal(VoiceAnswerSession session)throws Exception{
+ synchronized Object seal(CaptureSession session)throws Exception{
   if(closed||sealed)throw new IOException("VOICE_AUDIO_CLOSED");Map<String,Object> draft=WireJson.map(session.snapshot());
   if(!token.equals(draft.get("token")))throw new IOException("VOICE_SOURCE_MISMATCH");
   boolean complete=session.healthy()&&!Boolean.TRUE.equals(draft.get("needs_stop"))&&TaskWire.set("REVIEW","SUBMITTING","SAVED").contains(draft.get("phase"))&&frames>0&&frames==decodedFrames&&samples>0&&nonzero>0&&!failed&&(business!=14||recordingComplete);

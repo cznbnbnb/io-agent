@@ -21,18 +21,19 @@ if((only||transcriptSha)&&action!=='--verify')throw Error('VERIFY_ARGUMENTS_REQU
 if((only||transcriptSha)&&!voice||action==='--verify'&&voice&&(!only||!transcriptSha))throw Error('EXACT_VOICE_CONTEXT_AND_TRANSCRIPT_REQUIRED');
 const run=path.join(workspace,'rebuild/agent-bridge/private','cloud-'+scope.run_id),bundle=readPrivateJson(path.join(run,'bundle.json'));
 if(bundle.run_id!==scope.run_id||bundle.agent.owner_id!==scope.owner_id||bundle.phone.owner_id!==scope.owner_id||bundle.phone.producer_id!=='cloud-phone'||bundle.agent.base_url!==scope.destination)throw Error('SYNTHETIC_OWNER_MISMATCH');
-const agent=new BridgeClient(bundle.agent),record=path.join(run,'context-check.json');
+// Phone holds tasks:write and creates revision one, as in the product; the agent advances it.
+const agent=new BridgeClient(bundle.agent),phoneClient=new BridgeClient(bundle.phone),record=path.join(run,'context-check.json');
 const put=(file,value)=>fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n',{flag:'wx',mode:0o600});
 const routeKey=r=>JSON.stringify(Object.fromEntries(Object.entries(r).sort(([a],[b])=>a.localeCompare(b))));
 let plan;if(fs.existsSync(record))plan=readPrivateJson(record);else{
  if(action!=='--prepare')throw Error('PREPARE_RECORD_REQUIRED');const now=Date.now();plan={schema:1,run_id:scope.run_id,created_at:new Date(now).toISOString(),expires_at:new Date(now+3300000).toISOString(),contexts:['codex','hermes','qa'].map(key=>({key,task_id:'task-context-'+crypto.randomUUID(),request_id:'request-context-'+crypto.randomUUID(),route:{computer_id:'io-context-test-computer',agent_id:'io-context-'+key,project_id:'io-android-context-check',session_id:'synthetic-'+key},question:(voice?'正常原问题口述检查：':'多路接收检查：')+key,answer:key+' 合成答案。\n附加条件：保留原问题，不能转投其他会话。'}))};put(record,plan);
 }
 if(plan.run_id!==scope.run_id||plan.contexts.length!==3)throw Error('TEST_RECORD_MISMATCH');
-async function submit(name,kind,body){const file=path.join(run,'event-'+name+'.json');let event;if(fs.existsSync(file))event=readPrivateJson(file);else{event={schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),producer_id:bundle.agent.producer_id,kind,created_at:plan.created_at,expires_at:plan.expires_at,body};put(file,event);}if(JSON.stringify(event.body)!==JSON.stringify(body))throw Error('IMMUTABLE_TEST_EVENT_CHANGED');await agent.post(kind,event);}
+async function submit(name,kind,body,client=agent,producer=bundle.agent.producer_id){const file=path.join(run,'event-'+name+'.json');let event;if(fs.existsSync(file))event=readPrivateJson(file);else{event={schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),producer_id:producer,kind,created_at:plan.created_at,expires_at:plan.expires_at,body};put(file,event);}if(JSON.stringify(event.body)!==JSON.stringify(body)||event.producer_id!==producer)throw Error('IMMUTABLE_TEST_EVENT_CHANGED');await client.post(kind,event);}
 if(action==='--prepare'){
  const credential=readPrivateJson(bundle.phone.credential_file);
  for(const context of plan.contexts){
-  for(const [revision,state] of [[1,'queued'],[2,'agent_received'],[3,'waiting_answer']])await submit(context.key+'-'+state,'task',{task_id:context.task_id,revision,route:context.route,state,command:'合成收件箱检查；不调用模型、不执行电脑动作。',allow_create_session:false});
+  for(const [revision,state] of [[1,'queued'],[2,'agent_received'],[3,'waiting_answer']])await submit(context.key+'-'+state,'task',{task_id:context.task_id,revision,route:context.route,state,command:'合成收件箱检查；不调用模型、不执行电脑动作。',allow_create_session:false},...(revision===1?[phoneClient,bundle.phone.producer_id]:[]));
   await submit(context.key+'-request','request',{request_id:context.request_id,task_id:context.task_id,revision:1,route:context.route,state:'pending',mode:'free_text',question:context.question,options:[],runtime_request_id:null});
   const file=path.join(run,'connection-'+context.key+'.json');if(!fs.existsSync(file))put(file,{format:'turboio-task-connection/1',base_url:bundle.phone.base_url,owner_id:bundle.phone.owner_id,producer_id:bundle.phone.producer_id,server_id:bundle.phone.server_id,...credential,...context.route});
  }

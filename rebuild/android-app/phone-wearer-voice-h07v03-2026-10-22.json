@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T07:45:00Z",
+  "item": "H07-V03",
+  "product": "0.5.3-dev6 /10428",
+  "run": "voice305-20261022-a",
+  "route": "qa",
+  "wearer": "user wearing the glasses, tapping start/stop in the normal UI; no Mac playback",
+  "takes": [
+    {
+      "take": 1,
+      "result": "REVIEW",
+      "transcript": "只做预览。不要修改文件，保留全部资料。请在星期五重试。啊，请在星期五继续。附加。条件也要。完整保留。",
+      "note": "wearer self-correction recorded faithfully; 只做预览 and 附加条件 correct (both wrong with Mac TTS)",
+      "saved": false,
+      "redo_used": true
+    },
+    {
+      "take": 2,
+      "result": "REVIEW",
+      "transcript_head": "只做预览，不要修改文件。保留全部。资料，请在星期五继续。附加条件也要完整保留。",
+      "extra": "就电影。对。嗯，好。谢谢龚经理。嗯。现在这样。",
+      "extra_speaker": "bystander (user confirmed)",
+      "saved": false,
+      "redo_used": true
+    },
+    {
+      "take": 3,
+      "result": "SAVED",
+      "transcript": "只做预览，不要修改文件。\n保留全部资料。\n请在星期五。\n继续。\n附加条件也要。\n完整保留。",
+      "transcript_sha256": "46367eab55200fb59f6ae2a13adf1adffa0468d8682193a9d90bd40a53bf1a0b",
+      "server_verify": "matched; voice input source; four conditions; task/request/revision/route"
+    }
+  ],
+  "findings": {
+    "wearer_accuracy": "All four conditions correct in every take; far better than Mac TTS through speaker",
+    "bystander_capture": "YES: a nearby person's speech between the end of reading and tapping stop was recognized and appended to the answer",
+    "redo_button": "Verified on device: confirmation dialog, page returns to PREPARED with empty text, old draft not submitted",
+    "review_hint": "Not shown: the explanation line kept the status note in REVIEW (fixed in source after this test)"
+  },
+  "follow_up": [
+    "Research wearer-only gating: official dictation path is mono Opus; check whether left/bone-conduction channel or a VAD/self flag is available",
+    "Consider auto-stop after trailing silence so bystanders after the answer are not captured"
+  ],
+  "channel_analysis_done": false,
+  "cleanup": {
+    "synthetic_tasks_closed": 3,
+    "credentials_revoked": {
+      "phone": 401,
+      "agent": 401,
+      "operations": 401
+    },
+    "import_file_removed": true
+  }
+}

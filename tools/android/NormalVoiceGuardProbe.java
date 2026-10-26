@@ -60,7 +60,7 @@ public final class NormalVoiceGuardProbe extends Instrumentation {
  private void verifyAbi()throws Exception{
   try{
    Class<?> runtimeType=type("VoiceAnswerRuntime"),attemptType=type("VoiceAnswerRuntime$Attempt"),resultType=type("VoiceAnswerRuntime$Result"),runtimeState=type("VoiceAnswerRuntime$Snapshot");
-   Class<?> session=type("VoiceAnswerSession"),permit=type("VoiceAnswerSession$CapturePermit"),recordingType=type("Host107Recording"),coordinatorType=type("VoiceAnswerCoordinator"),state=type("VoiceAnswerCoordinator$State");
+   Class<?> session=type("VoiceAnswerSession"),capture=type("CaptureSession"),permit=type("CaptureSession$CapturePermit"),recordingType=type("Host107Recording"),coordinatorType=type("VoiceAnswerCoordinator"),state=type("VoiceAnswerCoordinator$State");
    Class<?> engine=type("Host107VoiceTask"),decoder=type("Host107VoiceDecoder"),archive=type("VoiceAudioArchive"),cutoff=type("VoiceCaptureCutoff");
    require(resultType.isInterface(),"NORMAL_VOICE_ABI_METHOD_MISMATCH");
    abiField(runtimeType,"instance",runtimeType,true,false,false);abiField(runtimeType,"active",attemptType,false,false,true);abiField(runtimeType,"action",boolean.class,false,false,false);
@@ -75,9 +75,9 @@ public final class NormalVoiceGuardProbe extends Instrumentation {
    abiMethod(session,"capturePermit",permit,false,false);abiMethod(session,"snapshot",Object.class,false,true);
    for(String name:new String[]{"phase","token"})abiField(permit,name,String.class,false,true,false);
    for(String name:new String[]{"needsStop","opening"})abiField(permit,name,boolean.class,false,true,false);
-   abiField(recordingType,"draft",session,false,true,false);for(String name:new String[]{"token","peer","peerHash"})abiField(recordingType,name,String.class,false,true,false);
+   abiField(recordingType,"draft",capture,false,true,false);for(String name:new String[]{"token","peer","peerHash"})abiField(recordingType,name,String.class,false,true,false);
    abiField(recordingType,"generation",long.class,false,true,false);abiField(recordingType,"closed",boolean.class,false,false,true);abiMethod(recordingType,"deadlineStop",void.class,false,false,String.class,String.class,long.class);
-   abiField(coordinatorType,"draft",session,false,true,false);abiField(coordinatorType,"archive",archive,false,true,false);for(String name:new String[]{"token","peer"})abiField(coordinatorType,name,String.class,false,true,false);abiField(coordinatorType,"generation",long.class,false,true,false);
+   abiField(coordinatorType,"draft",capture,false,true,false);abiField(coordinatorType,"archive",archive,false,true,false);for(String name:new String[]{"token","peer"})abiField(coordinatorType,name,String.class,false,true,false);abiField(coordinatorType,"generation",long.class,false,true,false);
    abiMethod(coordinatorType,"stop",void.class,false,false,boolean.class);abiMethod(coordinatorType,"snapshot",state,false,false);
    abiField(state,"draftSnapshot",Map.class,false,true,false);abiField(state,"phase",String.class,false,true,false);for(String name:new String[]{"released","answerReady"})abiField(state,name,boolean.class,false,true,false);
    for(String name:new String[]{"frames","pcmBytes"})abiField(archive,name,long.class,false,false,false);
@@ -241,7 +241,7 @@ public final class NormalVoiceGuardProbe extends Instrumentation {
    loader=getTargetContext().getClassLoader();nonce=arguments.getString("probe_id","");binding=arguments.getString("binding","");requestId=arguments.getString("request_id","");fingerprint=arguments.getString("request_fingerprint","");String requestedRevision=arguments.getString("request_revision","");
    boolean abiOnly="true".equals(arguments.getString("abi_only","false"));
    require(nonce.matches("[a-f0-9]{32}")&&(abiOnly||binding.matches("[a-f0-9]{64}")&&fingerprint.matches("[a-f0-9]{64}")&&requestId.matches("[A-Za-z0-9._:-]{1,160}")&&requestedRevision.matches("[1-9][0-9]{0,17}")),"NORMAL_VOICE_ARGUMENT_INVALID");revision=abiOnly?1:Long.parseLong(requestedRevision);
-   android.content.pm.PackageInfo info=getTargetContext().getPackageManager().getPackageInfo(getTargetContext().getPackageName(),0);require("com.rayneo.venus.pub".equals(getTargetContext().getPackageName())&&info.getLongVersionCode()==10423&&"0.5.3-dev1".equals(info.versionName),"NORMAL_VOICE_CANDIDATE_MISMATCH");
+   android.content.pm.PackageInfo info=getTargetContext().getPackageManager().getPackageInfo(getTargetContext().getPackageName(),0);require("com.rayneo.venus.pub".equals(getTargetContext().getPackageName())&&info.getLongVersionCode()==10427&&"0.5.3-dev5".equals(info.versionName),"NORMAL_VOICE_CANDIDATE_MISMATCH");
    verifyAbi();
    if(abiOnly){monitor.shutdownNow();timer.shutdownNow();Bundle report=new Bundle();report.putString("probe_id",nonce);report.putBoolean("abi_verified",true);report.putBoolean("sdk_methods_called",false);report.putBoolean("microphone_started",false);report.putBoolean("task_or_answer_submitted",false);report.putBoolean("control_endpoint_opened",false);finish(Activity.RESULT_OK,report);return;}
    endpoint();initializeHost();

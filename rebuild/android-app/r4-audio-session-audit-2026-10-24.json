@@ -1,0 +1,458 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T14:05:58.419783+00:00",
+  "status": "native_session_chain_confirmed_source_association_missing",
+  "scope": "Read-only current-account metadata and stock history navigation; no audio content read, capture, playback or diagnostic HTTP",
+  "static": {
+    "refs": [
+      {
+        "path": "smali_classes2/o8/e.smali",
+        "file_sha256": "cb4ba7b8b461974d9db22c0a5e567bebecd7991479fd7cd73bbf1eb25f02af49",
+        "method": "public final a(Ljava/lang/String;[B)V",
+        "method_sha256": "436a120c86d307cd18227d12e0a2a591977439916d41e5fa36693103abfdf5cc",
+        "line": 164,
+        "required_markers": [
+          "append_cached_audio",
+          "Ljava/io/FileOutputStream;->write([B)V",
+          "Ljava/io/OutputStream;->flush()V"
+        ]
+      },
+      {
+        "path": "smali_classes2/o8/m.smali",
+        "file_sha256": "aacba980735c58530a762cb874bc2bbcd79abe42ddf8fd84648ff8b60d8eaa8a",
+        "method": "public final v(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
+        "method_sha256": "fa3f355100dacabeed897e41309b637cd78c96ea3009e4c10031d9e3d6efa8f5",
+        "line": 3787,
+        "required_markers": [
+          "Lo8/m;->z:Ljava/lang/String;",
+          "Lo8/m;->B:Ljava/lang/String;",
+          "Lo8/m;->k()Ljava/lang/String;"
+        ]
+      },
+      {
+        "path": "smali_classes2/o8/m$b.smali",
+        "file_sha256": "01d2132b123835311a78b480dce8e2c25ed5c9e13108692fed03258ba9c8fe25",
+        "method": "public final onAlwaysOnResponse(Lcom/rayneo/airuntime/controller/RayNeoAlwaysOnResponse;)V",
+        "method_sha256": "baf58c97b56aedb81fb251294bd39c9a555dc454b714fdcba313433151ebc8f7",
+        "line": 37,
+        "required_markers": [
+          "getRoundId()",
+          "getFinished()",
+          "Lo8/m;->f()Ljava/lang/String;",
+          "\"taskId\"",
+          "\"roundId\""
+        ]
+      },
+      {
+        "path": "smali_classes3/Mb/j.1.smali",
+        "file_sha256": "87285d43c81e3b53d443b99ca2d070628ade2ecaeb39321d468b4f5713e5445a",
+        "method": "public final invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+        "method_sha256": "4b888bf48b7753dcbef0ec644f58382e6b9175be0f393f667013885e59873539",
+        "line": 30,
+        "required_markers": [
+          "onCachedAudioReady",
+          "\"filePath\"",
+          "\"sizeBytes\""
+        ]
+      },
+      {
+        "path": "smali_classes2/o8/m.smali",
+        "file_sha256": "aacba980735c58530a762cb874bc2bbcd79abe42ddf8fd84648ff8b60d8eaa8a",
+        "method": "public final p(Lcom/rayneo/airuntime/controller/RayNeoAlwaysOnConfig;Ljava/lang/String;Ljava/lang/Boolean;)Lcom/rayneo/airuntime/controller/RayNeoAlwaysOnConfig;",
+        "method_sha256": "58b4c41fb0faf15957e6ff0f7477e4dcd645c439797a4b53d72743af9c637b91",
+        "line": 2977,
+        "required_markers": [
+          "\"opus\"",
+          "\"pcm\"",
+          "getInputAudioRate()I",
+          "const/16 v3, 0x3e80",
+          "getChannelRole()",
+          "\"guest\"",
+          "setDialogId(Ljava/lang/String;)V",
+          "setTaskId(Ljava/lang/String;)V",
+          "Lo8/m;->i(Ljava/lang/String;)Ljava/lang/String;"
+        ]
+      }
+    ]
+  },
+  "native": {
+    "final": {
+      "audio_read_or_capture": false,
+      "audit": {
+        "conversation_cache_entries": [],
+        "conversation_shape_nodes": 0,
+        "conversation_shape_limited": false,
+        "always_on_cached_audio": [],
+        "always_on_cached_audio_directory_present": false,
+        "cache_entries": 9,
+        "known_source_count": 68,
+        "source_type_occurrences": {
+          "conversation": 121,
+          "recording": 8
+        },
+        "cached_sessions": [],
+        "global_preferences": [
+          {
+            "key": "recording_cache_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "flutter.recording_cache_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "session_task_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "flutter.session_task_list",
+            "present": false,
+            "account_ownership_unverified": true
+          }
+        ],
+        "file_extensions": {
+          "mp3": 1,
+          "opus": 9,
+          "pcm": 55
+        },
+        "filename_matches": [
+          {
+            "source_id_sha256": "8a1ebffed3cc0da83e0221264037fcb4c27a59e35be6b9a8702df75b2c7bfabf",
+            "path_sha256": "d9b29a6943b4840a7f58b4231e88400db14e923c4546b5140e87e970a7d4a95f",
+            "bytes": 529327,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "18cea1f2eddae33147e4e3389ee614268a1826de5bb07a14036d450a89b67ea5",
+            "path_sha256": "d1c52654308bdc7992e796b5ec5382fa68af7d2aae8d1c1d1fe10716258e0483",
+            "bytes": 68714,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "efdbdca219f0502458a84d3dc3c3a67e6e9dae26f57599f59f92f3f4b8613cc1",
+            "path_sha256": "7bd63a305d86b66a4925008f27f1842bdbbd8e5d61d32660a4932d7c6e8993f5",
+            "bytes": 89012,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "33cb86d25827600d8f22f0767966166c7a36ea99145980542576e107b4c76c76",
+            "path_sha256": "ca90b3eb6db744c93347cfc8bba99bb77ab2516149dbcb6175dc5a8b7a80d386",
+            "bytes": 0,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": false,
+            "filename_match_only": true,
+            "association_verified": false
+          }
+        ],
+        "file_scan_max_depth": 8,
+        "file_scan_visited": 895,
+        "file_scan_limited": false,
+        "association_verified": false
+      },
+      "credentials_or_text_exported": false,
+      "diagnostic_shape_checks": 4,
+      "network_requests": 0,
+      "passed": true,
+      "probe_id": "a9088a630c7f4f95aa3d897d17ae69c6",
+      "state_unchanged": true
+    },
+    "after-original": {
+      "audio_read_or_capture": false,
+      "audit": {
+        "conversation_cache_entries": [],
+        "conversation_shape_nodes": 0,
+        "conversation_shape_limited": false,
+        "always_on_cached_audio": [],
+        "always_on_cached_audio_directory_present": false,
+        "cache_entries": 9,
+        "known_source_count": 69,
+        "source_type_occurrences": {
+          "conversation": 122,
+          "recording": 8
+        },
+        "cached_sessions": [],
+        "global_preferences": [
+          {
+            "key": "recording_cache_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "flutter.recording_cache_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "session_task_list",
+            "present": false,
+            "account_ownership_unverified": true
+          },
+          {
+            "key": "flutter.session_task_list",
+            "present": false,
+            "account_ownership_unverified": true
+          }
+        ],
+        "file_extensions": {
+          "mp3": 1,
+          "opus": 9,
+          "pcm": 55
+        },
+        "filename_matches": [
+          {
+            "source_id_sha256": "8a1ebffed3cc0da83e0221264037fcb4c27a59e35be6b9a8702df75b2c7bfabf",
+            "path_sha256": "d9b29a6943b4840a7f58b4231e88400db14e923c4546b5140e87e970a7d4a95f",
+            "bytes": 529327,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "18cea1f2eddae33147e4e3389ee614268a1826de5bb07a14036d450a89b67ea5",
+            "path_sha256": "d1c52654308bdc7992e796b5ec5382fa68af7d2aae8d1c1d1fe10716258e0483",
+            "bytes": 68714,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "efdbdca219f0502458a84d3dc3c3a67e6e9dae26f57599f59f92f3f4b8613cc1",
+            "path_sha256": "7bd63a305d86b66a4925008f27f1842bdbbd8e5d61d32660a4932d7c6e8993f5",
+            "bytes": 89012,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": true,
+            "filename_match_only": true,
+            "association_verified": false
+          },
+          {
+            "source_id_sha256": "33cb86d25827600d8f22f0767966166c7a36ea99145980542576e107b4c76c76",
+            "path_sha256": "ca90b3eb6db744c93347cfc8bba99bb77ab2516149dbcb6175dc5a8b7a80d386",
+            "bytes": 0,
+            "extension": "opus",
+            "source_types": [
+              "recording"
+            ],
+            "parent_directory_kind": "other",
+            "nonempty": false,
+            "filename_match_only": true,
+            "association_verified": false
+          }
+        ],
+        "file_scan_max_depth": 8,
+        "file_scan_visited": 1095,
+        "file_scan_limited": false,
+        "association_verified": false
+      },
+      "credentials_or_text_exported": false,
+      "diagnostic_shape_checks": 4,
+      "network_requests": 0,
+      "passed": true,
+      "probe_id": "72fc186d6e344aa895b6a871c3aa0269",
+      "state_unchanged": true
+    }
+  },
+  "driver_sha256": "a665a69baf7d9d858bbef753fa9f5e8672d6fe8c6c86b5438939c57d5712f687",
+  "diagnostic_sources": [
+    {
+      "path": "tools/android/LifelogAudioMetadataProbe.java",
+      "sha256": "b84f81865b6fd6c263a9feed5b39fb90f47c0f667d451b545985fa0be673f2e3"
+    },
+    {
+      "path": "tools/android/build-emulator-input.mjs",
+      "sha256": "c5aa83b9640c0f6e131b06d19a91d97d8c7643e50df5de529f050db7b3661243"
+    }
+  ],
+  "facts": [
+    "A4 cache writer appends raw payload bytes and flushes; filename suffix is not a codec/container proof",
+    "A4 task ID resolver prefers explicit ID, then active session, then most recent, then generated fallback",
+    "Normalized native config sets dialogId from taskId; default rate if absent is 16000; channel role fallback is guest=0, not proof of physical mono channel",
+    "AlwaysOn response emits native current taskId with separate roundId/finished/text; SDK response does not itself expose official conversation sourceId",
+    "Current account source inventory has no A4 cache directory or cached conversation/query response, even after normal stock original-transcript navigation"
+  ],
+  "not_verified": [
+    "Actual audio codec/container/channel profile",
+    "Native taskId/roundId to official conversation sourceId association",
+    "Whole recording completeness",
+    "Remote original audio 72h storage/expiry, phone export and authoritative deletion"
+  ],
+  "product_unchanged": "dev76 /10498; rollback dev75",
+  "native_context_observation": {
+    "audio_read_or_capture": false,
+    "audit": {
+      "native_context": {
+        "listener_count": 0,
+        "contexts": [],
+        "observation_only": true,
+        "session_origin_verified": false
+      },
+      "conversation_cache_entries": [],
+      "conversation_shape_nodes": 0,
+      "conversation_shape_limited": false,
+      "always_on_cached_audio": [],
+      "always_on_cached_audio_directory_present": false,
+      "cache_entries": 9,
+      "known_source_count": 69,
+      "source_type_occurrences": {
+        "conversation": 122,
+        "recording": 8
+      },
+      "cached_sessions": [],
+      "global_preferences": [
+        {
+          "key": "recording_cache_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "flutter.recording_cache_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "session_task_list",
+          "present": false,
+          "account_ownership_unverified": true
+        },
+        {
+          "key": "flutter.session_task_list",
+          "present": false,
+          "account_ownership_unverified": true
+        }
+      ],
+      "file_extensions": {
+        "mp3": 1,
+        "opus": 9,
+        "pcm": 55
+      },
+      "filename_matches": [
+        {
+          "source_id_sha256": "8a1ebffed3cc0da83e0221264037fcb4c27a59e35be6b9a8702df75b2c7bfabf",
+          "path_sha256": "d9b29a6943b4840a7f58b4231e88400db14e923c4546b5140e87e970a7d4a95f",
+          "bytes": 529327,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "18cea1f2eddae33147e4e3389ee614268a1826de5bb07a14036d450a89b67ea5",
+          "path_sha256": "d1c52654308bdc7992e796b5ec5382fa68af7d2aae8d1c1d1fe10716258e0483",
+          "bytes": 68714,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "efdbdca219f0502458a84d3dc3c3a67e6e9dae26f57599f59f92f3f4b8613cc1",
+          "path_sha256": "7bd63a305d86b66a4925008f27f1842bdbbd8e5d61d32660a4932d7c6e8993f5",
+          "bytes": 89012,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": true,
+          "filename_match_only": true,
+          "association_verified": false
+        },
+        {
+          "source_id_sha256": "33cb86d25827600d8f22f0767966166c7a36ea99145980542576e107b4c76c76",
+          "path_sha256": "ca90b3eb6db744c93347cfc8bba99bb77ab2516149dbcb6175dc5a8b7a80d386",
+          "bytes": 0,
+          "extension": "opus",
+          "source_types": [
+            "recording"
+          ],
+          "parent_directory_kind": "other",
+          "nonempty": false,
+          "filename_match_only": true,
+          "association_verified": false
+        }
+      ],
+      "file_scan_max_depth": 8,
+      "file_scan_visited": 1189,
+      "file_scan_limited": false,
+      "association_verified": false
+    },
+    "credentials_or_text_exported": false,
+    "diagnostic_shape_checks": 4,
+    "network_requests": 0,
+    "passed": true,
+    "probe_id": "aa8268f587be45a697995b10e746acee",
+    "state_unchanged": true
+  },
+  "device": {
+    "driver_uninstalled": true,
+    "app_pid": "14751",
+    "normal_app_restored_then_backgrounded": true
+  },
+  "limitations": [
+    "Hive selector limited to fixed official HTTPS xr-api-p.rayneo.cn host and selected routes; no cached response is not proof service is absent",
+    "Android instrumentation starts a diagnostic target process; zero native listeners does not establish absence of live recording during normal operation",
+    "One early UI navigation attempt found no matching current control after instrumentation returned home; it did not tap stale coordinates. Subsequent stock history and original transcript navigation used fresh UI matches."
+  ],
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-audio-session-audit-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T14:41:25.762Z",
+    "requires_answer": false,
+    "message_id": "notice-ee618973b4ef348ddb85b5532afc8d6b26913ccc0a62df3e0c13c471130397a1",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "device_lock_released": true
+}

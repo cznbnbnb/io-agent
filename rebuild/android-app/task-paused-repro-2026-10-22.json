@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T08:40:00Z",
+  "product": "0.5.3-dev8 /10430",
+  "report": "Codex session: after returning from another page the task connection showed paused until app restart",
+  "repro_run": "voice307-20261022-a (synthetic qa connection, enabled)",
+  "paths_tried": {
+    "home_then_return_10s": "已同步收件箱 throughout 22 s",
+    "screen_lock_15s": "已同步收件箱",
+    "voice_page_open_and_back": "已同步收件箱",
+    "official_page_and_back": "已同步收件箱"
+  },
+  "reproduced": false,
+  "code_analysis": "Only the user's 暂停此会话 persists a pause. Going to background cancels in-flight requests; TaskApi then stores TASK_PAUSED and backs off 5 s, during which pumps re-copy that note, so 连接已暂停 can show for ~5-8 s after return before 已同步收件箱. No code path keeps it until restart.",
+  "code_changed": false,
+  "cleanup": {
+    "synthetic_tasks_closed": 3,
+    "credentials_revoked": "see cloud-voice307 revoke report"
+  }
+}

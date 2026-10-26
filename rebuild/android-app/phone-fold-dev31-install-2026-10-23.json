@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T03:26:29.499Z",
+  "candidate": "0.5.3-dev31",
+  "version_code": 10453,
+  "sha256": "f41cadad9409b5c6a10bd5de76cec006517835a1b07fd3d61fcd7d693e9bd11f",
+  "installed": true,
+  "product_data_cleared": false,
+  "installed_hash_verified": true,
+  "normal_launch_requested": true
+}

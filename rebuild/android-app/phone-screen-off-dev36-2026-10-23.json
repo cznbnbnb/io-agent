@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T05:50:36.808897+00:00",
+  "local_date": "2026-10-22",
+  "local_timezone": "America/Los_Angeles",
+  "candidate": "0.5.3-dev36",
+  "version_code": 10458,
+  "sha256": "d558ae1ae347deea9494b684204999dc53f4ac5f87a743ddb0ad96e6d22ba79d",
+  "rollback": "0.5.3-dev35",
+  "scope": "Real wearer, original current Codex conversation, phone screen off and App background; no replacement model session",
+  "initial_dev35_failure": {
+    "prompter_exit_and_background_capture": true,
+    "stop_and_resources_released": true,
+    "confirm_failed": true,
+    "cause": "io-mac-codex-computer is 21 characters; AgentCardRequest.copy rejected headings longer than 16 before sending confirmation",
+    "draft_preserved": true,
+    "answer_submitted": false
+  },
+  "change": "Abbreviate card headings to 16 characters for display only. Original route, immutable request, full answer and identity checks remain unchanged. Question/answer copy limit remains 48.",
+  "tests": {
+    "agent_card_assertions": 783,
+    "android_compile": true,
+    "signature_and_installed_sha_verified": true
+  },
+  "device": {
+    "human_answered_on_glasses": true,
+    "phone_background": true,
+    "power_samples": 23,
+    "all_samples_doze": true,
+    "power_observation_utc": [
+      "2026-10-23T05:46:26.374394+00:00",
+      "2026-10-23T05:47:35.309668+00:00"
+    ],
+    "prompter_exited": "2026-10-23T05:46:41.994Z",
+    "capture_started": "2026-10-23T05:46:42.587Z",
+    "capture_stopping": "2026-10-23T05:46:50.687Z",
+    "review_released": "2026-10-23T05:46:54.151Z",
+    "confirm_active": "2026-10-23T05:46:55.205Z",
+    "confirm_input_received": "2026-10-23T05:46:58.820Z",
+    "saved": "2026-10-23T05:47:02.166Z",
+    "server_answer_stored": "2026-10-23T05:47:06.769Z",
+    "voice_cleaned": true,
+    "voice_needs_stop": false,
+    "voice_resources_released": true,
+    "idle_attention_owners": "",
+    "notification_block_count": 0
+  },
+  "answer": {
+    "input_source": "voice",
+    "option_id": "ok",
+    "utf8_bytes": 25,
+    "sha256": "4ee3c53dcbe22de6d09e84f34c368db535efa0aaa865e0fc7094d176212f6880",
+    "original_route_request_revision_match": true,
+    "server_full_answer_matches_cli": true,
+    "consumed_once": true,
+    "repeat_wait_same_answer": true,
+    "repeat_wait_network_checked": false,
+    "task_resumed_receipts": 1,
+    "task_completed_receipts": 1
+  },
+  "not_verified": [
+    "Ordinary phone notification arriving during dictation/confirmation (none observed in this run)",
+    "Headless branch with Activity destroyed (this run retained Activity in background)",
+    "8-hour background operation and process death/recovery"
+  ],
+  "private_evidence_sha256": {
+    "retest/device-logcat.txt": "16a4f85e8e2b10d5bfb4d7c174e8a51f66cf22e3b8e658c4068e12e0ae55a989",
+    "retest/power-observations.jsonl": "842d5ef110a92c24043a64bb5cef3a0dcaa40860ffd34818e3d6ee01df787eba",
+    "retest/wait-result.json": "a073ac3521ffed88febb507d697e4b012ab062a64c52fe360126dd3518c23992",
+    "retest/repeat-wait-result.json": "4c53145757cd6d9c970a10f96c99bce6dc889a2fbba381350e08bb1631badced",
+    "retest/server-after-cleanup.json": "62d5e89f38821d63af7b787ccf10b2c25b8609102bd97d0de7ceec1a4cb4b0f9",
+    "post-failure-ui.xml": "65b433b9187e373a3ba827d9ef4af75b66d05de2c70b8b7619e6dc1d5e666a6f"
+  },
+  "cleanup": {
+    "synthetic_task": "completed",
+    "initial_failed_request": "withdrawn",
+    "phone_connection_paused": true,
+    "credentials_revoked": true,
+    "public_identity_status": {
+      "phone": 401,
+      "agent": 401,
+      "operations": 401
+    },
+    "retained_apks": [
+      "dev36",
+      "dev35"
+    ],
+    "original_audio_and_draft_preserved": true
+  }
+}

@@ -19,8 +19,8 @@ public final class Host107Connection implements GlassesConnection {
  private final Set<Runnable> listeners=new LinkedHashSet<>();private final AtomicBoolean notificationPending=new AtomicBoolean();
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
  private volatile Object plugin,stock;private Object manager,resolver,observer,savedResolver,savedObserver;private volatile boolean owned,scanning;private boolean leaseOwned,recoveringEnable;private volatile long scanGeneration;private String note="DEVICE_NOT_ENABLED";
- private Host107Connection(Activity activity){
-  app=activity.getApplicationContext();prefs=app.getSharedPreferences("io_agent_glasses_v1",0);foreground.add(activity);
+ private Host107Connection(Context context,Activity activity){
+  app=context.getApplicationContext();prefs=app.getSharedPreferences("io_agent_glasses_v1",0);if(activity!=null)foreground.add(activity);
   ((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){foreground.add(a);if(prefs.getBoolean("enabled",false)&&!owned&&!FirmwareQueue.busy()&&!a.getClass().getName().equals("com.rayneo.venus.MainActivity"))try{enable();}catch(Exception failure){note=code(failure);}}
    public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&scanning)try{stopScan();}catch(Exception failure){note=code(failure);}}
@@ -28,7 +28,9 @@ public final class Host107Connection implements GlassesConnection {
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });
  }
- static synchronized Host107Connection get(Activity activity){if(instance==null)instance=new Host107Connection(activity);return instance;}
+ static synchronized Host107Connection get(Activity activity){if(instance==null)instance=new Host107Connection(activity,activity);return instance;}
+ /** No screen yet (TurboAddon.boot): cards, dictation and OTA links read the shared stock connection. */
+ static synchronized void boot(Context context){if(instance==null)instance=new Host107Connection(context,null);}
  static void attach(Activity activity){Host107Connection self=get(activity);if(activity.getClass().getName().equals("com.rayneo.venus.MainActivity")&&self.owned)try{handoff();}catch(Exception failure){self.note=code(failure);}}
  void listen(Runnable listener){mainThread();listeners.add(listener);}
  void unlisten(Runnable listener){mainThread();listeners.remove(listener);}

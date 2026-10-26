@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T03:57:00Z",
+  "scope": "USB device verification of material reading and workspace UI performance; no glasses wake testing",
+  "device": "USB bae62ca9 / M332BF",
+  "baseline": {
+    "version": "0.5.3-dev92",
+    "sha256": "2d58145a2b88d588db8049911f0f0390ff3c6b8848743f6068fe24d899ae5623",
+    "material_list_seconds": 5.479,
+    "material_detail_seconds": 5.892,
+    "process_cpu_percent_observed": 82.7,
+    "material_list_process_cpu_percent_observed": 179.0
+  },
+  "candidate": {
+    "version": "0.5.3-dev97",
+    "version_code": 10519,
+    "sha256": "7d8a8432540e6dabf44ed480196bbbc83a079dc61f7a859818f0f555d9c656c1",
+    "installed": true,
+    "installed_hash_verified": true,
+    "product_data_cleared": false,
+    "first_material_list_seconds": 2.498,
+    "first_material_detail_seconds": 2.301,
+    "warm_material_list_seconds": 2.448,
+    "warm_material_detail_seconds": 2.278,
+    "material_detail_process_cpu_percent_observed": 78.0
+  },
+  "fixes": [
+    "Hidden task tab no longer rerenders its complete view hierarchy",
+    "Task history fingerprint serialization is lazy when no UI observer needs it",
+    "Repeated account reads in verifyCatalog removed while final account revalidation remains",
+    "Startup prewarm requests and foreground open requests share one catalog load",
+    "Read-only catalog loads use viewIO instead of waiting behind the two-minute automatic sync IO lane"
+  ],
+  "rejected_intermediates": {
+    "dev95_first_list_seconds": 9.547,
+    "dev96_observed_additional_wait_seconds": 33.457,
+    "reason": "Prewarm duplicated or queued catalog work; fixed by coalescing and moving read-only catalog work off serial sync IO"
+  },
+  "tests": {
+    "material_runtime_checks": 484,
+    "task_checks": 551,
+    "product_sources_java8_d8": 238,
+    "signature_v2_v3_and_original_retention_passed": true
+  },
+  "delivery": {
+    "last_delta_baseline": "0.5.3-dev96",
+    "last_delta_bytes": 1572165,
+    "remote_reconstruction_verified": true,
+    "rollback": "0.5.3-dev76"
+  },
+  "remaining": [
+    "Stock pages still show sustained CPU use near one core during the current vendor activity; no claim that all vendor performance issues are fixed",
+    "CPU values are coarse top samples, not a trace or a standardized benchmark",
+    "Timing includes UI-automator polling overhead and is a before/after comparison on the same phone and path",
+    "Eye double-click default-Agent entry is explicitly deferred by the user"
+  ]
+}

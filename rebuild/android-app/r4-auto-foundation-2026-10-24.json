@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T09:44:57.017148+00:00",
+  "phone_current": "dev72 /10494",
+  "installed": false,
+  "service_deployed": false,
+  "formal_credentials_issued": false,
+  "tests": {
+    "history": 195,
+    "runtime_and_schedule": 386,
+    "discovery_session": 49,
+    "fresh_session": 22,
+    "revision_journal": 43,
+    "compiled_java_sources": 195
+  },
+  "scope": "Production Java journal/runtime with synthetic Android/IO boundaries; material HTTP/SQLite regression; no hardware",
+  "remaining": [
+    "atomic_cancel_of_unknown_old_send_before_changed_source_replacement",
+    "release_and_rollback_rehearsal",
+    "new_remote_debug_endpoint",
+    "limited_formal_material_upload_authorization"
+  ],
+  "sources": {
+    "rebuild/android-app/src/com/turboio/addon/AtomicDocument.java": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0",
+    "rebuild/android-app/src/com/turboio/addon/MaterialWire.java": "f887e33a1eb259bdf091ca301e68efcf08222c11cf0aa87bf55d6f303e68d863",
+    "rebuild/android-app/src/com/turboio/addon/MaterialOutbox.java": "3fff228c7a9f08dff68299b5b935ceefafcc8bd75801d1d3b18f51524c582043",
+    "rebuild/android-app/src/com/turboio/addon/LifelogRevisionJournal.java": "0c4841272ce4fa1d624aebe398100c92de6716d27cabea42d96654223137e916",
+    "rebuild/android-app/src/com/turboio/addon/MaterialRuntime.java": "0dad47b6b1b0e98317f49469bdcdea1c73de8aec0af37bbd3c7677d67f51eb82",
+    "rebuild/android-app/src/com/turboio/addon/MaterialAutoSchedule.java": "53d6eee7c6309c6c3f53f69e687ac08601a9f3eb9b9e1bd1902aaddac1e7a627",
+    "rebuild/android-app/src/com/turboio/addon/MaterialSyncSession.java": "f5776f900feb33f69e90532d7bfc1cdf80c1ac9292bc49af7b66f55adcb5defa",
+    "rebuild/android-app/src/com/turboio/addon/AgentMaterialPage.java": "673cd729698b81e534eb0f3cc67695c33cc790d327e77e69d69d3e4143672bab",
+    "rebuild/android-app/src/com/turboio/addon/MaterialWorkspace.java": "064812569ebd107badc9b1d64abf7cfe5fe2f4ddd37a6fa75aec9c441f594ce5",
+    "rebuild/android-app/src/com/turboio/addon/TurboAddon.java": "a9aade86541d2e2856d00feaf2a0e09fa777ee477ae2a754c2f18e5154e8427c"
+  }
+}

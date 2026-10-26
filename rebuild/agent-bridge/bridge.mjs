@@ -3,6 +3,7 @@ import {BridgeClient,BridgeError} from './client.mjs';
 import {BridgeState} from './state.mjs';
 import {BridgeRunLock} from './run-lock.mjs';
 import {runtimeEventBatch,runtimeDigest,runtimeSource,runtimeAnswer} from './runtime-events.mjs';
+import {SessionDirectoryPublisher} from './session-directory.mjs';
 
 // P41 connection program: outbound-only. It polls the durable inbox, hands items to
 // a runtime adapter and writes only what that adapter really accepted. Every write
@@ -10,7 +11,9 @@ import {runtimeEventBatch,runtimeDigest,runtimeSource,runtimeAnswer} from './run
 // and a lost network reply is reconciled by event id. Runtime handoff uncertainty
 // is tracked separately; network idempotency is not an execution guarantee.
 export const AGENT_STAGES=['agent_received','task_resumed','task_completed','cancel_requested','cancelled','failed'];
-export const PUBLISHABLE_TASK_STATES=['agent_received','running','waiting_answer','cancel_requested','cancelled','completed','failed','expired','execution_unknown'];
+export const PUBLISHABLE_TASK_STATES=['agent_received','running','waiting_answer','cancel_requested','cancelled','completed','failed','expired','execution_unknown','stop_requested','stop_unconfirmed','stopped'];
+const EXECUTION_PHASES={agent_received:['queued','sending','accepted'],running:['running','result_pending'],waiting_answer:['running'],execution_unknown:['outcome_unknown'],stop_requested:['running','stop_requested'],stop_unconfirmed:['stop_unconfirmed','outcome_unknown'],stopped:['stopped'],completed:['completed'],failed:['failed'],cancelled:['cancelled'],expired:['expired']};
+const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 const REQUIRED_SCOPES=['tasks:read','tasks:update','requests:write','messages:receive','messages:write','receipts:agent'];
 const AMBIGUOUS=new Set(['NETWORK_UNAVAILABLE','INVALID_RESPONSE']);
 const RECONCILABLE=new Set(['REVISION_CONFLICT','IDEMPOTENCY_CONFLICT','STATE_CONFLICT','ROUTE_MISMATCH','ANSWER_ALREADY_ACCEPTED']);
@@ -19,11 +22,18 @@ const digest=(...parts)=>createHash('sha256').update(parts.join('\u0000')).diges
 export class AgentBridge{
   #client;#state=null;#adapter;#clock;#blocked=null;#lastSyncAt=null;#observed=new Set();#stateFile;
   #lease=null;#operation=null;#stopping=false;#stopPromise=null;#adapterStarted=false;
-  #requestLifecycle=false;
-  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch}={}){
+  #requestLifecycle=false;#taskBinding=null;#sessionControl=false;#directory=null;
+  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch,taskBinding=null}={}){
     this.#client=new BridgeClient(config,{clock,fetchImpl});
     this.#adapter=adapter??{name:'observe-only',capabilities:{can_execute:false},onItem:()=>[],onAnswer:()=>[]};
     this.#clock=clock;this.#stateFile=stateFile??config?.state_file;
+    // An existing CLI caller may only narrow the shared device inbox to its verified original task.
+    if(taskBinding!==null){
+      if(typeof taskBinding.task_id!=='string'||!taskBinding.task_id||!taskBinding.route||
+        ['computer_id','agent_id','project_id','session_id'].some(k=>typeof taskBinding.route[k]!=='string'||!taskBinding.route[k])||
+        ['computer_id','agent_id'].some(k=>taskBinding.route[k]!==config[k]))throw new BridgeError('INVALID_CONFIG',{permanent:true});
+      this.#taskBinding=Object.freeze({task_id:taskBinding.task_id,route:Object.freeze({...taskBinding.route})});
+    }
     if(typeof this.#stateFile!=='string'||!this.#stateFile)throw new BridgeError('INVALID_CONFIG',{permanent:true});
   }
   get client(){return this.#client;}
@@ -57,9 +67,10 @@ export class AgentBridge{
   stop(){
     if(this.#stopPromise)return this.#stopPromise;
     this.#stopping=true;
+    const directoryStop=this.#directory?.stop();this.#directory=null;
     this.#stopPromise=(async()=>{
       try{
-        await this.#operation?.catch(()=>{});
+        await Promise.all([this.#operation?.catch(()=>{}),directoryStop]);
         if(this.#adapterStarted&&typeof this.#adapter.stop==='function')await this.#adapter.stop();
         this.#adapterStarted=false;this.#state=null;this.#lease?.release();this.#lease=null;
       }finally{this.#stopping=false;this.#stopPromise=null;}
@@ -78,9 +89,19 @@ export class AgentBridge{
         throw new BridgeError('IDENTITY_MISMATCH',{permanent:true});
       const scopes=new Set(Array.isArray(identity.scopes)?identity.scopes:[]);
       this.#requestLifecycle=Array.isArray(identity.capabilities)&&identity.capabilities.includes('request_lifecycle_v1');
+      this.#sessionControl=Array.isArray(identity.capabilities)&&identity.capabilities.includes('task_session_control_v1');
       const missing=REQUIRED_SCOPES.filter(scope=>!scopes.has(scope));
       if(missing.length)throw new BridgeError('SCOPE_MISSING',{permanent:true,detail:missing.join(',')});
       const state=this.#loadState();
+      if(typeof this.#adapter.routeBindingDigest==='string'){
+        const fingerprint=this.#adapter.routeBindingDigest;
+        if(state.value.runtime_route_binding!==undefined&&state.value.runtime_route_binding!==fingerprint||
+          state.value.runtime_route_binding===undefined&&(state.cursor!==null||['handled','dispatches','outbox','runtime_sources','requests'].some(k=>Object.keys(state.value[k]).length)))
+          throw new BridgeError('RUNTIME_ROUTE_BINDING_CHANGED',{permanent:true});
+        // A changed route set must never inherit a cursor that skipped work for
+        // newly enabled sessions. Configuration changes require reconciliation.
+        state.value.runtime_route_binding=fingerprint;
+      }
       const lease=this.#lease;state.guardWrites(()=>lease.assertHeld());
       if(typeof this.#adapter.start==='function'){
         this.#adapterStarted=true;await this.#adapter.start();
@@ -94,11 +115,25 @@ export class AgentBridge{
       if(this.#adapter.capabilities?.answer_intake_probe_v1===true&&
         (this.#adapter.capabilities?.async_events!==true||typeof this.#adapter.inspectAnswerIntake!=='function'))
         throw new BridgeError('RUNTIME_ANSWER_INTAKE_UNSUPPORTED',{permanent:true});
+      if(this.#adapter.capabilities?.control_intake_probe_v1===true&&
+        (this.#adapter.capabilities?.async_events!==true||typeof this.#adapter.inspectControlIntake!=='function'))
+        throw new BridgeError('RUNTIME_CONTROL_INTAKE_UNSUPPORTED',{permanent:true});
+      if(this.#adapter.capabilities?.task_session_control_v1===true&&!this.#sessionControl)
+        throw new BridgeError('SERVER_SESSION_CONTROL_UNSUPPORTED',{permanent:true});
       if(this.#adapter.capabilities?.can_execute===true&&['computer_id','agent_id'].some(k=>typeof this.#client.config[k]!=='string'||!this.#client.config[k]))
         throw new BridgeError('ROUTE_BINDING_REQUIRED',{permanent:true});
       this.#lease.assertHeld();this.#state=state;
       this.#state.serverId=server_id;this.#state.save();
       this.#blocked=this.#state.value.blocked??null;
+      if(!this.#stopping&&identity.capabilities?.includes('agent_session_directory_v1')&&typeof this.#adapter.readinessSnapshot==='function'){
+        const readiness={readinessSnapshot:async options=>{
+          const snapshot=await this.#adapter.readinessSnapshot(options);
+          let reason=this.#blocked?'bridge_blocked':this.#stopping?'bridge_stopping':this.#adapter.capabilities?.unavailable?'adapter_unavailable':this.#adapter.capabilities?.can_execute!==true?'adapter_observe_only':null;
+          try{this.#lease?.assertHeld();if(!this.#lease||!this.#state)reason='bridge_unavailable';}catch{reason='bridge_lock_lost';}
+          return reason?{...snapshot,sessions:snapshot.sessions.map(s=>({...s,can_execute:false,exact_turn_interrupt:false,atomic_queue_append:false,reason}))}:snapshot;
+        }};
+        this.#directory=new SessionDirectoryPublisher({client:this.#client,adapter:readiness,clock:this.#clock});this.#directory.start();
+      }
       return this.status();
     }catch(error){
       this.#state=null;
@@ -110,7 +145,8 @@ export class AgentBridge{
     return {server_id:this.#state?.serverId??null,producer_id:this.#client.config.producer_id,owner_id:this.#client.config.owner_id,
       started:Boolean(this.#state),stopping:this.#stopping,owns_run:Boolean(this.#lease),cursor:this.#state?.cursor??null,last_sync_at:this.#lastSyncAt,observed_tasks:this.#observed.size,
       pending:Object.keys(this.#state?.outbox()??{}).length,blocked:this.#blocked,adapter:this.#adapter.name??'custom',
-      can_execute:this.#adapter.capabilities?.can_execute===true};
+      can_execute:this.#adapter.capabilities?.can_execute===true,
+      session_directory:this.#directory?.status()??{supported:false,publishing:false}};
   }
   async #pollOnce(){
     if(!this.#state)throw new BridgeError('NOT_STARTED',{permanent:true});
@@ -196,12 +232,33 @@ export class AgentBridge{
     if(!this.#matchesRoute(item)||JSON.stringify(item.body.route)!==JSON.stringify(answer.body.route)||
       answer.body.request_id!==item.object_id||answer.body.task_id!==item.body.task_id||answer.body.request_revision!==item.revision)
       throw new BridgeError('ROUTE_MISMATCH',{permanent:true});
+    const task=await this.#client.object('task',item.body.task_id),expected=this.#state.requests()[item.object_id]?.execution;
+    if(!this.#matchesRoute(task))throw new BridgeError('ROUTE_MISMATCH',{permanent:true});
+    // Accepted answers remain history. They cannot restart a stopped task or
+    // feed a different command after an explicit resume.
+    if(['cancel_requested','cancelled','completed','failed','expired','execution_unknown','stop_requested','stop_unconfirmed','stopped','resume_requested'].includes(task.state)||
+      task.body.execution&&(!expected||expected.command_id!==task.body.execution.command_id||expected.turn_id!==task.body.execution.turn_id)){
+      this.#state.markAnswer(key,{request_id:item.object_id,request_revision:item.revision,answer_id:answer.object_id,ignored:true,reason:'task_execution_closed_or_changed'});this.#state.save();return;
+    }
     await this.#apply(item,await this.#dispatch(`answer:${key}`,item,context=>this.#adapter.onAnswer({request:item,answer},context),answer));
     this.#state.markAnswer(key,{request_id:item.object_id,request_revision:item.revision,answer_id:answer.object_id});this.#state.save();
   }
   async #dispatch(key,source,callback,answer=null){
     const priorSource=this.#state.value.runtime_sources[key];
     const prepared=this.#state.value.dispatches[key];
+    if(prepared?.state==='prepared'&&this.#adapter.capabilities?.control_intake_probe_v1===true&&
+      source.kind==='task'&&['stop_requested','resume_requested'].includes(source.body.state)&&
+      source.body.control&&key===`item:task:${source.object_id}:${source.revision}`&&priorSource){
+      if(runtimeDigest(priorSource)!==runtimeDigest(runtimeSource(source)))
+        throw new BridgeError('RUNTIME_CONTROL_INTAKE_PROOF_INVALID',{permanent:true});
+      const proof=await this.#adapter.inspectControlIntake({delivery_id:key,source:priorSource});
+      if(proof?.status==='accepted'){
+        if(proof.delivery_id!==key||proof.control_id!==source.body.control.control_id||
+          !proof.source||runtimeDigest(proof.source)!==runtimeDigest(priorSource))
+          throw new BridgeError('RUNTIME_CONTROL_INTAKE_PROOF_INVALID',{permanent:true});
+        this.#state.confirmControlIntake(key,proof);
+      }else if(proof?.status!=='not_proven')throw new BridgeError('RUNTIME_CONTROL_INTAKE_PROOF_INVALID',{permanent:true});
+    }
     if(prepared?.state==='prepared'&&this.#adapter.capabilities?.answer_intake_probe_v1===true&&
       source.kind==='request'&&answer&&priorSource&&prepared.answer&&
       key===`answer:${source.object_id}:${source.revision}:${answer.object_id}`){
@@ -266,7 +323,9 @@ export class AgentBridge{
         task={...task,body:entry.event.body,revision:entry.event.body.revision,state:entry.event.body.state};
       if(runtimeDigest(task.body.route)!==runtimeDigest(source.body.route))throw new BridgeError('ROUTE_MISMATCH',{permanent:true});
       if(['completed','cancelled','failed','expired'].includes(task.state))throw new BridgeError('RUNTIME_SOURCE_CLOSED',{permanent:true});
-      const actions=task.state==='cancel_requested'?event.actions.filter(action=>
+      const paused=['cancel_requested','stop_unconfirmed','stopped'].includes(task.state)||
+        task.state==='stop_requested'&&Date.parse(task.body.control?.expires_at)>this.#clock();
+      const actions=paused?event.actions.filter(action=>
         action.action!=='request'&&(action.action!=='task_state'||!['agent_received','running','waiting_answer'].includes(action.state))):event.actions;
       await this.#apply(source,actions,event);
     }
@@ -285,14 +344,22 @@ export class AgentBridge{
       if(action.action==='task_state')await this.#enqueueTaskState(source,action);
       else if(action.action==='receipt')this.#enqueueReceipt(source,action);
       else if(action.action==='message')this.#enqueueMessage(source,action);
-      else this.#enqueueRequest(source,action);
+      else await this.#enqueueRequest(source,action);
     }if(runtimeEvent)this.#state.markRuntimeEvent(runtimeEvent);this.#state.save();}catch(error){this.#state.value=snapshot;throw error;}
   }
-  #matchesRoute(item){const route=item.body?.route;return route?.computer_id===this.#client.config.computer_id&&route?.agent_id===this.#client.config.agent_id;}
+  #matchesRoute(item){const route=item.body?.route,bound=this.#taskBinding;return route?.computer_id===this.#client.config.computer_id&&route?.agent_id===this.#client.config.agent_id&&
+    (typeof this.#adapter.acceptsRoute!=='function'||this.#adapter.acceptsRoute(route))&&
+    (!bound||item.body.task_id===bound.task_id&&['computer_id','agent_id','project_id','session_id'].every(k=>route[k]===bound.route[k]));}
   #validate(action){
     if(!action||typeof action.action!=='string')throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'action'});
     if(action.action==='task_state'){
-      if(!PUBLISHABLE_TASK_STATES.includes(action.state))throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'task_state'});
+      if(!PUBLISHABLE_TASK_STATES.includes(action.state)||Object.keys(action).some(k=>!['action','state','task_id','execution'].includes(k)))throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'task_state'});
+      if(action.execution!==undefined){
+        const x=action.execution;
+        if(!this.#sessionControl||!x||typeof x!=='object'||Array.isArray(x)||Object.keys(x).length!==3||
+          !uuid(x.command_id)||!(x.turn_id===null||typeof x.turn_id==='string'&&x.turn_id.length>0&&x.turn_id.length<=160)||
+          !EXECUTION_PHASES[action.state]?.includes(x.phase))throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'execution'});
+      }
       return;
     }
     if(action.action==='receipt'){
@@ -340,9 +407,9 @@ export class AgentBridge{
       current={...current,body:entry.event.body,revision:entry.event.body.revision,state:entry.event.body.state};
     // The desired state already holds: publishing it again would only produce a
     // conflict, so the program records nothing and leaves the task alone.
-    if(current.state===action.state)return;
+    if(current.state===action.state&&(action.execution===undefined||runtimeDigest(current.body.execution??null)===runtimeDigest(action.execution)))return;
     const revision=current.revision+1;
-    const body={...current.body,revision,state:action.state};
+    const body={...current.body,revision,state:action.state,...(action.execution===undefined?{}:{execution:structuredClone(action.execution)})};
     this.#persist(`task:${taskId}:${revision}`,'task',body);
   }
   #enqueueReceipt(source,action){
@@ -354,7 +421,7 @@ export class AgentBridge{
       stage:action.stage,actor_id:this.#client.config.producer_id,related_event_id:action.related_event_id??source.event_id,error:action.error??null};
     this.#persist(`receipt:${receiptId}`,'receipt',body);
   }
-  #enqueueRequest(source,action){
+  async #enqueueRequest(source,action){
     if(typeof action.question!=='string'||!action.question||action.question.length>4096)throw new BridgeError('BRIDGE_ACTION_INVALID',{permanent:true,detail:'question'});
     const taskId=action.task_id??source.body.task_id;
     const mode=action.mode==='choice'?'choice':'free_text';
@@ -366,7 +433,10 @@ export class AgentBridge{
       options,state:'pending',runtime_request_id:action.runtime_request_id??null};
     this.#persist(`request:${requestId}:1`,'request',body,action.expires_at);
     if(taskId!==source.body.task_id)throw new BridgeError('ROUTE_MISMATCH',{permanent:true});
-    this.#state.trackRequest(requestId,1);
+    let task=await this.#client.object('task',taskId);
+    for(const entry of Object.values(this.#state.outbox()))if(entry.event.kind==='task'&&entry.event.body.task_id===taskId&&entry.event.body.revision>task.revision)
+      task={...task,body:entry.event.body,revision:entry.event.body.revision,state:entry.event.body.state};
+    this.#state.trackRequest(requestId,1,task.body.execution);
   }
   #enqueueMessage(source,action){
     const body={message_id:action.message_id,revision:1,task_id:source.body.task_id,route:source.body.route,
@@ -387,12 +457,14 @@ export class AgentBridge{
     this.#lease.assertHeld();
     if(this.#blocked)throw new BridgeError(this.#blocked.code,{permanent:true});
     const now=this.#clock();
-    const deferred=new Set();
+    const deferred=new Set(),deferredTasks=new Set();
     for(const [key,entry] of Object.entries(this.#state.outbox())){
       this.#lease.assertHeld();
       const objectKey=`${entry.event.kind}:${entry.event.body[`${entry.event.kind}_id`]}`;
-      if(deferred.has(objectKey))continue;
-      if(entry.next_attempt_at>now){deferred.add(objectKey);continue;}
+      const taskId=entry.event.body.task_id??(entry.event.kind==='receipt'&&entry.event.body.subject_kind==='task'?entry.event.body.subject_id:null);
+      const postpone=()=>{deferred.add(objectKey);if(taskId)deferredTasks.add(taskId);};
+      if(deferred.has(objectKey)||taskId&&deferredTasks.has(taskId))continue;
+      if(entry.next_attempt_at>now){postpone();continue;}
       try{
         await this.#client.post(entry.event.kind,entry.event);
         this.#state.complete(key);this.#state.save();
@@ -401,16 +473,44 @@ export class AgentBridge{
         if(AMBIGUOUS.has(error.code)){
           const settled=await this.#reconcile(entry);
           if(settled){this.#state.complete(key);this.#state.save();continue;}
-          this.#state.fail(key,error.code,now,null);this.#state.save();deferred.add(objectKey);continue;
+          this.#state.fail(key,error.code,now,null);this.#state.save();postpone();continue;
         }
-        if(error.retryable){this.#state.fail(key,error.code,now,error.detail);this.#state.save();deferred.add(objectKey);continue;}
+        if(error.retryable){this.#state.fail(key,error.code,now,error.detail);this.#state.save();postpone();continue;}
         if(RECONCILABLE.has(error.code)&&await this.#reconcile(entry)){this.#state.complete(key);this.#state.save();continue;}
+        if(['REVISION_CONFLICT','TASK_CONTROL_INVALID'].includes(error.code)&&await this.#settleControlRace(key,entry)){postpone();continue;}
         this.#blocked={key,code:error.code,at:new Date(now).toISOString()};
         this.#state.value.blocked=this.#blocked;this.#state.save();
         throw error;
       }
     }
     return {pending:Object.keys(this.#state.outbox()).length,blocked:this.#blocked};
+  }
+  async #settleControlRace(key,entry){
+    // The server definitively rejected these bytes. Keep that fact separately;
+    // never alter an envelope that might already have been accepted.
+    const old=entry.event.body;if(entry.event.kind!=='task'||!old.execution)return false;
+    const current=await this.#client.object('task',old.task_id),body=current.body;
+    if(!this.#matchesRoute(current)||body.command!==old.command||runtimeDigest(body.route)!==runtimeDigest(old.route)||
+      body.allow_create_session!==old.allow_create_session||!body.control||runtimeDigest(body.control)===runtimeDigest(old.control??null)||
+      !body.execution||body.execution.command_id!==old.execution.command_id||body.execution.turn_id!==old.execution.turn_id||
+      !['stop_requested','stop_unconfirmed','stopped','resume_requested'].includes(current.state))return false;
+    const discard=['agent_received','running','waiting_answer'].includes(old.state);
+    const final=['completed','failed'].includes(old.state)&&['stop_requested','stop_unconfirmed'].includes(current.state);
+    if(!discard&&!final)return false;
+    const snapshot=structuredClone(this.#state.value);
+    try{
+      this.#state.value.superseded_task_events??={};
+      this.#state.value.superseded_task_events[entry.event.event_id]={task_id:old.task_id,revision:old.revision,current_revision:current.revision,control_id:body.control.control_id,reason:discard?'control_won':'terminal_fact_rebased'};
+      this.#state.complete(key);
+      if(final){const revised={...body,revision:current.revision+1,state:old.state,execution:old.execution};
+        const replacement=`task:${old.task_id}:${revised.revision}:rebase:${runtimeDigest(revised)}`;
+        this.#persist(replacement,'task',revised);
+        // Keep completion ahead of its receipt and behind its result chunks.
+        const outbox=this.#state.outbox();
+        this.#state.value.outbox=Object.fromEntries(Object.keys(snapshot.outbox).flatMap(k=>k===key?[[replacement,outbox[replacement]]]:outbox[k]?[[k,outbox[k]]]:[]));
+      }
+      this.#state.save();return true;
+    }catch(error){this.#state.value=snapshot;throw error;}
   }
   async #reconcile(entry){
     try{await this.#client.event(entry.event.event_id,entry.event);return true;}

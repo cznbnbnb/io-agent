@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import {createRequire} from 'node:module';
-import {parseStrict} from '../json.mjs';
+import {parseStrict,sha} from '../json.mjs';
 import {validateSpeakerMaterial} from '../validation.mjs';
 
 export class QueryError extends Error {
@@ -17,7 +17,7 @@ const positive=v=>Number.isSafeInteger(v)&&v>0;
 const time=v=>typeof v==='string'&&/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(v)&&Number.isFinite(Date.parse(v));
 const principal=v=>typeof v==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(v);
 const supportedErrors=new Set(['UNAUTHENTICATED','FORBIDDEN','INVALID_QUERY','MATERIAL_NOT_FOUND','MATERIAL_DELETED',
-  'CURSOR_RESET_REQUIRED','UNAVAILABLE','INTERNAL','NOT_FOUND']);
+  'CURSOR_RESET_REQUIRED','MATERIAL_CONTENT_REQUIRED','UNAVAILABLE','INTERNAL','NOT_FOUND']);
 
 // Bounded, explicit local files. No environment/argv bearer or ambient login.
 export function readPrivateJson(filename,maxBytes=16384){
@@ -42,7 +42,7 @@ function materialValidators(){
 }
 
 export class MaterialQueryClient {
-  #config;#base;#clock;#validators;
+  #config;#base;#clock;#validators;#transfer=false;
   constructor(config,{clock=Date.now}={}){
     if(!record(config)||config.schema_version!=='1.0'||Object.keys(config).some(k=>!['schema_version','base_url','owner_id',
       'producer_id','server_id','credential_file','allow_loopback_http','timeout_ms'].includes(k)))fail('INVALID_CONFIG');
@@ -102,7 +102,30 @@ export class MaterialQueryClient {
       identity.server_id!==this.#config.server_id)fail('IDENTITY_MISMATCH');
     if(!Array.isArray(identity.scopes)||!identity.scopes.includes(scope))fail('FORBIDDEN',{status:403});
     if(!time(identity.expires_at)||Date.parse(identity.expires_at)<=this.#clock())fail('CREDENTIAL_EXPIRED_OR_INVALID');
+    this.#transfer=Array.isArray(identity.capabilities)&&identity.capabilities.includes('material_transfer_v1');
     return credential.token;
+  }
+  async #hydrate(value,token,signal,budget){
+    if(!value?.content_ref)return value;
+    const ref=value.content_ref;
+    if(!this.#transfer||!record(ref)||typeof ref.material_id!=='string'||!ref.material_id||ref.material_id.length>512||
+      !positive(ref.revision)||!positive(ref.bytes)||ref.bytes>8388608||ref.part_bytes!==131072||
+      ref.parts!==Math.ceil(ref.bytes/ref.part_bytes)||!/^[a-f0-9]{64}$/.test(ref.sha256))fail('INVALID_RESPONSE');
+    budget.bytes+=ref.bytes;if(budget.bytes>33554432)fail('MATERIAL_PAGE_TOO_LARGE');
+    const parts=[];
+    for(let index=0;index<ref.parts;index++){
+      const part=await this.#request(`material-content/${encodeURIComponent(ref.material_id)}?revision=${ref.revision}&index=${index}`,token,signal,262144);
+      if(!record(part)||part.material_id!==ref.material_id||part.revision!==ref.revision||part.index!==index||
+        part.parts!==ref.parts||part.bytes!==ref.bytes||part.sha256!==ref.sha256||typeof part.data!=='string'||
+        part.data.length>Math.ceil(ref.part_bytes/3)*4)fail('INVALID_RESPONSE');
+      const bytes=Buffer.from(part.data,'base64');
+      if(bytes.toString('base64')!==part.data||bytes.length!==Math.min(ref.part_bytes,ref.bytes-index*ref.part_bytes)||sha(bytes)!==part.part_sha256)fail('INVALID_RESPONSE');
+      parts.push(bytes);
+    }
+    const bytes=Buffer.concat(parts);if(bytes.length!==ref.bytes||sha(bytes)!==ref.sha256)fail('INVALID_RESPONSE');
+    let item;try{item=parseStrict(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{fail('INVALID_RESPONSE');}
+    if(item?.body?.material_id!==ref.material_id||item.body.revision!==ref.revision)fail('INVALID_RESPONSE');
+    return item;
   }
   #source(body,utterance=null){
     return {server_id:this.#config.server_id,owner_id:this.#config.owner_id,material_id:body.material_id,revision:body.revision,
@@ -152,12 +175,13 @@ export class MaterialQueryClient {
     if((options.from&&!time(options.from))||(options.to&&!time(options.to))||
       (options.from&&options.to&&Date.parse(options.from)>Date.parse(options.to)))fail('INVALID_QUERY');
     const token=await this.#authenticate(operation==='changes'?'changes:read':'materials:read',signal);
+    if(this.#transfer)query.set('content','reference');
     const page=await this.#request(`${operation==='changes'?'changes':'materials'}?${query}`,token,signal);
     if(!record(page)||!Array.isArray(page.items)||page.items.length>(options.limit??20)||typeof page.has_more!=='boolean'||
       typeof page.next_cursor!=='string'||!page.next_cursor||page.next_cursor.length>4096||!time(page.server_time)||
       !time(page.fresh_until)||Date.parse(page.fresh_until)>Date.parse(page.server_time)||
       (page.has_more&&page.items.length===0))fail('INVALID_RESPONSE');
-    const items=page.items.map(item=>this.#item(item,options.keyword));
+    const items=[],budget={bytes:0};for(const item of page.items)items.push(this.#item(await this.#hydrate(item,token,signal,budget),options.keyword));
     if(operation==='search'&&items.some(item=>item.withdrawn))fail('INVALID_RESPONSE');
     if(items.some((item,index)=>index>0&&item.commit_seq<=items[index-1].commit_seq))fail('INVALID_RESPONSE');
     return this.#result(operation,items,{server_time:page.server_time,fresh_until:page.fresh_until},
@@ -170,8 +194,9 @@ export class MaterialQueryClient {
     const {material_id,revision}=options;
     if(typeof material_id!=='string'||!material_id||['.','..'].includes(material_id)||material_id.length>128||revision!==undefined&&!positive(revision))fail('INVALID_QUERY');
     const token=await this.#authenticate('materials:read',signal);
-    const value=await this.#request(`materials/${encodeURIComponent(material_id)}${revision===undefined?'':`?revision=${revision}`}`,token,signal);
-    const item=this.#item(value);
+    const query=new URLSearchParams();if(revision!==undefined)query.set('revision',String(revision));if(this.#transfer)query.set('content','reference');
+    const value=await this.#request(`materials/${encodeURIComponent(material_id)}?${query}`,token,signal);
+    const item=this.#item(await this.#hydrate(value,token,signal,{bytes:0}));
     if(item.body.material_id!==material_id||(revision!==undefined&&item.body.revision!==revision)||item.withdrawn)fail('INVALID_RESPONSE');
     // Single-object endpoint exposes stored_at, not a server freshness clock.
     return this.#result('get',[item],{server_time:null,fresh_until:null},{has_more:false,next_cursor:null});

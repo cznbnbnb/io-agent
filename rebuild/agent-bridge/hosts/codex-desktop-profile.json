@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "inspected_at": "2026-10-25",
+  "scope": "Local desktop follower IPC; original owner only; no app-server spawn or thread resume",
+  "sources": [
+    {
+      "path": ".vite/build/src-CsH31EEu.js",
+      "bytes": 1664092,
+      "sha256": "6a266611954c6f0c72aca09bb13c0c793959a69e8d6330778a7cdef21835a1db"
+    },
+    {
+      "path": ".vite/build/main-JI9qDiXp.js",
+      "bytes": 4080713,
+      "sha256": "b8c5d07cc3c30fbf0abe729b05434e7d1ffa19ee6c4daa818ae8f855be66d1e1"
+    },
+    {
+      "path": ".vite/build/application-network-startup-BG13czUt.js",
+      "bytes": 292827,
+      "sha256": "90db83017c05bf247b53a09bb04a3312e0003259c56144535b09805085b16a6c"
+    },
+    {
+      "path": ".vite/build/conversation-turn-mutations-DZp-AgIY.js",
+      "bytes": 53115,
+      "sha256": "f386be772ed58985a666ec48ded161be66cf8d3df0389f09fe622a0bbf40b170"
+    }
+  ],
+  "versions": {
+    "thread-owner-discovery": 1,
+    "thread-follower-read-model-settings": 1,
+    "thread-follower-start-turn": 2,
+    "thread-follower-interrupt-turn": 4,
+    "thread-stream-following-changed": 1,
+    "thread-stream-state-changed": 11
+  }
+}

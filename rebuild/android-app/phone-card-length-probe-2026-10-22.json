@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T11:45:00Z",
+  "probe_build": "0.5.3-dev12 /10434 (CONTENT_LIMIT 48 -> 160 for this probe only; replaced by dev13 /10435 with 48)",
+  "run_id": "card312-20261022-a (synthetic owner; route io-test-mac / io-test-hermes; no Agent, no capture)",
+  "cards": "three choice questions, total card text 60/90/120 characters, ten-character blocks A..J as position markers",
+  "lens_observation_by_user": {
+    "card_60": "text ended at '；＋选此项，删' - the last 4 characters '除下一项' were not shown, no ellipsis (about 56 of 60 characters visible)",
+    "knob": "turning the knob only moves the button selection; it does not scroll the text",
+    "cards_90_120": "not separately reported; same structure, expected to cut at the same point"
+  },
+  "conclusion": "48 characters stays the card limit (about 8 characters of margin). Over-limit copy is silently truncated on the lens, so it must never be sent as a card; long content needs another channel.",
+  "user_direction": "short yes/no confirmations stay on the native card; long content goes to the teleprompter with listed options, and long-press exit starts recording for the next instruction; repeated paging cards are not wanted",
+  "cleanup": {"synthetic_tasks_cancelled": 3, "credentials_revoked": "agent+phone 401 AUTH_REQUIRED", "probe_apk": "moved to Trash after dev13 install"}
+}

@@ -10,7 +10,7 @@ final class LifelogRevisionMapper {
  private static Map<String,Map<String,Object>> index(List<Object> values,String key){Map<String,Map<String,Object>> out=new TreeMap<>();for(Object raw:values){Map<String,Object> row=WireJson.map(raw);require(out.put((String)row.get(key),row)==null,"LIFELOG_REVISION_DUPLICATE");}return out;}
  private static boolean confirmed(Map<String,Object> speaker){return "user_confirmed".equals(speaker.get("label_basis"));}
  static byte[] reconcile(byte[] current,byte[] previous){
-  Map<String,Object> fresh=WireJson.map(WireJson.read(current)),old=WireJson.map(WireJson.read(previous));MaterialWire.body(fresh);MaterialWire.body(old);
+  Map<String,Object> fresh=WireJson.map(MaterialWire.read(current)),old=WireJson.map(MaterialWire.read(previous));MaterialWire.body(fresh);MaterialWire.body(old);
   long revision=MaterialWire.positive(fresh.get("revision"));
   require(fresh.get("material_id").equals(old.get("material_id"))&&fresh.get("source").equals("lifelog")&&old.get("source").equals("lifelog")&&old.get("operation").equals("upsert")&&fresh.get("operation").equals("upsert"),"LIFELOG_REVISION_BINDING");
   require(revision==Math.addExact(MaterialWire.positive(old.get("revision")),1),"LIFELOG_REVISION_ORDER");

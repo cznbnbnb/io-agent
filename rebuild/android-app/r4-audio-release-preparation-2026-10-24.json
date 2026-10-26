@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T22:21:05.835299+00:00",
+  "passed": true,
+  "scope": "Original-audio release preparation and isolated rehearsal, not production activation.",
+  "production_changed": false,
+  "phone_accessed": false,
+  "phone_version": "dev84 /10506",
+  "stable_rollback": "dev76 /10498",
+  "sources": [
+    {
+      "path": "rebuild/material-server/audio-expiry.mjs",
+      "sha256": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af"
+    },
+    {
+      "path": "rebuild/material-server/audio.mjs",
+      "sha256": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b"
+    },
+    {
+      "path": "rebuild/material-server/tests/audio-expiry.test.mjs",
+      "sha256": "112749e2196c40c07ca7dba65892e53c78ce807130e210274f31d5eb06189ae9"
+    },
+    {
+      "path": "rebuild/material-server/tests/audio-expiry-worker.mjs",
+      "sha256": "bf19a3a78cf160b5d381619d6903db1ba187db4358efdc392c192f3b69964d05"
+    },
+    {
+      "path": "tools/phase1/audio-release-support.py",
+      "sha256": "13fe870c7d5dde23db12b589f5b98a3a2ddc5bd4361238dc135f0326a4d73f19"
+    },
+    {
+      "path": "tools/phase1/package-audio-release.py",
+      "sha256": "f73573108929d33815f1e5d8008fa3a910ef2c4de3aa2fd894b4a6e216de45c4"
+    },
+    {
+      "path": "tools/phase1/deploy-audio-release.py",
+      "sha256": "631a01e9b500e50c6f24473ef05a87c9d55389a20b5e4a35eb66f023ad7cd264"
+    },
+    {
+      "path": "tools/phase1/rehearse-audio-release.mjs",
+      "sha256": "63a7e024b91239e7d382c2ab271bb939d802c6645c603a1f01102221064dc765"
+    },
+    {
+      "path": "tools/phase1/test-audio-release.py",
+      "sha256": "0fcf166e860407119dd68bc9bcc3490e1a8fb1a7aa44e97bbbc90c8557acb2db"
+    },
+    {
+      "path": "tools/phase1/remote-server-release.py",
+      "sha256": "692437d336ea4e0a02d21998e105068c4d237d252d0d6d9c39ce6529704faf87"
+    }
+  ],
+  "rehearsal": {
+    "schema": 1,
+    "at": "2026-10-24T22:14:15.226Z",
+    "node": "v22.23.2",
+    "passed": true,
+    "scope": "Five independent processes; synthetic HTTP/SQLite upgrade, code rollback, standalone expiry while old service runs, then resume. No production or phone access.",
+    "production_changed": false,
+    "phone_accessed": false,
+    "rehearsal_sha256": "63a7e024b91239e7d382c2ab271bb939d802c6645c603a1f01102221064dc765",
+    "sources": {
+      "baseline": {
+        "rebuild/material-server/store.mjs": "1ee9f6a5ee7760cfc47cca673c29fcc9c0c653e188187234c95cd00856e30aec",
+        "rebuild/material-server/http.mjs": "883ee7acb1b150655ce17f19b49e09d30e57952a614477515f2e8848984043a0",
+        "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+        "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+        "rebuild/material-server/cli.mjs": "39ad4e391d5bf66133624ee37e76a23bd14c95f1f53c9f476958c59a75ddde24",
+        "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+        "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+        "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+        "rebuild/material-server/audio.mjs": null,
+        "rebuild/material-server/audio-expiry.mjs": null,
+        "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+        "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+        "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+        "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+        "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+        "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+        "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+        "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+        "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+      },
+      "candidate": {
+        "rebuild/material-server/store.mjs": "268f3a6c2be5a49226d712f76a8140c15221c246711624db1bb2b487bec8051a",
+        "rebuild/material-server/http.mjs": "add04164e269339f489ec751aedfa21187871cc8d8f4cc4b3ff934a93c77963c",
+        "rebuild/material-server/json.mjs": "629e58a0fb98e3ee02e05565100018591336e241071f4a2abf38e11aeb26e583",
+        "rebuild/material-server/validation.mjs": "07a2c7391874ef8fd123794e2f049bf8c1b0866859c965b973efa1b43466f665",
+        "rebuild/material-server/cli.mjs": "7c5526446b6916d036c7ccc6a114ae5aa4b910d7f1d14ec841d7c84178585957",
+        "rebuild/material-server/traffic.mjs": "f5cca3dae72062d0b9c5934ddeb64ef7c73ed0abb01e1872bd9b9bc05e6d7af5",
+        "rebuild/material-server/devices.mjs": "8e22e6ec98a42c2987a25aacc57f71f03e5d01decdd8a97ddce25f3b378f459a",
+        "rebuild/material-server/material-transfer.mjs": "a08827033c90ebe309791413aaaa4d2463a4778a463f9e20d068ee5701d7ffce",
+        "rebuild/material-server/audio.mjs": "149f9b93f71c5f594ef27a7b3a331e50925d342c07008a4295d06b212877610b",
+        "rebuild/material-server/audio-expiry.mjs": "2f7e2f03a0741808b1d9f57df9ec06d95e83c25120c509e737a0fd5ab61d60af",
+        "rebuild/material-server/package.json": "76032965d11a7bf6642fb91d879ac36478627acf6b182df46a96ac7c20aeff12",
+        "rebuild/material-server/package-lock.json": "0a5364add51640bbb0a78dcf40817db98a2ea0de8e4372459f14894e2851debc",
+        "rebuild/material-server/.node-version": "08062faf0d7a2d22f5d7933c50e975dd1527034275597be7c1b3b9fd2b9d079a",
+        "rebuild/material-server/admin/index.html": "5521f086116ea383ac94871da169b1eb375f50300fe6091f2414a66adb2e00b4",
+        "rebuild/material-server/admin/app.js": "8fee9bcba84bc63e6a6aaf86f8344d8d5fa483a6864bab63d61f10458f77d6ed",
+        "rebuild/material-server/admin/style.css": "c9431efb57bde3952efb68e36e605050cc235749e6052526a08ce7edd3272fec",
+        "docs/contracts/event-v1.schema.json": "b5742c1ca6a676d1b6e9c84db85fe41863b82d3293e1f649379090a0f5c87760",
+        "docs/contracts/event-v1.1.schema.json": "b916f7806d841d791ea11c2132cd005fc7a1f59e15f63ffc9dead1d1826cef36",
+        "docs/contracts/event-v1.2.schema.json": "8b01a345f0d22b4fe9dfab1d6320cc7ea02496feafc11b6c7fe0a1879a1ac94c"
+      }
+    },
+    "phases": [
+      {
+        "phase": "seed",
+        "passed": true,
+        "checks": [
+          "old runtime material, credential, server identity and text-only backup seeded"
+        ]
+      },
+      {
+        "phase": "upgrade",
+        "passed": true,
+        "checks": [
+          "new audio service uploads and reads exact bytes over HTTP",
+          "fixed 72-hour receipts and separate permission; ordinary text identity retained",
+          "due, pending and future payloads staged for old-code rollback"
+        ]
+      },
+      {
+        "phase": "rollback",
+        "passed": true,
+        "checks": [
+          "old runtime serves original text and accepts fresh revision two",
+          "old runtime never opens or changes the retained audio side database"
+        ]
+      },
+      {
+        "phase": "expiry",
+        "passed": true,
+        "checks": [
+          "independent copied cleaner prunes expired bytes while old HTTP service remains live",
+          "text database bytes unchanged; future audio and fixed expiry metadata retained"
+        ]
+      },
+      {
+        "phase": "resume",
+        "passed": true,
+        "checks": [
+          "upgrade again preserves old-code text revision and fixed future audio receipt",
+          "expired original cannot be revived or renewed; isolated credentials revoked"
+        ]
+      }
+    ],
+    "temporary_data_removed": true
+  },
+  "tests": {
+    "independent_expiry": 3,
+    "audio_service_including_real_60_second_timer": 12,
+    "publisher_assets": 8,
+    "code_switch_regression": 13,
+    "broader_service_regression_passed": 75,
+    "broader_service_regression_unavailable": [
+      "speakers.test.mjs cannot load the local DevEco TypeScript module; not a server assertion failure."
+    ],
+    "historical_arkts_fixture_explicitly_excluded": "unaltered ArkTS phone exports: known absent device-p21-wire39-seed.json/resume.json; no synthetic replacement."
+  },
+  "design": [
+    "Shared fixed-expiry rule; standalone expiry opens only existing matching audio database and never accesses text or grants.",
+    "Independent hashed module and systemd timer live outside switched HTTP source; remain active on HTTP rollback.",
+    "Publisher takes text-only consistent backup, matches complete live source baseline and committed rehearsal, enables expiry before code switch and verifies audio binding afterward.",
+    "First activation refuses existing unknown audio storage and conflicting units/modules; no audio snapshots, data restoration or grant minting."
+  ],
+  "not_verified": [
+    "Linux systemd verification/active timer and actual production activation pending.",
+    "No actual raw grant, audio upload, phone TLS readback or remote export.",
+    "Maximum 10GiB expiry throughput/long-running cleanup not load-tested; successful small-fixture cleanup is not a capacity guarantee."
+  ]
+}

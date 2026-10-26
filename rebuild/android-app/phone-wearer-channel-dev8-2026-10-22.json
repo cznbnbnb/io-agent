@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "at": "2026-10-22T07:27:16.580270+00:00",
+  "item": "H07-V03",
+  "product": "0.5.3-dev8 /10430",
+  "run_id": "voice306-20261022-a",
+  "context": "qa",
+  "apk_sha256": "88b05d33c07e160a430d46b655a612f0dfcdf18f668a4aa10799c3ab33e4c36b",
+  "recognition_input": "left channel from stereo Opus decoder",
+  "exact_expected_transcript": true,
+  "transcript_sha256": "678b6aa73778df54cab6c5ec1fd05e98b9c16adca86fc446612683809b1b155c",
+  "review_hint_visible": true,
+  "user_feedback": "看上去是排除环境音了",
+  "bystander_content_observed_in_transcript": false,
+  "wearer_conditions_retained": [
+    "只做预览",
+    "不要修改文件",
+    "保留全部资料",
+    "星期五继续",
+    "附加条件也要完整保留"
+  ],
+  "saved_in_this_check": true,
+  "server_readback_verified": true,
+  "save_blocked_by_automatic_review": false,
+  "credentials_cleanup": "completed",
+  "limits": [
+    "One wearer test only; does not establish universal rejection of environmental speech",
+    "Channel energy and recognition do not prove physical microphone provenance or authenticate wearer identity",
+    "Official assistant mode 4 filtering remains unverified"
+  ],
+  "completed_at": "2026-10-22T07:33:08.372932+00:00",
+  "save_approval": "User explicitly approved saving/submitting in this chat after the review rejection",
+  "server_check": {
+    "transcript_sha256": "678b6aa73778df54cab6c5ec1fd05e98b9c16adca86fc446612683809b1b155c",
+    "original_task_request_revision_route_match": true,
+    "voice_input_source": true
+  },
+  "cleanup": {
+    "synthetic_tasks_closed": 3,
+    "credentials_revoked": {
+      "phone": 401,
+      "agent": 401,
+      "operations": 401
+    },
+    "phone_current_test_connection_paused": true,
+    "diagnostic_driver_removed": true,
+    "adb_forwards_removed": true,
+    "import_file_absent": true
+  },
+  "stage_delivery_estimates": {
+    "R2": 80,
+    "R3": 70,
+    "R4": 55
+  }
+}

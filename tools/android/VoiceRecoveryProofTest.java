@@ -72,7 +72,7 @@ public final class VoiceRecoveryProofTest {
   VoiceAnswerTest.Memory copy=new VoiceAnswerTest.Memory();copy.value=WireJson.copy(c.store.value);VoiceAnswerSession restored=new VoiceAnswerSession(copy);
   yes(restored.resumeCleanup(PEER,10,2400));yes(restored.stop(restored.token(),2401,true));yes(restored.engineSealed(restored.token(),true,2402));
   yes(!proof.current(restored,c.nativeOwner)); // Even equivalent durable state is a different live owner.
-  yes(c.draft.stopSubmitted(c.draft.token(),PEER,10,2400));VoiceAnswerSession.StopProbe probe=c.draft.probeStop(PEER,10,2401);yes(c.draft.deviceIdle(probe,PEER,10,2402,true));yes(c.draft.finish());
+  yes(c.draft.stopSubmitted(c.draft.token(),PEER,10,2400));CaptureSession.StopProbe probe=c.draft.probeStop(PEER,10,2401);yes(c.draft.deviceIdle(probe,PEER,10,2402,true));yes(c.draft.finish());
   yes(c.draft.phase().equals("CANCELLED")&&!proof.current(c.draft,c.nativeOwner));yes(!proof.permits(c.draft,c.nativeOwner,PEER,11));
   Capture failed=new Capture(2);failed.seal(false);Map<String,Object> failedBefore=failed.snapshot();failed.store.fail=true;
   try{failed.draft.stop(failed.draft.token(),2200,true);throw new AssertionError("write failure expected");}catch(java.io.IOException expected){yes(true);}
@@ -103,7 +103,7 @@ public final class VoiceRecoveryProofTest {
   yes(!VoiceRecoveryProof.cold(live.draft,ATTEMPT,PEER,1,record,self,84,null,true)); // Still CAPTURING.
   yes(restored.stop(restored.token(),3000,true));yes(restored.failed(restored.token(),PEER,19,"VOICE_INTERRUPTED",3001));yes(restored.resumeCleanup(PEER,1,3002));
   yes(restored.engineSealed(restored.token(),true,3003));yes(restored.stopSubmitted(restored.token(),PEER,1,3004));
-  VoiceAnswerSession.StopProbe check=restored.probeStop(PEER,1,3005);yes(restored.deviceIdle(check,PEER,1,3006,true));yes(restored.finish());
+  CaptureSession.StopProbe check=restored.probeStop(PEER,1,3005);yes(restored.deviceIdle(check,PEER,1,3006,true));yes(restored.finish());
   yes(restored.phase().equals("CANCELLED")&&restored.transcript().contains("附加条件"));
   yes(!VoiceRecoveryProof.cold(restored,ATTEMPT,PEER,2,record,self,84,null,true));
  }

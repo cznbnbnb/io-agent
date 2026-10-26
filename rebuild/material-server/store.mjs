@@ -4,24 +4,42 @@ import path from 'node:path';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
+import {DeviceRegistry} from './devices.mjs';
+import {AgentSessionDirectory} from './agent-sessions.mjs';
+import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
+import {AudioArchive} from './audio.mjs';
 
-const SCOPES=new Set(['materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
-  'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read']);
+const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
+  'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
 const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
 const timestamp=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(s)&&Number.isFinite(Date.parse(s));
 const MAX_BODY=262144,MAX_PAGE=1048576;
+// Agent check-in watches (2026-10-23, user: any agent given the CLI must keep the wearer informed).
+const WATCH_MAX_MS=7200000,WATCH_GRACE_MS=120000,WATCHDOG='io-server-watchdog';
+const WATCH_ACTIVE=['queued','agent_received','running','waiting_answer'];
 // P40 state machines: an event may only publish a state reachable from the
 // current head state. "answered" is never publishable — only the answer
 // transaction sets it, so a client cannot claim the user answered.
 const TASK_TRANSITIONS={
   queued:['agent_received','cancel_requested','expired','failed','execution_unknown'],
   agent_received:['running','waiting_answer','cancel_requested','completed','failed','expired','execution_unknown'],
-  running:['waiting_answer','cancel_requested','completed','failed','expired','execution_unknown'],
-  waiting_answer:['running','cancel_requested','completed','failed','expired','execution_unknown'],
+  running:['waiting_answer','cancel_requested','completed','failed','expired','execution_unknown','stop_requested'],
+  waiting_answer:['running','cancel_requested','completed','failed','expired','execution_unknown','stop_requested'],
   cancel_requested:['cancelled','completed','failed','execution_unknown'],
   execution_unknown:['agent_received','running','waiting_answer','completed','failed','cancelled'],
+  stop_requested:['stop_unconfirmed','stopped','completed','failed','execution_unknown','running'],
+  stop_unconfirmed:['stop_requested','stopped','completed','failed','execution_unknown'],
+  stopped:['resume_requested'],
+  resume_requested:['agent_received','stopped','failed','expired','execution_unknown'],
   cancelled:[],completed:[],failed:[],expired:[]};
+const TASK_CONTROL_STATES=new Set(['stop_requested','stop_unconfirmed','stopped','resume_requested']);
+const TASK_EXECUTION_PHASES={agent_received:['queued','sending','accepted'],running:['running','result_pending'],waiting_answer:['running'],
+  execution_unknown:['outcome_unknown'],stop_requested:['running','stop_requested'],stop_unconfirmed:['stop_unconfirmed','outcome_unknown'],
+  stopped:['stopped'],resume_requested:['stopped'],completed:['completed'],failed:['failed'],cancelled:['cancelled'],expired:['expired'],
+  cancel_requested:['queued','sending','accepted','running','result_pending','outcome_unknown']};
+const TASK_CLOSED_TO_ANSWERS=new Set(['cancel_requested','cancelled','completed','failed','expired','execution_unknown',...TASK_CONTROL_STATES]);
+const equalOptional=(a,b)=>canonical(a??null)===canonical(b??null);
 const REQUEST_PUBLISH={pending:['presented','withdrawn','expired'],presented:['pending','withdrawn','expired'],
   answered:[],withdrawn:[],expired:[]};
 // A client may only report the stages its own identity can observe. server_stored
@@ -73,14 +91,20 @@ export class MaterialStore {
           CREATE INDEX queue_sequence ON queue_revisions(owner,seq);
           PRAGMA user_version=2;
           COMMIT;`);
+      // Additive table; older databases gain it without a version change.
+      this.db.exec('CREATE TABLE IF NOT EXISTS watches(owner TEXT NOT NULL,task_id TEXT NOT NULL,producer TEXT NOT NULL,enabled INTEGER NOT NULL,next_at INTEGER,note TEXT NOT NULL,fired_at INTEGER,updated_at INTEGER NOT NULL,PRIMARY KEY(owner,task_id)) STRICT;');
       this.tx(()=>{
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('cursor_secret',randomBytes(32).toString('hex'));
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-    }catch(e){this.db.close();throw e;}
+      this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
+      this.audio=null;this.audioUnavailable=false;
+      try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
+      catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
+    }catch(e){this.audio?.close();this.db.close();throw e;}
   }
-  close(){this.db.close();}
+  close(){this.audio?.close();this.db.close();}
   async backupTo(destination){
     if(!path.isAbsolute(destination))reject(400,'EXPLICIT_ABSOLUTE_BACKUP_REQUIRED');
     // Reserve a private temporary file. Publish exclusively so an existing
@@ -117,7 +141,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1'],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -128,9 +152,12 @@ export class MaterialStore {
     const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(p.owner);
     return {server_time:iso(this.clock()),owner_id:p.owner,queue,receipts,materials,recent};
   }
-  submit(token,event){
-    // Used by HTTP and direct adapters: neither can bypass byte limit or schema checks.
-    const encoded=canonical(event);if(Buffer.byteLength(encoded)>MAX_BODY)reject(413,'PAYLOAD_TOO_LARGE');this.validate(event);
+  cancelMaterial(token,value){return cancelMaterial(this,token,value);}
+  submit(token,event){return this.#submit(token,event,MAX_BODY);}
+  submitAssembled(token,event){return this.#submit(token,event,MAX_MATERIAL_BYTES);}
+  #submit(token,event,budget){
+    // The ordinary event endpoint stays small; only verified assembled transfers use the larger budget.
+    const encoded=canonical(event);if(Buffer.byteLength(encoded)>budget)reject(413,'PAYLOAD_TOO_LARGE');this.validate(event);
     return this.tx(()=>{
       const p=this.auth(token,'materials:write'),now=this.clock(),b=event.body;
       if(p.producer!==event.producer_id)reject(403,'FORBIDDEN');
@@ -138,7 +165,7 @@ export class MaterialStore {
       if(Date.parse(event.created_at)>now+300000||Date.parse(event.created_at)>=Date.parse(event.expires_at))reject(400,'INVALID_TIME_RANGE');
       const digest=sha(encoded),prior=this.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?')
         .get(p.owner,p.producer,event.idempotency_key);
-      if(prior){if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
+      if(prior){if(prior.digest.startsWith('cancelled:'))reject(409,'MATERIAL_EVENT_CANCELLED');if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
       if(this.db.prepare('SELECT 1 FROM events WHERE owner=? AND event_id=?').get(p.owner,event.event_id))reject(409,'EVENT_ID_CONFLICT');
       const bodyHash=sha(canonical(b));
       const existing=this.db.prepare('SELECT * FROM revisions WHERE owner=? AND id=? AND revision=?').get(p.owner,b.material_id,b.revision);
@@ -224,6 +251,41 @@ export class MaterialStore {
     const row=this.db.prepare('SELECT response FROM events WHERE owner=? AND producer=? AND event_id=?').get(p.owner,p.producer,eventId);
     if(!row)reject(404,'EVENT_NOT_FOUND');return JSON.parse(row.response);
   }
+  // ---- Check-in watches: the agent declares when it reports next; the server keeps the promise ----
+  watchView(w){return {task_id:w.task_id,enabled:w.enabled===1,next_checkin_at:w.next_at===null?null:iso(w.next_at),note:w.note,fired_at:w.fired_at===null?null:iso(w.fired_at)};}
+  watchGet(token,taskId){
+    const p=this.auth(token,'messages:write'),w=this.db.prepare('SELECT * FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId);
+    if(!w||w.producer!==p.producer)reject(404,'WATCH_NOT_FOUND');return this.watchView(w);
+  }
+  watchSet(token,taskId,input){
+    return this.tx(()=>{
+      const p=this.auth(token,'messages:write'),now=this.clock();
+      if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).sort().join()!=='enabled,next_checkin_at,note'||typeof input.enabled!=='boolean'||typeof input.note!=='string'||input.note.length>600||/[\u0000-\u0008\u000b-\u001f\u007f]/.test(input.note))reject(400,'INVALID');
+      let next=null;
+      if(input.enabled){if(!timestamp(input.next_checkin_at))reject(400,'INVALID');next=Date.parse(input.next_checkin_at);if(next<=now||next>now+WATCH_MAX_MS)reject(400,'INVALID_TIME_RANGE');}
+      else if(input.next_checkin_at!==null)reject(400,'INVALID');
+      if(!this.queueHead(p.owner,'task',taskId))reject(404,'TASK_NOT_FOUND');
+      const prior=this.db.prepare('SELECT producer FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId);if(prior&&prior.producer!==p.producer)reject(403,'FORBIDDEN');
+      this.db.prepare('INSERT INTO watches VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(owner,task_id) DO UPDATE SET enabled=excluded.enabled,next_at=excluded.next_at,note=excluded.note,fired_at=NULL,updated_at=excluded.updated_at').run(p.owner,taskId,p.producer,input.enabled?1:0,next,input.note,null,now);
+      return this.watchView(this.db.prepare('SELECT * FROM watches WHERE owner=? AND task_id=?').get(p.owner,taskId));
+    });
+  }
+  /** One progress notice per overdue check-in, from the server itself, while the task is still active. */
+  watchdogTick(){
+    const now=this.clock();let fired=0;
+    for(const w of this.db.prepare('SELECT * FROM watches WHERE enabled=1 AND fired_at IS NULL AND next_at<=?').all(now-WATCH_GRACE_MS))try{this.tx(()=>{
+      const task=this.queueHead(w.owner,'task',w.task_id),expires=task?this.queueRevision(w.owner,'task',w.task_id,task.revision).expires:0;
+      if(task&&WATCH_ACTIVE.includes(task.state)&&expires>now+60000){
+        const id='notice-'+sha(JSON.stringify(['watchdog',w.task_id,w.next_at])),late=Math.max(1,Math.round((now-w.next_at)/60000));
+        const text='已超过约定报到时间约 '+late+' 分钟，Agent 没有报告新进展，可能卡住或忘了提醒。'+(w.note?'它上次说的下一步：'+w.note:'');
+        const event={schema_version:'1.0',event_id:'ev-'+id,idempotency_key:'idem-'+id,producer_id:WATCHDOG,kind:'message',created_at:iso(now),expires_at:iso(Math.min(now+1800000,expires)),body:{message_id:id,revision:1,task_id:w.task_id,route:JSON.parse(task.route),request_id:null,channel:'progress',text}};
+        this.validateQueue(event,'message');
+        if(!this.queueHead(w.owner,'message',id)){const stored=this.queueApply(w.owner,'message',id,event,now);this.saveEvent({owner:w.owner,producer:WATCHDOG},event,sha(canonical(event)),this.queueReceipt(event,'message',id,stored.revision,stored.seq,stored.storedAt));fired++;}
+      }
+      this.db.prepare('UPDATE watches SET fired_at=? WHERE owner=? AND task_id=?').run(now,w.owner,w.task_id);
+    });}catch{/* One bad watch never stops the others. */}
+    return fired;
+  }
   // ---- P40 queue: immutable revisions, a live head state, per-identity scopes ----
   queueScope(kind,event){
     if(kind==='task')return event.body.revision===1?'tasks:write':'tasks:update';
@@ -260,22 +322,85 @@ export class MaterialStore {
       const digest=sha(encoded),prior=this.db.prepare('SELECT * FROM events WHERE owner=? AND producer=? AND idem=?').get(p.owner,p.producer,event.idempotency_key);
       if(prior){if(prior.digest!==digest)reject(409,'IDEMPOTENCY_CONFLICT');return {status:200,body:JSON.parse(prior.response)};}
       if(this.db.prepare('SELECT 1 FROM events WHERE owner=? AND event_id=?').get(p.owner,event.event_id))reject(409,'EVENT_ID_CONFLICT');
-      const objectId=this.queueObjectId(kind,b),stored=this.queueApply(p.owner,kind,objectId,event,now);
+      const objectId=this.queueObjectId(kind,b),stored=this.queueApply(p.owner,kind,objectId,event,now,p);
       const response=stored.duplicate??this.queueReceipt(event,kind,objectId,stored.revision,stored.seq,stored.storedAt);
       this.saveEvent(p,event,digest,response);
       return {status:stored.duplicate?200:201,body:response};
     });
   }
-  queueApply(owner,kind,objectId,event,now){
+  queueTaskControl(owner,b,prior,principal,now,event){
+    if(!prior){if(b.execution||b.control)reject(409,'TASK_CONTROL_INVALID');return;}
+    // Full task revisions cannot replace the original user instruction or
+    // silently move a stopped command to another native session.
+    if(b.command!==prior.command||b.allow_create_session!==prior.allow_create_session)reject(409,'TASK_COMMAND_IMMUTABLE');
+    const extended=Boolean(b.execution||prior.execution||b.control||prior.control||TASK_CONTROL_STATES.has(b.state));
+    if(!extended)return; // Keep the existing pre-extension task protocol.
+    const agent=Boolean(principal&&JSON.parse(principal.scopes).includes('receipts:agent'));
+    const ex=b.execution,old=prior.execution,control=b.control;
+    if(!ex||!TASK_EXECUTION_PHASES[b.state]?.includes(ex.phase))reject(409,'TASK_EXECUTION_INVALID');
+    if(['running','result_pending','stop_requested','stop_unconfirmed','stopped','completed'].includes(ex.phase)&&!ex.turn_id)
+      reject(409,'TASK_EXECUTION_INVALID');
+    if(['queued','sending','accepted'].includes(ex.phase)&&ex.turn_id!==null)reject(409,'TASK_EXECUTION_INVALID');
+    if(ex.turn_id!==null&&!ex.turn_id.trim())reject(409,'TASK_EXECUTION_INVALID');
+    const newControl=!equalOptional(control,prior.control);
+    if(newControl){
+      if(!control||!old||!equalOptional(ex,old))reject(409,'TASK_CONTROL_INVALID');
+      if(control.expected_command_id!==old.command_id||control.expected_turn_id!==old.turn_id)reject(409,'TASK_CONTROL_STALE');
+      const stop=control.kind==='stop';
+      if(stop ? !(['running','waiting_answer'].includes(prior.state)&&old.phase==='running'&&b.state==='stop_requested') :
+        !(prior.state==='stopped'&&old.phase==='stopped'&&b.state==='resume_requested'))reject(409,'TASK_CONTROL_STALE');
+      if(Date.parse(control.expires_at)<=now)reject(410,'CONTROL_EXPIRED');
+      if(Date.parse(control.expires_at)>Date.parse(event.expires_at))reject(400,'TASK_CONTROL_DEADLINE_INVALID');
+      if(!stop&&(!control.text.trim()||Buffer.byteLength(control.text)>32768))reject(400,'TASK_CONTROL_TEXT_INVALID');
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.control.control_id')=? LIMIT 1").get(owner,control.control_id))
+        reject(409,'TASK_CONTROL_ID_CONFLICT');
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.execution.command_id')=? LIMIT 1").get(owner,control.control_id))
+        reject(409,'TASK_CONTROL_ID_CONFLICT');
+      return; // A request never changes execution evidence.
+    }
+    if(!agent)reject(403,'FORBIDDEN');
+    if(TASK_CONTROL_STATES.has(b.state)&&!control)reject(409,'TASK_CONTROL_INVALID');
+    if(b.state==='resume_requested'&&(control.kind!=='resume'||control.expected_command_id!==ex.command_id||control.expected_turn_id!==ex.turn_id))
+      reject(409,'TASK_CONTROL_INVALID');
+    if(old){
+      if(ex.command_id!==old.command_id){
+        if(prior.state!=='resume_requested'||control?.kind!=='resume'||b.state!=='agent_received'||
+          control.expected_command_id!==old.command_id||control.expected_turn_id!==old.turn_id||old.phase!=='stopped'||
+          ex.command_id!==control.control_id||ex.turn_id!==null)reject(409,'TASK_EXECUTION_REBIND');
+      }else if(old.turn_id!==null&&old.turn_id!==ex.turn_id)reject(409,'TASK_EXECUTION_REBIND');
+      // A requested resume stays bound to the stopped command until a new
+      // independently identified command is accepted by the original host.
+      if(prior.state==='resume_requested'&&b.state==='agent_received'&&ex.command_id===old.command_id)
+        reject(409,'TASK_EXECUTION_REBIND');
+    }
+    if(!old||ex.command_id!==old.command_id){
+      if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.execution.command_id')=? LIMIT 1").get(owner,ex.command_id))
+        reject(409,'TASK_EXECUTION_ID_CONFLICT');
+    }
+    if(['stop_requested','stop_unconfirmed','stopped'].includes(b.state)){
+      // A resume rejected before dispatch may return to its original stopped
+      // command; all other stop states must describe the current stop target.
+      if(control.kind!=='stop'&&!(b.state==='stopped'&&prior.state==='resume_requested'&&equalOptional(ex,old)))reject(409,'TASK_CONTROL_INVALID');
+      if(control.expected_command_id!==ex.command_id||control.expected_turn_id!==ex.turn_id)reject(409,'TASK_CONTROL_STALE');
+    }
+    if(prior.state==='stop_requested'&&b.state==='running'&&Date.parse(control.expires_at)>now)
+      reject(409,'TASK_CONTROL_PENDING');
+  }
+  queueApply(owner,kind,objectId,event,now,principal=null){
     const b=event.body,route=canonical(b.route??null),head=this.queueHead(owner,kind,objectId);
     if(kind==='task'||kind==='request'||kind==='message'){
       if(head&&head.route!==route)reject(409,'ROUTE_MISMATCH');
       if(!head&&b.revision!==1)reject(409,'REVISION_CONFLICT',{current_revision:0});
       if(kind==='task'&&!head&&b.state!=='queued')reject(409,'STATE_CONFLICT',{current_state:null});
+      if(kind==='task'&&!head)this.queueTaskControl(owner,b,null,principal,now,event);
       if(head){
         if(b.revision!==head.revision+1)reject(409,'REVISION_CONFLICT',{current_revision:head.revision});
         const prior=JSON.parse(this.queueRevision(owner,kind,objectId,head.revision).body);
-        if(kind==='task'&&!TASK_TRANSITIONS[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
+        if(kind==='task'){
+          const sameExtended=b.state===head.state&&Boolean(prior.execution)&&!['completed','failed','cancelled','expired','stopped'].includes(b.state);
+          if(!sameExtended&&!TASK_TRANSITIONS[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
+          this.queueTaskControl(owner,b,prior,principal,now,event);
+        }
         if(kind==='request'){
           if(!REQUEST_PUBLISH[head.state].includes(b.state))reject(409,'STATE_CONFLICT',{current_state:head.state});
           if(prior.task_id!==b.task_id)reject(409,'ROUTE_MISMATCH');
@@ -309,7 +434,7 @@ export class MaterialStore {
       if(b.task_id!==body.task_id)reject(409,'ROUTE_MISMATCH');
       const task=this.queueHead(owner,'task',body.task_id);if(!task)reject(404,'TASK_NOT_FOUND');
       if(task.route!==route)reject(409,'ROUTE_MISMATCH');
-      if(['cancel_requested','cancelled','completed','failed','expired','execution_unknown'].includes(task.state))reject(409,'TASK_CLOSED');
+      if(TASK_CLOSED_TO_ANSWERS.has(task.state))reject(409,'TASK_CLOSED');
       if(b.option_id!==null&&!body.options.some(o=>o.option_id===b.option_id))reject(400,'INVALID_OPTIONS');
       if(b.option_id===null&&!b.text.trim())reject(400,'INVALID');
     }else if(kind==='receipt'){
@@ -373,7 +498,7 @@ export class MaterialStore {
       if(['pending','presented'].includes(head.state)){
         const row=this.queueRevision(p.owner,'request',requestId,head.revision),body=JSON.parse(row.body);
         const task=this.queueHead(p.owner,'task',body.task_id);if(!task||task.route!==head.route)reject(409,'ROUTE_MISMATCH');
-        const closed=['cancel_requested','cancelled','completed','failed','expired','execution_unknown'].includes(task.state);
+        const closed=TASK_CLOSED_TO_ANSWERS.has(task.state);
         const state=closed?'withdrawn':row.expires<=now?'expired':null;
         if(state){
           // Like answer acceptance, closure is a server-owned fact about this
@@ -442,11 +567,12 @@ export class MaterialStore {
   }
   page(token,kind,query={}){
     const p=this.auth(token,kind==='changes'?'changes:read':'materials:read');
-    const allowed=kind==='changes'?['cursor','limit']:['cursor','limit','from','to','keyword','speaker'];
+    const allowed=kind==='changes'?['cursor','limit','content']:['cursor','limit','from','to','keyword','speaker','content'];
+    if(query.content!==undefined&&query.content!=='reference')reject(400,'INVALID_QUERY');
     if(Object.keys(query).some(k=>!allowed.includes(k)))reject(400,'INVALID_QUERY');
     const limit=query.limit===undefined?20:Number(query.limit);
     if(!Number.isSafeInteger(limit)||limit<1||limit>50||!/^\d+$/.test(String(query.limit??20)))reject(400,'INVALID_QUERY');
-    const filters={};for(const k of ['from','to','keyword','speaker'])if(query[k]!==undefined){
+    const filters=query.content?{content:query.content}:{};for(const k of ['from','to','keyword','speaker'])if(query[k]!==undefined){
       if(typeof query[k]!=='string'||!query[k]||query[k].length>512)reject(400,'INVALID_QUERY');filters[k]=query[k];
     }
     if((filters.from&&!timestamp(filters.from))||(filters.to&&!timestamp(filters.to))||
@@ -466,7 +592,7 @@ export class MaterialStore {
     if(filters.speaker){sql+=" AND EXISTS(SELECT 1 FROM json_each(r.body,'$.utterances') u WHERE json_extract(u.value,'$.speaker_id')=?)";args.push(filters.speaker);}
     sql+=' ORDER BY r.seq LIMIT ?';args.push(limit+1);
     const rows=this.db.prepare(sql).all(...args),items=[];let bytes=8192,last=state.last;
-    for(const row of rows.slice(0,limit)){const item=this.item(row),size=Buffer.byteLength(JSON.stringify(item));if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;}
+    for(const row of rows.slice(0,limit)){const item=materialWire(this.item(row),query.content),size=Buffer.byteLength(JSON.stringify(item));if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;}
     const hasMore=rows.length>items.length;
     // Empty/final pages advance through nonmatching gaps. Changes release the
     // snapshot ceiling for the next poll; snapshot cursors keep their ceiling.

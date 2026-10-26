@@ -24,7 +24,7 @@ function noLinks(file){
  for(const part of parts){current=path.join(current,part);const stat=fs.lstatSync(current);if(stat.isSymbolicLink())throw Error('FIXTURE_LINK_REJECTED');}
  if(path.resolve(fs.realpathSync(absolute)).toLowerCase()!==absolute.toLowerCase())throw Error('FIXTURE_PATH_CHANGED');
 }
-function createOwned(directory,parent){noLinks(parent);if(path.dirname(path.resolve(directory))!==path.resolve(parent)||fs.existsSync(directory))throw Error('FIXTURE_DIRECTORY_INVALID');fs.mkdirSync(directory,{mode:0o700});noLinks(directory);owned.push({directory,parent});}
+function createOwned(directory,parent){fs.mkdirSync(parent,{recursive:true,mode:0o700});noLinks(parent);if(path.dirname(path.resolve(directory))!==path.resolve(parent)||fs.existsSync(directory))throw Error('FIXTURE_DIRECTORY_INVALID');fs.mkdirSync(directory,{mode:0o700});noLinks(directory);owned.push({directory,parent});}
 function removeOwned({directory,parent}){
  noLinks(parent);noLinks(directory);if(path.dirname(path.resolve(directory))!==path.resolve(parent)||!path.basename(directory).endsWith(runId))throw Error('FIXTURE_CLEANUP_SCOPE_INVALID');
  const pending=[directory];while(pending.length){const folder=pending.pop();for(const name of fs.readdirSync(folder)){const file=path.join(folder,name);noLinks(file);const stat=fs.lstatSync(file);if(stat.isDirectory())pending.push(file);else if(!stat.isFile())throw Error('FIXTURE_CLEANUP_TYPE_INVALID');}}

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "date": "2026-10-23",
+  "run_id": "route313-20261023-a",
+  "builds": {
+    "dev18": {"code": 10440, "result": "installed; card runtime found BLOCKED and never offered anything"},
+    "dev19": {"code": 10441, "fix": "a stored card under an older, longer copy limit (dev12 probe, 60-120 chars) restores for cleanup instead of blocking the runtime (BLOCKED since dev13)", "result": "runtime healthy; the long question routed to the prompter but the start was refused while the glasses were still connecting, and the question was already marked offered"},
+    "dev20": {"code": 10442, "fix": "a prompter question counts as offered only after the manuscript starts; a refused start retries after 10 s", "result": "a new 4-option question went to the prompter automatically; exit opened dictation; the confirm card was refused because the stock access token had expired, while the page claimed the card was sent; the answer was saved from the phone page instead"},
+    "dev21": {"code": 10443, "sha256": "b89d3249f2803419db875aa352bf1114526f25abe7e64b3dd04282bef6c468e1", "fix": "an expired stock login is reported as OFFICIAL_LOGIN_REQUIRED (not 'paused'); the voice page retries a refused confirm offer every 3 s and states the reason instead of claiming the card was sent", "rollback": "dev20"}
+  },
+  "question": {"mode": "choice", "options": 4, "question_chars": 41, "route": "prompter", "synthetic": true},
+  "dev20_answer": {"submitted_from": "phone page after the confirm card was refused", "option_id": "readme", "text": "选二。\n另外，先别动其他文件，选二。", "input_source": "voice"},
+  "dev21_sequence": [
+    "question posted by the synthetic agent identity; auto offer routed it to the prompter",
+    "business17 info/ACK/one chunk request/chunk/result state0, then 20/2 code7; glasses played on their own",
+    "wearer long-pressed out (20/6 action1); the phone opened this question's dictation and started capture",
+    "wearer dictated; the confirm card was shown; wearer pressed ＋; the page saved the unedited draft"
+  ],
+  "dev21_answer": {"option_id": "readme", "text": "选二。\n只修改readme，其他东西不动。", "input_source": "voice", "server_read_back": true},
+  "cleanup": {"tasks_cancelled": 3, "phone_session_paused": true, "credentials_revoked": true, "agent_identity": "AUTH_REQUIRED 401", "phone_identity": "AUTH_REQUIRED 401"},
+  "not_verified": "the exact confirm-card copy on the lens was not read back; no real agent consumed the answer; the earlier dev19 question was closed without an answer"
+}

@@ -23,7 +23,7 @@ public final class VoiceAnswerTest {
  static void stopped(VoiceAnswerSession s,long gen)throws Exception{
   yes(s.stop(s.token(),2000,false));yes(s.stopSubmitted(s.token(),PEER,gen,2001));
   yes(s.engineEnd(s.token(),2002));yes(!s.finish());yes(s.engineStopped(s.token(),true));yes(!s.finish());
-  VoiceAnswerSession.StopProbe p=s.probeStop(PEER,gen,2003);yes(p!=null);yes(!s.deviceIdle(p,OTHER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen+1,2004,true));yes(s.deviceIdle(p,PEER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen,2005,true));yes(s.finish());yes(!s.needsStop());
+  CaptureSession.StopProbe p=s.probeStop(PEER,gen,2003);yes(p!=null);yes(!s.deviceIdle(p,OTHER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen+1,2004,true));yes(s.deviceIdle(p,PEER,gen,2004,true));yes(!s.deviceIdle(p,PEER,gen,2005,true));yes(s.finish());yes(!s.needsStop());
  }
  static void core(File root)throws Exception{
   TaskConnection c=connection("original-agent");String first="请只预览，不发布。",second="补充：保留所有原始资料\n预算不超过200元，周五再执行。";String complete=first+"\n"+second;
@@ -49,14 +49,34 @@ public final class VoiceAnswerTest {
    if(fault.equals("conflict"))yes(!v.result(v.token(),PEER,1,1,1,"被覆盖的冲突",true,1101));
    if(fault.equals("oversize"))yes(!v.result(v.token(),PEER,1,1,2,String.join("",Collections.nCopies(65537,"长")),true,1101));
    if(fault.equals("gap"))yes(!v.result(v.token(),PEER,1,3,1,"漏掉一段",true,1101));
-   stopped(v,1);yes(v.phase().equals("INCOMPLETE")&&v.transcript().equals("完整条件待处理"));rejects(()->v.saveAnswer(null,null,null,WALL));
+   // An unfinalised last sentence after a clean stop is kept for review (2026-10-23); real faults stay INCOMPLETE.
+   stopped(v,1);if(fault.equals("unfinished")){yes(v.phase().equals("REVIEW")&&v.transcript().equals("完整条件待处理")&&!v.timeLimited());continue;}
+   yes(v.phase().equals("INCOMPLETE")&&v.transcript().equals("完整条件待处理"));rejects(()->v.saveAnswer(null,null,null,WALL));
   }
   VoiceAnswerSession cancel=prepared(new Memory(),c);arm(cancel);yes(cancel.result(cancel.token(),PEER,1,1,1,complete,true,1200));yes(cancel.cancelDraft(1300));stopped(cancel,1);yes(cancel.phase().equals("CANCELLED")&&cancel.transcript().equals(complete));rejects(()->cancel.saveAnswer(null,null,null,WALL));
   VoiceAnswerSession before=prepared(new Memory(),c);yes(before.cancelDraft(1500)&&before.phase().equals("CANCELLED")&&!before.needsStop());
+  // Redo: an unsaved REVIEW draft is retired as CANCELLED with its text kept; it
+  // can no longer be edited, saved or resumed, and a reload sees the same state.
+  Memory kept=new Memory();VoiceAnswerSession reviewed=prepared(kept,c);arm(reviewed);yes(reviewed.result(reviewed.token(),PEER,1,1,1,complete,true,1400));stopped(reviewed,1);yes(reviewed.phase().equals("REVIEW")&&reviewed.edit(complete+"\n补一句"));
+  yes(reviewed.cancelDraft(1600)&&reviewed.phase().equals("CANCELLED")&&!reviewed.needsStop()&&reviewed.transcript().equals(complete));
+  VoiceAnswerSession reloaded=new VoiceAnswerSession(kept);yes(reloaded.phase().equals("CANCELLED")&&reloaded.transcript().equals(complete)&&!reloaded.needsStop());yes(!reloaded.edit("改写"));rejects(()->reloaded.saveAnswer(null,null,null,WALL));yes(!reloaded.cancelDraft(1700));
   Memory cold=new Memory();VoiceAnswerSession running=prepared(cold,c);arm(running);yes(running.result(running.token(),PEER,1,1,1,complete,true,1300));VoiceAnswerSession resumed=new VoiceAnswerSession(cold);yes(resumed.phase().equals("RECOVERY")&&resumed.transcript().equals(complete)&&resumed.needsStop());yes(!resumed.arm(PEER,2,2000,15,(a,b,d,e)->true));yes(!resumed.resumeCleanup(OTHER,2,1500));yes(resumed.resumeCleanup(PEER,2,1500));stopped(resumed,2);yes(resumed.phase().equals("INCOMPLETE"));
   VoiceAnswerSession deadline=prepared(new Memory(),c);arm(deadline);deadline.tick(PEER,1,16000);yes(deadline.phase().equals("STOPPING")&&deadline.needsStop());
+  // A capture cut by its own time limit keeps the words recognised at the cutoff and goes to REVIEW
+  // (the wearer still confirms), and is marked time-limited for the page note.
+  Memory limitStore=new Memory();VoiceAnswerSession limited=prepared(limitStore,c);arm(limited);
+  yes(limited.result(limited.token(),PEER,1,1,1,"选一，另外",true,1100)&&limited.result(limited.token(),PEER,1,2,1,"标题不要写会",false,15900));
+  limited.tick(PEER,1,15999);yes(limited.phase().equals("CAPTURING"));limited.tick(PEER,1,16200);yes(limited.phase().equals("STOPPING")&&limited.timeLimited());
+  yes(limited.stopSubmitted(limited.token(),PEER,1,16201)&&limited.engineEnd(limited.token(),16202)&&limited.engineStopped(limited.token(),true));
+  CaptureSession.StopProbe limitProbe=limited.probeStop(PEER,1,16203);yes(limitProbe!=null&&limited.deviceIdle(limitProbe,PEER,1,16204,true)&&limited.finish());
+  yes(limited.phase().equals("REVIEW")&&limited.transcript().equals("选一，另外\n标题不要写会"));
+  VoiceAnswerSession limitReloaded=new VoiceAnswerSession(limitStore);yes(limitReloaded.phase().equals("REVIEW")&&limitReloaded.timeLimited()&&limitReloaded.edit("选一，另外\n标题不要写会话"));
+  // The capture limit is 60 s: a 60 s capture arms, 61 s is refused before any cutoff is armed.
+  VoiceAnswerSession sixty=prepared(new Memory(),c);rejects(()->sixty.arm(PEER,1,1000,61,(t,p,g,d)->true));yes(sixty.phase().equals("PREPARED")&&sixty.arm(PEER,1,1000,60,(t,p,g,d)->d==61000));
+  // Losing the link past the deadline is not the time limit: it keeps its own stop time.
+  VoiceAnswerSession lost=prepared(new Memory(),c);arm(lost);yes(lost.result(lost.token(),PEER,1,1,1,"半句",false,1100));lost.tick(OTHER,2,17000);yes(!lost.timeLimited());
   VoiceAnswerSession disconnected=prepared(new Memory(),c);arm(disconnected);disconnected.tick(OTHER,2,1200);yes(disconnected.phase().equals("STOPPING")&&!disconnected.stopSubmitted(disconnected.token(),OTHER,2,1300));
-  VoiceAnswerSession expired=prepared(new Memory(),c);arm(expired);yes(expired.stop(expired.token(),2000,false));yes(expired.stopSubmitted(expired.token(),PEER,1,2001));VoiceAnswerSession.StopProbe p=expired.probeStop(PEER,1,2002);yes(!expired.deviceIdle(p,PEER,1,10003,true));yes(!expired.finish());
+  VoiceAnswerSession expired=prepared(new Memory(),c);arm(expired);yes(expired.stop(expired.token(),2000,false));yes(expired.stopSubmitted(expired.token(),PEER,1,2001));CaptureSession.StopProbe p=expired.probeStop(PEER,1,2002);yes(!expired.deviceIdle(p,PEER,1,10003,true));yes(!expired.finish());
   Memory failure=new Memory();VoiceAnswerSession denied=prepared(failure,c);failure.fail=true;rejects(()->denied.arm(PEER,1,1000,15,(a,b,d,e)->true));yes(!denied.healthy()&&denied.needsStop());
   Memory forged=new Memory();Map<String,Object> invalid=WireJson.map(m.value);invalid.put("engine_end",false);forged.value=invalid;VoiceAnswerSession blocked=new VoiceAnswerSession(forged);yes(!blocked.healthy()&&blocked.phase().equals("BLOCKED")&&blocked.needsStop());
   String fileId="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -86,5 +106,17 @@ public final class VoiceAnswerTest {
   task.listener.onAsrResult("迟到结果",true);yes(texts.size()==1);rejects(()->voice.state());
   controller.failInit=true;rejects(()->Host107VoiceTask.prepare(controller,new RayNeoASRConfig(),"11111111111111111111111111111111",sink));yes(controller.tasks.size()==1&&stock.stops==0);
  }
- public static void main(String[] args)throws Exception{File root=new File(args[0]);core(root);adapter();VoiceArchiveTest.run(root);VoiceEnvironmentTest.run();VoiceOfficialCallbackTest.run(root,new File(args[1]));RecordingVoiceSourceTest.run(root);VoiceCaptureCutoffTest.run();Host107RecordingTest.run();System.out.println("Official voice integration core: "+checks+" assertions passed");}
+ /** A dictated answer to a choice question carries the option it names, plus the full words. */
+ static void choice(File root)throws Exception{
+  TaskConnection c=connection("original-agent");List<Object> options=new ArrayList<>();for(String[] o:new String[][]{{"preview","只预览"},{"readme","只改 README"},{"backup","先备份"}})options.add(WireJson.object("option_id",o[0],"label",o[1]));
+  for(String[] said:new String[][]{{"选二，另外先别动其他文件","readme"},{"不选二，选三",null}}){
+   Map<String,Object> request=item("request",WireJson.object("request_id","voice-choice","revision",1,"task_id","voice-task","route",c.route(),"state","pending","mode","choice","question","下一步怎么处理？","options",options),2);
+   VoiceAnswerSession s=new VoiceAnswerSession(new Memory());yes(s.prepare(c,request,task(c),WALL));arm(s);yes(s.result(s.token(),PEER,1,1,1,said[0],true,1101));stopped(s,1);yes(s.phase().equals("REVIEW"));
+   try(TaskMailbox box=new TaskMailbox(new File(root,"choice-"+(said[1]==null?"none":said[1])),c)){box.acceptDetail(task(c),WALL);box.acceptDetail(request,WALL);
+    Map<String,Object> answer=TaskWire.body(WireJson.map(WireJson.read(((String)s.saveAnswer(box,request,task(c),WALL).get("payload")).getBytes(java.nio.charset.StandardCharsets.UTF_8))));
+    yes(Objects.equals(answer.get("option_id"),said[1])&&answer.get("text").equals(said[0])&&answer.get("input_source").equals("voice"));
+   }
+  }
+ }
+ public static void main(String[] args)throws Exception{File root=new File(args[0]);core(root);choice(root);adapter();VoiceArchiveTest.run(root);VoiceEnvironmentTest.run();VoiceOfficialCallbackTest.run(root,new File(args[1]));RecordingVoiceSourceTest.run(root);VoiceCaptureCutoffTest.run();Host107RecordingTest.run();System.out.println("Official voice integration core: "+checks+" assertions passed");}
 }

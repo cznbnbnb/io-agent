@@ -1,6 +1,7 @@
 // Bounded in-process reader probe; exports only allowlisted field types/counts.
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawn,spawnSync} from 'node:child_process';
-const root=path.resolve('rebuild/android-app'),adb=path.join(root,'.tools/sdk/platform-tools/adb.exe'),pkg='com.rayneo.venus.pub',driver='com.turboio.androidtests';
+import {exe} from './host-tools.mjs';
+const root=path.resolve('rebuild/android-app'),adb=path.join(root,'.tools/sdk/platform-tools',exe('adb')),pkg='com.rayneo.venus.pub',driver='com.turboio.androidtests';
 const serial=JSON.parse(fs.readFileSync(path.join(root,'.private/phone-login-install-2026-10-20/verified-target.json'),'utf8')).serial;
 const apk=path.join(root,'build/emulator-input/emulator-input.apk'),output='/sdcard/Android/data/'+pkg+'/files/io-agent-lifelog-log-shape.json',nonce=crypto.randomBytes(16).toString('hex');
 const gatewayDetail=process.argv.includes('--gateway-detail');

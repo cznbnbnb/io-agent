@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-25",
+  "kind": "native-session-directory-local-integration",
+  "branch": "codex/agent-workspace-ui",
+  "implemented": [
+    "paired owner-scoped live session directory with 60-second fenced leases",
+    "15-second bounded metadata readiness publisher; shutdown releases only",
+    "durable explicit CLI and phone shared-default CAS with exact replay ACK verification",
+    "phone temporary exact-session selection and final pre-send readiness checks",
+    "Android elapsedRealtime lease accounting including deep sleep",
+    "malformed directory entries are isolated; native config validates the same route contract",
+    "optional session display label is independent of routing identity",
+    "delegate draft preparation requires the explicit shared default binding and readiness",
+    "unwired source-scoped single-owner wake gate with pre-commit fallback and post-commit cleanup fences",
+    "reusable temporary Java/D8 source check without modifying shared APK stage"
+  ],
+  "verification": {
+    "server_directory_tests": 18,
+    "directory_client_publisher_cli_tests": 19,
+    "readiness_tests": 13,
+    "native_bridge_tests": 9,
+    "cli_tests": 3,
+    "android_directory_checks": 123,
+    "android_control_checks": 88,
+    "android_context_checks": 59,
+    "android_status_checks": 35,
+    "full_android_compile": {
+      "source_count": 238,
+      "source_manifest_sha256": "e80c00dd5daf5b1ef407f64dad51e130738dbd02042c506bda65c2993d7a3673",
+      "product_source_sha256": "d8f5f6446c36d88b2e0ae9a3370ea763d371f489bf8eea21aecab578d35c194e",
+      "source_hash_unchanged": true,
+      "dex": [
+        {
+          "name": "classes.dex",
+          "bytes": 1667088,
+          "sha256": "c79205890a4b7d6f5a3c249442cd10d0624255f8173561da71b3771c64ff0b5e"
+        }
+      ],
+      "java": "javac 17.0.20.1",
+      "temporary_output_removed": true,
+      "apk_built": false,
+      "device_used": false,
+      "shared_stage_modified": false
+    },
+    "node": "24.14.0",
+    "target_node22_tested": false,
+    "native_runtime_regression_tests": 26,
+    "android_delegate_checks": 585,
+    "wake_gate_scenarios": 14,
+    "wake_gate_assertions": 387
+  },
+  "native_queue_live_proof": "codex-queue-selection-proof-2026-10-25.json",
+  "limits": [
+    "No public service deployment, APK build or installation in this batch.",
+    "Phone remains dev92; dev93 performance candidate is unchanged and uninstalled.",
+    "Directory describes explicitly configured running native sessions; it does not discover or attach arbitrary desktop chats.",
+    "descendantsStopped remains false; current-turn interruption is not proof all spawned work stopped.",
+    "Codex queue/start selects the first input but automatically drains other queued inputs afterward; production runtime does not call startQueued.",
+    "Glasses wake/capture/confirmation and a deduplicated completion summary remain unconnected.",
+    "Real phone UI, Desktop UI and glasses end-to-end acceptance remain open.",
+    "Seven-day request ACK retention; permanent ownership, sequence, generation and default CAS records are not pruned."
+  ],
+  "cleanup": {
+    "compile_output_removed": true,
+    "shared_build_stage_modified": false,
+    "device_used": false,
+    "glasses_progress_watch_enabled": false
+  },
+  "non_product_failures": [
+    "Initial temporary verification script shadowed args and exited before javac; fixed the script and completed Java/D8."
+  ],
+  "sources": {
+    "rebuild/material-server/agent-sessions.mjs": "b28c4ed186d1df82be0d6928c2c966f4ee6fa678d7c1bc42d8056a4b38582301",
+    "rebuild/agent-bridge/session-directory.mjs": "d18580f8a98b79ea00295889bf0d79d2fe0e3ce07551493c0001b8c89914d10b",
+    "rebuild/agent-bridge/directory-default.mjs": "f09ccda04fddf1495e8ede396f57c01d4cbcc9ff8e9521b49a58686970f5c692",
+    "rebuild/agent-bridge/hosts/native-runtime.mjs": "d3b00fe02abc52a52f94d148ac76b69b4b4ce3ba8567841c986dc071cbb435dd",
+    "rebuild/android-app/src/com/turboio/addon/TaskSessionDirectory.java": "9187874823587ef11f4cac565ff43f5bec8b1712fea4c604cf9426363a49fc66",
+    "rebuild/android-app/src/com/turboio/addon/AgentDelegateSession.java": "b54d073a55f1542a2f918a86c220ac9c8c6e6247b7e2a9963add07834d9c5953",
+    "rebuild/android-app/src/com/turboio/addon/Host107WakeGateCore.java": "1d014dc3ed3c51d2fcd42460f2ebe38c2c3391be41a485d538efa2f58d308b6e",
+    "tools/android/check-sources.mjs": "4d4b5121a0e98335e533c57089ccdf52b1ff7bcb57943716abbc454fe322f8d8"
+  }
+}

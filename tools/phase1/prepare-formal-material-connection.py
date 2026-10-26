@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import uuid
 from urllib.error import HTTPError
@@ -25,6 +26,7 @@ SERVER = '80384449-a5c6-4630-bf1b-524a30454c92'
 BASE = 'https://cznbnb.cn/io-api/v1/'
 TTL_MS = 86400000
 PLATFORM = 'harmony'
+AUDIO = False
 ROLES = {'phone': {'producer_id': 'phone-harmony', 'scopes': ['materials:write']},
          'reader': {'producer_id': 'pc-query', 'scopes': ['materials:read', 'changes:read']}}
 RUN_PATTERN = r'[a-z0-9][a-z0-9-]{0,47}'
@@ -37,7 +39,7 @@ ERROR_CODES = {'RUN_ID_INVALID', 'REMOTE_OPERATION_FAILED', 'REMOTE_RESULT_NOT_C
     'LOCAL_PRIVATE_PATH_INVALID', 'LOCAL_RUN_EXISTS_USE_RECOVER', 'LOCAL_PRIVATE_FILE_CONFLICT',
     'LOCAL_PRIVATE_FILE_INVALID', 'FORMAL_CONNECTION_FAILED', 'PUBLIC_REDIRECT_REFUSED',
     'PUBLIC_IDENTITY_UNAVAILABLE', 'PUBLIC_IDENTITY_INVALID', 'PUBLIC_IDENTITY_MISMATCH',
-    'PUBLIC_CREDENTIAL_EXPIRED', 'PUBLIC_SCHEMA_UNSUPPORTED', 'PUBLIC_REPORT_INVALID'}
+    'PUBLIC_CREDENTIAL_EXPIRED', 'PUBLIC_SCHEMA_UNSUPPORTED', 'PUBLIC_AUDIO_UNSUPPORTED', 'PUBLIC_REPORT_INVALID'}
 
 sys.path.insert(0, str(ROOT / 'rebuild/agent-bridge/hermes'))
 from enroll_home import protect_directory, write_new
@@ -109,7 +111,7 @@ REMOTE_ERRORS={'REMOTE_OPERATION_FAILED','REMOTE_SERVICE_NOT_ACTIVE','REMOTE_DAT
  'REMOTE_EXISTING_ROLE_MISSING','REMOTE_RUN_EXISTS_USE_RECOVER','REMOTE_RUN_NOT_FOUND',
  'REMOTE_PRIVATE_PATH_INVALID','REMOTE_MANIFEST_INVALID','REMOTE_MINT_FAILED',
  'REMOTE_CREDENTIAL_INVALID','REMOTE_CREDENTIAL_MISSING','REMOTE_CREDENTIAL_DATABASE_MISMATCH'}
-ALL_SCOPES={'materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
+ALL_SCOPES={'audio:write','audio:read','materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
  'requests:write','requests:read','answers:write','messages:receive','messages:write',
  'receipts:phone','receipts:agent','receipts:storage','operations:read'}
 def require(value,code):
@@ -235,11 +237,16 @@ def read_credential(root,role,started_at):
  return value
 def run_remote(parameters):
  global PLATFORM,ROLES
+ audio=parameters.get('audio',False)
+ require(type(audio) is bool,'REMOTE_OPERATION_FAILED')
  platform=parameters.get('platform','harmony')
  require(platform in ('harmony','android'),'REMOTE_OPERATION_FAILED')
  PLATFORM=platform
  ROLES={'phone':{'producer_id':'phone-'+platform,'scopes':['materials:write']},
         'reader':{'producer_id':'pc-query','scopes':['materials:read','changes:read']}}
+ if audio:
+  ROLES['phone']['scopes']+=['audio:write','audio:read']
+  ROLES['reader']['scopes']+=['audio:read']
  run_id=parameters.get('run_id','');mode=parameters.get('mode','')
  require(re.fullmatch(r'[a-z0-9][a-z0-9-]{0,47}',run_id) and mode in ('inspect','issue','recover'),'REMOTE_OPERATION_FAILED')
  root=RUN_PARENT/run_id;output={'run_id':run_id,'owner_id':OWNER,'server_id':SERVER,'roles':ROLES,'status':'failed','issuance_started':False}
@@ -290,16 +297,30 @@ def run_remote(parameters):
 '''
 
 
+def connect():
+    # macOS uses the already configured OpenSSH identity and pinned known host.
+    # Keep Windows' existing private helper and never request a password in logs.
+    return publisher.connect() if os.name == 'nt' else 'openssh'
+
+
 def remote(connection, mode, run_id):
     require(mode in {'inspect', 'issue', 'recover'} and re.fullmatch(RUN_PATTERN, run_id), 'RUN_ID_INVALID')
-    script = REMOTE_SOURCE + '\nprint(json.dumps(run_remote(' + repr({'mode': mode, 'run_id': run_id, 'platform': PLATFORM}) + ')))\n'
-    stdin, stdout, stderr = connection.exec_command('sudo -n /usr/bin/python3 -', timeout=90)
-    stdin.write(script)
-    stdin.flush()
-    stdin.channel.shutdown_write()
-    data = stdout.read(65537)
-    stderr.read(4097)  # Never print remote stderr or a secret-bearing envelope.
-    require(stdout.channel.recv_exit_status() == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
+    script = REMOTE_SOURCE + '\nprint(json.dumps(run_remote(' + repr({'mode': mode, 'run_id': run_id, 'platform': PLATFORM, 'audio': AUDIO}) + ')))\n'
+    if connection == 'openssh':
+        child = subprocess.run(['ssh', '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',
+                                '-o', 'ConnectTimeout=10', 'ubuntu@43.142.59.131',
+                                'sudo -n /usr/bin/python3 -'], input=script.encode('utf-8'),
+                               capture_output=True, timeout=90)
+        data = child.stdout
+        require(child.returncode == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
+    else:
+        stdin, stdout, stderr = connection.exec_command('sudo -n /usr/bin/python3 -', timeout=90)
+        stdin.write(script)
+        stdin.flush()
+        stdin.channel.shutdown_write()
+        data = stdout.read(65537)
+        stderr.read(4097)  # Never print remote stderr or a secret-bearing envelope.
+        require(stdout.channel.recv_exit_status() == 0 and len(data) <= 65536, 'REMOTE_RESULT_NOT_CONFIRMED')
     result = strict_json(data, 'REMOTE_RESULT_NOT_CONFIRMED')
     require(isinstance(result, dict) and result.get('run_id') == run_id and result.get('owner_id') == OWNER and
             result.get('server_id') == SERVER and result.get('roles') == ROLES, 'REMOTE_BINDING_MISMATCH')
@@ -403,6 +424,11 @@ def verify_identity(opener, role, value):
             set(identity['scopes']) == set(ROLES[role]['scopes']) and len(identity['scopes']) == len(set(identity['scopes'])) and
             identity.get('expires_at') == value['expires_at'], 'PUBLIC_IDENTITY_MISMATCH')
     require(expiry_ms(identity['expires_at']) > int(datetime.now(timezone.utc).timestamp() * 1000), 'PUBLIC_CREDENTIAL_EXPIRED')
+    if AUDIO:
+        capabilities = identity.get('capabilities')
+        require(isinstance(capabilities, list) and len(capabilities) <= 32 and
+                all(isinstance(item, str) for item in capabilities) and 'audio_archive_v1' in capabilities,
+                'PUBLIC_AUDIO_UNSUPPORTED')
     versions = identity.get('material_schema_versions')
     require(isinstance(versions, list) and len(versions) <= 16 and all(isinstance(item, str) and len(item) <= 16 and re.fullmatch(r'\d+\.\d+', item) for item in versions)
             and '1.2' in versions, 'PUBLIC_SCHEMA_UNSUPPORTED')
@@ -436,10 +462,11 @@ def persist_report(report):
 
 
 def main(argv=None):
-    global PLATFORM, ROLES
+    global PLATFORM, ROLES, AUDIO
     parser = argparse.ArgumentParser()
     parser.add_argument('--run-id', required=True)
     parser.add_argument('--platform', choices=['harmony', 'android'], default='harmony')
+    parser.add_argument('--audio', action='store_true', help='Explicitly authorized separate 24h original-audio grant; never renews text configuration')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--inspect', action='store_true')
     modes.add_argument('--issue', action='store_true')
@@ -448,6 +475,10 @@ def main(argv=None):
     PLATFORM = args.platform
     ROLES = {'phone': {'producer_id': 'phone-' + PLATFORM, 'scopes': ['materials:write']},
              'reader': {'producer_id': 'pc-query', 'scopes': ['materials:read', 'changes:read']}}
+    AUDIO = args.audio
+    if AUDIO:
+        ROLES['phone']['scopes'] += ['audio:write', 'audio:read']
+        ROLES['reader']['scopes'] += ['audio:read']
     if not re.fullmatch(RUN_PATTERN, args.run_id):
         print(json.dumps({'status': 'failed', 'error': 'RUN_ID_INVALID'}))
         return 1
@@ -455,14 +486,14 @@ def main(argv=None):
     report = {'schema': 1, 'at': datetime.now(timezone.utc).isoformat(), 'run_id': args.run_id, 'mode': mode,
               'status': 'failed', 'owner_id': OWNER, 'server_id': SERVER, 'roles': ROLES, 'credential_ttl_ms': TTL_MS,
               'tool_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), 'material_requests_sent': 0,
-              'platform': PLATFORM,
+              'platform': PLATFORM, 'audio': AUDIO,
               'scope': 'formal user-space identities; Android uses independent phone producer; new credential rows and private files only; no material/site/schema/service mutation',
               'not_verified': ['physical phone import and upload', 'automatic credential rotation', 'background sync']}
     connection = None
     issue_dispatched = False
     try:
         directory = private_directory(args.run_id, mode) if mode != 'inspect' else None
-        connection = publisher.connect()
+        connection = connect()
         inspected = remote(connection, 'inspect', args.run_id)
         report['inspection'] = public_remote(inspected)
         require(inspected['status'] == 'inspected', inspected.get('error', 'REMOTE_OPERATION_FAILED'))
@@ -488,7 +519,7 @@ def main(argv=None):
             opener = build_opener(ProxyHandler({}), HTTPSHandler(), NoRedirect())
             report['public_identity'] = {role: verify_identity(opener, role, value) for role, value in values.items()}
             phone = values['phone']
-            import_value = {'format': 'turboio-material-sync/1', 'base_url': BASE.rstrip('/'), 'owner_id': OWNER,
+            import_value = {'format': 'turboio-audio-sync/1' if AUDIO else 'turboio-material-sync/1', 'base_url': BASE.rstrip('/'), 'owner_id': OWNER,
                 'producer_id': ROLES['phone']['producer_id'], 'server_id': SERVER, 'token': phone['token'],
                 'token_id': phone['token_id'], 'expires_at': phone['expires_at']}
             save_private(directory / 'connection.json', import_value, recover)
@@ -500,7 +531,7 @@ def main(argv=None):
         report['error'] = safe_error(error)
         report['status'] = 'issue_observation_unknown' if issue_dispatched else 'partial' if report.get('credentials_received') else 'failed'
     finally:
-        if connection:
+        if connection and connection != 'openssh':
             connection.close()
     try:
         persist_report(report)

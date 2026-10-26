@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-10-23T10:47:30.846Z",
+  "branch": "codex/agent-workspace-ui",
+  "integrated_commit": "9c3da9b",
+  "android_changed": false,
+  "installed_candidate_unchanged": "0.5.3-dev54 /10476",
+  "scope": "Local progress-contract/CLI merge and synthetic local server regression; no production deployment or phone operation",
+  "server_checks": {
+    "command": "NODE_PATH=<shared installed server dependencies> node --test rebuild/material-server/tests/watch.test.mjs rebuild/material-server/tests/queue.test.mjs rebuild/material-server/tests/service.test.mjs",
+    "tests": 35,
+    "passed": 34,
+    "failed_or_blocked": 1,
+    "watch_passed": 3,
+    "queue_passed": 14,
+    "service_passed": 17,
+    "missing_fixture_test": "unaltered ArkTS phone exports r1-r5 are accepted in order, including metadata-only growth and delete",
+    "missing_files": [
+      "rebuild/phase1/device-p21-wire39-seed.json",
+      "rebuild/phase1/device-p21-wire39-resume.json"
+    ],
+    "initial_environment_attempt": "Direct run lacked ajv; rerun used existing dependency directory read-only. Both checkouts lack the historical fixtures. No replacement fixtures invented.",
+    "cloud_tested": false
+  },
+  "cli_checks": {
+    "status": "passed",
+    "private_path_tests": 2,
+    "codex_claude_cli_integration_tests": 2,
+    "syntax": "passed",
+    "scenarios": [
+      "New progress/checkpoint paths and .partial links rejected without touching external target",
+      "Config verifies caller and journal before writing",
+      "After completed config off, old checkpoint replay has zero message POST and watch stays off",
+      "After reenable, new checkpoint arms watch"
+    ],
+    "scope": "Temporary local registrations, synthetic tokens, local loopback server; no real phone/server operation"
+  },
+  "hardware": {
+    "device_lock": "claude",
+    "checkpoint_sent_after_merge": false,
+    "reason": "Hardware/question channel exclusively held by Claude; do not send or reconfigure the channel"
+  },
+  "pending": [
+    "Real lens visibility owned by Claude",
+    "Cross-process simultaneous checkpoint/config-off serialization or policy versions",
+    "True pause/append/resume host control"
+  ],
+  "source_sha256": {
+    "rebuild/agent-bridge/questions/cli.mjs": "d48e5a15518fe25da099bc1dc5225d770a83b1c0d15f24f252ccf57933a56169",
+    "rebuild/agent-bridge/questions/private-path.mjs": "41610ee3197b91305af461a6799ceae65e2ddbf782f3909da3e857e97d9e52c9",
+    "rebuild/agent-bridge/questions/tests/cli.test.mjs": "e29e0ea028221eddf4313703b9918aab57129c752caaeb2a0687862290ff9995",
+    "rebuild/agent-bridge/questions/tests/private-path.test.mjs": "8b81a4714308d4fa5ea5b42b8b8851a81f7b8d04af9e4aeff34ecc52b91e0d55",
+    "rebuild/material-server/store.mjs": "72927226886f6b26e141a4c4b4337c2d5d7d913c2e435bac8992ad5d15c31abe",
+    "rebuild/material-server/http.mjs": "fc8c66425825b1d92dc532976543b0d9b8d071d2fc2886c8d2ae91fdff533f74",
+    "rebuild/material-server/tests/watch.test.mjs": "caee8de70d5a7fd9b187fba0d805cde48e9222b2d580d2573b474868c432dbc2"
+  }
+}

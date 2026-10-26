@@ -35,9 +35,19 @@ class HostWaitTests(unittest.TestCase):
         stages=[a.get('stage') for e in self.journal.events() for a in e['actions']]
         self.assertEqual(stages.count('task_resumed'),1)
 
+    def test_rejected_deadline_returns_the_valid_window_and_persists_nothing(self):
+        spec=dict(self.spec,question_key='deadline-hint',expires_at='2099-01-01T00:00:00Z')
+        result=json.loads(cli_tools.invoke('ask',spec,self.config))
+        self.assertEqual(result['error'],'RUNTIME_DEADLINE_INVALID')
+        low,high=(datetime.strptime(v,'%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for v in result['valid_expires_at'])
+        now=datetime.now(timezone.utc)
+        self.assertTrue(now<low<high<=now+timedelta(hours=1))
+        retry=json.loads(cli_tools.invoke('ask',dict(spec,expires_at=result['valid_expires_at'][1]),self.config))
+        self.assertNotIn('error',retry);self.assertEqual(retry['state'],'pending')
+
     def test_wait_repeats_same_frame_and_refuses_changed_request_or_deadline(self):
         future=(datetime.now(timezone.utc)+timedelta(minutes=5)).isoformat().replace('+00:00','Z')
-        pending={'request_id':'original','runtime_request_id':'native-original','state':'pending','expires_at':future,'deadline_elapsed':False,'answer':None}
+        pending={'request_id':'original','runtime_request_id':'native-original','state':'pending','expires_at':future,'deadline_elapsed':False,'answer':None,'glasses_display':'card'}
         changed={**pending,'request_id':'other'}
         output=lambda value:SimpleNamespace(returncode=0,stdout=json.dumps(value).encode())
         with patch.object(cli_tools.subprocess,'run',side_effect=[output(pending),output(changed)]) as run,patch.object(cli_tools.time,'sleep'):

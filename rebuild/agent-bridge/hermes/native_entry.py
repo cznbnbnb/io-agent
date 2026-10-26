@@ -9,7 +9,7 @@ from managed_home import private_json
 from runtime_journal import RuntimeJournal, RuntimeJournalError
 from native_observer import wrap_agent
 from pinned_runtime import verify_source
-from restricted_profile import read_policy, enforce_question_tools, CLI_POLICY
+from restricted_profile import read_policy, enforce_question_tools, CLI_POLICIES, WORKSPACE_POLICY, WORKSPACE_TOOLSETS
 from runtime_environment import require_enrollment_ready
 
 
@@ -51,11 +51,11 @@ def serve_native(config, agent_factory=None, deny_network=False):
             if kwargs.get('session_id') != config['session_id']:
                 raise RuntimeJournalError('RUNTIME_SESSION_UNREGISTERED')
             if policy:
-                if policy==CLI_POLICY:
+                if policy in CLI_POLICIES:
                     from cli_tools import register, TOOLSET
                     questions=home/'.turboio-operations'/(config['operation_id']+'.questions.json')
                     register(questions,config['session_id'])
-                    kwargs['enabled_toolsets'] = [TOOLSET]
+                    kwargs['enabled_toolsets'] = [TOOLSET]+(WORKSPACE_TOOLSETS if policy==WORKSPACE_POLICY else [])
                 else:
                     kwargs['enabled_toolsets'] = []
                 kwargs['disabled_toolsets'] = []

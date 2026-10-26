@@ -1,0 +1,561 @@
+{
+  "schema": 1,
+  "at": "2026-10-25T01:39:58.463073+00:00",
+  "passed": true,
+  "scope": "Pinned A4 cache framing in producer and shared separated ZIP export; synthetic HTTP chain and own-UID installed native validation. Not observed live A4, real-user cloud backup or continuity proof.",
+  "product": {
+    "version": "0.5.3-dev88",
+    "version_code": 10510,
+    "bytes": 429822233,
+    "sha256": "35813437bace647aab7d9dfa5aaa5e899c65fe19852dd6bfe854d3e56fca1048",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "installed": true
+  },
+  "candidate_sources": 231,
+  "claude_branch_checked": "96b1dbb",
+  "r3_percent": 100,
+  "r4_estimate_percent": 90,
+  "original_host": {
+    "version": "1.0.7/230",
+    "apk_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+    "framing_source": "t8.b$b A4 -> m8.r cached -> m8.s.m -> m8.s$a.c(byte[])",
+    "packet_bytes": 240,
+    "short_tail_retained": true,
+    "vendor_fixed_granule_not_a_duration_oracle": true
+  },
+  "behavior": [
+    "Only same-account, same-task, known-version/protobuf/metadata A4 sources can publish; raw archive bytes and chain retained.",
+    "A4 frames split per incoming data array into 240-byte packets with a separate short final packet; no cross-batch joining or A3 frame clamp.",
+    "Empty A4 is a control with no audio. A4 isFinish and A5 rc do not prove complete recording.",
+    "Shared local/remote export validates TOC and native decoder for every packet including duplicate sources; realtime/cached contiguous runs become separate files with fresh decoder state.",
+    "No guessed realtime/cache overlap deduplication or inserted silence; per-file reception/sequence ranges and global distinct-source counts explain partial output.",
+    "Same fixed 72h server receipt retained; no extra permission or original-source cleanup introduced."
+  ],
+  "host_a4": {
+    "schema": 1,
+    "at": "2026-10-25T01:23:34.551Z",
+    "passed": true,
+    "scope": "Production sealed raw producer/upload/read-cache/parser/shared ZIP writer over isolated HTTP/SQLite; synthetic valid Opus and independent FFmpeg/ZIP. Android API/D8 compile only, not installed UI, real TLS, native phone decoder or real-user grant proof.",
+    "phases": [
+      {
+        "mode": "baseline-a4-refusal",
+        "expected_prior_failure": "AUDIO_PAYLOAD_BATCH_UNSUPPORTED",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-task",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-data",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-proto",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-version",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-json",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-shape",
+        "passed": true
+      },
+      {
+        "mode": "reject-a4-task",
+        "passed": true
+      },
+      {
+        "mode": "reject-a4-proto",
+        "passed": true
+      },
+      {
+        "mode": "reject-a4-version",
+        "passed": true
+      },
+      {
+        "mode": "reject-a4-json",
+        "passed": true
+      },
+      {
+        "mode": "reject-a4-shape",
+        "passed": true
+      },
+      {
+        "mode": "prepare",
+        "passed": true
+      },
+      {
+        "mode": "export",
+        "passed": true
+      },
+      {
+        "mode": "restore-aged",
+        "passed": true
+      },
+      {
+        "mode": "revoked",
+        "passed": true
+      }
+    ],
+    "control_parser_checks": 28,
+    "cached_parser_checks": 51,
+    "include_a5": true,
+    "include_a4": true,
+    "producer_checks": 9,
+    "receiver_checks": 125,
+    "restore_checks": 26,
+    "normal_restore_controller": true,
+    "prior_committed_a5_refusal_reproduced": false,
+    "prior_committed_a4_refusal_reproduced": true,
+    "independent_decoded_samples48": 5760,
+    "independent_zip_crc_and_exact_opus": true,
+    "original_namespace_unchanged": true,
+    "remote_only_created_no_original_namespace": true,
+    "all_duplicate_sources_validated": true,
+    "fixed_receipt_unchanged": true,
+    "credential_tokens_absent_from_exports": true,
+    "read_only_other_producer": true,
+    "android_36_bootclasspath_sources": 3,
+    "android_d8_min_api": 29,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 2
+  },
+  "host_a5_regression": {
+    "schema": 1,
+    "at": "2026-10-25T01:24:54.941Z",
+    "passed": true,
+    "scope": "Production sealed raw producer/upload/read-cache/parser/shared ZIP writer over isolated HTTP/SQLite; synthetic valid Opus and independent FFmpeg/ZIP. Android API/D8 compile only, not installed UI, real TLS, native phone decoder or real-user grant proof.",
+    "phases": [
+      {
+        "mode": "baseline-a5-refusal",
+        "expected_prior_failure": "AUDIO_PAYLOAD_BATCH_UNSUPPORTED",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-task",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-data",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-proto",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-version",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-json",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-shape",
+        "passed": true
+      },
+      {
+        "mode": "prepare",
+        "passed": true
+      },
+      {
+        "mode": "export",
+        "passed": true
+      },
+      {
+        "mode": "restore-aged",
+        "passed": true
+      },
+      {
+        "mode": "revoked",
+        "passed": true
+      }
+    ],
+    "control_parser_checks": 28,
+    "cached_parser_checks": 51,
+    "include_a5": true,
+    "include_a4": false,
+    "producer_checks": 9,
+    "receiver_checks": 77,
+    "restore_checks": 22,
+    "normal_restore_controller": true,
+    "prior_committed_a5_refusal_reproduced": true,
+    "prior_committed_a4_refusal_reproduced": false,
+    "independent_decoded_samples48": 1920,
+    "independent_zip_crc_and_exact_opus": true,
+    "original_namespace_unchanged": true,
+    "remote_only_created_no_original_namespace": true,
+    "all_duplicate_sources_validated": true,
+    "fixed_receipt_unchanged": true,
+    "credential_tokens_absent_from_exports": true,
+    "read_only_other_producer": true,
+    "android_36_bootclasspath_sources": 3,
+    "android_d8_min_api": 29,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 2
+  },
+  "host_a3_regression": {
+    "schema": 1,
+    "at": "2026-10-25T01:40:18.054Z",
+    "passed": true,
+    "scope": "Production sealed raw producer/upload/read-cache/parser/shared ZIP writer over isolated HTTP/SQLite; synthetic valid Opus and independent FFmpeg/ZIP. Android API/D8 compile only, not installed UI, real TLS, native phone decoder or real-user grant proof.",
+    "phases": [
+      {
+        "mode": "reject-a5-task",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-data",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-proto",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-version",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-json",
+        "passed": true
+      },
+      {
+        "mode": "reject-a5-shape",
+        "passed": true
+      },
+      {
+        "mode": "prepare",
+        "passed": true
+      },
+      {
+        "mode": "export",
+        "passed": true
+      },
+      {
+        "mode": "restore-aged",
+        "passed": true
+      },
+      {
+        "mode": "revoked",
+        "passed": true
+      }
+    ],
+    "control_parser_checks": 28,
+    "cached_parser_checks": 51,
+    "include_a5": false,
+    "include_a4": false,
+    "producer_checks": 9,
+    "receiver_checks": 76,
+    "restore_checks": 22,
+    "normal_restore_controller": true,
+    "prior_committed_a5_refusal_reproduced": false,
+    "prior_committed_a4_refusal_reproduced": false,
+    "independent_decoded_samples48": 1920,
+    "independent_zip_crc_and_exact_opus": true,
+    "original_namespace_unchanged": true,
+    "remote_only_created_no_original_namespace": true,
+    "all_duplicate_sources_validated": true,
+    "fixed_receipt_unchanged": true,
+    "credential_tokens_absent_from_exports": true,
+    "read_only_other_producer": true,
+    "android_36_bootclasspath_sources": 3,
+    "android_d8_min_api": 29,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 2
+  },
+  "upload_regression": {
+    "schema": 1,
+    "at": "2026-10-25T01:24:58.304Z",
+    "node": "v22.23.2",
+    "passed": true,
+    "unit_assertions": 70,
+    "scope": "Production Java audio connection/wire/outbox over isolated HTTP/SQLite; opaque synthetic payload bytes, not codec, official source or phone-runtime proof.",
+    "new_sources_android_36_bootclasspath_compile": 4,
+    "product_style_java_8_compile": true,
+    "android_d8_min_api": 29,
+    "part_response_process_halt_recovered": true,
+    "finalize_response_process_halt_recovered": true,
+    "partial_copy_process_halt_recovered": true,
+    "renamed_copy_process_halt_recovered": true,
+    "exact_full_byte_download": true,
+    "missing_parts_only_after_restart": true,
+    "three_day_receipt_never_renewed": true,
+    "text_only_identity_denied_before_audio_post": true,
+    "pause_after_commit_reconciled": true,
+    "bad_receipt_retained_payload": true,
+    "corrupt_payload_not_transmitted": true,
+    "owned_cleanup_recovery_preserves_source": true,
+    "canonical_body_control_escapes_agree": true,
+    "mid_request_credential_revocation_renewal": true,
+    "producer_completeness_claim_not_verified": true,
+    "explicit_bad_receipt_retry_reconciles": true,
+    "producer_raw_envelope_exact_original_bytes": true,
+    "producer_copy_and_publish_process_halt_recovery": true,
+    "automatic_session_queue_before_network_crash_recovered": true,
+    "automatic_queue_progress_without_source_discovery": true,
+    "automatic_source_cursor_and_permission_gating": true,
+    "phone_accessed": false,
+    "public_service_accessed": false,
+    "product_runtime_wired": false,
+    "temporary_fixture_removed": true,
+    "fixture_credentials_revoked": 4
+  },
+  "local_export_regression": {
+    "schema": 1,
+    "at": "2026-10-25T01:24:49.162Z",
+    "passed": true,
+    "checks": 37,
+    "independent_decoder": {
+      "codec_name": "opus",
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    "decoded_pcm_bytes": 3840,
+    "scope": "Synthetic delayed association, immutable export checkpoints, streaming archive/ZIP/Opus output, account/corruption/expiry rejection; actual phone is separate",
+    "temporary_fixture_removed": true
+  },
+  "diagnostic_build": {
+    "schema": 1,
+    "at": "2026-10-25T01:31:04.206Z",
+    "package": "com.turboio.audioprobe.codex",
+    "label": "iO Agent audio validation",
+    "instrumentation": "com.turboio.audioprobe.AudioPhoneIsolationProbe",
+    "target_package": "com.turboio.audioprobe.codex",
+    "debuggable": false,
+    "permissions": [
+      "android.permission.INTERNET"
+    ],
+    "no_record_audio_permission": true,
+    "apk_sha256": "12ac6d9c5794bfe0bbbfe6a7b291f315c48608580834bee686ab75382ae21998",
+    "apk_bytes": 37068,
+    "source_sha256": "7cb48144bde69542578c7473059b1da9f46b7cb43dad0c7e8893522e70cc731a",
+    "builder_sha256": "8dd4acd1704f4569cf42eb4f514838f718380f54109f798765985a90ba3b40ac",
+    "manifest_sha256": "8656b948af1260a8c251c5ca3229d90f796b9069726ab0dfa92148b440c46e45",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "product_bytecode_expected_sha256": "35813437bace647aab7d9dfa5aaa5e899c65fe19852dd6bfe854d3e56fca1048"
+  },
+  "diagnostic_install": {
+    "installed": true,
+    "apk_sha256": "12ac6d9c5794bfe0bbbfe6a7b291f315c48608580834bee686ab75382ae21998",
+    "own_install_confirmed": 1,
+    "product_apk_unchanged": true
+  },
+  "phone_sdk": {
+    "mode": "a4-sdk",
+    "pid": 30360,
+    "own_uid": 10363,
+    "product_uid": 10315,
+    "isolated_uid": true,
+    "installed_product_bytecode": true,
+    "vendor_output_sha256": "62a8855722fc0e05b9c5408f2c6c465f7ba6405d2b9cbc1f3559d86b8b353c87",
+    "vendor_output_bytes": 625,
+    "actual_vendor_protobuf_and_dto": true,
+    "actual_vendor_cached_writer": true,
+    "a4_variants": 4,
+    "sdk_dispatch_called": false,
+    "vendor_granule_not_a_duration_oracle": true,
+    "checks": 30,
+    "passed": true,
+    "microphone_started": false,
+    "playback_started": false,
+    "official_account_read": false,
+    "product_settings_accessed": false
+  },
+  "phone_native_local_export": {
+    "mode": "a4-export",
+    "pid": 30471,
+    "own_uid": 10363,
+    "product_uid": 10315,
+    "isolated_uid": true,
+    "installed_product_bytecode": true,
+    "output_sha256": "5633785ca8e1925dc4ce322d8486a300199c4b2166b1760eb3f2e798af3c2f3a",
+    "output_bytes": 4056,
+    "frames": 6,
+    "samples48": 5760,
+    "parts": 3,
+    "cached_frames": 3,
+    "realtime_frames": 3,
+    "cached_empty_batches": 1,
+    "control_batches": 1,
+    "native_product_decoder_factories": 3,
+    "original_unchanged": true,
+    "recording_complete": false,
+    "network_used": false,
+    "checks": 15,
+    "passed": true,
+    "microphone_started": false,
+    "playback_started": false,
+    "official_account_read": false,
+    "product_settings_accessed": false
+  },
+  "independent_phone_export": {
+    "at": "2026-10-25T01:37:35.120183+00:00",
+    "passed": true,
+    "only_known_synthetic_outputs_pulled": true,
+    "original_vendor_writer_crc_and_exact_packets": true,
+    "vendor_header_channels": 1,
+    "vendor_granule_not_used_as_duration_proof": true,
+    "product_zip_crc_and_exact_packets": true,
+    "separated_audio_channels": [
+      "realtime",
+      "cached",
+      "realtime"
+    ],
+    "source_sequence_ranges": [
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        5,
+        5
+      ]
+    ],
+    "ffmpeg_mono_48k_samples": 5760,
+    "parts": 3,
+    "live_a4_or_real_user_audio_proven": false
+  },
+  "diagnostic_cleanup": {
+    "diagnostic_package_removed": true,
+    "product_apk_unchanged": true
+  },
+  "delta": {
+    "baseline_sha256": "7d7bed421603a1e18659ae82a4d618832fb9373096d9599bdd6967c8da3f1b0b",
+    "target_sha256": "35813437bace647aab7d9dfa5aaa5e899c65fe19852dd6bfe854d3e56fca1048",
+    "delta_bytes": 1539397,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 262144,
+        "through": 262144,
+        "seconds": 5.417
+      },
+      {
+        "bytes": 262144,
+        "through": 524288,
+        "seconds": 4.553
+      },
+      {
+        "bytes": 262144,
+        "through": 786432,
+        "seconds": 3.671
+      },
+      {
+        "bytes": 262144,
+        "through": 1048576,
+        "seconds": 4.818
+      },
+      {
+        "bytes": 262144,
+        "through": 1310720,
+        "seconds": 4.542
+      },
+      {
+        "bytes": 228677,
+        "through": 1539397,
+        "seconds": 3.643
+      }
+    ],
+    "resume_seconds": 31.505,
+    "earlier_attempts": []
+  },
+  "installed_independent_verification": {
+    "version": "0.5.3-dev88",
+    "version_code": 10510,
+    "sha256": "35813437bace647aab7d9dfa5aaa5e899c65fe19852dd6bfe854d3e56fca1048",
+    "bytes": 429822233,
+    "independently_verified": true,
+    "verified_at": "2026-10-25T01:36:46.320501+00:00"
+  },
+  "postinstall_and_retention": {
+    "at": "2026-10-25T01:38:36.439931+00:00",
+    "product_sha256_verified": "35813437bace647aab7d9dfa5aaa5e899c65fe19852dd6bfe854d3e56fca1048",
+    "candidate_sources_verified": 231,
+    "diagnostic_uninstalled": true,
+    "own_remote_delta_directory_removed": true,
+    "protected_user_export_sha256_unchanged": "74876c6fc33afdfbec403188b75ea93a6a026676aeeaf230db3b4b63b227ae95",
+    "normal_start_pid": 28334,
+    "returned_home_and_screen_off": true,
+    "kept_signed_product_apks": [
+      "iO-Agent-Android-0.5.3-dev76.apk",
+      "iO-Agent-Android-0.5.3-dev88.apk"
+    ],
+    "own_local_delta_probe_and_dev87_removed": true,
+    "released_bytes": 431539433,
+    "user_audio_pulled": false,
+    "new_recording_started": false
+  },
+  "completion_checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-a4-dev88-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-25T02:07:52.518Z",
+    "requires_answer": false,
+    "message_id": "notice-ec67a89abb0f5fdc7a4ae95a07a6cc489f70c733dd9744605ea33b0888e2f468",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "authorization": {
+    "formal_grant": "text only",
+    "text_grant_expires_at": "2026-10-25T11:21:31.920Z",
+    "audio_request_id": "req-f6cc599aff50b96e53ff9b6ed0613cb84bcf33683b05ad079331b57be1fa1946",
+    "audio_request_state": "expired",
+    "audio_request_expired_at": "2026-10-25T00:42:57.437Z",
+    "answer": null,
+    "audio_or_delete_credential_minted": false,
+    "audio_question_reissued": false,
+    "real_user_audio_uploaded_or_pulled_to_mac": false
+  },
+  "failure_history": [
+    "First producer compile stopped on a cached local variable shadowing an outer File; renamed cachedBatch and rebuilt before signing.",
+    "65536 data bytes plus protobuf metadata exceeded the existing 65536 whole-wire guard. Valid boundary fixture changed to 65000; oversized rejection retained."
+  ],
+  "not_verified": [
+    "Observed real A4 bytes/codec or older-task backfill capture with no active native task context.",
+    "Normal product formal real-audio automatic upload/read/export and subjective listening.",
+    "Continuous recording capture and source-end automatic sealing.",
+    "Authoritative stock material deletion and receipt-gated source cleanup."
+  ],
+  "source_hashes": {
+    "rebuild/android-app/src/com/turboio/addon/AlwaysOnAudioBatch.java": "253dc306214421b8e5249a66a9a429c89543cd104768df8cb3643dfc4c4ead42",
+    "rebuild/android-app/src/com/turboio/addon/AlwaysOnAudioControl.java": "0a1ac66f656417e878f9e7b6d7939bbc8598f613fff06d2e1fe07942c9e5f91b",
+    "rebuild/android-app/src/com/turboio/addon/AlwaysOnCachedAudio.java": "abad64f3602f546740466f2082bf8aeefb62e6090511d31fee3e784c0bb3798d",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioExport.java": "2335793599d4904d9ba0e5fe0b64fde6ec098aba0dd89e9f60cbb2e664a7f02b",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioPayloads.java": "ba73e6669364b17c392c59ebf71ab1c61a4e06bb18aa3c6a0a385b3533da93ce",
+    "rebuild/android-app/src/com/turboio/addon/LifelogAudioSource.java": "5bcefefae46146f68a160383f850d0b133cd11b0397d4bc3eb784d5aa3faaec1",
+    "tools/android/AlwaysOnCachedAudioTest.java": "048b4d1f253f16bad97f53214406cf8c516788e0d25cdf360a8bec312bd91994",
+    "tools/android/AudioPhoneIsolationProbe.java": "7cb48144bde69542578c7473059b1da9f46b7cb43dad0c7e8893522e70cc731a",
+    "tools/android/RemoteAudioExportTest.java": "4185410f47e35f5a36a809ed6e4953d167997591b102007e19caae234a201c70",
+    "tools/android/run-audio-phone-probe.py": "aa4f7225e741005172c00bb8b3b232f77399ced977681d988ee9479544a83986",
+    "tools/android/test-audio-remote-export.mjs": "97d44aafb59d39919e6c756fe7b28fd6106e01cd128e2aa3da1c2f81683acec1",
+    "tools/android/test-audio-upload.mjs": "9d328c45d73522ee24e0186b4f942737e8ec2f54a857dd6542932386931e1d25",
+    "tools/android/test-lifelog-audio-export.mjs": "e5c2ccf63914457f1619ec068ad9604da86cb48e30f2d0a972b1920199fea737"
+  },
+  "device_lock_release": {
+    "state": "free"
+  }
+}

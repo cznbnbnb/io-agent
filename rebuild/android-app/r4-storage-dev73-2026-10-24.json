@@ -1,0 +1,245 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T10:58:49.589854+00:00",
+  "installed": "0.5.3-dev73",
+  "version_code": 10495,
+  "rollback": "0.5.3-dev72",
+  "candidate_sha256": "47fe7e9843d4a74b465e74e7bc033ec1d124bf5d6b7b255df81bd758c5cdffb5",
+  "compiled_sources": 197,
+  "compiled_source_hashes_verified": true,
+  "signature_v2_v3": true,
+  "installed_full_apk_sha_verified": true,
+  "delta": {
+    "baseline_sha256": "738a515774db41970655285bd13b93fbdfabc1969cfd43b50831de0d0d2952fe",
+    "candidate_sha256": "47fe7e9843d4a74b465e74e7bc033ec1d124bf5d6b7b255df81bd758c5cdffb5",
+    "apk_bytes": 429719833,
+    "delta_bytes": 1437284,
+    "commands": 8089,
+    "delta_sha256": "c4a948cf3532196cae852d7ea4de95b37207581fd286d47372c4799dd463174a",
+    "reconstruction_hash_verified": true,
+    "device_reconstructed_sha_verified": true
+  },
+  "full_transfer_attempt": {
+    "stopped_after_user_correction": true,
+    "baseline_still_dev72_verified_before_delta": true,
+    "success_claimed": false
+  },
+  "host_tests": {
+    "migration_assertions": 42,
+    "actual_legacy_reader_commit": "053b60a",
+    "old_reader_local_long_text": true,
+    "settings_assertions": 24,
+    "runtime_assertions": 386,
+    "fresh_session_assertions": 22,
+    "http_sqlite_restart_and_cancellation": "passed"
+  },
+  "device": {
+    "before": {
+      "audit": {
+        "config_sha256": "5d8378d776a4f70fa67fe08fa8057866cfc9f69d2ec2083e3a874b9dadfdb2cb",
+        "enabled": true,
+        "credential_expired": true,
+        "legacy": [
+          {
+            "exists": true,
+            "bytes": 863315,
+            "sha256": "3cf9f7b8a41347bb14c2a10099ccba5529a732d8320610554135bb905fb8732d"
+          },
+          {
+            "exists": true,
+            "bytes": 468153,
+            "sha256": "2c3498dd08b98fc24a8418dfe324e1d027f0d5e1b7c7cfddf4c8518aa66b3ec9"
+          },
+          {
+            "exists": true,
+            "bytes": 466913,
+            "sha256": "25a96769544b2e69c47a26cb98b1b6df52320dc00f1157ff4f870dfd87e053ea"
+          }
+        ],
+        "current": [
+          {
+            "exists": false
+          },
+          {
+            "exists": false
+          },
+          {
+            "exists": false
+          }
+        ],
+        "local_library": {
+          "exists": true,
+          "bytes": 336743,
+          "sha256": "542bf3ccf38d2a9f8d5c6e44cd8b4577470bbf51686e7c2b5e2bd51b5fcac125"
+        },
+        "migration": {
+          "exists": false
+        },
+        "new_settings_present": false,
+        "original_encrypted_backup_present": false
+      },
+      "checks": "6",
+      "credentials_or_text_exported": "false",
+      "network_or_capture_requested": "false",
+      "passed": "true"
+    },
+    "immediate_after_upgrade": {
+      "audit": {
+        "config_sha256": "5d8378d776a4f70fa67fe08fa8057866cfc9f69d2ec2083e3a874b9dadfdb2cb",
+        "enabled": true,
+        "credential_expired": true,
+        "legacy": [
+          {
+            "exists": true,
+            "bytes": 863315,
+            "sha256": "3cf9f7b8a41347bb14c2a10099ccba5529a732d8320610554135bb905fb8732d"
+          },
+          {
+            "exists": true,
+            "bytes": 468153,
+            "sha256": "2c3498dd08b98fc24a8418dfe324e1d027f0d5e1b7c7cfddf4c8518aa66b3ec9"
+          },
+          {
+            "exists": true,
+            "bytes": 466913,
+            "sha256": "25a96769544b2e69c47a26cb98b1b6df52320dc00f1157ff4f870dfd87e053ea"
+          }
+        ],
+        "current": [
+          {
+            "exists": false
+          },
+          {
+            "exists": false
+          },
+          {
+            "exists": false
+          }
+        ],
+        "local_library": {
+          "exists": true,
+          "bytes": 336743,
+          "sha256": "542bf3ccf38d2a9f8d5c6e44cd8b4577470bbf51686e7c2b5e2bd51b5fcac125"
+        },
+        "migration": {
+          "exists": false
+        },
+        "new_settings_present": true,
+        "original_encrypted_backup_present": true,
+        "rollback_paused": true
+      },
+      "checks": "6",
+      "credentials_or_text_exported": "false",
+      "network_or_capture_requested": "false",
+      "passed": "true"
+    },
+    "after_normal_material_page": {
+      "audit": {
+        "config_sha256": "5d8378d776a4f70fa67fe08fa8057866cfc9f69d2ec2083e3a874b9dadfdb2cb",
+        "enabled": true,
+        "credential_expired": true,
+        "legacy": [
+          {
+            "exists": true,
+            "bytes": 863315,
+            "sha256": "3cf9f7b8a41347bb14c2a10099ccba5529a732d8320610554135bb905fb8732d"
+          },
+          {
+            "exists": true,
+            "bytes": 468153,
+            "sha256": "2c3498dd08b98fc24a8418dfe324e1d027f0d5e1b7c7cfddf4c8518aa66b3ec9"
+          },
+          {
+            "exists": true,
+            "bytes": 466913,
+            "sha256": "25a96769544b2e69c47a26cb98b1b6df52320dc00f1157ff4f870dfd87e053ea"
+          }
+        ],
+        "current": [
+          {
+            "exists": true,
+            "bytes": 863544,
+            "sha256": "d6778e40403cea2b8a631ff6e1a04dd662baea646d3def3c3133aa6e0fd0180c"
+          },
+          {
+            "exists": true,
+            "bytes": 468153,
+            "sha256": "2c3498dd08b98fc24a8418dfe324e1d027f0d5e1b7c7cfddf4c8518aa66b3ec9"
+          },
+          {
+            "exists": true,
+            "bytes": 466913,
+            "sha256": "25a96769544b2e69c47a26cb98b1b6df52320dc00f1157ff4f870dfd87e053ea"
+          }
+        ],
+        "local_library": {
+          "exists": true,
+          "bytes": 485493,
+          "sha256": "3fd47c0a01ca2362882bce667b44d64ec3f3afef7c0993b4f6628f8063d0b315"
+        },
+        "migration": {
+          "exists": true,
+          "bytes": 1113,
+          "sha256": "744522900852a5ae8a1c1d88a9f6a0f5abbb1ad1e96879c379893ac92b08eece"
+        },
+        "new_settings_present": true,
+        "original_encrypted_backup_present": true,
+        "rollback_paused": true
+      },
+      "checks": "10",
+      "credentials_or_text_exported": "false",
+      "network_or_capture_requested": "false",
+      "passed": "true"
+    },
+    "synthetic_keystore_seed": {
+      "checks": "8",
+      "credentials_or_text_exported": "false",
+      "network_or_capture_requested": "false",
+      "passed": "true",
+      "real_settings_unchanged": "true",
+      "test_namespace_retained_for_restart": "true"
+    },
+    "synthetic_keystore_reopen": {
+      "checks": "10",
+      "credentials_or_text_exported": "false",
+      "network_or_capture_requested": "false",
+      "passed": "true",
+      "real_settings_unchanged": "true",
+      "test_namespace_retained_for_restart": "false"
+    },
+    "process_absent_observed_between_phases": true,
+    "synthetic_namespace_removed": true,
+    "real_config_preserved": true,
+    "legacy_queue_journals_preserved": true,
+    "local_library_preserved_at_upgrade": true,
+    "normal_material_page": "expired connection does not block local reads; local library grew after fresh read",
+    "glasses_qa_retested": false,
+    "automatic_upload_positive_test": false
+  },
+  "formal_credentials_renewed": false,
+  "formal_upload_performed": false,
+  "sources": {
+    "src/com/turboio/addon/MaterialStorage.java": "bb315357854820c117251dceda8ad99147e73681df45a93e7966132a3c4d767f",
+    "src/com/turboio/addon/MaterialSettingsState.java": "8c9fe30929d6068f34a0922a39d7aa15b84b6dee4579a51f6e5f15c0c739e527",
+    "src/com/turboio/addon/MaterialSettings.java": "294c7551092cbf8038e5c11214c6c229e8ed7d528c45daf1bb7da9072ee54261",
+    "src/com/turboio/addon/MaterialSyncSession.java": "81e65ce1e862be22a7801ac4a328ab474b7488622940f99e3ab951a573115609",
+    "src/com/turboio/addon/MaterialRuntime.java": "6066b790fe004a0a19932cf61e11402ad99126a0182822619ab367178086b75e",
+    "src/com/turboio/addon/MaterialWorkspace.java": "fd4e4ba1a4722b21f18c5483623b2a9309135f147b7268a87d2d3d38a218a8f8"
+  },
+  "remaining": [
+    "new limited authorization for formal text sync",
+    "positive device automatic/restart upload and server full-text readback",
+    "original audio 3-day retention/export",
+    "authoritative deletion"
+  ],
+  "cleanup": {
+    "diagnostic_driver_uninstalled": true,
+    "synthetic_preferences_removed": true,
+    "device_patch_reconstruction_files_removed": true,
+    "retired_verified_apk": "dev71",
+    "retained_apks": [
+      "dev73",
+      "dev72"
+    ]
+  }
+}

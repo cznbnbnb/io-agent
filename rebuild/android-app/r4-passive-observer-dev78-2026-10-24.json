@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "at": "2026-10-24T15:11:58.439504+00:00",
+  "status": "dev78_installed_foreground_background_real_A3_metadata_observed",
+  "scope": "Passive normal-process metadata observer; does not initiate recording or persist/upload original audio",
+  "jvm": {
+    "schema": 1,
+    "at": "2026-10-24T14:54:11.287Z",
+    "passed": true,
+    "checks": 130,
+    "path_checks": 8,
+    "scope": "Synthetic wire bytes and metadata-only model; no runtime/device or codec/source proof",
+    "sources": [
+      {
+        "path": "src/com/turboio/addon/AlwaysOnWire.java",
+        "sha256": "ca44324211216a63f81eb2a6274c471086b15a9637526b82d0405028ace3ae4c"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogAudioObservation.java",
+        "sha256": "5d9fd6d313661263865f1bc8239f50fc844e1de7cd0caa6d7bff57f3459539f8"
+      },
+      {
+        "path": "src/com/turboio/addon/LifelogObservationPath.java",
+        "sha256": "7127729ba222096c800058e43d37bf3c273883236b99593817d445c00ef2fe98"
+      },
+      {
+        "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
+        "sha256": "b834a1f53943c21353ded8996a1187f0277789a5ce7d96cf61f793aa4472e6ee"
+      },
+      {
+        "path": "src/com/turboio/addon/WireJson.java",
+        "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      },
+      {
+        "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+        "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+      },
+      {
+        "path": "../../tools/android/LifelogAudioObservationTest.java",
+        "sha256": "1078b61ab4e8eea29858ea59292644e57bfaf6aa11167c012341727aedd9e994"
+      },
+      {
+        "path": "../../tools/android/LifelogObservationPathTest.java",
+        "sha256": "696f630e512f354311278bccbfed1aed231a250e2d768246ae14f3bcb596a9cf"
+      },
+      {
+        "path": "../../tools/android/test-lifelog-audio-observation.mjs",
+        "sha256": "4b7102279f9d37f9aa9f325afb7a15baee05c46ee55dad39ba0928ed5fcd6913"
+      }
+    ],
+    "temporary_fixture_removed": true
+  },
+  "native_wire": {
+    "audio_read_capture_playback": false,
+    "differential_cases": 100,
+    "differential_checks": 500,
+    "model_checks": 130,
+    "native_handler_invoked": false,
+    "passed": true,
+    "probe_id": "cdc1236b0d724881be1f360b0a9a814d",
+    "synthetic_only": true
+  },
+  "native_storage": {
+    "audio_read_capture_playback": false,
+    "legacy_child_canonical_equal": false,
+    "native_handler_invoked": false,
+    "passed": true,
+    "probe_id": "d7a6055dce18452e97c9b671d724a0f1",
+    "root_normalized": true,
+    "storage_checks": 3,
+    "synthetic_fixture_removed": true,
+    "synthetic_only": true
+  },
+  "dev77_failure": {
+    "version": "0.5.3-dev77",
+    "installed_sha256": "266d64b86477eb61d7c1041b1750cf1fd7abfaab1b4eac62b2cf0a89f1c401b6",
+    "app_pid": "27740",
+    "main_app_alive": true,
+    "observer_initialized": false,
+    "observed_error": "AUDIO_OBSERVATION_UNAVAILABLE",
+    "failure_times": [
+      "22:45:31",
+      "22:46:31",
+      "22:47:31",
+      "22:48:31"
+    ],
+    "not_counted_as_acceptance": true,
+    "root_cause": "Android-owned files root alias failed old absolute/canonical leaf comparison; native storage probe reproduced false legacy check and passed canonical-root save/read/fsync"
+  },
+  "hook_preservation": {
+    "original_smali_sha256": "1a8a55b19c8ad28fd4594ff4a61117c7975c1b2a72a9930f4a839877fbd57616",
+    "whole_original_class_reconstructed_exactly": true,
+    "original_call_count": 1,
+    "observer_only_catch_region": ":io_try .. :io_end",
+    "wrapper_sha256": "de7719d1dd7b84d3f22e275868095acf935a66c34e43ea55f6bfe9aafc618ebe"
+  },
+  "dev77_delta_transfer": {
+    "baseline_sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4",
+    "target_sha256": "266d64b86477eb61d7c1041b1750cf1fd7abfaab1b4eac62b2cf0a89f1c401b6",
+    "delta_bytes": 5475588,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 524288,
+        "through": 524288,
+        "seconds": 13.327
+      },
+      {
+        "bytes": 524288,
+        "through": 1048576,
+        "seconds": 13.529
+      },
+      {
+        "bytes": 524288,
+        "through": 1572864,
+        "seconds": 13.612
+      },
+      {
+        "bytes": 524288,
+        "through": 2097152,
+        "seconds": 17.338
+      },
+      {
+        "bytes": 524288,
+        "through": 2621440,
+        "seconds": 12.959
+      },
+      {
+        "bytes": 524288,
+        "through": 3145728,
+        "seconds": 10.695
+      },
+      {
+        "bytes": 524288,
+        "through": 3670016,
+        "seconds": 14.043
+      },
+      {
+        "bytes": 524288,
+        "through": 4194304,
+        "seconds": 19.142
+      },
+      {
+        "bytes": 524288,
+        "through": 4718592,
+        "seconds": 10.878
+      },
+      {
+        "bytes": 524288,
+        "through": 5242880,
+        "seconds": 11.778
+      },
+      {
+        "bytes": 232708,
+        "through": 5475588,
+        "seconds": 11.157
+      }
+    ],
+    "resume_seconds": 153.24,
+    "earlier_attempts": [
+      "Compressed adb push: 180s timeout, no remote patch",
+      "Uncompressed adb push: 90s timeout; partial was observed, then adbd removed it before resume; not claimed as reused"
+    ]
+  },
+  "dev78_delta_transfer": {
+    "baseline_sha256": "266d64b86477eb61d7c1041b1750cf1fd7abfaab1b4eac62b2cf0a89f1c401b6",
+    "target_sha256": "1dad36cebde85166caa917f6d62e3a97a714e6c00727cb284f809e8e579e2c92",
+    "delta_bytes": 1461573,
+    "remote_reconstruction_verified": true,
+    "transport_method": "binary shell chunks with per-chunk/prefix SHA verification",
+    "verified_resume_offset": 0,
+    "chunks": [
+      {
+        "bytes": 524288,
+        "through": 524288,
+        "seconds": 29.314
+      },
+      {
+        "bytes": 524288,
+        "through": 1048576,
+        "seconds": 26.226
+      },
+      {
+        "bytes": 412997,
+        "through": 1461573,
+        "seconds": 14.046
+      }
+    ],
+    "resume_seconds": 74.714,
+    "earlier_attempts": []
+  },
+  "not_verified": [
+    "Actual codec/container/channel validation for observed A3 bytes; no A4 finish observed",
+    "Raw task/round ID to official conversation source proof",
+    "Recording completeness and authenticated stream origin",
+    "Durable original audio collection in product",
+    "72-hour remote original storage/expiry and phone export",
+    "Authoritative deletion"
+  ],
+  "device": {
+    "at": "2026-10-24T15:03:25.254509+00:00",
+    "version": "0.5.3-dev78",
+    "version_code": 10500,
+    "installed_sha256": "1dad36cebde85166caa917f6d62e3a97a714e6c00727cb284f809e8e579e2c92",
+    "sha256_matches": true,
+    "app_pid": "4078",
+    "normal_launcher_started": true,
+    "foreground_observer_ready": true,
+    "observation_lines": [
+      "--------- beginning of main",
+      "10-24 23:02:29.265  4078  5442 I TurboIOLifelogObserver: metadata saved packets=0 kinds={} dropped=0",
+      "10-24 23:02:59.359  4078  5442 I TurboIOLifelogObserver: metadata saved packets=11 kinds={A3=11} dropped=0",
+      "10-24 23:02:59.359  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":11,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854166719,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854167086,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}"
+    ]
+  },
+  "background": {
+    "samples": [
+      {
+        "at": "2026-10-24T15:05:25.103322+00:00",
+        "app_pid": "4078",
+        "last_lines": [
+          "10-24 23:03:59.583  4078  5442 I TurboIOLifelogObserver: metadata saved packets=44 kinds={A3=44} dropped=0",
+          "10-24 23:03:59.583  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":44,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854226733,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854227031,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:04:29.675  4078  5442 I TurboIOLifelogObserver: metadata saved packets=66 kinds={A3=66} dropped=0",
+          "10-24 23:04:29.676  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":66,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854267219,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"58\",\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":101,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854268115,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: metadata saved packets=77 kinds={A3=77} dropped=0",
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":77,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854287425,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854287580,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}"
+        ],
+        "no_crash_or_observer_error": true
+      },
+      {
+        "at": "2026-10-24T15:05:57.450108+00:00",
+        "app_pid": "4078",
+        "last_lines": [
+          "10-24 23:04:29.675  4078  5442 I TurboIOLifelogObserver: metadata saved packets=66 kinds={A3=66} dropped=0",
+          "10-24 23:04:29.676  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":66,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854267219,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"58\",\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":101,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854268115,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: metadata saved packets=77 kinds={A3=77} dropped=0",
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":77,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854287425,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854287580,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:05:29.881  4078  5442 I TurboIOLifelogObserver: metadata saved packets=99 kinds={A3=99} dropped=0",
+          "10-24 23:05:29.881  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":99,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854326997,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854328390,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}"
+        ],
+        "no_crash_or_observer_error": true
+      },
+      {
+        "at": "2026-10-24T15:06:29.028984+00:00",
+        "app_pid": "4078",
+        "last_lines": [
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: metadata saved packets=77 kinds={A3=77} dropped=0",
+          "10-24 23:04:59.794  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":77,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854287425,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854287580,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:05:29.881  4078  5442 I TurboIOLifelogObserver: metadata saved packets=99 kinds={A3=99} dropped=0",
+          "10-24 23:05:29.881  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":99,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854326997,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854328390,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}",
+          "10-24 23:05:59.885  4078  5442 I TurboIOLifelogObserver: metadata saved packets=110 kinds={A3=110} dropped=0",
+          "10-24 23:05:59.885  4078  5442 I TurboIOLifelogObserver: latest metadata {\"account_observed\":\"c11b14ae8db8120a20ca06571e00bdc642e4e04787104a6accb5948c906f8d63\",\"account_origin_verified\":false,\"batches\":110,\"clamped\":false,\"codec_verified\":false,\"context_observed_after_receive\":false,\"context_observed_at\":1792854347367,\"data_bytes\":5760,\"exact_conversation_cache_match\":false,\"first_byte_profiles\":[\"5b\"],\"frame_count\":24,\"kind\":\"A3\",\"message_bytes\":94,\"metadata_field_count\":5,\"modern\":true,\"observed_at\":1792854347548,\"peer_sha256\":\"e634d376d71a86f34de24a5ea4e55c6ef019231f549c149b0575a41c03b7d995\",\"source_link_verified\":false,\"task_id_present\":true,\"task_id_sha256\":\"4d0c87626e682d02e1767e753f2aa45ceb318a20179ce3171ae823b255b3819b\",\"unparsed_bytes\":0,\"wire_version\":1}"
+        ],
+        "no_crash_or_observer_error": true
+      }
+    ],
+    "same_process_throughout": true,
+    "background_sample_seconds": 60,
+    "screen_turned_off_before_samples": true
+  },
+  "source_manifest": {
+    "file": "candidate-source.json",
+    "sha256": "85e27a599336d36f210e05bce8308dd1287c5515eef1629a37cdecf7f4e6fbd1",
+    "java_sources": 207,
+    "all_current_source_hashes_match": true
+  },
+  "cleanup": {
+    "remote_staging_removed": "/data/local/tmp/codex-material-dev78-20261024",
+    "verified_files_removed": [
+      "candidate.apk",
+      "candidate.delta",
+      "rebuild.dex",
+      "remaining.part"
+    ],
+    "diagnostic_driver_absent": true,
+    "same_normal_app_pid": "4078",
+    "invalid_dev77_apk_removed": true,
+    "retained_signed_apks": [
+      {
+        "name": "iO-Agent-Android-0.5.3-dev78.apk",
+        "sha256": "1dad36cebde85166caa917f6d62e3a97a714e6c00727cb284f809e8e579e2c92"
+      },
+      {
+        "name": "iO-Agent-Android-0.5.3-dev76.apk",
+        "sha256": "2f77a16d6936f5fbb86076e083f8f26680b966d1fa4792b0b10c0f614bbe55d4"
+      }
+    ]
+  },
+  "checkpoint": {
+    "checkpoint": true,
+    "checkpoint_key": "codex-r4-passive-dev78-20261024",
+    "glasses_display": "notice",
+    "glasses_display_confirmed": false,
+    "next_checkin_at": "2026-10-24T15:39:29.177Z",
+    "requires_answer": false,
+    "message_id": "notice-fe016e59bbe523e283751b6a27448fefd81a394bdf0f8d05709c34269d0deaab",
+    "server_stored": true,
+    "server_watch": "armed",
+    "caller_verified": true
+  },
+  "real_observation": {
+    "last_observed_A3_batches": 110,
+    "first_byte_profiles": [
+      "58",
+      "5b"
+    ],
+    "latest_batch_frame_count": 24,
+    "latest_batch_data_bytes": 5760,
+    "latest_batch_clamped": false,
+    "latest_batch_unparsed_bytes": 0,
+    "exact_task_id_cache_match": false,
+    "no_new_recording_initiated": true,
+    "audio_persisted_or_uploaded": false,
+    "codec_or_end_to_end_completeness_proven": false,
+    "queue_dropped_counter_scope": "Observer queue only; not end-to-end packet loss proof"
+  },
+  "device_lock": "held by codex for continued read-only source investigation; not released at this checkpoint"
+}

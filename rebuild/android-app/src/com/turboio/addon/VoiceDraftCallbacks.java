@@ -8,11 +8,11 @@ import java.util.function.LongSupplier;
 /** One bound native ASR listener; serial durable updates never use a mutable default route. */
 final class VoiceDraftCallbacks implements Host107VoiceTask.Listener,AutoCloseable {
  interface Events {void changed();void stopRequired(String token,String code);}
- private final VoiceAnswerSession draft;private final String token,peer;private final long generation;
+ private final CaptureSession draft;private final String token,peer;private final long generation;
  private final LongSupplier clock;private final Events events;private final ThreadPoolExecutor worker;
  private final AtomicBoolean fault=new AtomicBoolean();private boolean accepting=true,closed;private volatile boolean drained;
  private CompletableFuture<Boolean> sealing;
- VoiceDraftCallbacks(VoiceAnswerSession draft,String peer,long generation,LongSupplier clock,Events events){
+ VoiceDraftCallbacks(CaptureSession draft,String peer,long generation,LongSupplier clock,Events events){
   TaskWire.require(draft!=null&&draft.healthy()&&draft.phase().equals("CAPTURING")&&clock!=null&&events!=null,"VOICE_CALLBACK_OWNER_INVALID");
   Map<String,Object> saved=WireJson.map(draft.snapshot());
   TaskWire.require(peer!=null&&FixedPeerHash.of(peer).equals(saved.get("peer"))&&generation==TaskWire.positive(saved.get("generation")),"VOICE_CALLBACK_OWNER_INVALID");
