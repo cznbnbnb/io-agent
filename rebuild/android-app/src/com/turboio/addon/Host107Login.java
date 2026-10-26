@@ -43,13 +43,49 @@ final class Host107Login {
   * background events do (y8.d.a), so the login records below can be read. */
  static void warm(android.content.Context context)throws Exception{Class<?> holder=NavReflect.type("y8.d");if(holder.getField("b").get(null)!=null)return;Object d=holder.getField("a").get(null);holder.getMethod("a",android.content.Context.class).invoke(d,context);}
  static boolean loggedIn(){
-  try{
-   return validRecords(records());
-  }catch(Exception unavailable){return false;}
+  Map<?,?> values=null;String failure=null;boolean ok;
+  try{values=records();ok=validRecords(values);}catch(Exception unavailable){failure=unavailable.getClass().getSimpleName();ok=false;}
+  note(ok,values,failure);return ok;
  }
+ private static volatile Boolean lastOk;private static volatile long lastNote;
+ /** Redacted login diagnosis: field names, lengths and expiry times only, never token values.
+  * Logged on each change, and at most once a minute while rejected. */
+ private static void note(boolean ok,Map<?,?> values,String failure){
+  long now=System.currentTimeMillis();Boolean last=lastOk;
+  if(last!=null&&last==ok&&(ok||now-lastNote<60000))return;
+  lastOk=ok;lastNote=now;
+  try{android.util.Log.i("TurboIOLogin",(ok?"login valid ":"login rejected ")+(failure!=null?"records="+failure:describe(values,now)));}
+  catch(LinkageError jvmTest){}
+ }
+ static String describe(Map<?,?> values,long now){
+  if(values==null)return "records=unavailable";
+  StringBuilder b=new StringBuilder("keys=").append(names(values));
+  Object token=values.get("token");
+  if(!(token instanceof String))return b.append(" token=").append(token==null?"missing":token.getClass().getSimpleName()).toString();
+  b.append(" tokenLen=").append(((String)token).length());
+  Object parsed;
+  try{parsed=WireJson.read(((String)token).getBytes(StandardCharsets.UTF_8),65536,100);}catch(RuntimeException bad){return b.append(" token=unparsed").toString();}
+  if(!(parsed instanceof Map))return b.append(" token=notObject").toString();
+  Map<?,?> record=(Map<?,?>)parsed;
+  Object access=record.get("accessToken");
+  b.append(" fields=").append(names(record)).append(" accessLen=").append(access instanceof String?((String)access).length():-1);
+  for(Map.Entry<?,?> e:record.entrySet()){
+   if(!String.valueOf(e.getKey()).toLowerCase(Locale.ROOT).contains("expire"))continue;
+   Object v=e.getValue();b.append(' ').append(e.getKey()).append('=').append(v instanceof String||v instanceof Number?v:v==null?"null":v.getClass().getSimpleName());
+  }
+  Long until=expiresAt(record.get("accessTokenExpireAt"));
+  b.append(" until=").append(until==null?"unparsed":Instant.ofEpochMilli(until).toString()).append(" now=").append(Instant.ofEpochMilli(now)).append(" zone=").append(ZoneId.systemDefault());
+  if(until!=null)b.append(" remainingMin=").append((until-now)/60000);
+  return b.toString();
+ }
+ private static TreeSet<String> names(Map<?,?> map){TreeSet<String> out=new TreeSet<>();for(Object k:map.keySet())out.add(String.valueOf(k));return out;}
  static boolean valid(Map<?,?> record,long now){
-  Object access=record.get("accessToken"),expiry=record.get("accessTokenExpireAt");
+  Object access=record.get("accessToken");
   if(!(access instanceof String)||((String)access).trim().isEmpty())return false;
+  Long until=expiresAt(record.get("accessTokenExpireAt"));
+  return until!=null&&until>now;
+ }
+ static Long expiresAt(Object expiry){
   try{
    long until;
    if(expiry instanceof String){
@@ -60,8 +96,8 @@ final class Host107Login {
     catch(DateTimeParseException local){until=LocalDateTime.parse(value).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();}
    }
    else if(expiry instanceof Long){until=(Long)expiry;if(until<100000000000L)until=Math.multiplyExact(until,1000);}
-   else return false;
-   return until>now;
-  }catch(RuntimeException invalid){return false;}
+   else return null;
+   return until;
+  }catch(RuntimeException invalid){return null;}
  }
 }
