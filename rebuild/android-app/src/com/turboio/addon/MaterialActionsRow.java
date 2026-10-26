@@ -27,6 +27,7 @@ final class MaterialActionsRow extends FrameLayout {
  void setSwipeEnabled(boolean value){enabled=value;if(!value)close(false);}
  private void hideActions(){for(LinearLayout tray:new LinearLayout[]{lead,trail}){tray.setVisibility(INVISIBLE);tray.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);}}
  private void reveal(LinearLayout shown,LinearLayout hidden){shown.setVisibility(VISIBLE);shown.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_AUTO);hidden.setVisibility(INVISIBLE);hidden.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);}
+ boolean isOpen(){return Math.abs(content.getTranslationX())>1f;}
  void close(boolean animate){content.animate().cancel();if(animate){content.animate().translationX(0).setDuration(110).withEndAction(this::hideActions).start();}else{content.setTranslationX(0);hideActions();}horizontal=vertical=tapToClose=false;}
  private void move(float value){float t=Math.max(-width,Math.min(width,value));content.setTranslationX(t);if(t>0)reveal(lead,trail);else if(t<0)reveal(trail,lead);else hideActions();}
  private boolean onContent(float px){float t=content.getTranslationX();return t>0?px>=t:t<0&&px<=getWidth()+t;}

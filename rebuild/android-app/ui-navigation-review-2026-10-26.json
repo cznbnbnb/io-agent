@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "installed_version": "dev109",
+  "fix_installed": false,
+  "old_week_swipe_detach_npe_reproduced": true,
+  "actual_swipe_source_model_test": "passed",
+  "back_lifecycle_model_sdk": [
+    29,
+    33,
+    36
+  ],
+  "java_source_count": 255,
+  "phone_gesture_tested": false,
+  "destructive_user_data_actions": false
+}

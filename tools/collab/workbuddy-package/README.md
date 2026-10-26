@@ -1,7 +1,7 @@
 # iO Agent · WorkBuddy 试用包
 
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
-需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。
+需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴手机 UI 的完整验收尚待无线调试恢复，Windows 与 WorkBuddy 宿主仍需实际验证。
 
 ## 1. 在对应的真实会话中配对
 

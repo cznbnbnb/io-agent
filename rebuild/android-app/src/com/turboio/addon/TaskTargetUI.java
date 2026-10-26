@@ -62,7 +62,7 @@ final class TaskTargetUI {
 
  /** Bottom sheet listing every session. Choosing one dismisses the sheet and hands the entry back. */
  static Dialog pick(Activity a,List<TaskSessionDirectory.Entry> sessions,Predicate<TaskSessionDirectory.Entry> isDefault,Predicate<TaskSessionDirectory.Entry> isSelected,Consumer<TaskSessionDirectory.Entry> chosen){
-  long now=TaskSessionDirectory.elapsed();Dialog d=new Dialog(a,android.R.style.Theme_Material_NoActionBar);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+  long now=TaskSessionDirectory.elapsed();Dialog d=new AgentDialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
   LinearLayout root=AgentUI.column(a);root.setBackground(MaterialReadingUI.corners(a,SHEET,22,0));root.setPadding(dp(a,16),dp(a,10),dp(a,16),dp(a,8));
   View handle=new View(a);handle.setBackground(MaterialReadingUI.fill(a,0xff3a423f,2));LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(dp(a,36),dp(a,4));hp.gravity=Gravity.CENTER_HORIZONTAL;hp.bottomMargin=dp(a,14);root.addView(handle,hp);
   root.addView(MaterialReadingUI.bold(AgentUI.text(a,"本次交给",18,AgentUI.INK)));

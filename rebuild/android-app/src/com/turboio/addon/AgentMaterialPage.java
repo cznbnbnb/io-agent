@@ -21,6 +21,9 @@ final class AgentMaterialPage {
   activity.getApplication().registerActivityLifecycleCallbacks(lifecycle);}
  static void settings(Activity activity){AgentMaterialPage page=new AgentMaterialPage(activity,false);AgentUI.Screen screen=new AgentUI.Screen(activity,"资料同步");page.trackSync(screen);screen.dialog.setOnDismissListener(d->{page.dialogs.remove(screen.dialog);page.close();});screen.body.addView(AgentUI.text(activity,"正在读取同步设置…",14,AgentUI.MUTED));page.reloadSync(screen);}
  View view(){return root;}
+ /** System back cancels the current local operation before leaving this page. */
+ boolean back(){if(closed||!active)return false;if(selecting){root.cancelDrag();leaveSelection(true);return true;}if(openActions!=null&&openActions.isOpen()){openActions.close(true);openActions=null;return true;}return false;}
+
  void setActive(boolean value){if(active==value)return;active=value;if(!value){revision++;reading=false;if(readOwner>=0)runtime.cancelRead(readOwner);}}
  void close(){if(closed)return;closed=true;revision++;syncRevision++;if(readOwner>=0)runtime.cancelRead(readOwner);activity.getApplication().unregisterActivityLifecycleCallbacks(lifecycle);for(Dialog dialog:new ArrayList<>(dialogs))if(dialog.isShowing())dialog.dismiss();dialogs.clear();snapshot=null;}
  void refresh(){if(closed||suspended||!browsing||!active||activity.isDestroyed())return;long request=++revision;if(snapshot==null){body.removeAllViews();rows.clear();adapter.notifyDataSetChanged();body.addView(AgentUI.text(activity,"正在读取已保存资料…",14,AgentUI.MUTED));}runtime.browse((value,error)->{
@@ -190,6 +193,7 @@ final class AgentMaterialPage {
  private final class SelectFrame extends FrameLayout {
   private final int slop=ViewConfiguration.get(activity).getScaledTouchSlop(),edge=AgentUI.dp(activity,64);private boolean armed,dragging,target;private float downY;private int anchor=-1;private Set<String> before=Collections.emptySet();
   SelectFrame(){super(activity);}
+  void cancelDrag(){armed=dragging=false;anchor=-1;before=Collections.emptySet();}
   private int rowAt(float y){int pos=list.pointToPosition(list.getWidth()/2,(int)y);int i=pos-list.getHeaderViewsCount();return pos==AdapterView.INVALID_POSITION||i<0||i>=rows.size()?-1:i;}
   @Override public boolean onInterceptTouchEvent(MotionEvent e){if(!selecting)return false;
    switch(e.getActionMasked()){

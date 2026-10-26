@@ -24,7 +24,7 @@ def files():
  for name in ['questions/tool.py','questions/adapter.py','hermes/enroll_home.py']:py(BRIDGE/name)
  return found
 if __name__=='__main__':
- output=ROOT/'outputs/io-agent-workbuddy-2026-10-26.zip';output.parent.mkdir(exist_ok=True)
+ output=ROOT/'outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip';output.parent.mkdir(exist_ok=True)
  payload={str(p.relative_to(ROOT)).replace('\\','/'):p.read_bytes() for p in files()}
  for p in (ROOT/'tools/collab/workbuddy-package').iterdir():
   if p.is_file() and p.suffix in ['.md','.mjs']:payload[p.name]=p.read_bytes()

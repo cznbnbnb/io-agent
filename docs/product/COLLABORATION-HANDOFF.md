@@ -1,3 +1,15 @@
+## [codex] 2026-10-26 日期条闪退与返回跳层修复（尚未装机）
+
+用户拔手机后要求检查两个新问题。保持 Claude dev108 `9822acc` 的多选/资料样式，复用同一组件修复；R2/任务下发均不推进，无设备操作，锁已释放。手机仍 dev109，**下述修复尚未进入现装包**。
+
+- `MaterialReadingUI.SwipeRow` 的旧 ACTION_UP 先调用 pager→select→render→removeAllViews，再访问 getParent；旧视图已脱离，空指针可稳定复现。修复为先释放触摸父级、再下一帧回调翻周，回调后不碰旧父级；撤销/脱离/重复 UP 不翻页。拖动位移从 0.35 倍改为 1:1 跟随手指，松手过阈值翻周。
+- `AgentDialog` 为当前窗口接入 Android 13+ OnBackInvokedDispatcher，并保留旧返回键；生命周期注销回调。AgentUI.Screen、MaterialReadingUI.Sheet、TaskTargetUI 采用同一实现。资料主页面先收起侧滑按钮/退出多选，后离开工作区；删除/导出面板返回仅关闭面板，未确认动作不执行。新配对页预览→输入/入口分层返回，保留草稿，忽略返回后迟到的预览响应；保存已发出时不伪称返回能取消服务器绑定。
+- 验证：`node tools/android/test-ui-navigation.mjs` 编译实际 SwipeRow 代码与可控触摸父级，先复现 dev109 旧版 NPE，再验证修复、横纵方向、取消/已脱离/重复回调和 1:1 位移；SDK29/33/36 的受控 Dialog 回调模型验证面板→多选→页面及注销。完整隔离 javac 255 源文件通过。模型测试不等于 Android/红米真实手势，待 A26-C02。
+- Android 系统返回接入依据：[官方迁移说明](https://developer.android.com/guide/navigation/custom-back/predictive-back-gesture)。未改原厂 Flutter 页面或 EditorialUI 语音录音的旧返回保护。
+- 新转发包改名 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip`，区别旧登记文件版本；无现有凭据。已完成的问答/配对服务器不因这批 UI 改动重测或重发。
+
+下一步：无线地址到达后持锁，确认最新基线，再统一差异安装日期/返回修复并自测配对双入口；不需要用户为此提前插线或试删真实记录。
+
 ## [codex] 2026-10-26 dev109 已差异安装；手机拔线，绑定 UI 自测待续
 
 扫码/粘贴共用会话绑定接口已发布，线上旧版 SHA 与 `0175ef3` 对齐后部署并保留 DB/代码备份，生产 Node 22 自测通过。公网 caller600 独立合成 owner 的 start→preview→approve→claim、重复领取、scope 拒绝、撤销后失效通过；2 个临时设备均撤销并核对，私有测试包已清理。没有向真实眼镜发题。

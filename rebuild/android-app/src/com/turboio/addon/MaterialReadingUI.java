@@ -24,20 +24,28 @@ final class MaterialReadingUI {
  /** A row that pages on a sideways swipe while taps still reach its children. */
  static final class SwipeRow extends LinearLayout {
   interface Pager{void page(int direction);}
-  private final Pager pager;private final int slop,distance;private float downX,downY;private boolean dragging,vertical;
+  private final Pager pager;private final int slop,distance;private float downX,downY;private boolean dragging,vertical,paging;private long gesture;
   SwipeRow(Activity a,Pager pager){super(a);this.pager=pager;slop=ViewConfiguration.get(a).getScaledTouchSlop();distance=AgentUI.dp(a,48);}
+  private void parent(boolean block){ViewParent p=getParent();if(p!=null)p.requestDisallowInterceptTouchEvent(block);}
+  private void start(MotionEvent e){gesture++;downX=e.getX();downY=e.getY();dragging=vertical=paging=false;animate().cancel();setTranslationX(0);}
   @Override public boolean onInterceptTouchEvent(MotionEvent e){
-   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){downX=e.getX();downY=e.getY();dragging=vertical=false;animate().cancel();setTranslationX(0);return false;}
-   if(e.getActionMasked()==MotionEvent.ACTION_MOVE){float dx=e.getX()-downX,dy=e.getY()-downY;if(vertical)return false;if(Math.abs(dy)>slop&&Math.abs(dy)>=Math.abs(dx)){vertical=true;return false;}if(Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.5f){dragging=true;getParent().requestDisallowInterceptTouchEvent(true);return true;}}
+   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){start(e);return false;}
+   if(e.getActionMasked()==MotionEvent.ACTION_MOVE){float dx=e.getX()-downX,dy=e.getY()-downY;if(vertical||paging)return false;if(Math.abs(dy)>slop&&Math.abs(dy)>=Math.abs(dx)){vertical=true;return false;}if(Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.5f){dragging=true;parent(true);return true;}}
    return false;
   }
   @Override public boolean onTouchEvent(MotionEvent e){
    float dx=e.getX()-downX;
    switch(e.getActionMasked()){
-    case MotionEvent.ACTION_DOWN:downX=e.getX();downY=e.getY();return true;
-    case MotionEvent.ACTION_MOVE:if(dragging)setTranslationX(dx*0.35f);return true;
-    case MotionEvent.ACTION_UP:animate().translationX(0).setDuration(120).start();if(dragging&&Math.abs(dx)>=distance)pager.page(dx<0?1:-1);dragging=false;getParent().requestDisallowInterceptTouchEvent(false);return true;
-    case MotionEvent.ACTION_CANCEL:animate().translationX(0).setDuration(120).start();dragging=false;getParent().requestDisallowInterceptTouchEvent(false);return true;
+    case MotionEvent.ACTION_DOWN:start(e);return true;
+    case MotionEvent.ACTION_MOVE:if(dragging&&!paging)setTranslationX(dx);return true;
+    case MotionEvent.ACTION_UP:{
+     boolean commit=dragging&&!paging&&Math.abs(dx)>=distance;dragging=false;parent(false);animate().translationX(0).setDuration(120).start();
+     if(commit){paging=true;final int direction=dx<0?1:-1;final long ended=gesture;
+      // page() replaces this row. Finish the touch dispatch and release the old parent first.
+      post(()->{if(isAttachedToWindow()&&ended==gesture)pager.page(direction);});
+     }return true;
+    }
+    case MotionEvent.ACTION_CANCEL:dragging=false;paging=false;gesture++;parent(false);animate().translationX(0).setDuration(120).start();return true;
     default:return true;
    }
   }
@@ -139,7 +147,7 @@ final class MaterialReadingUI {
   static final int BG=0xff141816;
   final Activity activity;final Dialog dialog;final LinearLayout root,body,footer;final TextView title,action;
   Sheet(Activity a,String heading,String subtitle,float maxHeight){
-   activity=a;dialog=new Dialog(a,android.R.style.Theme_Material_NoActionBar);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);root=AgentUI.column(a);root.setBackground(corners(a,BG,22,0));root.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,10),AgentUI.dp(a,16),AgentUI.dp(a,14));
+   activity=a;dialog=new AgentDialog(a);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);root=AgentUI.column(a);root.setBackground(corners(a,BG,22,0));root.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,10),AgentUI.dp(a,16),AgentUI.dp(a,14));
    View handle=new View(a);handle.setBackground(fill(a,0xff3a423f,2));LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(AgentUI.dp(a,36),AgentUI.dp(a,4));hp.gravity=Gravity.CENTER_HORIZONTAL;hp.bottomMargin=AgentUI.dp(a,12);root.addView(handle,hp);
    LinearLayout top=new LinearLayout(a);top.setGravity(Gravity.CENTER_VERTICAL);title=bold(AgentUI.text(a,heading,19,AgentUI.INK));top.addView(title,new LinearLayout.LayoutParams(0,-2,1));action=AgentUI.text(a,"",15,ACCENT_SOFT);action.setGravity(Gravity.CENTER);action.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,4),0);action.setVisibility(View.GONE);top.addView(action,new LinearLayout.LayoutParams(-2,AgentUI.dp(a,44)));root.addView(top);
    if(subtitle!=null&&!subtitle.isEmpty()){TextView sub=AgentUI.text(a,subtitle,13,AgentUI.MUTED);sub.setPadding(0,AgentUI.dp(a,2),0,AgentUI.dp(a,4));root.addView(sub);}
