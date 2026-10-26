@@ -1,3 +1,9 @@
+## [claude] 2026-10-26 智记 AI 总结、分时段与位置的真实结构（只读日志结构检查）
+
+为资料页改版（设计稿：AI 总结 + 分时段 + 位置地图）确认原厂数据。新增 `tools/android/LifelogDetailShapeProbe.java` 与 `run-lifelog-detail-shape-probe.mjs`：测试驱动在 dev98 宿主进程内只读扫描原厂自己的 `app_flutter/appLog`，只导出路由模板、字段名、类型、字符数和粗格式（不导出文本、编号、坐标值），0 次网络请求；报告取回后已删除手机副本并卸载驱动。报告 `rebuild/android-app/lifelog-detail-shape-2026-10-26.json`（扫描 19/159 个日志、最近 15 小时）。
+
+结论：①`GET /lifelog/api/v1/events/:id/full`（我们已在读）的 `data` 有 `summaryContent`（79–413 字，含换行）、`summaryId`、`outline[]`（3–20 条 `{timestamp: epoch_ms 整数, content: 11–28 字}`，即分时段总结）、`emotion`（2–4 字）、`participants`；`OfficialLifelogSnapshot.read` 目前全部丢弃，只取 `originalList`/`transcriptionContents`。②当日列表 `GET /lifelog/api/v1/events`（我们也在读）每条事件已带 `summaryContent`（0–573 字），列表预览无需逐条取详情；同一响应 `data.trailPoints[]`（1–44 点）是位置：`latitude/longitude/timestamp/pointType/accuracy/altitude/speed/bearing/isFirst/hiddenPointCount/stayStartTime/stayEndTime/stayRadius/sourceEventId/timezone`。③接口不返回地名（无 poi/address），原厂应在手机端逆地理；要显示地点名需自己逆地理（坐标属敏感数据，上传资料服务器需单独授权）。④另有日报 `journal/latest`、`journal/detail`（sections/blocks）可作“每日总结”。
+
 ## [claude] 2026-10-26 A25-D02 查清：令牌真到期但原厂自动续期；“登录已过期”横幅是粘滞误报
 
 dev98 /10520（`91e9c4a`，回退 dev97；dev76 已移入废纸篓）在 `Host107Login` 加脱敏诊断日志 `TurboIOLogin`：只记字段名、长度、到期时间、时区，状态变化时记一次、拒绝中每分钟最多一次，不记令牌和 user_info。

@@ -1,0 +1,5386 @@
+{
+ "schema": 1,
+ "probe_id": "9b2811478087adcde8bf8a2079f7520f",
+ "read_only": true,
+ "network_requests": 0,
+ "text_or_identifiers_exported": false,
+ "log_files": 159,
+ "examined_files": 19,
+ "scanned_bytes": 134217728,
+ "oversized_lines": 0,
+ "other_host_lines": 0,
+ "newest_log_age_hours": 0,
+ "oldest_examined_log_age_hours": 15,
+ "routes": {
+  "GET /action/api/v2/tasks": {
+   "log_lines": 99,
+   "response_bodies": 0
+  },
+  "GET /api/v1/templates": {
+   "log_lines": 2,
+   "response_bodies": 0
+  },
+  "GET /balance/members": {
+   "log_lines": 24,
+   "response_bodies": 0
+  },
+  "GET /cloudapi/cloudConfig/getConfigInfo": {
+   "log_lines": 122,
+   "response_bodies": 0
+  },
+  "GET /clsapi/aiChat/selectPage": {
+   "log_lines": 18,
+   "response_bodies": 9,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 9,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 9
+     },
+     "data": {
+      "types": [
+       "array"
+      ],
+      "seen": 9,
+      "length": [
+       0,
+       0
+      ]
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 9,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /clsapi/aiFeedbackMsg/selectList": {
+   "log_lines": 4,
+   "response_bodies": 2,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 2,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 2
+     },
+     "data": {
+      "types": [
+       "array"
+      ],
+      "seen": 2,
+      "length": [
+       4,
+       4
+      ],
+      "items": {
+       "types": [
+        "object"
+       ],
+       "seen": 8,
+       "keys": {
+        "createTime": {
+         "types": [
+          "int"
+         ],
+         "seen": 8,
+         "formats": [
+          "epoch_ms"
+         ]
+        },
+        "id": {
+         "types": [
+          "string"
+         ],
+         "seen": 8,
+         "chars": [
+          32,
+          32
+         ],
+         "formats": [
+          "hex_id"
+         ]
+        },
+        "languageCode": {
+         "types": [
+          "string"
+         ],
+         "seen": 8,
+         "chars": [
+          2,
+          2
+         ],
+         "formats": [
+          "enum_lower"
+         ]
+        },
+        "msg": {
+         "types": [
+          "string"
+         ],
+         "seen": 8,
+         "chars": [
+          3,
+          7
+         ],
+         "formats": [
+          "text"
+         ]
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 2,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /factsapi/api/v1/facts/list": {
+   "log_lines": 56,
+   "response_bodies": 0
+  },
+  "GET /identify/device/list": {
+   "log_lines": 20,
+   "response_bodies": 0
+  },
+  "GET /lifelog/api/v1/count": {
+   "log_lines": 10,
+   "response_bodies": 5,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 5,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 5
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 5,
+      "keys": {
+       "countData": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         5,
+         5
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 25,
+         "keys": {
+          "count": {
+           "types": [
+            "int"
+           ],
+           "seen": 25
+          },
+          "type": {
+           "types": [
+            "string"
+           ],
+           "seen": 25,
+           "chars": [
+            4,
+            16
+           ],
+           "formats": [
+            "text"
+           ]
+          }
+         }
+        }
+       },
+       "endTime": {
+        "types": [
+         "int"
+        ],
+        "seen": 5,
+        "formats": [
+         "epoch_ms"
+        ]
+       },
+       "startTime": {
+        "types": [
+         "int"
+        ],
+        "seen": 5,
+        "formats": [
+         "epoch_ms"
+        ]
+       },
+       "zone": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "text"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 5,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /lifelog/api/v1/events": {
+   "log_lines": 71,
+   "response_bodies": 35,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 35,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 35
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 35,
+      "keys": {
+       "contentAudited": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 35
+       },
+       "contentDesensitized": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 35
+       },
+       "date": {
+        "types": [
+         "string"
+        ],
+        "seen": 35,
+        "chars": [
+         10,
+         10
+        ],
+        "formats": [
+         "date"
+        ]
+       },
+       "events": {
+        "types": [
+         "array"
+        ],
+        "seen": 35,
+        "length": [
+         0,
+         12
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 171,
+         "keys": {
+          "audioLengthFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            6
+           ],
+           "formats": [
+            "clock",
+            "text"
+           ]
+          },
+          "audioLengthSeconds": {
+           "types": [
+            "int"
+           ],
+           "seen": 171
+          },
+          "contentAudited": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 171
+          },
+          "contentDesensitized": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 171
+          },
+          "deletable": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 171
+          },
+          "durationMs": {
+           "types": [
+            "int"
+           ],
+           "seen": 171
+          },
+          "durationSeconds": {
+           "types": [
+            "int"
+           ],
+           "seen": 171
+          },
+          "emotion": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            2,
+            4
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "endTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "endTimeFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "clock"
+           ]
+          },
+          "eventType": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "flowType": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "id": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            18,
+            32
+           ],
+           "formats": [
+            "hex_id",
+            "int_text"
+           ]
+          },
+          "outline": {
+           "types": [
+            "null"
+           ],
+           "seen": 171
+          },
+          "participantCount": {
+           "types": [
+            "int"
+           ],
+           "seen": 171
+          },
+          "participants": {
+           "types": [
+            "array"
+           ],
+           "seen": 171,
+           "length": [
+            0,
+            0
+           ]
+          },
+          "source": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "startTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "startTimeFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "clock"
+           ]
+          },
+          "summaryContent": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            0,
+            573
+           ],
+           "formats": [
+            "empty",
+            "text"
+           ],
+           "multiline": 138
+          },
+          "summaryId": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            18,
+            18
+           ],
+           "formats": [
+            "int_text"
+           ]
+          },
+          "title": {
+           "types": [
+            "string"
+           ],
+           "seen": 171,
+           "chars": [
+            4,
+            29
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "transcriptionInfos": {
+           "types": [
+            "array"
+           ],
+           "seen": 171,
+           "length": [
+            1,
+            24
+           ],
+           "items": {
+            "types": [
+             "object"
+            ],
+            "seen": 436,
+            "keys": {
+             "sourceId": {
+              "types": [
+               "string"
+              ],
+              "seen": 436,
+              "chars": [
+               32,
+               32
+              ],
+              "formats": [
+               "hex_id"
+              ]
+             },
+             "sourceType": {
+              "types": [
+               "string"
+              ],
+              "seen": 436,
+              "chars": [
+               9,
+               12
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       },
+       "timezone": {
+        "types": [
+         "string"
+        ],
+        "seen": 35,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "trailPoints": {
+        "types": [
+         "array"
+        ],
+        "seen": 35,
+        "length": [
+         1,
+         44
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 638,
+         "keys": {
+          "accuracy": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": false
+          },
+          "altitude": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": false
+          },
+          "bearing": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": false
+          },
+          "hiddenPointCount": {
+           "types": [
+            "int",
+            "null"
+           ],
+           "seen": 638
+          },
+          "isFirst": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 638
+          },
+          "latitude": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": true
+          },
+          "longitude": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": true
+          },
+          "pointType": {
+           "types": [
+            "string"
+           ],
+           "seen": 638,
+           "chars": [
+            5,
+            9
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "sourceEventId": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 638,
+           "chars": [
+            18,
+            18
+           ],
+           "formats": [
+            "int_text"
+           ]
+          },
+          "speed": {
+           "types": [
+            "float"
+           ],
+           "seen": 638,
+           "all_in_geo_range": true
+          },
+          "stayEndTime": {
+           "types": [
+            "int",
+            "null"
+           ],
+           "seen": 638,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "stayRadius": {
+           "types": [
+            "float",
+            "null"
+           ],
+           "seen": 638,
+           "all_in_geo_range": false
+          },
+          "stayStartTime": {
+           "types": [
+            "int",
+            "null"
+           ],
+           "seen": 638,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "timestamp": {
+           "types": [
+            "int"
+           ],
+           "seen": 638,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "timezone": {
+           "types": [
+            "string"
+           ],
+           "seen": 638,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "text"
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 35,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /lifelog/api/v1/events/:id/full": {
+   "log_lines": 10,
+   "response_bodies": 5,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 5,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 5
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 5,
+      "keys": {
+       "audioLengthFormatted": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         6
+        ],
+        "formats": [
+         "clock",
+         "text"
+        ]
+       },
+       "audioLengthSeconds": {
+        "types": [
+         "int"
+        ],
+        "seen": 5
+       },
+       "contentAudited": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 5
+       },
+       "contentDesensitized": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 5
+       },
+       "deletable": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 5
+       },
+       "durationMs": {
+        "types": [
+         "int"
+        ],
+        "seen": 5
+       },
+       "durationSeconds": {
+        "types": [
+         "int"
+        ],
+        "seen": 5
+       },
+       "emotion": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         2,
+         4
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "endTime": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "epoch_ms_text"
+        ]
+       },
+       "endTimeFormatted": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "clock"
+        ]
+       },
+       "eventType": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       },
+       "flowType": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       },
+       "id": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         18,
+         18
+        ],
+        "formats": [
+         "int_text"
+        ]
+       },
+       "originalList": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         1,
+         5
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 13,
+         "keys": {
+          "audioLengthFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            5,
+            6
+           ],
+           "formats": [
+            "clock",
+            "text"
+           ]
+          },
+          "audioLengthSeconds": {
+           "types": [
+            "int"
+           ],
+           "seen": 13
+          },
+          "contentAudited": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 13
+          },
+          "contentDesensitized": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 13
+          },
+          "deletable": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 13
+          },
+          "durationMs": {
+           "types": [
+            "int"
+           ],
+           "seen": 13
+          },
+          "durationSeconds": {
+           "types": [
+            "int"
+           ],
+           "seen": 13
+          },
+          "emotion": {
+           "types": [
+            "null"
+           ],
+           "seen": 13
+          },
+          "endTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "endTimeFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "clock"
+           ]
+          },
+          "eventType": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "flowType": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            12,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "id": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            32,
+            32
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "outline": {
+           "types": [
+            "null"
+           ],
+           "seen": 13
+          },
+          "participantCount": {
+           "types": [
+            "int"
+           ],
+           "seen": 13
+          },
+          "participants": {
+           "types": [
+            "array"
+           ],
+           "seen": 13,
+           "length": [
+            1,
+            2
+           ],
+           "items": {
+            "types": [
+             "string"
+            ],
+            "seen": 23,
+            "chars": [
+             1,
+             3
+            ],
+            "formats": [
+             "text"
+            ]
+           }
+          },
+          "source": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            12,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "startTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "startTimeFormatted": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "clock"
+           ]
+          },
+          "summaryContent": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            0,
+            0
+           ],
+           "formats": [
+            "empty"
+           ]
+          },
+          "summaryId": {
+           "types": [
+            "null"
+           ],
+           "seen": 13
+          },
+          "title": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            11,
+            20
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "transcriptionInfos": {
+           "types": [
+            "array"
+           ],
+           "seen": 13,
+           "length": [
+            1,
+            1
+           ],
+           "items": {
+            "types": [
+             "object"
+            ],
+            "seen": 13,
+            "keys": {
+             "sourceId": {
+              "types": [
+               "string"
+              ],
+              "seen": 13,
+              "chars": [
+               32,
+               32
+              ],
+              "formats": [
+               "hex_id"
+              ]
+             },
+             "sourceType": {
+              "types": [
+               "string"
+              ],
+              "seen": 13,
+              "chars": [
+               12,
+               12
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       },
+       "outline": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         3,
+         20
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 54,
+         "keys": {
+          "content": {
+           "types": [
+            "string"
+           ],
+           "seen": 54,
+           "chars": [
+            11,
+            28
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "timestamp": {
+           "types": [
+            "int"
+           ],
+           "seen": 54,
+           "formats": [
+            "epoch_ms"
+           ]
+          }
+         }
+        }
+       },
+       "participantCount": {
+        "types": [
+         "int"
+        ],
+        "seen": 5
+       },
+       "participants": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         0,
+         0
+        ]
+       },
+       "source": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       },
+       "startTime": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "epoch_ms_text"
+        ]
+       },
+       "startTimeFormatted": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "clock"
+        ]
+       },
+       "summaryContent": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         79,
+         413
+        ],
+        "formats": [
+         "text"
+        ],
+        "multiline": 5
+       },
+       "summaryId": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         18,
+         18
+        ],
+        "formats": [
+         "int_text"
+        ]
+       },
+       "title": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         11,
+         20
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "transcriptionContents": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         1,
+         5
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 13,
+         "keys": {
+          "clips": {
+           "types": [
+            "array"
+           ],
+           "seen": 13,
+           "length": [
+            7,
+            242
+           ],
+           "items": {
+            "types": [
+             "object"
+            ],
+            "seen": 1261,
+            "keys": {
+             "clipId": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               38,
+               39
+              ],
+              "formats": [
+               "text"
+              ]
+             },
+             "clipType": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               6,
+               6
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             },
+             "content": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               2,
+               132
+              ],
+              "formats": [
+               "int_text",
+               "text"
+              ]
+             },
+             "endTime": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               13,
+               13
+              ],
+              "formats": [
+               "epoch_ms_text"
+              ]
+             },
+             "languageCode": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               5,
+               5
+              ],
+              "formats": [
+               "text"
+              ]
+             },
+             "speakerName": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               1,
+               3
+              ],
+              "formats": [
+               "text"
+              ]
+             },
+             "speakerType": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               6,
+               6
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             },
+             "startTime": {
+              "types": [
+               "string"
+              ],
+              "seen": 1261,
+              "chars": [
+               13,
+               13
+              ],
+              "formats": [
+               "epoch_ms_text"
+              ]
+             },
+             "translateContent": {
+              "types": [
+               "null"
+              ],
+              "seen": 1261
+             },
+             "translateLanguageCode": {
+              "types": [
+               "null"
+              ],
+              "seen": 1261
+             }
+            }
+           }
+          },
+          "endTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "sourceId": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            32,
+            32
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "sourceType": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            12,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "startTime": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "epoch_ms_text"
+           ]
+          },
+          "title": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            11,
+            20
+           ],
+           "formats": [
+            "text"
+           ]
+          }
+         }
+        }
+       },
+       "transcriptionInfos": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         1,
+         5
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 13,
+         "keys": {
+          "sourceId": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            32,
+            32
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "sourceType": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            12,
+            12
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          }
+         }
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 5,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /lifelog/api/v1/journal/latest": {
+   "log_lines": 30,
+   "response_bodies": 15,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 15,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 15
+     },
+     "data": {
+      "types": [
+       "array"
+      ],
+      "seen": 15,
+      "length": [
+       3,
+       3
+      ],
+      "items": {
+       "types": [
+        "object"
+       ],
+       "seen": 45,
+       "keys": {
+        "context": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          798,
+          957
+         ],
+         "formats": [
+          "text"
+         ],
+         "multiline": 45
+        },
+        "countData": {
+         "types": [
+          "array"
+         ],
+         "seen": 45,
+         "length": [
+          5,
+          5
+         ],
+         "items": {
+          "types": [
+           "object"
+          ],
+          "seen": 225,
+          "keys": {
+           "count": {
+            "types": [
+             "int"
+            ],
+            "seen": 225
+           },
+           "type": {
+            "types": [
+             "string"
+            ],
+            "seen": 225,
+            "chars": [
+             4,
+             16
+            ],
+            "formats": [
+             "text"
+            ]
+           }
+          }
+         }
+        },
+        "createdAt": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          27,
+          27
+         ],
+         "formats": [
+          "datetime"
+         ]
+        },
+        "generatedAt": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          27,
+          27
+         ],
+         "formats": [
+          "datetime"
+         ]
+        },
+        "glyph": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          56,
+          56
+         ],
+         "formats": [
+          "url"
+         ]
+        },
+        "id": {
+         "types": [
+          "int"
+         ],
+         "seen": 45
+        },
+        "mode": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          8,
+          8
+         ],
+         "formats": [
+          "enum_lower"
+         ]
+        },
+        "periodEnd": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          10,
+          10
+         ],
+         "formats": [
+          "date"
+         ]
+        },
+        "periodStart": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          10,
+          10
+         ],
+         "formats": [
+          "date"
+         ]
+        },
+        "periodType": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          5,
+          5
+         ],
+         "formats": [
+          "enum_lower"
+         ]
+        },
+        "status": {
+         "types": [
+          "int"
+         ],
+         "seen": 45
+        },
+        "timezone": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          13,
+          13
+         ],
+         "formats": [
+          "text"
+         ]
+        },
+        "title": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          13,
+          16
+         ],
+         "formats": [
+          "text"
+         ]
+        },
+        "visualTag": {
+         "types": [
+          "string"
+         ],
+         "seen": 45,
+         "chars": [
+          1,
+          1
+         ],
+         "formats": [
+          "text"
+         ]
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 15,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /lifelog/api/v1/settings/basic": {
+   "log_lines": 28,
+   "response_bodies": 14,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 14,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 14
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 14,
+      "keys": {
+       "commonLanguage": {
+        "types": [
+         "array"
+        ],
+        "seen": 14,
+        "length": [
+         1,
+         1
+        ],
+        "items": {
+         "types": [
+          "string"
+         ],
+         "seen": 14,
+         "chars": [
+          5,
+          5
+         ],
+         "formats": [
+          "text"
+         ]
+        }
+       },
+       "conversationInterval": {
+        "types": [
+         "int"
+        ],
+        "seen": 14
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 14,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /lifelog/api/v1/settings/onboarding": {
+   "log_lines": 20,
+   "response_bodies": 10,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 10,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 10
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 10,
+      "keys": {
+       "commonLanguage": {
+        "types": [
+         "array"
+        ],
+        "seen": 10,
+        "length": [
+         1,
+         1
+        ],
+        "items": {
+         "types": [
+          "string"
+         ],
+         "seen": 10,
+         "chars": [
+          5,
+          5
+         ],
+         "formats": [
+          "text"
+         ]
+        }
+       },
+       "enabled": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 10
+       },
+       "enabledTime": {
+        "types": [
+         "int"
+        ],
+        "seen": 10,
+        "formats": [
+         "epoch_ms"
+        ]
+       },
+       "futureGoal": {
+        "types": [
+         "array"
+        ],
+        "seen": 10,
+        "length": [
+         4,
+         4
+        ],
+        "items": {
+         "types": [
+          "string"
+         ],
+         "seen": 40,
+         "chars": [
+          4,
+          4
+         ],
+         "formats": [
+          "text"
+         ]
+        }
+       },
+       "locationPermission": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 10
+       },
+       "micPermission": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 10
+       },
+       "onboarded": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 10
+       },
+       "selfIntro": {
+        "types": [
+         "string"
+        ],
+        "seen": 10,
+        "chars": [
+         4,
+         4
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "summaryStyle": {
+        "types": [
+         "string"
+        ],
+        "seen": 10,
+        "chars": [
+         8,
+         8
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 10,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "GET /nlp/recommendQuestions": {
+   "log_lines": 18,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/ai-language/current": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/ai-models/list": {
+   "log_lines": 26,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/app-languages/get": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/profile/query": {
+   "log_lines": 26,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/user/agreements/needOperation": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/user/info/personalization": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/user/verify/ivStatusAndDfList": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/v1/voice-languages/list": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "GET /profileapi/weather/getWeatherInfo": {
+   "log_lines": 142,
+   "response_bodies": 0
+  },
+  "GET /rmapi/signApi/order/getOrderNo": {
+   "log_lines": 8,
+   "response_bodies": 4,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 4,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 4
+     },
+     "data": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       32,
+       32
+      ],
+      "formats": [
+       "hex_id"
+      ]
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "text"
+      ]
+     }
+    }
+   }
+  },
+  "GET /rmapi/signApi/problem/getProblemTreeList": {
+   "log_lines": 8,
+   "response_bodies": 4,
+   "shape": {
+    "types": [
+     "array"
+    ],
+    "seen": 4,
+    "length": [
+     6,
+     6
+    ],
+    "items": {
+     "types": [
+      "object"
+     ],
+     "seen": 24,
+     "keys": {
+      "appRank": {
+       "types": [
+        "int"
+       ],
+       "seen": 24
+      },
+      "appType": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        5,
+        5
+       ],
+       "formats": [
+        "enum_upper"
+       ]
+      },
+      "categoryCode": {
+       "types": [
+        "null",
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        1,
+        1
+       ],
+       "formats": [
+        "int_text"
+       ]
+      },
+      "childs": {
+       "types": [
+        "array",
+        "null"
+       ],
+       "seen": 24,
+       "length": [
+        3,
+        28
+       ],
+       "items": {
+        "types": [
+         "object"
+        ],
+        "seen": 240,
+        "keys": {
+         "appRank": {
+          "types": [
+           "int"
+          ],
+          "seen": 240
+         },
+         "appType": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           5,
+           5
+          ],
+          "formats": [
+           "enum_upper"
+          ]
+         },
+         "categoryCode": {
+          "types": [
+           "null",
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           1,
+           1
+          ],
+          "formats": [
+           "int_text"
+          ]
+         },
+         "childs": {
+          "types": [
+           "null"
+          ],
+          "seen": 240
+         },
+         "createBy": {
+          "types": [
+           "null"
+          ],
+          "seen": 240
+         },
+         "createTime": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           19,
+           19
+          ],
+          "formats": [
+           "datetime"
+          ]
+         },
+         "deviceType": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           8,
+           8
+          ],
+          "formats": [
+           "text"
+          ]
+         },
+         "displayFields": {
+          "types": [
+           "object"
+          ],
+          "seen": 240,
+          "keys": {
+           "SN": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           },
+           "attachment": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           },
+           "contactEmail": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           },
+           "description": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "frequencyOfIssue": {
+              "types": [
+               "array",
+               "string"
+              ],
+              "seen": 240,
+              "chars": [
+               24,
+               24
+              ],
+              "formats": [
+               "text"
+              ],
+              "length": [
+               1,
+               1
+              ],
+              "items": {
+               "types": [
+                "string"
+               ],
+               "seen": 224,
+               "chars": [
+                24,
+                24
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             },
+             "lastOccurrenceTime": {
+              "types": [
+               "array",
+               "string"
+              ],
+              "seen": 240,
+              "chars": [
+               34,
+               34
+              ],
+              "formats": [
+               "text"
+              ],
+              "length": [
+               1,
+               1
+              ],
+              "items": {
+               "types": [
+                "string"
+               ],
+               "seen": 224,
+               "chars": [
+                34,
+                34
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           },
+           "issueCategory": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           },
+           "purchaseConfig": {
+            "types": [
+             "object"
+            ],
+            "seen": 240,
+            "keys": {
+             "PurchasePlatform": {
+              "types": [
+               "array"
+              ],
+              "seen": 240,
+              "length": [
+               1,
+               6
+              ],
+              "items": {
+               "types": [
+                "string"
+               ],
+               "seen": 1360,
+               "chars": [
+                2,
+                22
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             },
+             "PurchaseReceipt": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "displayOrder": {
+              "types": [
+               "int"
+              ],
+              "seen": 240
+             },
+             "required": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             },
+             "visible": {
+              "types": [
+               "boolean"
+              ],
+              "seen": 240
+             }
+            }
+           }
+          }
+         },
+         "glassesType": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           37,
+           37
+          ],
+          "formats": [
+           "text"
+          ]
+         },
+         "lang": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           2,
+           2
+          ],
+          "formats": [
+           "enum_lower"
+          ]
+         },
+         "logType": {
+          "types": [
+           "null"
+          ],
+          "seen": 240
+         },
+         "navPaths": {
+          "types": [
+           "array"
+          ],
+          "seen": 240,
+          "length": [
+           2,
+           2
+          ],
+          "items": {
+           "types": [
+            "string"
+           ],
+           "seen": 480,
+           "chars": [
+            2,
+            14
+           ],
+           "formats": [
+            "text"
+           ]
+          }
+         },
+         "needAppLog": {
+          "types": [
+           "boolean"
+          ],
+          "seen": 240
+         },
+         "needGlassesLog": {
+          "types": [
+           "boolean"
+          ],
+          "seen": 240
+         },
+         "parentId": {
+          "types": [
+           "int"
+          ],
+          "seen": 240
+         },
+         "parentTreeName": {
+          "types": [
+           "null"
+          ],
+          "seen": 240
+         },
+         "remark": {
+          "types": [
+           "null"
+          ],
+          "seen": 240
+         },
+         "status": {
+          "types": [
+           "boolean"
+          ],
+          "seen": 240
+         },
+         "treeId": {
+          "types": [
+           "int"
+          ],
+          "seen": 240
+         },
+         "treeName": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           2,
+           14
+          ],
+          "formats": [
+           "text"
+          ]
+         },
+         "updateBy": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           3,
+           3
+          ],
+          "formats": [
+           "text"
+          ]
+         },
+         "updateTime": {
+          "types": [
+           "string"
+          ],
+          "seen": 240,
+          "chars": [
+           19,
+           19
+          ],
+          "formats": [
+           "datetime"
+          ]
+         }
+        }
+       }
+      },
+      "createBy": {
+       "types": [
+        "null"
+       ],
+       "seen": 24
+      },
+      "createTime": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        19,
+        19
+       ],
+       "formats": [
+        "datetime"
+       ]
+      },
+      "deviceType": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        8,
+        8
+       ],
+       "formats": [
+        "text"
+       ]
+      },
+      "displayFields": {
+       "types": [
+        "object"
+       ],
+       "seen": 24,
+       "keys": {
+        "SN": {
+         "types": [
+          "object"
+         ],
+         "seen": 24,
+         "keys": {
+          "displayOrder": {
+           "types": [
+            "int"
+           ],
+           "seen": 24
+          },
+          "required": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "visible": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          }
+         }
+        },
+        "attachment": {
+         "types": [
+          "object"
+         ],
+         "seen": 24,
+         "keys": {
+          "displayOrder": {
+           "types": [
+            "int"
+           ],
+           "seen": 24
+          },
+          "required": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "visible": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          }
+         }
+        },
+        "contactEmail": {
+         "types": [
+          "object"
+         ],
+         "seen": 24,
+         "keys": {
+          "displayOrder": {
+           "types": [
+            "int"
+           ],
+           "seen": 24
+          },
+          "required": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "visible": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          }
+         }
+        },
+        "description": {
+         "types": [
+          "object"
+         ],
+         "seen": 24,
+         "keys": {
+          "displayOrder": {
+           "types": [
+            "int"
+           ],
+           "seen": 24
+          },
+          "frequencyOfIssue": {
+           "types": [
+            "array",
+            "string"
+           ],
+           "seen": 24,
+           "chars": [
+            24,
+            24
+           ],
+           "formats": [
+            "text"
+           ],
+           "length": [
+            1,
+            5
+           ],
+           "items": {
+            "types": [
+             "string"
+            ],
+            "seen": 36,
+            "chars": [
+             3,
+             24
+            ],
+            "formats": [
+             "text"
+            ]
+           }
+          },
+          "lastOccurrenceTime": {
+           "types": [
+            "array",
+            "string"
+           ],
+           "seen": 24,
+           "chars": [
+            34,
+            34
+           ],
+           "formats": [
+            "text"
+           ],
+           "length": [
+            1,
+            5
+           ],
+           "items": {
+            "types": [
+             "string"
+            ],
+            "seen": 36,
+            "chars": [
+             3,
+             34
+            ],
+            "formats": [
+             "text"
+            ]
+           }
+          },
+          "required": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "visible": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          }
+         }
+        },
+        "purchaseConfig": {
+         "types": [
+          "object"
+         ],
+         "seen": 24,
+         "keys": {
+          "PurchasePlatform": {
+           "types": [
+            "array"
+           ],
+           "seen": 24,
+           "length": [
+            1,
+            6
+           ],
+           "items": {
+            "types": [
+             "string"
+            ],
+            "seen": 124,
+            "chars": [
+             2,
+             22
+            ],
+            "formats": [
+             "text"
+            ]
+           }
+          },
+          "PurchaseReceipt": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "displayOrder": {
+           "types": [
+            "int"
+           ],
+           "seen": 24
+          },
+          "required": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          },
+          "visible": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 24
+          }
+         }
+        }
+       }
+      },
+      "glassesType": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        37,
+        37
+       ],
+       "formats": [
+        "text"
+       ]
+      },
+      "lang": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        2,
+        2
+       ],
+       "formats": [
+        "enum_lower"
+       ]
+      },
+      "logType": {
+       "types": [
+        "null"
+       ],
+       "seen": 24
+      },
+      "navPaths": {
+       "types": [
+        "array"
+       ],
+       "seen": 24,
+       "length": [
+        1,
+        1
+       ],
+       "items": {
+        "types": [
+         "string"
+        ],
+        "seen": 24,
+        "chars": [
+         2,
+         12
+        ],
+        "formats": [
+         "text"
+        ]
+       }
+      },
+      "needAppLog": {
+       "types": [
+        "boolean"
+       ],
+       "seen": 24
+      },
+      "needGlassesLog": {
+       "types": [
+        "boolean"
+       ],
+       "seen": 24
+      },
+      "parentId": {
+       "types": [
+        "int"
+       ],
+       "seen": 24
+      },
+      "parentTreeName": {
+       "types": [
+        "null"
+       ],
+       "seen": 24
+      },
+      "remark": {
+       "types": [
+        "null"
+       ],
+       "seen": 24
+      },
+      "status": {
+       "types": [
+        "boolean"
+       ],
+       "seen": 24
+      },
+      "treeId": {
+       "types": [
+        "int"
+       ],
+       "seen": 24
+      },
+      "treeName": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        2,
+        12
+       ],
+       "formats": [
+        "text"
+       ]
+      },
+      "updateBy": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        3,
+        3
+       ],
+       "formats": [
+        "text"
+       ]
+      },
+      "updateTime": {
+       "types": [
+        "string"
+       ],
+       "seen": 24,
+       "chars": [
+        19,
+        19
+       ],
+       "formats": [
+        "datetime"
+       ]
+      }
+     }
+    }
+   }
+  },
+  "GET /rmapi/signApi/user/getTempAk": {
+   "log_lines": 8,
+   "response_bodies": 4,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 4,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 4
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 4,
+      "keys": {
+       "ak": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         29,
+         29
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "bucketName": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         27,
+         27
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "endpoint": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         35,
+         35
+        ],
+        "formats": [
+         "url"
+        ]
+       },
+       "expiration": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         20,
+         20
+        ],
+        "formats": [
+         "datetime"
+        ]
+       },
+       "regionName": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         10,
+         10
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "reqId": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         36,
+         36
+        ],
+        "formats": [
+         "uuid"
+        ]
+       },
+       "sk": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         43,
+         44
+        ],
+        "formats": [
+         "text"
+        ]
+       },
+       "st": {
+        "types": [
+         "string"
+        ],
+        "seen": 4,
+        "chars": [
+         740,
+         740
+        ],
+        "formats": [
+         "text"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "text"
+      ]
+     }
+    }
+   }
+  },
+  "GET /translation/config/get": {
+   "log_lines": 57,
+   "response_bodies": 0
+  },
+  "GET /translation/model/pairs": {
+   "log_lines": 57,
+   "response_bodies": 0
+  },
+  "GET /translation/preference/wholeSentence/get": {
+   "log_lines": 72,
+   "response_bodies": 0
+  },
+  "GET /xrlauncherapi/v1/signApi/data/dict/getContent": {
+   "log_lines": 199,
+   "response_bodies": 0
+  },
+  "GET /xrlauncherapi/v1/signApi/data/dict/getProtocolList": {
+   "log_lines": 147,
+   "response_bodies": 0
+  },
+  "GET /xrlauncherapi/v1/signApi/discovery/selectList": {
+   "log_lines": 16,
+   "response_bodies": 0
+  },
+  "POST /action/api/v1/schedule/sync": {
+   "log_lines": 24,
+   "response_bodies": 0
+  },
+  "POST /always-on/message/conversation/query": {
+   "log_lines": 6,
+   "response_bodies": 0
+  },
+  "POST /api/push/endpoint/register": {
+   "log_lines": 14,
+   "response_bodies": 7,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 7,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 7
+     },
+     "data": {
+      "types": [
+       "string"
+      ],
+      "seen": 7,
+      "chars": [
+       32,
+       32
+      ],
+      "formats": [
+       "hex_id"
+      ]
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 7,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /authapi/token/refresh": {
+   "log_lines": 209,
+   "response_bodies": 0
+  },
+  "POST /balance/initMember": {
+   "log_lines": 18,
+   "response_bodies": 0
+  },
+  "POST /clsapi/aiTask/getDataAllByTaskId": {
+   "log_lines": 2,
+   "response_bodies": 1,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 1,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 1
+     },
+     "data": {
+      "types": [
+       "array"
+      ],
+      "seen": 1,
+      "length": [
+       1,
+       1
+      ],
+      "items": {
+       "types": [
+        "object"
+       ],
+       "seen": 1,
+       "keys": {
+        "aiTask": {
+         "types": [
+          "object"
+         ],
+         "seen": 1,
+         "keys": {
+          "audioSaveFlag": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 1
+          },
+          "context": {
+           "types": [
+            "object"
+           ],
+           "seen": 1,
+           "keys": {
+            "endTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 1,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "startTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 1,
+             "formats": [
+              "epoch_ms"
+             ]
+            }
+           }
+          },
+          "createTime": {
+           "types": [
+            "int"
+           ],
+           "seen": 1,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "deviceType": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            8,
+            8
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "durationSeconds": {
+           "types": [
+            "int"
+           ],
+           "seen": 1
+          },
+          "id": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            24,
+            24
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "name": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            26,
+            26
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "reasonCode": {
+           "types": [
+            "int"
+           ],
+           "seen": 1
+          },
+          "status": {
+           "types": [
+            "int"
+           ],
+           "seen": 1
+          },
+          "taskId": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            32,
+            32
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "taskType": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            9,
+            9
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "timeZone": {
+           "types": [
+            "string"
+           ],
+           "seen": 1,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "userId": {
+           "types": [
+            "int"
+           ],
+           "seen": 1
+          }
+         }
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 1,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /clsapi/aiTask/v2/selectPage": {
+   "log_lines": 140,
+   "response_bodies": 70,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 70,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 70
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 70,
+      "keys": {
+       "pageList": {
+        "types": [
+         "array"
+        ],
+        "seen": 70,
+        "length": [
+         0,
+         11
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 402,
+         "keys": {
+          "area": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            2,
+            2
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "audioSaveFlag": {
+           "types": [
+            "boolean",
+            "null"
+           ],
+           "seen": 402
+          },
+          "bucketName": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            10,
+            10
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "context": {
+           "types": [
+            "object"
+           ],
+           "seen": 402,
+           "keys": {
+            "endTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 402,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "startTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 402,
+             "formats": [
+              "epoch_ms"
+             ]
+            }
+           }
+          },
+          "createTime": {
+           "types": [
+            "int"
+           ],
+           "seen": 402,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "deviceType": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            8,
+            8
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "glassDeviceId": {
+           "types": [
+            "null"
+           ],
+           "seen": 402
+          },
+          "id": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            24,
+            24
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "name": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            8,
+            26
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "objectKey": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            34,
+            63
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "phoneDeviceId": {
+           "types": [
+            "null"
+           ],
+           "seen": 402
+          },
+          "reasonCode": {
+           "types": [
+            "int"
+           ],
+           "seen": 402
+          },
+          "reasonMsg": {
+           "types": [
+            "null",
+            "object"
+           ],
+           "seen": 402
+          },
+          "recordingDurationMs": {
+           "types": [
+            "int",
+            "null"
+           ],
+           "seen": 402
+          },
+          "sourceFlag": {
+           "types": [
+            "null",
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            5,
+            5
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "status": {
+           "types": [
+            "int"
+           ],
+           "seen": 402
+          },
+          "taskId": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            32,
+            32
+           ],
+           "formats": [
+            "hex_id"
+           ]
+          },
+          "taskType": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            9,
+            9
+           ],
+           "formats": [
+            "enum_lower"
+           ]
+          },
+          "timeZone": {
+           "types": [
+            "string"
+           ],
+           "seen": 402,
+           "chars": [
+            13,
+            13
+           ],
+           "formats": [
+            "text"
+           ]
+          },
+          "transferStatus": {
+           "types": [
+            "null"
+           ],
+           "seen": 402
+          },
+          "updateTime": {
+           "types": [
+            "int",
+            "null"
+           ],
+           "seen": 402,
+           "formats": [
+            "epoch_ms"
+           ]
+          },
+          "userId": {
+           "types": [
+            "int"
+           ],
+           "seen": 402
+          }
+         }
+        }
+       },
+       "total": {
+        "types": [
+         "int"
+        ],
+        "seen": 70
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 70,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /factsapi/api/v1/facts/proposed/review": {
+   "log_lines": 4,
+   "response_bodies": 0
+  },
+  "POST /lifelog/api/v1/calendar": {
+   "log_lines": 20,
+   "response_bodies": 10,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 10,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 10
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 10,
+      "keys": {
+       "dailyLifelogList": {
+        "types": [
+         "array"
+        ],
+        "seen": 10,
+        "length": [
+         35,
+         35
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 350,
+         "keys": {
+          "dailySummaryList": {
+           "types": [
+            "array",
+            "null"
+           ],
+           "seen": 350,
+           "length": [
+            1,
+            1
+           ],
+           "items": {
+            "types": [
+             "object"
+            ],
+            "seen": 90,
+            "keys": {
+             "glyph": {
+              "types": [
+               "string"
+              ],
+              "seen": 90,
+              "chars": [
+               56,
+               56
+              ],
+              "formats": [
+               "url"
+              ]
+             },
+             "summary": {
+              "types": [
+               "string"
+              ],
+              "seen": 90,
+              "chars": [
+               13,
+               27
+              ],
+              "formats": [
+               "text"
+              ]
+             },
+             "timezone": {
+              "types": [
+               "string"
+              ],
+              "seen": 90,
+              "chars": [
+               13,
+               13
+              ],
+              "formats": [
+               "text"
+              ]
+             },
+             "visualTag": {
+              "types": [
+               "string"
+              ],
+              "seen": 90,
+              "chars": [
+               1,
+               1
+              ],
+              "formats": [
+               "text"
+              ]
+             }
+            }
+           }
+          },
+          "date": {
+           "types": [
+            "string"
+           ],
+           "seen": 350,
+           "chars": [
+            10,
+            10
+           ],
+           "formats": [
+            "date"
+           ]
+          },
+          "hasLog": {
+           "types": [
+            "boolean"
+           ],
+           "seen": 350
+          }
+         }
+        }
+       },
+       "lastDayGlyph": {
+        "types": [
+         "string"
+        ],
+        "seen": 10,
+        "chars": [
+         56,
+         56
+        ],
+        "formats": [
+         "url"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 10,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /lifelog/api/v1/journal/detail": {
+   "log_lines": 10,
+   "response_bodies": 5,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 5,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 5
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 5,
+      "keys": {
+       "contentAudited": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 5
+       },
+       "contentDesensitized": {
+        "types": [
+         "boolean"
+        ],
+        "seen": 5
+       },
+       "generatedAt": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         32,
+         32
+        ],
+        "formats": [
+         "datetime"
+        ]
+       },
+       "id": {
+        "types": [
+         "int"
+        ],
+        "seen": 5
+       },
+       "mode": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         8,
+         8
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       },
+       "periodEnd": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         10,
+         10
+        ],
+        "formats": [
+         "date"
+        ]
+       },
+       "periodStart": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         10,
+         10
+        ],
+        "formats": [
+         "date"
+        ]
+       },
+       "periodType": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         5,
+         5
+        ],
+        "formats": [
+         "enum_lower"
+        ]
+       },
+       "sections": {
+        "types": [
+         "array"
+        ],
+        "seen": 5,
+        "length": [
+         2,
+         3
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 13,
+         "keys": {
+          "blocks": {
+           "types": [
+            "array"
+           ],
+           "seen": 13,
+           "length": [
+            1,
+            5
+           ],
+           "items": {
+            "types": [
+             "object"
+            ],
+            "seen": 31,
+            "keys": {
+             "blockType": {
+              "types": [
+               "string"
+              ],
+              "seen": 31,
+              "chars": [
+               4,
+               4
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             },
+             "content": {
+              "types": [
+               "string"
+              ],
+              "seen": 31,
+              "chars": [
+               30,
+               957
+              ],
+              "formats": [
+               "text"
+              ],
+              "multiline": 5
+             },
+             "contentPayload": {
+              "types": [
+               "string"
+              ],
+              "seen": 31,
+              "chars": [
+               30,
+               957
+              ],
+              "formats": [
+               "text"
+              ],
+              "multiline": 5
+             },
+             "id": {
+              "types": [
+               "int"
+              ],
+              "seen": 31
+             },
+             "properties": {
+              "types": [
+               "object"
+              ],
+              "seen": 31,
+              "keys": {
+               "sourceId": {
+                "types": [
+                 "string"
+                ],
+                "seen": 7,
+                "chars": [
+                 32,
+                 32
+                ],
+                "formats": [
+                 "hex_id"
+                ]
+               },
+               "sourceType": {
+                "types": [
+                 "string"
+                ],
+                "seen": 7,
+                "chars": [
+                 12,
+                 12
+                ],
+                "formats": [
+                 "enum_lower"
+                ]
+               },
+               "title": {
+                "types": [
+                 "string"
+                ],
+                "seen": 7,
+                "chars": [
+                 9,
+                 15
+                ],
+                "formats": [
+                 "text"
+                ]
+               }
+              }
+             },
+             "source": {
+              "types": [
+               "string"
+              ],
+              "seen": 31,
+              "chars": [
+               12,
+               12
+              ],
+              "formats": [
+               "enum_lower"
+              ]
+             }
+            }
+           }
+          },
+          "id": {
+           "types": [
+            "int"
+           ],
+           "seen": 13
+          },
+          "title": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            0,
+            4
+           ],
+           "formats": [
+            "empty",
+            "text"
+           ]
+          },
+          "type": {
+           "types": [
+            "string"
+           ],
+           "seen": 13,
+           "chars": [
+            2,
+            8
+           ],
+           "formats": [
+            "enum_lower",
+            "text"
+           ]
+          }
+         }
+        }
+       },
+       "timezone": {
+        "types": [
+         "string"
+        ],
+        "seen": 5,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "text"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 5,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /lifelog/api/v1/location/reportBatch": {
+   "log_lines": 35,
+   "response_bodies": 7,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 7,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 7
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 7,
+      "keys": {
+       "completedStayPointCount": {
+        "types": [
+         "int",
+         "null"
+        ],
+        "seen": 7
+       },
+       "continuedStayPointCount": {
+        "types": [
+         "int",
+         "null"
+        ],
+        "seen": 7
+       },
+       "newStayPointCount": {
+        "types": [
+         "int",
+         "null"
+        ],
+        "seen": 7
+       },
+       "originalCount": {
+        "types": [
+         "int",
+         "null"
+        ],
+        "seen": 7
+       },
+       "savedCount": {
+        "types": [
+         "int",
+         "null"
+        ],
+        "seen": 7
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 7,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /lifelog/api/v1/settings/timezone/report": {
+   "log_lines": 18,
+   "response_bodies": 9,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 9,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 9
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 9,
+      "keys": {
+       "observedAt": {
+        "types": [
+         "int"
+        ],
+        "seen": 9,
+        "formats": [
+         "epoch_ms"
+        ]
+       },
+       "timezone": {
+        "types": [
+         "string"
+        ],
+        "seen": 9,
+        "chars": [
+         13,
+         13
+        ],
+        "formats": [
+         "text"
+        ]
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 9,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     }
+    }
+   }
+  },
+  "POST /profileapi/v1/app-languages/save": {
+   "log_lines": 75,
+   "response_bodies": 0
+  },
+  "POST /rmapi/signApi/order/createRepBarOrder": {
+   "log_lines": 8,
+   "response_bodies": 4,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 4,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 4
+     },
+     "data": {
+      "types": [
+       "null"
+      ],
+      "seen": 4
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "text"
+      ]
+     }
+    }
+   }
+  },
+  "POST /rmapi/signApi/user/reportInfo": {
+   "log_lines": 8,
+   "response_bodies": 4,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 4,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 4
+     },
+     "data": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "text"
+      ]
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 4,
+      "chars": [
+       4,
+       4
+      ],
+      "formats": [
+       "text"
+      ]
+     }
+    }
+   }
+  },
+  "POST /summary-service/suggest/confirm": {
+   "log_lines": 2,
+   "response_bodies": 1,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 1,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 1
+     },
+     "data": {
+      "types": [
+       "null"
+      ],
+      "seen": 1
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 1,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     },
+     "traceId": {
+      "types": [
+       "string"
+      ],
+      "seen": 1,
+      "chars": [
+       32,
+       32
+      ],
+      "formats": [
+       "hex_id"
+      ]
+     }
+    }
+   }
+  },
+  "POST /summary-service/suggest/detail": {
+   "log_lines": 6,
+   "response_bodies": 3,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 3,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 3
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 3,
+      "keys": {
+       "aiSuggests": {
+        "types": [
+         "array"
+        ],
+        "seen": 3,
+        "length": [
+         1,
+         2
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 4,
+         "keys": {
+          "aiSuggest": {
+           "types": [
+            "object"
+           ],
+           "seen": 4,
+           "keys": {
+            "createTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 4,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "id": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              24,
+              24
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "intentContent": {
+             "types": [
+              "object"
+             ],
+             "seen": 4,
+             "keys": {
+              "content": {
+               "types": [
+                "string"
+               ],
+               "seen": 4,
+               "chars": [
+                12,
+                47
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             }
+            },
+            "relatedConfig": {
+             "types": [
+              "object"
+             ],
+             "seen": 4
+            },
+            "relatedId": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "relatedType": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              12,
+              12
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "status": {
+             "types": [
+              "int"
+             ],
+             "seen": 4
+            },
+            "suggestId": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              36,
+              36
+             ],
+             "formats": [
+              "uuid"
+             ]
+            },
+            "suggestLevel": {
+             "types": [
+              "int"
+             ],
+             "seen": 4
+            },
+            "suggestType": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              4,
+              4
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "updateTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 4,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "userId": {
+             "types": [
+              "int"
+             ],
+             "seen": 4
+            }
+           }
+          },
+          "aiTask": {
+           "types": [
+            "null"
+           ],
+           "seen": 4
+          },
+          "conversation": {
+           "types": [
+            "object"
+           ],
+           "seen": 4,
+           "keys": {
+            "conversationId": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "endTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 4,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "startTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 4,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "timeZone": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              13,
+              13
+             ],
+             "formats": [
+              "text"
+             ]
+            },
+            "title": {
+             "types": [
+              "string"
+             ],
+             "seen": 4,
+             "chars": [
+              17,
+              20
+             ],
+             "formats": [
+              "text"
+             ]
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 3,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     },
+     "traceId": {
+      "types": [
+       "string"
+      ],
+      "seen": 3,
+      "chars": [
+       32,
+       32
+      ],
+      "formats": [
+       "hex_id"
+      ]
+     }
+    }
+   }
+  },
+  "POST /summary-service/suggest/list": {
+   "log_lines": 38,
+   "response_bodies": 19,
+   "shape": {
+    "types": [
+     "object"
+    ],
+    "seen": 19,
+    "keys": {
+     "code": {
+      "types": [
+       "int"
+      ],
+      "seen": 19
+     },
+     "data": {
+      "types": [
+       "object"
+      ],
+      "seen": 19,
+      "keys": {
+       "historyAiSuggests": {
+        "types": [
+         "array"
+        ],
+        "seen": 19,
+        "length": [
+         0,
+         1
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 17,
+         "keys": {
+          "aiSuggest": {
+           "types": [
+            "object"
+           ],
+           "seen": 17,
+           "keys": {
+            "createTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 17,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "id": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              24,
+              24
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "intentContent": {
+             "types": [
+              "object"
+             ],
+             "seen": 17,
+             "keys": {
+              "content": {
+               "types": [
+                "string"
+               ],
+               "seen": 17,
+               "chars": [
+                18,
+                18
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             }
+            },
+            "relatedConfig": {
+             "types": [
+              "object"
+             ],
+             "seen": 17
+            },
+            "relatedId": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "relatedType": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              12,
+              12
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "status": {
+             "types": [
+              "int"
+             ],
+             "seen": 17
+            },
+            "suggestId": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              36,
+              36
+             ],
+             "formats": [
+              "uuid"
+             ]
+            },
+            "suggestLevel": {
+             "types": [
+              "int"
+             ],
+             "seen": 17
+            },
+            "suggestType": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              4,
+              4
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "updateTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 17,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "userId": {
+             "types": [
+              "int"
+             ],
+             "seen": 17
+            }
+           }
+          },
+          "aiTask": {
+           "types": [
+            "null"
+           ],
+           "seen": 17
+          },
+          "conversation": {
+           "types": [
+            "object"
+           ],
+           "seen": 17,
+           "keys": {
+            "conversationId": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "endTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 17,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "startTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 17,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "timeZone": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              13,
+              13
+             ],
+             "formats": [
+              "text"
+             ]
+            },
+            "title": {
+             "types": [
+              "string"
+             ],
+             "seen": 17,
+             "chars": [
+              18,
+              18
+             ],
+             "formats": [
+              "text"
+             ]
+            }
+           }
+          }
+         }
+        }
+       },
+       "latestAiSuggests": {
+        "types": [
+         "array"
+        ],
+        "seen": 19,
+        "length": [
+         7,
+         11
+        ],
+        "items": {
+         "types": [
+          "object"
+         ],
+         "seen": 181,
+         "keys": {
+          "aiSuggest": {
+           "types": [
+            "object"
+           ],
+           "seen": 181,
+           "keys": {
+            "createTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 181,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "id": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              24,
+              24
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "intentContent": {
+             "types": [
+              "object"
+             ],
+             "seen": 181,
+             "keys": {
+              "content": {
+               "types": [
+                "string"
+               ],
+               "seen": 181,
+               "chars": [
+                3,
+                47
+               ],
+               "formats": [
+                "text"
+               ]
+              }
+             }
+            },
+            "relatedConfig": {
+             "types": [
+              "object"
+             ],
+             "seen": 181
+            },
+            "relatedId": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "relatedType": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              12,
+              12
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "status": {
+             "types": [
+              "int"
+             ],
+             "seen": 181
+            },
+            "suggestId": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              36,
+              36
+             ],
+             "formats": [
+              "uuid"
+             ]
+            },
+            "suggestLevel": {
+             "types": [
+              "int"
+             ],
+             "seen": 181
+            },
+            "suggestType": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              4,
+              4
+             ],
+             "formats": [
+              "enum_lower"
+             ]
+            },
+            "updateTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 181,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "userId": {
+             "types": [
+              "int"
+             ],
+             "seen": 181
+            }
+           }
+          },
+          "aiTask": {
+           "types": [
+            "null"
+           ],
+           "seen": 181
+          },
+          "conversation": {
+           "types": [
+            "object"
+           ],
+           "seen": 181,
+           "keys": {
+            "conversationId": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              32,
+              32
+             ],
+             "formats": [
+              "hex_id"
+             ]
+            },
+            "endTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 181,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "startTime": {
+             "types": [
+              "int"
+             ],
+             "seen": 181,
+             "formats": [
+              "epoch_ms"
+             ]
+            },
+            "timeZone": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              13,
+              13
+             ],
+             "formats": [
+              "text"
+             ]
+            },
+            "title": {
+             "types": [
+              "string"
+             ],
+             "seen": 181,
+             "chars": [
+              9,
+              22
+             ],
+             "formats": [
+              "text"
+             ]
+            }
+           }
+          }
+         }
+        }
+       }
+      }
+     },
+     "msg": {
+      "types": [
+       "string"
+      ],
+      "seen": 19,
+      "chars": [
+       7,
+       7
+      ],
+      "formats": [
+       "enum_lower"
+      ]
+     },
+     "traceId": {
+      "types": [
+       "string"
+      ],
+      "seen": 19,
+      "chars": [
+       32,
+       32
+      ],
+      "formats": [
+       "hex_id"
+      ]
+     }
+    }
+   }
+  },
+  "POST /translation/offline/model/reconcile": {
+   "log_lines": 56,
+   "response_bodies": 0
+  }
+ }
+}
