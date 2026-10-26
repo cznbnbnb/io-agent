@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev108",
-  "version_code": 10530,
-  "revision": "io-agent-android-107-material-batch",
+  "version": "0.5.3-dev109",
+  "version_code": 10531,
+  "revision": "io-agent-android-107-session-pairing",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-26T12:32:01.309Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev108.apk",
-  "bytes": 429916441,
-  "sha256": "89a26951d08881013b545cce940c8f5d12cde8ff2abf3626f6d7be5a1e2bba30",
+  "signed": "2026-10-26T12:41:27.608Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev109.apk",
+  "bytes": 430190952,
+  "sha256": "558e6ba290c702d81737916b72ebc653aaa126ac28647e624a292c4037f392a6",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -23,7 +23,7 @@
       "lib/arm64-v8a/libapp.so"
     ],
     "added_dex": "classes5.dex",
-    "public_assets": 39,
+    "public_assets": 40,
     "original_resources_and_native_libraries_preserved": false,
     "original_resources_preserved": true,
     "all_other_original_native_libraries_preserved": true,
@@ -47,8 +47,9 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
-  "phone_disconnected_by_user": true,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false
+  "release_gate_passed": false,
+  "installed_verified_at": "2026-10-26T12:42:42.119347+00:00"
 }

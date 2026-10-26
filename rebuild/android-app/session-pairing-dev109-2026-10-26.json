@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "version": "0.5.3-dev109",
+  "installed": true,
+  "installed_sha256": "558e6ba290c702d81737916b72ebc653aaa126ac28647e624a292c4037f392a6",
+  "baseline": "dev108",
+  "delta_bytes": 1908116,
+  "claude_merged": [
+    "efe2ab7",
+    "9822acc"
+  ],
+  "server_release": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/pairing-release-1793018462449211699",
+    "node": "v22.23.2",
+    "source_sha256": {
+      "store.mjs": "6e4a1ea04a16c7a8cdb6d581467d923f491b9987193e11a5bb5e3df7e1445073",
+      "http.mjs": "16156874663859f1314c498ffbaf608a8fcc10e598c48a8a6a970fb2e450ff4d",
+      "session-pairings.mjs": "cbbc8b335f49d3cb480a6738476d3a77f863c1b89b0aa5866a82f53b35fb18f7"
+    },
+    "memory_recovery_revoke_test": true
+  },
+  "tests": {
+    "java_compile": true,
+    "queue_bridge_regression_passed": 305,
+    "queue_bridge_regression_skipped": 3,
+    "qr_cross_library_decode": true,
+    "portable_zip_roundtrip": true,
+    "public_isolated_pairing_and_revoke": true,
+    "temporary_devices_revoked": 2
+  },
+  "phone_ui": {
+    "stock_and_agent_home_opened": true,
+    "camera_or_paste_complete_binding_tested": false,
+    "reason": "User unplugged phone; await wireless address"
+  },
+  "phone_cleanup_pending": [
+    "/data/local/tmp/codex-dev109.apk",
+    "/data/local/tmp/codex-dev109.delta",
+    "/data/local/tmp/codex-delta.dex"
+  ],
+  "glasses_questions_sent": false,
+  "remote_agent_phone_file_api": false
+}
