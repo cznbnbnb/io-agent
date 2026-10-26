@@ -44,7 +44,7 @@ public final class OfficialLifelogSnapshot {
   /** Fresh-read caller supplies the committed prior body; logs alone cannot
    * establish freshness. Keep speaker identity across a proven cluster rename. */
   public byte[] materialRevision(String accountBinding,long revision,byte[] previous){return LifelogRevisionMapper.reconcile(materialBody(accountBinding,revision),previous);}
-  public String materialId(String accountBinding){require(accountBinding!=null&&accountBinding.matches("[a-f0-9]{64}"),"LIFELOG_ACCOUNT_BINDING_REQUIRED");return "rayneo-lifelog-"+TaskWire.hash(WireJson.bytes(WireJson.object("provider","rayneo-lifelog","account",accountBinding,"source_type",sourceType,"source_id",sourceId)));}
+  public String materialId(String accountBinding){return OfficialLifelogSnapshot.materialId(accountBinding,sourceType,sourceId);}
   /** Per-original identity avoids duplicate materials when daily aggregates
    * regroup the same recording. Unknown coverage is never promoted to complete. */
   public byte[] materialBody(String accountBinding,long revision){
@@ -58,6 +58,7 @@ public final class OfficialLifelogSnapshot {
    MaterialWire.body(body);return WireJson.bytes(body);
   }
  }
+ static String materialId(String accountBinding,String sourceType,String sourceId){require(accountBinding!=null&&accountBinding.matches("[a-f0-9]{64}"),"LIFELOG_ACCOUNT_BINDING_REQUIRED");return "rayneo-lifelog-"+TaskWire.hash(WireJson.bytes(WireJson.object("provider","rayneo-lifelog","account",accountBinding,"source_type",sourceType,"source_id",sourceId)));}
  public static List<Source> read(String expectedEventId,byte[] json){
   id(expectedEventId);Map<String,Object> response=WireJson.map(WireJson.read(json));require(response.get("code") instanceof Long&&((Long)response.get("code"))==0,"LIFELOG_RESPONSE_REJECTED");Map<String,Object> event=WireJson.map(response.get("data"));require(expectedEventId.equals(event.get("id")),"LIFELOG_EVENT_MISMATCH");
   List<Object> originals=WireJson.list(event.get("originalList")),contents=WireJson.list(event.get("transcriptionContents"));require(originals.size()<=256&&contents.size()<=256,"LIFELOG_SOURCE_BUDGET");Map<String,Map<String,Object>> owners=new HashMap<>();

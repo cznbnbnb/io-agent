@@ -1,3 +1,12 @@
+## [claude] 2026-10-26 dev100：资料页接入原厂 AI 总结、分时段与位置轨迹，按新设计稿改版
+
+dev100 /10522 已装（基于 dev99 `626ef42`，回退 dev99；dev97 已移入废纸篓）。依据 `lifelog-detail-shape-2026-10-26.json`：
+- 解析：新 `OfficialLifelogInsight` 在 `OfficialLifelogDiscovery` 已有的两次响应里顺带取 当天列表 `events[].summaryContent` / `trailPoints[]` 与详情 `summaryContent` / `outline[]` / `emotion`；尽力而为，形状不认识就不出洞察，原有转写校验与返回不变。坐标存为整数微度。
+- 存储：`LifelogInsightStore`，与本机资料库同目录的 `insights.json`，按账号绑定；事件按 id 合并、空读取不删除，最多 120 天。只在本机，不进上传队列、不改资料服务器格式。`MaterialRuntime.readDay` 在转写落盘后保存（失败忽略），`loadCatalog` 读入 `CatalogSnapshot.insights`（损坏时为 null，不影响列表）。
+- 时间：同一原厂事件的各个 source 都带整场起止（真机全是 08:49–11:19），这正是“好多 08:49”的原因。`MaterialTimeline.start/end` 改用每段首句与末句的实际说话时刻，列表、排序、详情都用它（真机：08:49–08:54、09:30–09:32、09:54–10:24…）。
+- 界面（`AgentMaterialPage` + `MaterialReadingUI` + `MaterialTimeline`）：月份/同步状态胶囊、周条、当天标题带排序（默认最早在前）与刷新、读取中细进度条、上午/下午/晚上分组；同一事件多段合成“连续记录 N 段”可折叠卡，显示 AI 总结两行预览与“有位置”。详情：第 i/n 段、实际时间、情绪标签、位置轨迹卡（本机绘制路线与停留圈，无地图底图，不把坐标发给任何地图服务；地名暂未解析）、AI 总结（长文折叠）、分时段（点“看这段原文”跳到对应句）、原文片段/转写正文/原音与导出均为懒加载折叠、上一段/下一段、底部导出+委托。
+测试：新增 `OfficialLifelogInsightTest` 16 项（`test-lifelog-source.mjs --insight-only`）；inventory 41、discovery 37、discovery-session 79、refresh 24、fresh-session 22、source 141/mapping 23/cache 18/import 26/session 32 均通过。真机 10-26：列表分组、总结预览、按实际时间排序，详情的总结/分时段/跳转原文/位置停留卡均正常。未测：滑动流畅度未量化（列表仍是整页重建，未换成复用列表）；其他日期需在页面中读取一次后才有总结和位置。
+
 ## [claude] 2026-10-26 dev99：登录误报修复——恢复即清除横幅，到期窗口内的操作等原厂续期
 
 dev99 /10521（回退 dev97；dev98 已移入废纸篓）。`TaskRuntime`：`work()` 成功、后台 tick 看到登录有效时，清除 `OFFICIAL_LOGIN_*` 粘滞 note，横幅自动消失。用户操作（委托、控制、详情、配对、默认、恢复、刷新、读目录）改用 `login()`：令牌已到期但不足 `Host107Login.RENEW_GRACE_MS`（180 秒）、且 refreshToken 仍有效时，显示“官方登录正在自动续期，稍后自动继续”，每秒检查，续期后继续执行；超时、generation 变化或进入后台则照旧失败。后台 tick 走的 `refreshDirectory` 只做不等待的检查。卡片拉取在续期窗口内显示续期文案，10 秒后照旧重试。另发现冷启动时原厂引擎未就绪会读到 `records=unavailable` 并被判为过期，现在同样会在恢复后自动清除。

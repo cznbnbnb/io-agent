@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T12:09:43.515Z",
+  "at": "2026-10-26T07:38:25.840Z",
   "assertions": 41,
   "discovery_assertions": 37,
   "scope": "Date/timezone and origin validation, audio/event versus recording routing, source membership, unknown entries, pagination and no absence-based deletion; synthetic only",
@@ -13,16 +13,24 @@
       "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
     },
     {
+      "path": "src/com/turboio/addon/OfficialLifelogInsight.java",
+      "sha256": "5724bd2a244c173bdff50d54a329b4fe3f59a0835834123dace3b877b410b9d7"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogInsightStore.java",
+      "sha256": "c759d8c8654f8193205faa5ea7a757b1e81b57dc873e74bf5f2b914c6677eb57"
+    },
+    {
       "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
       "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
+      "sha256": "9cc7bdabc3ce07eb5913992fa85829d2a979464136f895d205a3980b04b9c3ad"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
+      "sha256": "d64c990f7c80d865643ac483db43020070974eb744cbb32359cde753be95ef63"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -30,7 +38,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
     },
     {
       "path": "src/com/turboio/addon/OfficialHiveCache.java",
@@ -66,7 +74,15 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSyncSession.java",
-      "sha256": "0669ea88ca073d8d72bc6057e5f3c7e884ed8ec7ee7d40940066e82efc6ae033"
+      "sha256": "4565b2b3d439143a0f29e057dce2b4b7c8d24c2d4974c9fdf35e5caeadf23639"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
+      "sha256": "07aa4e78d3fe534374120a1b18ce97ff2de802775d76c5621bd54998feeb4d47"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialDeletionSync.java",
+      "sha256": "56fed98c1287c8960cded2bcc27fdddb65588f6c1bb908271e950ec4e332f4f6"
     },
     {
       "path": "src/com/turboio/addon/MaterialApi.java",
@@ -94,7 +110,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      "sha256": "60365bd191a7bd1e176ea570f4c3a291c40c838db20903ab9e059c6a642ece0c"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -106,7 +122,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
@@ -154,7 +170,7 @@
     },
     {
       "path": "../../tools/android/MaterialDiscoverySyncTest.java",
-      "sha256": "e1df1d8297d803a5c9cff050511e3a67d833a6455f4b37252788fd470803b6ab"
+      "sha256": "b6430029a434c697718122c88cc90f38e105ba2b29633b39c71b3a5d10498537"
     },
     {
       "path": "../../tools/android/OfficialHiveCacheTest.java",
@@ -175,6 +191,10 @@
     {
       "path": "../../tools/android/MaterialStorageTest.java",
       "sha256": "92e0d1718f3d06239849b73ef889df6fe6c052b471c417ec5abac07accf306b8"
+    },
+    {
+      "path": "../../tools/android/OfficialLifelogInsightTest.java",
+      "sha256": "eff0bd235624094268e088ae3b41edc07c6011738e1ab30cae5efcd7ad5cb981"
     }
   ]
 }

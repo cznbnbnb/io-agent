@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T05:40:26.133Z",
+  "at": "2026-10-26T07:38:30.225Z",
   "assertions": 22,
   "scope": "Synthetic normal refresh session, existing bootstrap migration, offline recovery, changed pending body protection and account fencing",
   "sources": [
@@ -12,16 +12,24 @@
       "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
     },
     {
+      "path": "src/com/turboio/addon/OfficialLifelogInsight.java",
+      "sha256": "5724bd2a244c173bdff50d54a329b4fe3f59a0835834123dace3b877b410b9d7"
+    },
+    {
+      "path": "src/com/turboio/addon/LifelogInsightStore.java",
+      "sha256": "c759d8c8654f8193205faa5ea7a757b1e81b57dc873e74bf5f2b914c6677eb57"
+    },
+    {
       "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
       "sha256": "f05af72a6a6b6898c2aaee20d63667814ee6569a4166e0a6c65cb9fa41cd8d61"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogDiscovery.java",
-      "sha256": "5da0135cb189ddbfdee2f15f57ed1488634622b11293d8ef841036593d975c45"
+      "sha256": "9cc7bdabc3ce07eb5913992fa85829d2a979464136f895d205a3980b04b9c3ad"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogSnapshot.java",
-      "sha256": "e56a49f6dc0be877913657d9caf81e2e0a40fae3aac056fb36e211da6e669f81"
+      "sha256": "d64c990f7c80d865643ac483db43020070974eb744cbb32359cde753be95ef63"
     },
     {
       "path": "src/com/turboio/addon/LifelogRevisionMapper.java",
@@ -113,7 +121,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
@@ -182,6 +190,10 @@
     {
       "path": "../../tools/android/MaterialStorageTest.java",
       "sha256": "92e0d1718f3d06239849b73ef889df6fe6c052b471c417ec5abac07accf306b8"
+    },
+    {
+      "path": "../../tools/android/OfficialLifelogInsightTest.java",
+      "sha256": "eff0bd235624094268e088ae3b41edc07c6011738e1ab30cae5efcd7ad5cb981"
     }
   ]
 }

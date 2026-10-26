@@ -10,7 +10,9 @@ final class MaterialRuntime {
  interface CatalogResult {void done(CatalogSnapshot value,String error);}
  static final class CatalogSnapshot {
   final MaterialConfig config;final MaterialCatalog catalog;final MaterialLocalLibrary.Snapshot local;final String uploadError,autoError;
-  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;}
+  /** Official summaries/outlines/trails; null when the local copy is unreadable. */
+  final LifelogInsightStore.Snapshot insights;
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;this.insights=insights;}
  }
  static final class MonthSelection {
   final OfficialLifelogMonthDiscovery.Snapshot source;final String configFingerprint;private final long owner;
@@ -76,9 +78,11 @@ final class MaterialRuntime {
   MaterialCatalog uploaded=MaterialCatalog.empty(current.binding,zone);
   if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
   MaterialLocalLibrary.Snapshot local;try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}
+  // Insights only decorate the transcript list; a damaged copy never hides it.
+  LifelogInsightStore.Snapshot insights=null;try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),current.binding)){insights=store.snapshot();}catch(Exception unreadable){insights=null;}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
-  CatalogSnapshot loaded=new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"");
+  CatalogSnapshot loaded=new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
@@ -120,6 +124,8 @@ final class MaterialRuntime {
    OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),official);
    synchronized(guard){check(owner);MaterialWire.require(expected.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
     try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),expected.binding)){library.recordRead(date,timezone,fresh.sources,System.currentTimeMillis(),()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}
+    // Best effort, after the transcript is safely retained.
+    if(!fresh.insights.isEmpty())try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),expected.binding)){store.record(fresh.insights,()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}catch(Exception ignored){}
    }
    found=loadCatalog(owner);
   }catch(Exception failed){error=safe(failed);
