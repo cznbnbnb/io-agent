@@ -156,17 +156,16 @@ final class TaskWorkspace {
  /** Each temporary target owns its own text and operation. Selection never edits the global default. */
  private static final class DelegateForm {
   final Activity activity;final TaskRuntime runtime;final Runnable refresh;final AgentUI.Screen screen;final MaterialTaskDraft material;
-  final EditText edit;final TextView target,change,status,send,newDraft;
-  String binding,key,operation;final String materialAccount;boolean submitted,sending,choosing,materialVerified,draftConsumed;TaskRuntime.Snapshot targets;AlertDialog chooser;android.app.Application.ActivityLifecycleCallbacks materialLifecycle;
+  final EditText edit;final LinearLayout change;final TextView status,send,newDraft;
+  String binding,key,operation;final String materialAccount;boolean submitted,sending,choosing,materialVerified,draftConsumed;TaskRuntime.Snapshot targets;android.app.Dialog chooser;android.app.Application.ActivityLifecycleCallbacks materialLifecycle;
   DelegateForm(Activity a,TaskRuntime runtime,String initial,Runnable refresh,MaterialTaskDraft material,String expectedAccount){
    activity=a;this.runtime=runtime;this.refresh=refresh;this.material=material;this.materialAccount=expectedAccount;screen=new AgentUI.Screen(a,material==null?"交给 Agent 一件事":"基于资料委托任务");
-   if(material!=null){screen.body.addView(AgentUI.text(a,material.entry.title,20,AgentUI.INK));screen.body.addView(AgentUI.text(a,material.entry.day+" · "+material.entry.timeRange()+" · 修订 "+material.entry.revision,13,AgentUI.MUTED));AgentUI.gap(a,screen.body,14);}
-   target=AgentUI.text(a,"正在读取默认目标…",14,AgentUI.MUTED);screen.body.addView(target);
-   change=AgentUI.button(a,screen.body,"本次交给  ›",false,this::chooseTarget);
-   AgentUI.gap(a,screen.body,14);edit=agentInput(a,screen.body,material==null?"完整描述需要电脑完成的事情":"填写具体要求，例如：提炼讨论结论，并列出待办事项");edit.setFilters(new InputFilter[0]);
-   status=AgentUI.text(a,"返回会保留本机草稿。切换目标时分别保存和读取各自草稿，不改变默认 Agent 与工作区。",12,AgentUI.MUTED);screen.body.addView(status);
-   if(material!=null){AgentUI.gap(a,screen.body,16);screen.body.addView(AgentUI.text(a,"提交时会将以下文字交给所选 Agent",14,AgentUI.ACCENT));TextView source=AgentUI.text(a,material.document,14,AgentUI.MUTED);source.setTextIsSelectable(true);screen.body.addView(source);}
-   send=AgentUI.button(a,material==null?screen.body:screen.dock,"提交给 Agent",true,this::submit);send.setEnabled(false);newDraft=AgentUI.button(a,material==null?screen.body:screen.dock,"将这份文字作为新任务草稿",false,()->{if(!draftConsumed||sending)return;operation=UUID.randomUUID().toString();draftConsumed=false;preserve();showTarget();status.setText("这是独立的新任务草稿。此前任务保持原状态，只有再点提交才会创建新任务。");});newDraft.setVisibility(android.view.View.GONE);loadTarget(initial);
+   if(material!=null){LinearLayout about=MaterialReadingUI.card(a,screen.body,0);about.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,12),AgentUI.dp(a,14),AgentUI.dp(a,12));about.addView(AgentUI.text(a,"基于这份资料",12,AgentUI.MUTED));TextView name=MaterialReadingUI.bold(MaterialReadingUI.line(a,material.entry.title,16,AgentUI.INK,2));name.setPadding(0,AgentUI.dp(a,6),0,0);about.addView(name);TextView when=AgentUI.text(a,material.entry.day+" · "+MaterialTimeline.range(material.entry)+" · 修订 "+material.entry.revision,12,AgentUI.MUTED);when.setPadding(0,AgentUI.dp(a,4),0,0);about.addView(when);}
+   formLabel(a,screen.body,"交给",material==null?0:18);change=AgentUI.column(a);screen.body.addView(change,new LinearLayout.LayoutParams(-1,-2));TaskTargetUI.bind(a,change,null,false,false,null,"正在读取可用会话…",null,MaterialReadingUI.CARD);change.setOnClickListener(v->chooseTarget());
+   formLabel(a,screen.body,"要做什么",20);edit=agentInput(a,screen.body,material==null?"完整描述需要电脑完成的事情，例如：整理今天的会议结论并发给我":"填写具体要求，例如：提炼讨论结论，并列出待办事项");edit.setFilters(new InputFilter[0]);edit.setMinLines(5);edit.setBackground(MaterialReadingUI.fill(a,MaterialReadingUI.CARD,16));edit.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,12),AgentUI.dp(a,14),AgentUI.dp(a,12));
+   status=AgentUI.text(a,"返回会保留草稿；换会话时各自保存草稿，默认目标不变。",12,AgentUI.MUTED);status.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,8),AgentUI.dp(a,4),0);screen.body.addView(status);
+   if(material!=null)new MaterialReadingUI.Fold(a,screen.body,"一起交给 Agent 的资料原文",material.document.length()+" 字",false,c->{TextView source=AgentUI.text(a,material.document,14,MaterialReadingUI.SOFT);source.setTextIsSelectable(true);c.addView(source);});
+   send=AgentUI.button(a,screen.dock,"提交给 Agent",true,this::submit);send.setEnabled(false);newDraft=AgentUI.button(a,screen.dock,"将这份文字作为新任务草稿",false,()->{if(!draftConsumed||sending)return;operation=UUID.randomUUID().toString();draftConsumed=false;preserve();showTarget();status.setText("这是独立的新任务草稿。此前任务保持原状态，只有再点提交才会创建新任务。");});newDraft.setVisibility(android.view.View.GONE);loadTarget(initial);
    if(material!=null){materialLifecycle=new android.app.Application.ActivityLifecycleCallbacks(){
     public void onActivityStopped(Activity owner){if(owner==activity&&screen.dialog.isShowing())screen.dialog.dismiss();}
     public void onActivityDestroyed(Activity owner){if(owner==activity&&screen.dialog.isShowing())screen.dialog.dismiss();}
@@ -181,23 +180,21 @@ final class TaskWorkspace {
   boolean available(){TaskHub.View source=targets==null?null:targets.context(binding);return source!=null&&source.profile.enabled&&source.profile.connection.expiresAt>System.currentTimeMillis()&&targets.directory!=null&&targets.directory.gate(source.profile.connection.route(),TaskSessionDirectory.elapsed()).isEmpty();}
   void showTarget(){
    TaskHub.View source=targets==null?null:targets.context(binding);TaskSessionDirectory.Entry entry=source==null||targets.directory==null?null:targets.directory.find(source.profile.connection.route());
-   if(source==null)target.setText(targets==null?"正在读取目标…":binding.isEmpty()?"尚未设置默认目标，请点「本次交给」选择具体会话。":"原目标暂不可用，可重新选择；原草稿仍保留。");
-   else target.setText((binding.equals(targets.defaultBinding)?"默认目标":"本次目标")+"\n"+(entry==null?delegateTargetLabel(source,true):entry.display()+"\n"+entry.status(TaskSessionDirectory.elapsed()))+(!source.profile.enabled?"\n连接已暂停":source.profile.connection.expiresAt<=System.currentTimeMillis()?"\n连接已到期":""));
+   if(source==null)TaskTargetUI.bind(activity,change,null,false,false,null,targets==null?"正在读取可用会话…":binding.isEmpty()?"还没有默认目标，点这里选择交给哪个会话。":"原会话暂不可用，可重新选择；原草稿仍保留。",null,MaterialReadingUI.CARD);
+   else TaskTargetUI.bind(activity,change,entry==null?TaskTargetUI.Target.saved(source.profile.connection):TaskTargetUI.Target.of(entry,TaskSessionDirectory.elapsed()),binding.equals(targets.defaultBinding),false,"更换",!source.profile.enabled?"连接已暂停":source.profile.connection.expiresAt<=System.currentTimeMillis()?"连接已到期，请在设置里重新连接":"",recentTopic(source),MaterialReadingUI.CARD);
    draftConsumed=false;if(source!=null)for(Object raw:source.pending){Map<String,Object> pending=WireJson.map(raw);if(operation.equals(pending.get("operation_id"))){draftConsumed=true;status.setText("这份委托已进入提交队列："+TaskPresentation.queueStatus(pending)+"。原提交内容不能在这里修改；可明确另建任务草稿。");break;}}
    edit.setEnabled(!sending&&targets!=null&&!draftConsumed);newDraft.setVisibility(draftConsumed?android.view.View.VISIBLE:android.view.View.GONE);newDraft.setEnabled(!sending);
-   send.setEnabled(!sending&&!draftConsumed&&available()&&(material==null||materialVerified));
+   send.setEnabled(!sending&&!draftConsumed&&available()&&(material==null||materialVerified));send.setAlpha(send.isEnabled()?1f:0.4f);
   }
   void chooseTarget(){
    if(sending||choosing)return;choosing=true;change.setEnabled(false);
    runtime.readDirectory((state,error)->{
     choosing=false;if(!screen.dialog.isShowing())return;change.setEnabled(!sending);targets=state;showTarget();if(sending)return;
     if(state.directory==null||state.directory.sessions.isEmpty()){AgentUI.notice(activity,error.isEmpty()?"暂无已接通的真实 Agent 会话，请在电脑接入原会话。":label(error));return;}
-    String[] labels=new String[state.directory.sessions.size()];int selected=-1;
-    for(int i=0;i<labels.length;i++){TaskSessionDirectory.Entry entry=state.directory.sessions.get(i);labels[i]=entry.display()+"\n"+entry.status(TaskSessionDirectory.elapsed())+(TaskWire.same(entry.route,state.defaultRoute)?" · 默认":"");if(state.bindingFor(entry.route).equals(binding)&&!binding.isEmpty())selected=i;}
-    chooser=new AlertDialog.Builder(new android.view.ContextThemeWrapper(activity,android.R.style.Theme_Material_Dialog_Alert)).setTitle("本次交给").setSingleChoiceItems(labels,selected,(dialog,index)->{
-     dialog.dismiss();if(!screen.dialog.isShowing()||sending)return;TaskSessionDirectory.Entry entry=state.directory.sessions.get(index);preserve();choosing=true;change.setEnabled(false);
+    chooser=TaskTargetUI.pick(activity,state.directory.sessions,entry->TaskWire.same(entry.route,state.defaultRoute),entry->!binding.isEmpty()&&state.bindingFor(entry.route).equals(binding),entry->{
+     if(!screen.dialog.isShowing()||sending)return;preserve();choosing=true;change.setEnabled(false);
      runtime.ensureTarget(entry.route,(updated,code)->{choosing=false;if(!screen.dialog.isShowing())return;change.setEnabled(true);targets=updated;if(!code.isEmpty()){AgentUI.notice(activity,label(code));return;}String next=updated.bindingFor(entry.route);if(next.isEmpty()){AgentUI.notice(activity,label("DIRECTORY_TARGET_MISSING"));return;}loadTarget(next);if(!draftConsumed)status.setText("已切换本次会话，默认目标未改变；原目标的草稿仍保留。");});
-    }).setNegativeButton("返回",null).show();
+    });
    });
   }
   void submit(){
@@ -236,11 +233,15 @@ final class TaskWorkspace {
  }
  private static boolean ambiguousTarget(TaskRuntime.Snapshot state,TaskHub.View source){String label=delegateTargetLabel(source,false);for(TaskHub.View other:state.contexts)if(!other.binding.equals(source.binding)&&label.equals(delegateTargetLabel(other,false)))return true;return false;}
  private static String delegateTargetLabel(TaskHub.View source,boolean includeSession){
-  TaskConnection connection=source.profile.connection;String topic="";
-  for(int i=source.objects.size()-1;i>=0;i--){Map<String,Object> item=WireJson.map(WireJson.map(source.objects.get(i)).get("item"));if("task".equals(item.get("kind"))){topic=TaskPresentation.firstLine((String)TaskWire.body(item).get("command"));break;}}
-  if(topic.startsWith(AgentCardRequest.DEFAULT_COMMAND_PREFIX))topic="";if(topic.length()>80)topic=topic.substring(0,79)+"…";
+  TaskConnection connection=source.profile.connection;String topic=recentTopic(source);
   return connection.agent+" · "+connection.computer+"\n工作区 · "+connection.project+(topic.isEmpty()?"":"\n主题 · "+topic)+(includeSession?"\n登记对话 · "+connection.session:"");
  }
+ /** First line of the newest task sent to this context, so look-alike sessions can be told apart. */
+ private static String recentTopic(TaskHub.View source){
+  String topic="";for(int i=source.objects.size()-1;i>=0;i--){Map<String,Object> item=WireJson.map(WireJson.map(source.objects.get(i)).get("item"));if("task".equals(item.get("kind"))){topic=TaskPresentation.firstLine((String)TaskWire.body(item).get("command"));break;}}
+  if(topic.startsWith(AgentCardRequest.DEFAULT_COMMAND_PREFIX))topic="";return topic.length()>80?topic.substring(0,79)+"…":topic;
+ }
+ private static void formLabel(Activity a,LinearLayout parent,String name,int top){TextView t=AgentUI.text(a,name,13,AgentUI.MUTED);t.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,top),0,AgentUI.dp(a,8));parent.addView(t);}
  static AgentUI.Screen answer(Activity a,TaskRuntime runtime,TaskHub.View state,Map<String,Object> request,Runnable refresh){
   Map<String,Object> b=TaskWire.body(request),parent=null;for(Object raw:state.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(item.get("kind").equals("task")&&item.get("object_id").equals(b.get("task_id")))parent=item;}
   AgentUI.Screen form=new AgentUI.Screen(a,"回复原任务");form.body.addView(AgentUI.text(a,state.profile.connection.agent+" · "+state.profile.connection.computer,13,AgentUI.MUTED));AgentUI.gap(a,form.body,12);TextView question=AgentUI.text(a,(String)b.get("question"),18,AgentUI.INK);question.setTextIsSelectable(true);form.body.addView(question);

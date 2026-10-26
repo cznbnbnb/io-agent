@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev102",
-  "version_code": 10524,
-  "revision": "io-agent-android-107-idle-performance",
+  "version": "0.5.3-dev103",
+  "version_code": 10525,
+  "revision": "io-agent-android-107-delegate-target",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-26T08:52:53.385Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev102.apk",
-  "bytes": 429879577,
-  "sha256": "d6f47afa7637c18aaa64b33cbeb3ac93385744f7f19e433939c5cbf3988b5f49",
+  "signed": "2026-10-26T09:49:16.470Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev103.apk",
+  "bytes": 429883673,
+  "sha256": "8f238593d9b40b096545331c99ab949a6f513bf506072958bfe1c85eebf0a2e8",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -37,7 +37,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": true
+    "device_installed": false
   },
   "dex_audit": {
     "schema": 1,
@@ -47,9 +47,8 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": true,
-  "phone_disconnected_by_user": false,
+  "installed": false,
+  "phone_disconnected_by_user": true,
   "one_minute_card_passed": false,
-  "release_gate_passed": false,
-  "phone_install_evidence": "ui-performance-dev102-2026-10-26.json"
+  "release_gate_passed": false
 }

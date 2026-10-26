@@ -25,6 +25,8 @@ final class MaterialTimeline {
  static long start(MaterialCatalog.Entry e){long first=Long.MAX_VALUE;for(MaterialCatalog.Segment s:e.segments)if(s.start!=null)first=Math.min(first,s.start);return first==Long.MAX_VALUE?e.startedAt:e.startedAt+first;}
  static long end(MaterialCatalog.Entry e){long last=-1;for(MaterialCatalog.Segment s:e.segments){if(s.end!=null)last=Math.max(last,s.end);else if(s.start!=null)last=Math.max(last,s.start);}return last<0?e.endedAt:Math.max(start(e),e.startedAt+last);}
 
+ static String range(MaterialCatalog.Entry e){java.time.format.DateTimeFormatter f=java.time.format.DateTimeFormatter.ofPattern("HH:mm",Locale.ROOT);return f.format(Instant.ofEpochMilli(start(e)).atZone(e.zone))+" – "+f.format(Instant.ofEpochMilli(end(e)).atZone(e.zone));}
+
  /** Each entry belongs to at most one item: the earliest official event listing it. */
  static List<Item> items(List<MaterialCatalog.Entry> entries,LifelogInsightStore.Snapshot insights,String date,String timezone){
   List<MaterialCatalog.Entry> pending=new ArrayList<>(entries);pending.sort(CHRONOLOGICAL);List<Item> items=new ArrayList<>();
