@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T11:13:47.655Z",
+  "at": "2026-10-26T07:18:57.697Z",
   "scope": "Real NewsTele control/receiver/timers, transfer/framing and TaskPrompterOwner; synthetic SDK, Android queue and JSON adapter. No phone, glass observation or recording.",
   "passed": true,
   "checks": 150,
@@ -23,7 +23,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",

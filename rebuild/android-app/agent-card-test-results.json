@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-24T11:13:58.991Z",
+  "at": "2026-10-26T07:18:54.592Z",
   "assertions": 831,
   "sources": [
     {
@@ -45,19 +45,19 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "4e0fcb365b6e159d3906d0eb98906f9d5696a5c18174c371e27923fcd674141e"
+      "sha256": "cb4f0b521e3a43ff874074426a23bf8d5cb669972c36b9afd114a200094e626e"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "7b6b8a91400910bdec0bf41385bb82d401bf83f0fa966603206175712d42dff7"
+      "sha256": "8f0e60047e71b750cda4fbd71558eba550872e844d902f423eeaa364447da973"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "0b67bb401bc3c206b5f73117099e00670779565ff674d7f88b92523d28374904"
+      "sha256": "a675adfc53a8a5d0297a9908ffe8ecaf60dde3e2e28090b9306a4c944687dfa2"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",

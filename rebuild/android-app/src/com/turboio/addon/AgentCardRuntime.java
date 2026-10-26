@@ -97,7 +97,7 @@ final class AgentCardRuntime {
  private void offer(String binding,String request,long revision,boolean automatic){offer(binding,request,revision,automatic,null);}
  /** False when the offer was refused before any work started; the reason is in message. */
  private boolean offer(String binding,String request,long revision,boolean automatic,String confirm){
-  if(!Host107Login.loggedIn()){notice(TaskWorkspace.label("OFFICIAL_LOGIN_REQUIRED"),automatic);nextAuto=now()+10000;return false;}
+  if(!Host107Login.loggedIn()){notice(TaskWorkspace.label(Host107Login.loginCode()),automatic);nextAuto=now()+10000;return false;}
   if(fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||!usable()){notice("眼镜正有操作或恢复待完成，问题保留在手机",automatic);nextAuto=now()+10000;return false;}
   fetching=true;tasks.detail(binding,"request",request,(state,error)->{
    fetching=false;snapshot=state;if(!error.isEmpty()){notice(TaskWorkspace.label(error),automatic);nextAuto=now()+10000;return;}

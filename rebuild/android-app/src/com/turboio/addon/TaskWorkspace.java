@@ -14,7 +14,7 @@ final class TaskWorkspace {
   case "PAIRING_RATE_LIMITED":return "配对尝试太多，请 10 分钟后再试";
   case "PAIRING_REVOKED":case "PAIRING_EXPIRED":return "配对已失效，请在电脑上生成新的配对码后重新配对";
   case "TASK_DEVICE_INVALID":return "服务器返回的配对凭据不完整，未保存";
-  case "unconfigured":return "尚未登记电脑连接";case "paused":case "TASK_PAUSED":return "连接已暂停";case "OFFICIAL_LOGIN_REQUIRED":return "官方账号登录已过期：打开官方 App 任一页面让它刷新后，再点刷新";
+  case "unconfigured":return "尚未登记电脑连接";case "paused":case "TASK_PAUSED":return "连接已暂停";case "OFFICIAL_LOGIN_REQUIRED":return "官方账号登录已过期：打开官方 App 任一页面让它刷新；恢复后这里会自动更新";case "OFFICIAL_LOGIN_RENEWING":return "官方登录正在自动续期，稍后自动继续";
   case "contexts_ready":return "已加载登记会话";case "contexts_updated":return "会话状态已更新";
   case "ready":return "连接已启用";case "checking":return "正在核对身份";case "sending":return "正在提交";
   case "reconciling":return "正在核对上次提交";case "received":return "已同步收件箱";case "queued":return "已保存到本机，等待提交";

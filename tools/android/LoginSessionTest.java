@@ -28,6 +28,14 @@ public final class LoginSessionTest {
   String described=Host107Login.describe(stored,now);
   check(!described.contains("secret-synthetic")&&!described.contains("refresh-synthetic")&&!described.contains("private-synthetic"));
   check(described.contains("accessLen=16")&&described.contains("until=2026-10-20T12:00:00Z")&&described.contains("refreshTokenExpireAt=1792540800")&&described.contains("keys=[token, user_info]"));
+  Map<String,Object> lapsed=new HashMap<>();lapsed.put("accessToken","synthetic-only");lapsed.put("accessTokenExpireAt","2026-10-20T12:00:00Z");
+  check(Long.valueOf(now).equals(Host107Login.renewing(lapsed,now)));check(Long.valueOf(now).equals(Host107Login.renewing(lapsed,now+Host107Login.RENEW_GRACE_MS-1)));
+  check(Host107Login.renewing(lapsed,now-1)==null);check(Host107Login.renewing(lapsed,now+Host107Login.RENEW_GRACE_MS)==null);
+  lapsed.put("refreshTokenExpireAt","2026-11-19T10:10:59Z");check(Host107Login.renewing(lapsed,now+60000)!=null);
+  lapsed.put("refreshTokenExpireAt","2026-10-20T12:00:30Z");check(Host107Login.renewing(lapsed,now+60000)==null);
+  lapsed.put("refreshTokenExpireAt","bad-expiry");check(Host107Login.renewing(lapsed,now+60000)==null);
+  lapsed.remove("refreshTokenExpireAt");lapsed.put("accessToken"," ");check(Host107Login.renewing(lapsed,now+60000)==null);
+  check(Host107Login.renewingSince(now)==null&&Host107Login.loginCode().equals("OFFICIAL_LOGIN_REQUIRED"));
   System.out.println("Login session: passed (synthetic record validity/expiry/malformed/missing stock runtime; no actual login)");
  }
  static final class InstantMillis{static final long NOW=java.time.Instant.parse("2026-10-20T12:00:00Z").toEpochMilli();}

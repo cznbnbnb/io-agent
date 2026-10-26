@@ -20,9 +20,26 @@ final class Host107Login {
    Object values=read.get(1500,TimeUnit.MILLISECONDS);return values instanceof Map?(Map<?,?>)values:null;
  }
  private static boolean validRecords(Map<?,?> values){
-   if(values==null)return false;Object token=values.get("token");if(!(token instanceof String)||((String)token).length()>16384)return false;
-   Object parsed=WireJson.read(((String)token).getBytes(StandardCharsets.UTF_8),65536,100);return parsed instanceof Map&&valid((Map<?,?>)parsed,System.currentTimeMillis());
+   Map<?,?> record=tokenRecord(values);return record!=null&&valid(record,System.currentTimeMillis());
  }
+ private static Map<?,?> tokenRecord(Map<?,?> values){
+   if(values==null)return null;Object token=values.get("token");if(!(token instanceof String)||((String)token).length()>16384)return null;
+   Object parsed=WireJson.read(((String)token).getBytes(StandardCharsets.UTF_8),65536,100);return parsed instanceof Map?(Map<?,?>)parsed:null;
+ }
+ /** The stock App renews a lapsed access token by itself (seen: 77 s after expiry, 2 h lifetime). */
+ static final long RENEW_GRACE_MS=180000;
+ /** Expiry of a stored access token that lapsed less than RENEW_GRACE_MS ago while its refresh
+  * token is still valid, so the stock App is expected to renew it; otherwise null. */
+ static Long renewingSince(long now){
+  try{Map<?,?> record=tokenRecord(records());return record==null?null:renewing(record,now);}catch(Exception unavailable){return null;}
+ }
+ static Long renewing(Map<?,?> record,long now){
+  Object access=record.get("accessToken");if(!(access instanceof String)||((String)access).trim().isEmpty())return null;
+  Long until=expiresAt(record.get("accessTokenExpireAt"));if(until==null||until>now||now-until>=RENEW_GRACE_MS)return null;
+  if(record.containsKey("refreshTokenExpireAt")){Long refresh=expiresAt(record.get("refreshTokenExpireAt"));if(refresh==null||refresh<=now)return null;}
+  return until;
+ }
+ static String loginCode(){return renewingSince(System.currentTimeMillis())!=null?"OFFICIAL_LOGIN_RENEWING":"OFFICIAL_LOGIN_REQUIRED";}
  static OfficialAccountBinding account(){
   try{Map<?,?> values=records();if(!validRecords(values)||!(values.get("user_info") instanceof String))return null;return OfficialAccountBinding.read(((String)values.get("user_info")).getBytes(StandardCharsets.UTF_8));}catch(Exception unavailable){return null;}
  }

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T09:58:35.540Z",
+  "at": "2026-10-26T07:19:03.752Z",
   "assertions": 1960,
   "kind": "JVM real atomic voice journals and answer mailbox; reflection-based official ASR boundary with ABI doubles",
   "abi": {
@@ -202,8 +202,12 @@
   },
   "sources": [
     {
+      "path": "src/com/turboio/addon/CaptureSession.java",
+      "sha256": "4a14a59a3d1ffa7e163538a06b2dde84c9725ad1d0ffacadb6ff0eb8046cf2e1"
+    },
+    {
       "path": "src/com/turboio/addon/VoiceRecoveryProof.java",
-      "sha256": "6c2393390d423e9c64e3f9d372cd8ce01eeb3ac4e0aae3381f1407e12eb78c83"
+      "sha256": "2b466a1546a4e2e6814358f72d8194558c44d496a23c7583f3d3d3f9b1617f50"
     },
     {
       "path": "src/com/turboio/addon/LifelogState.java",
@@ -215,7 +219,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerCoordinator.java",
-      "sha256": "4f817b3803a711fff2462e8af91dea82592da2b62dc9ace326b63b5928404b78"
+      "sha256": "f60e51a34e06f5678c9d42e8a6ad8438b0372865f91566e5f6f7bdb5b1bf5cc8"
     },
     {
       "path": "src/com/turboio/addon/VoiceCaptureReadiness.java",
@@ -227,7 +231,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
-      "sha256": "9a99828a4149071895c79e257595fcd23ab290bf8e1fb3b01b9667e55207b03d"
+      "sha256": "9137c4c45cbfab2f0f5dcc5ef772320dfbf414b7541be3baa6bf16aad0086d1d"
     },
     {
       "path": "src/com/turboio/addon/VoiceOption.java",
@@ -239,23 +243,23 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAudioArchive.java",
-      "sha256": "c40419a7b0397936f8718e15266b8a769aaa01a55088dba61c08acc452fc3f3e"
+      "sha256": "9f43e3e40e8810636e451d483146b7e221a5f1f58b4e7055f869acf7a949f715"
     },
     {
       "path": "src/com/turboio/addon/VoiceDraftCallbacks.java",
-      "sha256": "7fd19d213af91812860f01e2a3f5f952e274276f1563e85fc4d6a204d2feea6f"
+      "sha256": "2971eb190fb8f27d1afcde81c180a98c43eb80166d5d83edf44ccf8ea5bd8aa4"
     },
     {
       "path": "src/com/turboio/addon/RecordingVoiceSource.java",
-      "sha256": "b86599b69bcb364fc6a819c24d2c0c068ee8e7f2d2a905f36c280300759e1918"
+      "sha256": "9db26548c732a875c21ff4fc268f0aa930464aa95087a2e10564875052226b27"
     },
     {
       "path": "src/com/turboio/addon/VoiceCaptureCutoff.java",
-      "sha256": "208a7ede78d0046138a8287c8d94c16650401be7858895411ff096dd49151589"
+      "sha256": "da3f5f346e0cfae813e3ac92ef2c4569b1b90ec8bb72e370345cbf5ccc1a8cdb"
     },
     {
       "path": "src/com/turboio/addon/Host107Recording.java",
-      "sha256": "544636eb7c6d556a760d05b9de8797a443df387f82bd260563703e951ad0af7d"
+      "sha256": "d2757e8b34eca1c441ce7215496477c7f995cb84dab17ddf80af01482a72f459"
     },
     {
       "path": "src/com/turboio/addon/HostBusiness.java",
@@ -270,24 +274,32 @@
       "sha256": "6586bc340f8d4a99b9a80c861a1ed097ebf6bb31052e740f37bcce509a8bf895"
     },
     {
+      "path": "src/com/turboio/addon/TaskControl.java",
+      "sha256": "2dea8a59f9a0b513be9ce2d88ed1e39b1f9c4189cc177aca01d4319865bd6492"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskSessionDirectory.java",
+      "sha256": "9187874823587ef11f4cac565ff43f5bec8b1712fea4c604cf9426363a49fc66"
+    },
+    {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "da0acc4ef6b131fd19e0ff5c384c3a2e9c692a719256ba09dbfb5ad07a621207"
+      "sha256": "8f0e60047e71b750cda4fbd71558eba550872e844d902f423eeaa364447da973"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "4098dc8f64171a57eb6cad18c352de91fb82ee69f14395fe092461bbe6e8aefa"
+      "sha256": "cb4f0b521e3a43ff874074426a23bf8d5cb669972c36b9afd114a200094e626e"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "c2ff8a5e548f36e96b2d089618e25ace35337a0746ac43388ea0e3d5fada3bfe"
+      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "cc5e8627302a0a567feff7d39732f57a2abacc8b393faa8c617620dfae526537"
+      "sha256": "a675adfc53a8a5d0297a9908ffe8ecaf60dde3e2e28090b9306a4c944687dfa2"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
@@ -299,7 +311,7 @@
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
       "path": "src/com/turboio/addon/FixedPeerHash.java",
@@ -314,12 +326,16 @@
       "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
     },
     {
+      "path": "../../tools/android/CaptureSessionTest.java",
+      "sha256": "aac276531324ae41034945708f9be016f088e555972c69eb89f404553d65efe4"
+    },
+    {
       "path": "../../tools/android/Host107VoiceReleaseTest.java",
       "sha256": "43370ad992842f6c6bd332a0d76bcd6ebd7ad470f13edd4a4c06bca85a9716e5"
     },
     {
       "path": "../../tools/android/VoiceRecoveryProofTest.java",
-      "sha256": "656b277a52e2f46ccf7f615b51b9c52911aea18cabc67d96abc2fd53bf0ff22a"
+      "sha256": "197f1fe99e9ee71760c521ebec30305797eba66daecae9cab421c5d081fc72b7"
     },
     {
       "path": "../../tools/android/VoiceAnswerEvidenceTest.java",
@@ -343,11 +359,11 @@
     },
     {
       "path": "../../tools/android/TaskVoiceBridgeTest.java",
-      "sha256": "27c74d4d40df7a2290b82c854c284f6dbe3f4299868a94f46dbee36ddb0aaf18"
+      "sha256": "58f11a84e98860b1e8d6c7e68010d89f6622fbc134bd27b6b19f27837c3b3863"
     },
     {
       "path": "../../tools/android/VoiceAnswerTest.java",
-      "sha256": "e48f5b16a48aef2fd4ded69d377a33b6efed8241548bfc85dac6f138777122ac"
+      "sha256": "f0631e7d9a43a699f65358715cd9fa3bcb9db4f7cd8031bf227cddc5eb26c825"
     },
     {
       "path": "../../tools/android/VoiceArchiveTest.java",
@@ -359,7 +375,7 @@
     },
     {
       "path": "../../tools/android/VoiceOfficialCallbackTest.java",
-      "sha256": "cde175a20623623b7c17ccbbb3302d984491df3be31d87d87c9850af6f740ee3"
+      "sha256": "9154768198892469d41b5a73eaecf30e422a44a6e1ed33eff37a3153255a1a8e"
     },
     {
       "path": "../../tools/android/RecordingVoiceSourceTest.java",
@@ -371,7 +387,7 @@
     },
     {
       "path": "../../tools/android/Host107RecordingTest.java",
-      "sha256": "9def8e847ee74198c976bc05bf568c38be987e09c24c69154aeb4c265e8b6b89"
+      "sha256": "bf8e5c4c071ff678257f7fbd89e32ca9ca0dfb896e7775c0c25b896754616f80"
     },
     {
       "path": "../../tools/android/voice-fixtures/Ab/a.java",

@@ -69,20 +69,33 @@ final class TaskRuntime {
   if(!deviceLoaded){device=settings.loadDevice();deviceLoaded=true;if(device!=null){try{directory=settings.loadDirectory(device);}catch(Exception invalid){directory=null;directoryNote=TaskApi.safeError(invalid);}try{pendingDefault=settings.defaultRequest(device);}catch(Exception invalid){directoryNote=TaskApi.safeError(invalid);}}}
  }
  private interface Work {void run()throws Exception;}
- private void work(Work work,Result result){io.execute(()->{String error="";try{load();work.run();}catch(Exception failure){error=TaskApi.safeError(failure);note=error;}Snapshot state=snapshot();publish(state);String code=error;if(result!=null)main.post(()->result.done(state,code));});}
+ private void work(Work work,Result result){io.execute(()->{String error="";try{load();work.run();clearLoginNote();}catch(Exception failure){error=TaskApi.safeError(failure);note=error;}Snapshot state=snapshot();publish(state);String code=error;if(result!=null)main.post(()->result.done(state,code));});}
+ private void clearLoginNote(){if(note.startsWith("OFFICIAL_LOGIN_"))note="contexts_updated";}
+ /** Login check for user actions. In the minute or two after the stock access token lapses the
+  * stock App renews it by itself, so the action waits for that instead of failing at once. */
+ private void login()throws Exception{
+  if(Host107Login.loggedIn())return;
+  Long since=Host107Login.renewingSince(System.currentTimeMillis());TaskWire.require(since!=null,"OFFICIAL_LOGIN_REQUIRED");
+  final long owner=generation;note="OFFICIAL_LOGIN_RENEWING";publish(snapshot());
+  while(System.currentTimeMillis()<since+Host107Login.RENEW_GRACE_MS){
+   TaskWire.require(owner==generation&&running(),"TASK_PAUSED");Thread.sleep(1000);
+   if(Host107Login.loggedIn()){clearLoginNote();return;}
+  }
+  TaskWire.require(false,"OFFICIAL_LOGIN_REQUIRED");
+ }
  void read(Result result){work(()->{},result);schedule();}
  void reload(Result result){AgentCardRuntime.pause(null);generation++;cancelAll();work(()->{if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
  /** Retained for old callers; the current authoritative revision is still CAS checked. */
  void select(String binding,Result result){work(()->{TaskWire.require(directory!=null,"DIRECTORY_REFRESH_REQUIRED");setDefaultInternal(hub.view(binding).profile.connection.route(),directory.defaultRevision());},result);}
- void readDirectory(Result result){work(()->{refreshDirectory(System.currentTimeMillis());},result);schedule();}
+ void readDirectory(Result result){work(()->{login();refreshDirectory(System.currentTimeMillis());},result);schedule();}
  void ensureTarget(Map<String,Object> route,Result result){final Map<String,Object> frozen=TaskSessionDirectory.route(route);work(()->{
-  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(directory!=null&&directory.find(frozen)!=null,"DIRECTORY_TARGET_MISSING");
+  login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(directory!=null&&directory.find(frozen)!=null,"DIRECTORY_TARGET_MISSING");
   if(settings.ensureSession(device,frozen,System.currentTimeMillis()))rebuild();
  },result);}
  void setDefault(Map<String,Object> route,long expectedRevision,Result result){final Map<String,Object> frozen=route==null?null:TaskSessionDirectory.route(route);work(()->setDefaultInternal(frozen,expectedRevision),result);schedule();}
  void retryDefault(Result result){work(()->{TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");Map<String,Object> request=settings.defaultRequest(device);TaskWire.require(request!=null,"DIRECTORY_DEFAULT_MISSING");setDefaultInternal(request.get("route")==null?null:TaskSessionDirectory.route(request.get("route")),TaskWire.nonnegative(request.get("expected_revision")));},result);}
  private void setDefaultInternal(Map<String,Object> route,long expectedRevision)throws Exception{
-  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(device.expiresAt>System.currentTimeMillis(),"PAIRING_EXPIRED");
+  login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(device.expiresAt>System.currentTimeMillis(),"PAIRING_EXPIRED");
   Map<String,Object> request=settings.defaultRequest(device);
   if(request==null){refreshDirectory(System.currentTimeMillis());TaskWire.require(directory.defaultRevision()==expectedRevision,"DEFAULT_REVISION_CONFLICT");if(route!=null){directory.requireExecutable(route,TaskSessionDirectory.elapsed());if(settings.ensureSession(device,route,System.currentTimeMillis()))rebuild();}
    request=WireJson.object("request_id",UUID.randomUUID().toString(),"expected_revision",expectedRevision,"route",route);settings.saveDefaultRequest(device,request);
@@ -95,8 +108,9 @@ final class TaskRuntime {
    settings.clearDefaultRequest();pendingDefault=null;
   }catch(Exception failure){if(TaskSessionDirectory.defaultFailureResolved(failure.getMessage())){settings.clearDefaultRequest();pendingDefault=null;}throw failure;}
  }
+ // Also reached from the background tick, which must never wait for a renewal.
  private void refreshDirectory(long now)throws Exception{
-  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
+  if(!Host107Login.loggedIn())TaskWire.require(false,Host107Login.loginCode());TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
   try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;directoryNote="";nextDirectory=now+15000;
    Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
   }catch(Exception failure){directoryNote=TaskApi.safeError(failure);nextDirectory=now+15000;throw failure;}
@@ -111,13 +125,13 @@ final class TaskRuntime {
  void resume(String binding,Result result){
   final long owner=generation;
   work(()->{
-   TaskWire.require(owner==generation&&running(),"TASK_PAUSED");TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");
+   TaskWire.require(owner==generation&&running(),"TASK_PAUSED");login();
    TaskProfiles current=settings.loadAll();TaskProfiles.Profile profile=current.get(binding);
    TaskWire.require(Arrays.equals(current.encode(),hub.profiles().encode()),"TASK_TARGET_CHANGED");
    TaskHttp probe=new TaskHttp(profile.connection);
    try{
     new TaskApi(profile.connection,probe).preflight(System.currentTimeMillis());
-    TaskWire.require(owner==generation&&running(),"TASK_PAUSED");TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");
+    TaskWire.require(owner==generation&&running(),"TASK_PAUSED");login();
     settings.resume(current,binding);hub.apply(settings.loadAll());enabled.add(binding);note="contexts_ready";
    }finally{probe.cancel();}
   },result);schedule();
@@ -125,9 +139,8 @@ final class TaskRuntime {
  /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
   * hub, whose channel set must match the profiles; mailbox files stay on disk. */
  void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{TaskWire.require(!binding.equals(snapshot().defaultBinding),"TASK_TARGET_SELECTED");settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
- // An expired stock access token is not a paused connection; the stock App refreshes it on its next request.
- void refresh(Result result){work(()->{TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
- private void bound(String binding){TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
+ void refresh(Result result){work(()->{login();hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
+ private void bound(String binding)throws Exception{login();TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
  void detail(String binding,String kind,String id,Result result){work(()->{bound(binding);hub.detail(binding,kind,id,System.currentTimeMillis());},result);}
  void delegate(String binding,String operation,String command,Result result){work(()->{bound(binding);hub.delegate(binding,operation,command,System.currentTimeMillis());},result);schedule();}
  void taskControl(String binding,String operation,String task,Map<String,Object> expected,String kind,String text,long expires,Result result){
@@ -163,7 +176,7 @@ final class TaskRuntime {
  }
  private void rebuild()throws Exception{generation++;cancelAll();if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();}
  void pair(String code,Result result){work(()->{
-  TaskWire.require(Host107Login.loggedIn(),"OFFICIAL_LOGIN_REQUIRED");long now=System.currentTimeMillis();
+  login();long now=System.currentTimeMillis();
   TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;directory=null;pendingDefault=null;pairing="";nextDiscovery=0;nextDirectory=0;device(now);note="contexts_ready";
  },result);schedule();}
  /** Unpairs this phone on the server, forgets the credential and pauses the derived connections. */
@@ -172,7 +185,7 @@ final class TaskRuntime {
   device=null;deviceLoaded=true;directory=null;pendingDefault=null;settings.clearDefaultRequest();directoryNote="DIRECTORY_PAIRING_REQUIRED";pairing="";rebuild();note="contexts_ready";
  },result);}
  private final Runnable tick=()->{
-  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
+  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
  private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }

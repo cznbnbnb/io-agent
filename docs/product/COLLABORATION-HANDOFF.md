@@ -1,3 +1,9 @@
+## [claude] 2026-10-26 dev99：登录误报修复——恢复即清除横幅，到期窗口内的操作等原厂续期
+
+dev99 /10521（回退 dev97；dev98 已移入废纸篓）。`TaskRuntime`：`work()` 成功、后台 tick 看到登录有效时，清除 `OFFICIAL_LOGIN_*` 粘滞 note，横幅自动消失。用户操作（委托、控制、详情、配对、默认、恢复、刷新、读目录）改用 `login()`：令牌已到期但不足 `Host107Login.RENEW_GRACE_MS`（180 秒）、且 refreshToken 仍有效时，显示“官方登录正在自动续期，稍后自动继续”，每秒检查，续期后继续执行；超时、generation 变化或进入后台则照旧失败。后台 tick 走的 `refreshDirectory` 只做不等待的检查。卡片拉取在续期窗口内显示续期文案，10 秒后照旧重试。另发现冷启动时原厂引擎未就绪会读到 `records=unavailable` 并被判为过期，现在同样会在恢复后自动清除。
+
+测试：LoginSessionTest 续期窗口边界（精简 JVM 编译，完整 test-login 在 main 上原本就编译失败）；agent-card 831、task-control 88、task-device 28、task-directory 35、task-presentation 37、task-prompter 150、voice 1960 全部通过（改前改后都通过）。真机：dev99 已装，登录有效，横幅不出现。到期窗口真机验证待 17:02 令牌到期时做。
+
 ## [claude] 2026-10-26 智记 AI 总结、分时段与位置的真实结构（只读日志结构检查）
 
 为资料页改版（设计稿：AI 总结 + 分时段 + 位置地图）确认原厂数据。新增 `tools/android/LifelogDetailShapeProbe.java` 与 `run-lifelog-detail-shape-probe.mjs`：测试驱动在 dev98 宿主进程内只读扫描原厂自己的 `app_flutter/appLog`，只导出路由模板、字段名、类型、字符数和粗格式（不导出文本、编号、坐标值），0 次网络请求；报告取回后已删除手机副本并卸载驱动。报告 `rebuild/android-app/lifelog-detail-shape-2026-10-26.json`（扫描 19/159 个日志、最近 15 小时）。
