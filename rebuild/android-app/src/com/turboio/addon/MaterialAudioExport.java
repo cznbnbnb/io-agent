@@ -16,6 +16,24 @@ public final class MaterialAudioExport extends Fragment {
  static void save(Activity activity,String account,MaterialCatalog.Entry entry){if(!preparing.compareAndSet(false,true)){Toast.makeText(activity,"正在准备原音…",Toast.LENGTH_SHORT).show();return;}Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在整理已保存的原音片段…",Toast.LENGTH_SHORT).show();
   LifelogAudioRuntime.freeze(account,entry.id,(sessions,archives,error)->{if(!error.isEmpty()){preparing.set(false);notice(host,label(error));return;}IO.execute(()->{LifelogAudioExport.Draft draft=null;try{draft=LifelogAudioExport.prepare(app.getFilesDir(),app.getCacheDir(),account,entry.id,sessions,archives,Host107OpusFileDecoder::new,()->LifelogAudioRuntime.account(account),System.currentTimeMillis());LifelogAudioExport.Draft ready=draft;String path=ExportDestination.write(app,ready.title,"application/zip",out->LifelogAudioExport.copy(ready,out,()->LifelogAudioRuntime.account(account)));notice(host,"原音已保存到 "+path+"，解压后即可播放");}catch(Exception failed){notice(host,label(failed.getMessage()==null?"":failed.getMessage()));}finally{if(draft!=null)cleanup(app,draft.id);preparing.set(false);}});});
  }
+ /** Several parts, one after another, each saved as its own ZIP; one notice at the end. */
+ static void saveAll(Activity activity,String account,java.util.List<MaterialCatalog.Entry> entries){
+  if(entries.isEmpty())return;if(entries.size()==1){save(activity,account,entries.get(0));return;}
+  if(!preparing.compareAndSet(false,true)){Toast.makeText(activity,"正在准备原音…",Toast.LENGTH_SHORT).show();return;}
+  Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在整理 "+entries.size()+" 段原音…",Toast.LENGTH_SHORT).show();
+  int[] index={0},saved={0};java.util.Set<String> reasons=new java.util.LinkedHashSet<>();int[] failed={0};Runnable[] next={null};
+  next[0]=()->{
+   if(index[0]>=entries.size()){preparing.set(false);notice(host,(saved[0]>0?"已保存 "+saved[0]+" 段原音到 "+ExportDestination.label(app)+"，解压后即可播放":"没有保存原音")+(failed[0]>0?"；"+failed[0]+" 段未导出："+String.join("、",reasons):""));return;}
+   MaterialCatalog.Entry entry=entries.get(index[0]++);
+   LifelogAudioRuntime.freeze(account,entry.id,(sessions,archives,error)->{
+    if(!error.isEmpty()){failed[0]++;reasons.add(label(error));MAIN.post(next[0]);return;}
+    IO.execute(()->{LifelogAudioExport.Draft draft=null;try{draft=LifelogAudioExport.prepare(app.getFilesDir(),app.getCacheDir(),account,entry.id,sessions,archives,Host107OpusFileDecoder::new,()->LifelogAudioRuntime.account(account),System.currentTimeMillis());LifelogAudioExport.Draft ready=draft;ExportDestination.write(app,ready.title,"application/zip",out->LifelogAudioExport.copy(ready,out,()->LifelogAudioRuntime.account(account)));saved[0]++;}
+     catch(Exception f){failed[0]++;reasons.add(label(f.getMessage()==null?"":f.getMessage()));}
+     finally{if(draft!=null)cleanup(app,draft.id);MAIN.post(next[0]);}});
+   });
+  };
+  next[0].run();
+ }
  @Override public void onCreate(Bundle state){super.onCreate(state);setRetainInstance(true);if(state!=null){launched=state.getBoolean("launched");finished=state.getBoolean("finished");pendingUri=state.getString("pending_uri");persistedFlags=state.getInt("persisted_flags");completion=state.getString("completion");}}
  @Override public void onSaveInstanceState(Bundle state){state.putBoolean("launched",launched);state.putBoolean("finished",finished);state.putString("pending_uri",pendingUri);state.putInt("persisted_flags",persistedFlags);state.putString("completion",completion);super.onSaveInstanceState(state);}
  @Override public void onActivityCreated(Bundle state){super.onActivityCreated(state);if(finished){deliver();return;}if(getArguments()==null){finish("导出准备已失效，请重新选择导出");return;}if(working)return;if(pendingUri!=null){write(Uri.parse(pendingUri));return;}preparePicker();}

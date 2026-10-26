@@ -12,7 +12,20 @@ public final class MaterialDocumentExport extends Fragment {
  static void summary(Activity activity,String account,MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event){summary(activity,account,entry,event,false);}
  static void summary(Activity activity,String account,MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event,boolean whole){
   Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在保存摘要文档…",Toast.LENGTH_SHORT).show();
-  IO.execute(()->{try{OfficialAccountBinding current=Host107Login.account();MaterialWire.require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");byte[] bytes=MaterialDocument.summary(entry,event,MaterialDocument.Format.DOCX,whole);MaterialWire.require(bytes.length<=MaterialExportCache.MAX_BYTES,"MATERIAL_EXPORT_BUDGET");String path=ExportDestination.write(app,MaterialDocument.filename(entry,MaterialDocument.Format.DOCX).replace("iO-","iO-摘要-"),MaterialDocument.Format.DOCX.mime,out->{OfficialAccountBinding fresh=Host107Login.account();MaterialWire.require(fresh!=null&&account.equals(fresh.binding),"OFFICIAL_ACCOUNT_CHANGED");out.write(bytes);});notify(host,"已保存到 "+path);}catch(Exception failed){notify(host,"MATERIAL_SUMMARY_UNAVAILABLE".equals(failed.getMessage())?"原厂尚未生成这条记录的 AI 总结":"保存失败，请检查默认保存位置后重试");}});
+  IO.execute(()->{try{notify(host,"已保存到 "+writeSummary(app,account,entry,event,whole));}catch(Exception failed){notify(host,"MATERIAL_SUMMARY_UNAVAILABLE".equals(failed.getMessage())?"原厂尚未生成这条记录的 AI 总结":"保存失败，请检查默认保存位置后重试");}});
+ }
+ private static String writeSummary(Context app,String account,MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event,boolean whole)throws Exception{
+  OfficialAccountBinding current=Host107Login.account();MaterialWire.require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");byte[] bytes=MaterialDocument.summary(entry,event,MaterialDocument.Format.DOCX,whole);MaterialWire.require(bytes.length<=MaterialExportCache.MAX_BYTES,"MATERIAL_EXPORT_BUDGET");
+  return ExportDestination.write(app,MaterialDocument.filename(entry,MaterialDocument.Format.DOCX).replace("iO-","iO-摘要-"),MaterialDocument.Format.DOCX.mime,out->{OfficialAccountBinding fresh=Host107Login.account();MaterialWire.require(fresh!=null&&account.equals(fresh.binding),"OFFICIAL_ACCOUNT_CHANGED");out.write(bytes);});
+ }
+ /** One summary document: a whole official event, or one part of it. */
+ static final class Job {final MaterialCatalog.Entry entry;final OfficialLifelogInsight.Event event;final boolean whole;Job(MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event,boolean whole){this.entry=entry;this.event=event;this.whole=whole;}}
+ /** Several documents in one background pass, reported once. */
+ static void summaries(Activity activity,String account,java.util.List<Job> jobs){
+  if(jobs.isEmpty())return;if(jobs.size()==1){Job j=jobs.get(0);summary(activity,account,j.entry,j.event,j.whole);return;}
+  Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在保存 "+jobs.size()+" 份摘要文档…",Toast.LENGTH_SHORT).show();
+  IO.execute(()->{int saved=0,missing=0,failed=0;for(Job j:jobs){try{writeSummary(app,account,j.entry,j.event,j.whole);saved++;}catch(Exception f){if("MATERIAL_SUMMARY_UNAVAILABLE".equals(f.getMessage()))missing++;else failed++;}}
+   notify(host,(saved>0?"已保存 "+saved+" 份摘要文档到 "+ExportDestination.label(app):"没有保存文档")+(missing>0?"；"+missing+" 份原厂尚未生成 AI 总结":"")+(failed>0?"；"+failed+" 份保存失败，请检查保存位置":""));});
  }
  static void save(Activity activity,String account,MaterialCatalog.Entry entry,MaterialDocument.Format format){
   Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在准备文档…",Toast.LENGTH_SHORT).show();
