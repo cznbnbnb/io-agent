@@ -19,6 +19,7 @@
  <instrumentation android:name="com.turboio.androidtests.RecordingArchiveProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.VoiceChannelProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.LifelogLogShapeProbe" android:targetPackage="com.rayneo.venus.pub" />
+ <instrumentation android:name="com.turboio.androidtests.LifelogDetailShapeProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.MaterialSettingsProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.MaterialCloudProbe" android:targetPackage="com.rayneo.venus.pub" />
  <instrumentation android:name="com.turboio.androidtests.FormalMaterialAuditProbe" android:targetPackage="com.rayneo.venus.pub" />
