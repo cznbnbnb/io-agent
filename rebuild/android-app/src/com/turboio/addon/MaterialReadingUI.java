@@ -23,11 +23,11 @@ final class MaterialReadingUI {
  /** A row that pages on a sideways swipe while taps still reach its children. */
  static final class SwipeRow extends LinearLayout {
   interface Pager{void page(int direction);}
-  private final Pager pager;private final int slop,distance;private float downX,downY;private boolean dragging;
+  private final Pager pager;private final int slop,distance;private float downX,downY;private boolean dragging,vertical;
   SwipeRow(Activity a,Pager pager){super(a);this.pager=pager;slop=ViewConfiguration.get(a).getScaledTouchSlop();distance=AgentUI.dp(a,48);}
   @Override public boolean onInterceptTouchEvent(MotionEvent e){
-   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){downX=e.getX();downY=e.getY();dragging=false;return false;}
-   if(e.getActionMasked()==MotionEvent.ACTION_MOVE){float dx=e.getX()-downX,dy=e.getY()-downY;if(Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.5f){dragging=true;getParent().requestDisallowInterceptTouchEvent(true);return true;}}
+   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){downX=e.getX();downY=e.getY();dragging=vertical=false;animate().cancel();setTranslationX(0);return false;}
+   if(e.getActionMasked()==MotionEvent.ACTION_MOVE){float dx=e.getX()-downX,dy=e.getY()-downY;if(vertical)return false;if(Math.abs(dy)>slop&&Math.abs(dy)>=Math.abs(dx)){vertical=true;return false;}if(Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.5f){dragging=true;getParent().requestDisallowInterceptTouchEvent(true);return true;}}
    return false;
   }
   @Override public boolean onTouchEvent(MotionEvent e){
@@ -35,8 +35,8 @@ final class MaterialReadingUI {
    switch(e.getActionMasked()){
     case MotionEvent.ACTION_DOWN:downX=e.getX();downY=e.getY();return true;
     case MotionEvent.ACTION_MOVE:if(dragging)setTranslationX(dx*0.35f);return true;
-    case MotionEvent.ACTION_UP:animate().translationX(0).setDuration(120).start();if(dragging&&Math.abs(dx)>=distance)pager.page(dx<0?1:-1);dragging=false;return true;
-    case MotionEvent.ACTION_CANCEL:animate().translationX(0).setDuration(120).start();dragging=false;return true;
+    case MotionEvent.ACTION_UP:animate().translationX(0).setDuration(120).start();if(dragging&&Math.abs(dx)>=distance)pager.page(dx<0?1:-1);dragging=false;getParent().requestDisallowInterceptTouchEvent(false);return true;
+    case MotionEvent.ACTION_CANCEL:animate().translationX(0).setDuration(120).start();dragging=false;getParent().requestDisallowInterceptTouchEvent(false);return true;
     default:return true;
    }
   }
@@ -66,6 +66,9 @@ final class MaterialReadingUI {
     case "pin":p.moveTo(12,21);p.cubicTo(12,21,5,14.8f,5,9.5f);p.arcTo(new RectF(5,2.5f,19,16.5f),180,180);p.cubicTo(19,14.8f,12,21,12,21);p.addCircle(12,9.5f,2.5f,Path.Direction.CW);break;
     case "spark":p.moveTo(12,3);p.lineTo(13.8f,7.7f);p.lineTo(18.5f,9.5f);p.lineTo(13.8f,11.3f);p.lineTo(12,16);p.lineTo(10.2f,11.3f);p.lineTo(5.5f,9.5f);p.lineTo(10.2f,7.7f);p.close();p.moveTo(19,15);p.lineTo(19.8f,17.2f);p.lineTo(22,18);p.lineTo(19.8f,18.8f);p.lineTo(19,21);p.lineTo(18.2f,18.8f);p.lineTo(16,18);p.lineTo(18.2f,17.2f);p.close();break;
     case "export":p.moveTo(12,15);p.lineTo(12,3);p.moveTo(7,8);p.lineTo(12,3);p.lineTo(17,8);p.moveTo(5,14);p.lineTo(5,19);p.quadTo(5,21,7,21);p.lineTo(17,21);p.quadTo(19,21,19,19);p.lineTo(19,14);break;
+    case "trash":p.moveTo(4,6);p.lineTo(20,6);p.moveTo(9,6);p.lineTo(9,3);p.lineTo(15,3);p.lineTo(15,6);p.moveTo(6,6);p.lineTo(7,21);p.lineTo(17,21);p.lineTo(18,6);p.moveTo(10,10);p.lineTo(10,17);p.moveTo(14,10);p.lineTo(14,17);break;
+    case "audio":p.moveTo(4,10);p.lineTo(4,14);p.moveTo(8,6);p.lineTo(8,18);p.moveTo(12,3);p.lineTo(12,21);p.moveTo(16,7);p.lineTo(16,17);p.moveTo(20,10);p.lineTo(20,14);break;
+    case "document":p.moveTo(5,3);p.lineTo(14,3);p.lineTo(19,8);p.lineTo(19,21);p.lineTo(5,21);p.close();p.moveTo(14,3);p.lineTo(14,8);p.lineTo(19,8);p.moveTo(8,12);p.lineTo(16,12);p.moveTo(8,16);p.lineTo(16,16);break;
     case "check":p.moveTo(5,12.5f);p.lineTo(10,17);p.lineTo(19,7.5f);break;
     case "alert":p.moveTo(12,6.5f);p.lineTo(12,13.5f);p.moveTo(12,17.5f);p.lineTo(12,17.6f);break;
     case "arc":p.addArc(new RectF(4,4,20,20),-90,250);break;

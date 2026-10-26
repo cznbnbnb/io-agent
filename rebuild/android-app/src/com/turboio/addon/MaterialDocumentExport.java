@@ -9,6 +9,11 @@ public final class MaterialDocumentExport extends Fragment {
  private static final ExecutorService IO=Executors.newSingleThreadExecutor();
  private static final Handler MAIN=new Handler(Looper.getMainLooper());
  private boolean launched,finished,working;private String pendingUri,completion;private int persistedFlags;
+ static void summary(Activity activity,String account,MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event){summary(activity,account,entry,event,false);}
+ static void summary(Activity activity,String account,MaterialCatalog.Entry entry,OfficialLifelogInsight.Event event,boolean whole){
+  Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在保存摘要文档…",Toast.LENGTH_SHORT).show();
+  IO.execute(()->{try{OfficialAccountBinding current=Host107Login.account();MaterialWire.require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");byte[] bytes=MaterialDocument.summary(entry,event,MaterialDocument.Format.DOCX,whole);MaterialWire.require(bytes.length<=MaterialExportCache.MAX_BYTES,"MATERIAL_EXPORT_BUDGET");String path=ExportDestination.write(app,MaterialDocument.filename(entry,MaterialDocument.Format.DOCX).replace("iO-","iO-摘要-"),MaterialDocument.Format.DOCX.mime,out->{OfficialAccountBinding fresh=Host107Login.account();MaterialWire.require(fresh!=null&&account.equals(fresh.binding),"OFFICIAL_ACCOUNT_CHANGED");out.write(bytes);});notify(host,"已保存到 "+path);}catch(Exception failed){notify(host,"MATERIAL_SUMMARY_UNAVAILABLE".equals(failed.getMessage())?"原厂尚未生成这条记录的 AI 总结":"保存失败，请检查默认保存位置后重试");}});
+ }
  static void save(Activity activity,String account,MaterialCatalog.Entry entry,MaterialDocument.Format format){
   Context app=activity.getApplicationContext();WeakReference<Activity> host=new WeakReference<>(activity);Toast.makeText(activity,"正在准备文档…",Toast.LENGTH_SHORT).show();
   IO.execute(()->{MaterialExportCache.Draft draft=null;try{OfficialAccountBinding current=Host107Login.account();MaterialWire.require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");draft=MaterialExportCache.prepare(app.getCacheDir(),account,entry,format,System.currentTimeMillis());}catch(Exception failed){notify(host,"文档准备失败，请重新打开资料后重试");}

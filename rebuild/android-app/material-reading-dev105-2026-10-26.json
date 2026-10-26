@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T10:52:48.419534+00:00",
+  "merged_claude": "a7bae3d",
+  "candidate": {
+    "version": "0.5.3-dev105",
+    "code": 10527,
+    "sha256": "c7c436af2b2090d420945fd7265b37fde173ef659ce285b3abc711590c6eed0c",
+    "installed": true
+  },
+  "phone": {
+    "version": "0.5.3-dev105",
+    "code": 10527,
+    "sha256": "c7c436af2b2090d420945fd7265b37fde173ef659ce285b3abc711590c6eed0c",
+    "delta_bytes": 1613125,
+    "baseline_reconstruction_and_installed_hash_verified": true
+  },
+  "tests": {
+    "daily_summary_and_schedule_checks": 29,
+    "material_visibility_checks": 8,
+    "summary_document_checks": 35,
+    "local_library_checks": 40,
+    "insight_and_current_day_event_checks": 20,
+    "existing_http_sqlite_and_daily_summary_http": "passed",
+    "device_synthetic_export_and_gesture_checks": 13,
+    "device_synthetic_files_cleaned": true,
+    "device_probe_version": "dev104",
+    "initial_gesture_probe": "Single MOVE was consumed by Android child cancellation; corrected fixture supplies the next MOVE. Production code unchanged by that test correction."
+  },
+  "official_daily_contract": {
+    "read_only": true,
+    "requests": 1,
+    "daily_count": 3,
+    "parser_accepted": 3,
+    "raw_text_exported": false
+  },
+  "deletion_contract": {
+    "source": "pinned original 1.0.7 /230 ARM64 AOT offline disassembly",
+    "libapp_sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c",
+    "method": "DELETE",
+    "path": "/lifelog/api/v1/events/{event_id}?deleteType=event",
+    "body": null,
+    "routine_address": "0x29c1a90",
+    "single_event_may_contain_multiple_sources": true,
+    "actual_user_deletion_performed": false,
+    "after_ack": "two matching authenticated day lists with full source membership, then local view update; no source tombstone"
+  },
+  "product_scope": {
+    "server_upload": "daily AI summary only",
+    "transcript_audio": "phone only; App export",
+    "agent_phone_file_download": false,
+    "debug_network_used_as_product_channel": false,
+    "historical_server_data_deleted": false,
+    "latest_journal_days": 3
+  },
+  "pending": [
+    "subjective rapid reverse-scroll feel",
+    "real deletion of a user-selected disposable event, not tested on real records",
+    "formal daily-summary upload: prior 24-hour credential expired, renewal question pending"
+  ],
+  "candidate_source_verified": true,
+  "public_server_touched_this_batch": false,
+  "glasses_push_or_capture": false,
+  "rollback": "dev104",
+  "normal_ui": {
+    "default_collapsed": true,
+    "right_swipe_three_actions": true,
+    "delete_scope_dialog_5_segments_cancelled": true,
+    "saf_select_IO_folder": true,
+    "restore_default_folder": true,
+    "document_export": {
+      "filename": "iO-摘要-20261026-0849-7ab827db.docx",
+      "bytes": 2813,
+      "sha256": "f9be1383c0d8d1545b2d8ff1180c3175e1f9f7bd8214c4a2b9b876d27d4ce589",
+      "valid_docx": true,
+      "has_time": true,
+      "has_topic_label": true,
+      "has_ai_summary": true,
+      "has_timeline": true,
+      "export_route": "normal UI, SAF selected IO 文档",
+      "record_text_copied_to_repo": false
+    },
+    "local_audio_export": {
+      "bytes": 1812795,
+      "sha256": "2e8a4f89415169239c06a5ad29816ba1851a650cc8f99fa38eeb40564cf33428",
+      "valid_zip": true,
+      "entries": 4,
+      "has_ogg": false,
+      "normal_ui_local_audio_export": true,
+      "scope": "existing phone-captured fragment; no new recording or cloud upload",
+      "audio_extensions": [
+        ".opus",
+        ".opus"
+      ],
+      "audio_headers": [
+        "4f6767530002000000000000",
+        "4f6767530002000000000000"
+      ]
+    },
+    "rapid_alternating_swipes": 12,
+    "frames_rendered": 210,
+    "janky_frames": 2,
+    "p95_frame_ms": 11,
+    "subjective_finger_tracking_verified": false,
+    "source_read_updated_from_9_to_10_records": true
+  },
+  "retained_apks": [
+    "dev105",
+    "dev104"
+  ],
+  "device_lock": "released",
+  "diagnostic_driver_removed": true,
+  "device_temporary_apks_removed": true
+}

@@ -53,7 +53,7 @@ public final class LifelogDetailShapeProbe extends Instrumentation {
   StringBuilder out=new StringBuilder();for(String seg:path.split("/")){if(seg.isEmpty())continue;out.append('/');out.append(seg.matches("[A-Za-z_-]{1,40}")||seg.matches("v[0-9]{1,2}")?seg:":id");}
   return out.length()==0?"/":out.toString();
  }
- private static final class Route {int lines,bodies,invalid;final Node shape=new Node();}
+ private static final class Route {int lines,bodies,invalid,requests;final Node shape=new Node(),request=new Node();final TreeSet<String> enums=new TreeSet<>();}
 
  @Override public void onCreate(Bundle arguments){super.onCreate(arguments);args=arguments;start();}
  @Override public void onStart(){Bundle done=new Bundle();try{
@@ -69,6 +69,8 @@ public final class LifelogDetailShapeProbe extends Instrumentation {
      if(!discard&&line.size()>0){String text=new String(line.toByteArray(),StandardCharsets.UTF_8);Matcher m=REQUEST.matcher(text);
       if(m.find()){String host=m.group(2);boolean official=host.endsWith("rayneo.cn")||host.endsWith("rayneo.com");if(!official)otherHosts++;else if(routes.size()<MAX_ROUTES||routes.containsKey(m.group(1)+" "+route(m.group(3)))){
        String key=m.group(1)+" "+route(m.group(3));Route r=routes.computeIfAbsent(key,k->new Route());r.lines++;
+       for(String marker:new String[]{"request body:","request data:"}){int pos=text.indexOf(marker);if(pos>=0&&(key.contains("/journal/")||key.startsWith("DELETE "))){String requestJson=text.substring(pos+marker.length()).trim();try{Object request=requestJson.startsWith("[")?new JSONArray(requestJson):new JSONObject(requestJson);r.requests++;r.request.add(request,0);}catch(JSONException ignored){}}}
+       if(key.contains("/journal/")||key.startsWith("DELETE ")){Matcher enumValue=Pattern.compile("\"(periodType|mode|deleteType)\"\\s*:\\s*(?:\"(daily|weekly|monthly|day|week|month|DAILY|WEEKLY|MONTHLY|standard|normal|auto|manual)\"|([0-9])(?=[,}]))").matcher(text);while(enumValue.find())r.enums.add(enumValue.group(1)+"="+(enumValue.group(2)==null?enumValue.group(3):enumValue.group(2)));}
        int body=text.indexOf("response body:");if(body>=0&&INTEREST.matcher(key).find()){String json=text.substring(body+"response body:".length()).trim();try{Object value=json.startsWith("[")?new JSONArray(json):new JSONObject(json);r.bodies++;r.shape.add(value,0);}catch(JSONException bad){r.invalid++;}}
       }}
      }
@@ -76,7 +78,7 @@ public final class LifelogDetailShapeProbe extends Instrumentation {
     }
    }}
   }
-  JSONObject list=new JSONObject();for(Map.Entry<String,Route> e:routes.entrySet()){Route r=e.getValue();JSONObject row=new JSONObject().put("log_lines",r.lines).put("response_bodies",r.bodies);if(r.invalid>0)row.put("unparsed_bodies",r.invalid);if(r.bodies>0)row.put("shape",r.shape.json());list.put(e.getKey(),row);}
+  JSONObject list=new JSONObject();for(Map.Entry<String,Route> e:routes.entrySet()){Route r=e.getValue();JSONObject row=new JSONObject().put("log_lines",r.lines).put("response_bodies",r.bodies);if(r.invalid>0)row.put("unparsed_bodies",r.invalid);if(r.bodies>0)row.put("shape",r.shape.json());if(r.requests>0)row.put("request_shape",r.request.json()).put("request_bodies",r.requests);if(!r.enums.isEmpty())row.put("known_contract_enums",new JSONArray(r.enums));list.put(e.getKey(),row);}
   JSONObject report=new JSONObject().put("schema",1).put("probe_id",nonce).put("read_only",true).put("network_requests",0).put("text_or_identifiers_exported",false)
    .put("log_files",files.size()).put("examined_files",examined).put("scanned_bytes",total).put("oversized_lines",oversized).put("other_host_lines",otherHosts)
    .put("newest_log_age_hours",newest==0?-1:(System.currentTimeMillis()-newest)/3600000).put("oldest_examined_log_age_hours",oldest==Long.MAX_VALUE?-1:(System.currentTimeMillis()-oldest)/3600000).put("routes",list);

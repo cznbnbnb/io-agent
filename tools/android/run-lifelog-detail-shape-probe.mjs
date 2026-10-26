@@ -6,7 +6,7 @@ import {exe} from './host-tools.mjs';
 const root=path.resolve('rebuild/android-app'),adb=path.join(root,'.tools/sdk/platform-tools',exe('adb')),pkg='com.rayneo.venus.pub',driver='com.turboio.androidtests';
 const serial=process.env.ANDROID_SERIAL||'bae62ca9',apk=path.join(root,'build/emulator-input/emulator-input.apk');
 const output='/sdcard/Android/data/'+pkg+'/files/io-agent-lifelog-detail-shape.json',nonce=crypto.randomBytes(16).toString('hex');
-const destination=path.join(root,'lifelog-detail-shape-'+new Date().toISOString().slice(0,10)+'.json');
+const destination=path.join(root,'lifelog-contract-shape-'+new Date().toISOString().slice(0,10)+'.json');
 function call(args,timeout=15000){const r=spawnSync(adb,['-s',serial,...args],{encoding:'utf8',timeout,maxBuffer:8<<20,windowsHide:true});if(r.error)throw Error('ADB_EXEC_'+(r.error.code||'FAILED'));return r;}
 if(!/^package:/m.test(call(['shell','pm','path',pkg]).stdout))throw Error('HOST_NOT_INSTALLED');
 if(/^package:/m.test(call(['shell','pm','path',driver]).stdout))throw Error('DIAGNOSTIC_DRIVER_ALREADY_PRESENT');

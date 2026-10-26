@@ -15,6 +15,8 @@ final class LifelogInsightStore implements AutoCloseable {
   OfficialLifelogInsight.Day day(String date,String timezone){return days.get(date+"\n"+timezone);}
   /** The official event that lists this material as one of its sources. */
   OfficialLifelogInsight.Event eventFor(String materialId){for(OfficialLifelogInsight.Day day:days.values())for(OfficialLifelogInsight.Event event:day.events)if(materialIds(event).contains(materialId))return event;return null;}
+  /** Mutating/export actions must use the same day as the visible timeline. */
+  OfficialLifelogInsight.Event eventFor(String materialId,String date,String timezone){OfficialLifelogInsight.Day day=day(date,timezone);if(day!=null)for(OfficialLifelogInsight.Event event:day.events)if(materialIds(event).contains(materialId))return event;return null;}
   Set<String> materialIds(OfficialLifelogInsight.Event event){Set<String> ids=new HashSet<>();for(String ref:event.refs){int slash=ref.indexOf('/');if(slash>0)ids.add(OfficialLifelogSnapshot.materialId(account,ref.substring(0,slash),ref.substring(slash+1)));}return ids;}
   /** Trail points recorded during [from, to] on any retained day. */
   List<OfficialLifelogInsight.Point> trail(long from,long to){List<OfficialLifelogInsight.Point> found=new ArrayList<>();Set<Long> seen=new HashSet<>();for(OfficialLifelogInsight.Day day:days.values())for(OfficialLifelogInsight.Point p:day.trail){boolean during=p.at>=from&&p.at<=to||p.stay()&&p.stayStart<=to&&p.stayEnd>=from;if(during&&seen.add(p.at))found.add(p);}found.sort(Comparator.comparingLong(p->p.at));return found;}
@@ -33,7 +35,7 @@ final class LifelogInsightStore implements AutoCloseable {
  synchronized void record(List<OfficialLifelogInsight.Day> fresh,MaterialLocalLibrary.Guard guard)throws Exception{
   MaterialWire.require(!closed,"MATERIAL_LOCAL_CLOSED");MaterialWire.require(guard!=null&&account.equals(guard.current()),"OFFICIAL_ACCOUNT_CHANGED");
   Map<String,OfficialLifelogInsight.Day> days=new TreeMap<>(state.days);
-  for(OfficialLifelogInsight.Day day:fresh){String key=day.date+"\n"+day.timezone;OfficialLifelogInsight.Day old=days.get(key);Map<String,OfficialLifelogInsight.Event> events=new LinkedHashMap<>();if(old!=null)for(OfficialLifelogInsight.Event e:old.events)events.put(e.id,e);for(OfficialLifelogInsight.Event e:day.events)events.put(e.id,e);
+  for(OfficialLifelogInsight.Day day:fresh){String key=day.date+"\n"+day.timezone;OfficialLifelogInsight.Day old=days.get(key);Map<String,OfficialLifelogInsight.Event> events=new LinkedHashMap<>();Set<String> freshRefs=new HashSet<>();for(OfficialLifelogInsight.Event e:day.events)freshRefs.addAll(e.refs);if(old!=null)for(OfficialLifelogInsight.Event e:old.events)if(Collections.disjoint(e.refs,freshRefs))events.put(e.id,e);for(OfficialLifelogInsight.Event e:day.events)events.put(e.id,e);
    List<OfficialLifelogInsight.Event> merged=new ArrayList<>(events.values());merged.sort(Comparator.comparingLong(e->e.start));while(merged.size()>OfficialLifelogInsight.MAX_EVENTS)merged.remove(0);
    days.put(key,new OfficialLifelogInsight.Day(day.date,day.timezone,merged,day.trail.isEmpty()&&old!=null?old.trail:day.trail));}
   while(days.size()>MAX_DAYS)days.remove(((TreeMap<String,OfficialLifelogInsight.Day>)days).firstKey());

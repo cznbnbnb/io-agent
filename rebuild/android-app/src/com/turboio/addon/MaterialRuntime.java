@@ -42,17 +42,16 @@ final class MaterialRuntime {
   io.execute(()->{try{autoSync(observed,recovered);}finally{boolean again;synchronized(guard){autoQueued=false;again=networkWake;}if(again)main.post(()->wakeAuto(false));}});
  }
  private void autoSync(long observed,boolean networkRecovered){
-  long audioObserved=observed;
   try{
    config=settings.load();long now=System.currentTimeMillis();if(config==null||!config.enabled||observed!=generation||foregroundCatalogs.get()>0||visible&&now-lastUiAt<5000)return;
    OfficialAccountBinding login=Host107Login.account();if(login==null||!config.account.equals(login.binding))return;
-   if(config.connection.expiresAt>now)try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config)){
+   if(config.connection.expiresAt>now)try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config,true)){
     MaterialAutoSchedule.Plan plan=schedule.begin(now,java.time.ZoneId.systemDefault().getId(),networkRecovered);if(plan!=null){
-     long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}audioObserved=owner;
-     boolean success=false,progressed=false;try{performSync(owner,null,null,null,null,false,plan.days);success=status.selectedComplete;progressed=status.progressed;autoError="";autoTarget=config.fingerprint();}catch(Exception error){if(owner==generation){note=safe(error);autoError=note;autoTarget=config.fingerprint();}}finally{try{schedule.finish(plan,System.currentTimeMillis(),success,progressed);}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}}
+     long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}
+     boolean success=false,progressed=false;try{performSync(owner,null,null,null,null,false,null);success=status.selectedComplete;progressed=status.progressed;autoError="";autoTarget=config.fingerprint();}catch(Exception error){if(owner==generation){note=safe(error);autoError=note;autoTarget=config.fingerprint();}}finally{try{schedule.finish(plan,System.currentTimeMillis(),success,progressed);}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}}
     }
    }catch(Exception error){note=safe(error);}
-   autoAudio(audioObserved,networkRecovered);
+   // Audio/transcripts stay on the phone under the 2026-10-26 policy.
   }catch(Exception error){note=safe(error);}
  }
  private long invalidate(){synchronized(guard){generation++;backgroundOwner=-1;AudioHttp audio=audioTransport;audioTransport=null;if(audio!=null){audio.disable();cancel.execute(audio::cancel);}if(visible)lastUiAt=System.currentTimeMillis();MaterialHttp old=transport;transport=null;if(old!=null){old.disable();cancel.execute(old::cancel);}Host107LifelogHttp prior=officialTransport;officialTransport=null;if(prior!=null){prior.disable();cancel.execute(prior::cancel);}return generation;}}
@@ -61,7 +60,7 @@ final class MaterialRuntime {
  private OfficialAccountBinding account(long owner)throws Exception{check(owner);OfficialAccountBinding account=Host107Login.account();MaterialWire.require(account!=null,"OFFICIAL_LOGIN_REQUIRED");check(owner);return account;}
  private interface Work {void run()throws Exception;}
  private static String safe(Exception error){String code=error.getMessage();return code!=null&&code.matches("[A-Z_]{3,80}")?code:"MATERIAL_UNAVAILABLE";}
- private void counts()throws IOException{MaterialSyncSession.Status next=MaterialSyncSession.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
+ private void counts()throws IOException{MaterialSyncSession.Status next=DailySummarySync.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
  void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
  /** Browsing belongs to the official signed-in account, independently of an
@@ -82,7 +81,8 @@ final class MaterialRuntime {
   LifelogInsightStore.Snapshot insights=null;try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),current.binding)){insights=store.snapshot();}catch(Exception unreadable){insights=null;}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
-  CatalogSnapshot loaded=new CatalogSnapshot(saved,MaterialCatalog.merge(uploaded,local),local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights);
+  MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
+  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
@@ -122,11 +122,7 @@ final class MaterialRuntime {
    OfficialLifelogInventory.Request day=OfficialLifelogInventory.Request.day(date,timezone);login=account(owner);final OfficialAccountBinding expected=login;
    official=new Host107LifelogHttp(app,login,()->check(owner),timezone);synchronized(guard){check(owner);officialTransport=official;}
    OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),official);
-   synchronized(guard){check(owner);MaterialWire.require(expected.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
-    try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),expected.binding)){library.recordRead(date,timezone,fresh.sources,System.currentTimeMillis(),()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}
-    // Best effort, after the transcript is safely retained.
-    if(!fresh.insights.isEmpty())try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),expected.binding)){store.record(fresh.insights,()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}catch(Exception ignored){}
-   }
+   retainDay(date,timezone,fresh,expected,owner);
    found=loadCatalog(owner);
   }catch(Exception failed){error=safe(failed);
    // A failed source refresh retains the previous verified snapshot. A changed
@@ -135,6 +131,23 @@ final class MaterialRuntime {
   }finally{if(official!=null){official.close();synchronized(guard){if(officialTransport==official)officialTransport=null;}}}
   deliverCatalog(owner,found,error,call);
  });return owner;}
+ private void retainDay(String date,String timezone,OfficialLifelogDiscovery.Snapshot fresh,OfficialAccountBinding expected,long owner)throws Exception{
+   synchronized(guard){check(owner);MaterialWire.require(expected.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
+    try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),expected.binding)){library.recordRead(date,timezone,fresh.sources,System.currentTimeMillis(),()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}
+    // Best effort, after the transcript is safely retained.
+    if(!fresh.insights.isEmpty())try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),expected.binding)){store.record(fresh.insights,()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}catch(Exception ignored){}
+   }
+   try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),expected.binding)){visibility.readDay(date,timezone,fresh,()->account(owner).binding);}
+ }
+ /** Only an explicit confirmation of this exact original event reaches here.
+  * No retry after an uncertain response; the next day read reconciles the view. */
+ void deleteEvent(CatalogSnapshot selected,OfficialLifelogInsight.Event event,String date,String timezone,CatalogResult result){CatalogCall call=new CatalogCall(result,true);long owner=call.owner;io.execute(()->{CatalogSnapshot found=null;String error="";Host107LifelogHttp http=null;try{OfficialAccountBinding login=account(owner);MaterialWire.require(selected!=null&&event!=null&&selected.catalog.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");OfficialLifelogInventory.Request day=OfficialLifelogInventory.Request.day(date,timezone);http=new Host107LifelogHttp(app,login,()->check(owner),timezone);synchronized(guard){check(owner);officialTransport=http;}
+   OfficialLifelogInsight.Event fresh=OfficialLifelogInsight.full(event.id,OfficialLifelogJson.read(http.full(event.id)).canonical);MaterialWire.require(fresh!=null&&fresh.refs.equals(event.refs)&&fresh.start==event.start&&fresh.end==event.end,"LIFELOG_DELETE_SELECTION_CHANGED");
+   Map<String,Object> response=WireJson.map(WireJson.read(OfficialLifelogJson.read(http.deleteEvent(event.id)).canonical));MaterialWire.require(Long.valueOf(0).equals(response.get("code")),"LIFELOG_DELETE_REJECTED");MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
+   // Re-read the complete selected day after the acknowledgement. A source may
+   // belong to another event; deleting one event must never tombstone that source.
+   OfficialLifelogDiscovery.Snapshot after=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),http);retainDay(date,timezone,after,login,owner);recentCatalog=null;found=loadCatalog(owner);
+  }catch(Exception failed){error=safe(failed);}finally{if(http!=null){http.close();synchronized(guard){if(officialTransport==http)officialTransport=null;}}}deliverCatalog(owner,found,error,call);});}
  /** A closed older page must never invalidate a newer read or sync owner. */
  void cancelRead(long owner){synchronized(guard){if(owner==generation)invalidate();}}
  void cancelPending(){invalidate();}
@@ -144,9 +157,9 @@ final class MaterialRuntime {
   MaterialApi api=new MaterialApi(next,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(source.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}return http.exchange(path,body);}public void cancel(){http.cancel();}});
   api.preflight(System.currentTimeMillis(),true);
   synchronized(guard){check(owner);MaterialWire.require(source.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");settings.save(candidate);config=candidate;}
-  status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+  status=DailySummarySync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  }finally{Arrays.fill(input,(byte)0);}},result);}
- void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=MaterialSyncSession.status(app.getFilesDir(),config);note="paused";},result);}
+ void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=DailySummarySync.status(app.getFilesDir(),config);note="paused";},result);}
  /** Toggle only the configuration the caller actually saw. Never re-import
   * credentials from a stale UI snapshot after another registration was saved. */
  void setEnabled(String expectedFingerprint,boolean enabled,Result result){long owner=invalidate();work(()->{
@@ -156,7 +169,7 @@ final class MaterialRuntime {
    try{new MaterialApi(original.connection,http).preflight(System.currentTimeMillis(),true);}finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
   }
   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(expectedFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
-  status=MaterialSyncSession.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+  status=DailySummarySync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  },result);}
  void discoverMonth(String month,MonthResult result){long owner=invalidate();io.execute(()->{
   MonthSelection found=null;String error="";Host107LifelogHttp official=null;
@@ -185,25 +198,19 @@ final class MaterialRuntime {
   final List<OfficialLifelogInventory.Request> selectedDays=days;MaterialHttp http=new MaterialHttp(target.connection);synchronized(guard){check(owner);transport=http;}
   OfficialAccountBinding login=account(owner);MaterialWire.require(target.account.equals(login.binding),"OFFICIAL_ACCOUNT_CHANGED");Host107LifelogHttp official=new Host107LifelogHttp(app,login,()->check(owner),selectedDays==null?"Asia/Shanghai":selectedDays.get(0).timezone);synchronized(guard){check(owner);officialTransport=official;}
   try{
-   MaterialSyncSession.AccountSource source;
-   if(selectedDays!=null){source=new MaterialSyncSession.DiscoverySource(){public OfficialAccountBinding current()throws Exception{return account(owner);}public OfficialLifelogDiscovery.Snapshot discover()throws Exception{OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(target.account,selectedDays,this::current,official);LifelogAudioRuntime.sources(target.account,fresh.sources);return fresh;}};}else{
-   File flutter=new File(app.getApplicationInfo().dataDir,"app_flutter");
-   OfficialLifelogRefresh.Ownership ownership=new OfficialLifelogRefresh.Ownership(){public OfficialAccountBinding current()throws Exception{return account(owner);}public Set<String> references()throws Exception{OfficialAccountBinding current=current();return OfficialHiveCache.sourceReferences(OfficialHiveCache.read(current.cacheFile(flutter)));}};
-   source=new MaterialSyncSession.FreshSource(){public OfficialAccountBinding current()throws Exception{return ownership.current();}public OfficialLifelogBatch read()throws Exception{return OfficialLifelogBatch.read(flutter,this::current);}public OfficialLifelogRefresh.Fresh refresh(OfficialLifelogBatch observed)throws Exception{OfficialLifelogRefresh.Fresh fresh=OfficialLifelogRefresh.read(observed,ownership,official);LifelogAudioRuntime.sources(target.account,fresh.sources);return fresh;}};}
-   MaterialSyncSession session=new MaterialSyncSession(app.getFilesDir(),target,source,()->check(owner),http);note="syncing";status=session.sync();note=status.note;
+   Set<String> selectedDates=null;if(selectedDays!=null){selectedDates=new HashSet<>();for(OfficialLifelogInventory.Request request:selectedDays)selectedDates.add(request.date);}
+   List<DailySummary> summaries=DailySummary.latest(official.latestJournals());MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
+   MaterialApi.Transport guarded=new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialApi.Response response=http.exchange(path,body);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");return response;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}}public void cancel(){http.cancel();}};
+   note="syncing";status=DailySummarySync.run(app.getFilesDir(),target,summaries,selectedDates,()->check(owner),guarded);note=status.note;
   }finally{official.close();http.cancel();synchronized(guard){if(officialTransport==official)officialTransport=null;if(transport==http)transport=null;}}
  }
  private static AudioSyncSession.Status emptyAudio(){return new AudioSyncSession.Status(Collections.emptyList(),"",0,0,false);}
  private void freshAudio(long owner,AudioConfig expected,MaterialConfig source,OfficialAccountBinding login)throws Exception{
   check(owner);AudioConfig current=new AudioSettings(app).load();MaterialConfig material=settings.load();MaterialWire.require(current!=null&&current.enabled&&expected.fingerprint().equals(current.fingerprint()),"AUDIO_CONNECTION_CHANGED");MaterialWire.require(material!=null&&material.enabled&&source.fingerprint().equals(material.fingerprint()),"AUDIO_MATERIAL_CHANGED");MaterialWire.require(expected.account.equals(login.binding)&&login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
  }
- private void performAudio(long owner,AudioConfig target,MaterialConfig material,boolean recovered,boolean force)throws Exception{
-  check(owner);MaterialWire.require(target!=null&&target.enabled&&material!=null&&material.enabled,"AUDIO_PAUSED");OfficialAccountBinding login=account(owner);freshAudio(owner,target,material,login);final long[] verified={android.os.SystemClock.elapsedRealtime()};AudioHttp http=new AudioHttp(target.connection);synchronized(guard){check(owner);audioTransport=http;}
-  AudioUploadOutbox.Guard local=()->{check(owner);long now=android.os.SystemClock.elapsedRealtime();if(now<verified[0]||now-verified[0]>3000)try{freshAudio(owner,target,material,login);verified[0]=android.os.SystemClock.elapsedRealtime();}catch(IOException|RuntimeException e){throw e;}catch(Exception e){throw new IOException("AUDIO_ACCOUNT_UNAVAILABLE");}};
-  MaterialApi.Transport network=new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] bytes)throws IOException{try{freshAudio(owner,target,material,login);verified[0]=android.os.SystemClock.elapsedRealtime();MaterialApi.Response response=http.exchange(path,bytes);freshAudio(owner,target,material,login);verified[0]=android.os.SystemClock.elapsedRealtime();return response;}catch(IOException|RuntimeException e){throw e;}catch(Exception e){throw new IOException("AUDIO_ACCOUNT_UNAVAILABLE");}}public void cancel(){http.cancel();}};
-  try{File textFiles=MaterialStorage.prepare(app.getFilesDir(),material);AudioSyncSession session=new AudioSyncSession(app.getFilesDir(),textFiles,material,target,account->LifelogAudioRuntime.catalogForUpload(account).get(15,TimeUnit.SECONDS),local,network,System::currentTimeMillis);audioStatus=session.run(recovered,2,16,force);audioNote=audioStatus.error.isEmpty()?"ready":audioStatus.error;}finally{http.cancel();synchronized(guard){if(audioTransport==http)audioTransport=null;}}
+ private void performAudio(long owner,AudioConfig target,MaterialConfig material,boolean recovered,boolean force)throws Exception{throw new IOException("AUDIO_PHONE_ONLY");
  }
- private void autoAudio(long observed,boolean recovered){try{if(observed!=generation)return;MaterialConfig material=settings.load();AudioConfig target=new AudioSettings(app).load();if(target==null){audioNote="unconfigured";return;}if(material==null||!material.enabled||!target.enabled){audioNote="paused";return;}if(target.connection.expiresAt<=System.currentTimeMillis()){audioNote="AUDIO_CREDENTIAL_EXPIRED";return;}OfficialAccountBinding login=Host107Login.account();if(login==null||!target.account.equals(login.binding)||!target.account.equals(material.account)||!target.connection.binding().equals(material.connection.binding())){audioNote="AUDIO_SOURCE_TARGET_CHANGED";return;}try(AudioAutoSchedule schedule=new AudioAutoSchedule(app.getFilesDir(),target,()->{if(observed!=generation)throw new IOException("AUDIO_PAUSED");})){if(!schedule.due(System.currentTimeMillis(),recovered))return;}long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}try{performAudio(owner,target,material,recovered,false);}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}}catch(Exception failed){audioNote=safe(failed);}}
+
  private AudioSnapshot audioSnapshot(long owner)throws Exception{checkView(owner);OfficialAccountBinding login=account(owner);AudioConfig target=new AudioSettings(app).load();if(target!=null&&!target.account.equals(login.binding))throw new IOException("OFFICIAL_ACCOUNT_CHANGED");AudioSyncSession.Status found=emptyAudio();String phase=target==null?"unconfigured":!target.enabled?"paused":target.connection.expiresAt<=System.currentTimeMillis()?"AUDIO_CREDENTIAL_EXPIRED":audioNote.equals("unconfigured")||audioNote.equals("paused")?"ready":audioNote;
   if(target!=null){MaterialConfig material=settings.load();if(material==null||!material.enabled)phase="paused";else if(!target.account.equals(material.account)||!target.connection.binding().equals(material.connection.binding()))phase="AUDIO_SOURCE_TARGET_CHANGED";}
   if(target!=null)try(AudioUploadOutbox queue=new AudioUploadOutbox(app.getFilesDir(),target.connection,target.account,()->checkView(owner))){found=new AudioSyncSession.Status(queue.snapshot(System.currentTimeMillis()),phase,0,0,false);}MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");return new AudioSnapshot(target,found,login.binding,phase);

@@ -41,6 +41,12 @@ public final class OfficialLifelogInsightTest {
    store.record(Arrays.asList(new OfficialLifelogInsight.Day("2026-10-26","Asia/Shanghai",new ArrayList<>(),new ArrayList<>())),guard);back=store.snapshot().day("2026-10-26","Asia/Shanghai");yes(back.events.size()==1&&back.trail.size()==2);
    boolean refused=false;try{store.record(Arrays.asList(first),()->B);}catch(IllegalArgumentException changed){refused="OFFICIAL_ACCOUNT_CHANGED".equals(changed.getMessage());}yes(refused);
   }
+  try(LifelogInsightStore store=new LifelogInsightStore(dir,A)){
+   OfficialLifelogInsight.Event next=new OfficialLifelogInsight.Event("700000000000000002","新分组","新总结","",refined.start,refined.end,refined.outline,refined.refs);
+   store.record(Arrays.asList(new OfficialLifelogInsight.Day("2026-10-27","Asia/Shanghai",Arrays.asList(next),new ArrayList<>())),guard);String material=OfficialLifelogSnapshot.materialId(A,"conversation","s2");
+   yes(store.snapshot().eventFor(material,"2026-10-26","Asia/Shanghai").id.equals(refined.id));yes(store.snapshot().eventFor(material,"2026-10-27","Asia/Shanghai").id.equals(next.id));yes(store.snapshot().eventFor(material,"2026-10-28","Asia/Shanghai")==null);
+   store.record(Arrays.asList(new OfficialLifelogInsight.Day("2026-10-26","Asia/Shanghai",Arrays.asList(next),new ArrayList<>())),guard);yes(store.snapshot().day("2026-10-26","Asia/Shanghai").events.size()==1&&store.snapshot().eventFor(material,"2026-10-26","Asia/Shanghai").id.equals(next.id));
+  }
   boolean bound=false;File copy=new File(dir,"material-accounts/"+B+"/local-library");copy.mkdirs();java.nio.file.Files.copy(new File(dir,"material-accounts/"+A+"/local-library/insights.json").toPath(),new File(copy,"insights.json").toPath());
   try(LifelogInsightStore other=new LifelogInsightStore(dir,B)){}catch(IllegalArgumentException wrong){bound="MATERIAL_LOCAL_BINDING".equals(wrong.getMessage());}yes(bound);
   System.out.println("Official lifelog insight: "+checks+" assertions passed");

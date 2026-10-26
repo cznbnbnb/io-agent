@@ -23,7 +23,18 @@ final class MaterialDocument {
   out.add("");out.add("资料编号："+e.id);return out;
  }
  static byte[] encode(MaterialCatalog.Entry entry,Format format)throws IOException{
-  if(entry==null||format==null)throw new IOException("MATERIAL_EXPORT_INVALID");List<String> lines=lines(entry);
+  if(entry==null||format==null)throw new IOException("MATERIAL_EXPORT_INVALID");return encodeLines(lines(entry),format);
+ }
+ static byte[] summary(MaterialCatalog.Entry e,OfficialLifelogInsight.Event event,Format format)throws IOException{return summary(e,event,format,false);}
+ static byte[] summary(MaterialCatalog.Entry e,OfficialLifelogInsight.Event event,Format format,boolean whole)throws IOException{
+  if(e==null||event==null||event.summary.isEmpty()&&event.outline.isEmpty())throw new IOException("MATERIAL_SUMMARY_UNAVAILABLE");
+  List<String> lines=new ArrayList<>();String title=whole?event.title:e.title;lines.add(title);lines.add("主题标签："+title);DateTimeFormatter range=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm",Locale.ROOT);lines.add("记录时间："+(whole?range.format(Instant.ofEpochMilli(event.start).atZone(e.zone))+" – "+range.format(Instant.ofEpochMilli(event.end).atZone(e.zone)):e.day+" "+MaterialTimeline.range(e))+"（"+e.zone.getId()+"）");
+  lines.add("");lines.add(!whole&&event.refs.size()>1?"AI 总结（所属连续记录）":"AI 总结");lines.add(event.summary.isEmpty()?"原厂尚未生成总结":event.summary);
+  long start=MaterialTimeline.start(e),end=MaterialTimeline.end(e);DateTimeFormatter clock=DateTimeFormatter.ofPattern("HH:mm:ss",Locale.ROOT);boolean heading=false;
+  for(OfficialLifelogInsight.Topic topic:event.outline)if(whole||topic.at>=start&&topic.at<=end){if(!heading){lines.add("");lines.add(whole?"时间线与主题":"本段时间线与主题");heading=true;}lines.add(clock.format(Instant.ofEpochMilli(topic.at).atZone(e.zone))+" · "+topic.text);}
+  lines.add("");lines.add("来源：原厂 AI 总结；未包含逐字转写、位置或原音。");return encodeLines(lines,format);
+ }
+ private static byte[] encodeLines(List<String> lines,Format format)throws IOException{
   if(format!=Format.DOCX){StringJoiner join=new StringJoiner("\n");for(int i=0;i<lines.size();i++){String line=lines.get(i);join.add(format==Format.MARKDOWN&&i==0?"# "+line:line);}return (join.toString()+"\n").getBytes(StandardCharsets.UTF_8);}
   ByteArrayOutputStream bytes=new ByteArrayOutputStream();try(ZipOutputStream zip=new ZipOutputStream(bytes)){
    part(zip,"[Content_Types].xml","<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/></Types>");

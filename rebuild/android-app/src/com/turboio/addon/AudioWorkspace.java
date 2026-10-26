@@ -43,15 +43,8 @@ final class AudioWorkspace {
   });}
   void close(){if(closed)return;closed=true;verified=false;epoch++;clear.run();runtime.cancelPending();activity.getApplication().unregisterActivityLifecycleCallbacks(lifecycle);for(UiOwner child:new ArrayList<>(children))child.close();if(parent!=null)parent.children.remove(this);if(screen.dialog.isShowing())screen.dialog.dismiss();if(!activity.isDestroyed()&&!suspended&&returned!=null)returned.run();}
  }
- static void show(Activity activity,Runnable returned){UiOwner owner=new UiOwner(activity,"原音备份",null,returned,null);AgentUI.Screen screen=owner.screen;MaterialRuntime runtime=owner.runtime;
-  owner.refresh=()->owner.load(snapshot->{screen.body.removeAllViews();AudioConfig config=snapshot.config;screen.body.addView(AgentUI.text(activity,label(snapshot.note),20,AgentUI.INK));screen.body.addView(AgentUI.text(activity,"已封存并与智记对应的原音会自动备份。每份原音从服务器确认保存起保留三天，重试不会延长。文字和手机导出的文件不会随之删除。",14,AgentUI.MUTED));
-   if(config!=null){screen.body.addView(AgentUI.text(activity,config.connection.preview()+"\n授权至 "+time(config.connection.expiresAt),13,AgentUI.MUTED));AudioSyncSession.Status status=snapshot.status;screen.body.addView(AgentUI.text(activity,"远程保留中 "+status.retained+" · 待备份 "+status.queued+"\n待核对 "+status.blocked+" · 已到期 "+status.expired,16,AgentUI.INK));
-    AgentUI.button(activity,screen.body,config.enabled?"暂停原音备份":"恢复原音备份",false,()->{if(!owner.active())return;long ticket=++owner.epoch;runtime.setAudioEnabled(config.fingerprint(),!config.enabled,(value,code)->{if(owner.live(ticket)){if(!code.isEmpty())AgentUI.notice(activity,label(code));owner.refresh.run();}});});
-    if(config.enabled)AgentUI.button(activity,screen.body,"备份一次",false,()->{if(!owner.active())return;long ticket=++owner.epoch;runtime.syncAudio(config.fingerprint(),(value,code)->{if(owner.live(ticket)){if(!code.isEmpty())AgentUI.notice(activity,label(code));owner.refresh.run();}});});
-   }
-   AgentUI.button(activity,screen.body,"原音连接设置",true,()->{if(owner.active())configure(owner);});AgentUI.button(activity,screen.body,"刷新状态",false,owner.refresh);screen.body.addView(AgentUI.text(activity,"只备份手机已收到并保存的部分，不代表全天录音完整。没有原音授权时不会上传；暂停资料同步也会停止原音备份。",12,AgentUI.MUTED));
-  });owner.refresh.run();
- }
+ static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"原音与导出");screen.body.addView(AgentUI.text(activity,"原音只保存在手机",20,AgentUI.INK));screen.body.addView(AgentUI.text(activity,"原音和逐字转写不再自动上传服务器。可在资料卡右滑，导出音频或摘要文档到手机。既有服务器历史不自动清除。",14,AgentUI.MUTED));AgentUI.button(activity,screen.body,"默认保存位置",false,()->ExportDestination.settings(activity,()->{}));screen.dialog.setOnDismissListener(d->returned.run());}
+
  private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[2048];int count;while((count=in.read(buffer))!=-1){if(out.size()+count>8192)throw new IOException("AUDIO_CONNECTION_INVALID");out.write(buffer,0,count);}return out.toByteArray();}}
  private static void configure(UiOwner parent){Activity activity=parent.activity;MaterialRuntime runtime=parent.runtime;UiOwner owner=new UiOwner(activity,"原音连接设置",parent.account,()->{if(parent.active())parent.refresh.run();},parent);AudioConnection[] candidate={null};android.net.Uri[] pending={null};
   owner.hide=()->{candidate[0]=null;};owner.clear=()->{candidate[0]=null;pending[0]=null;};

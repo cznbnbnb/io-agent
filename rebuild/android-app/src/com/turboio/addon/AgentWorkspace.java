@@ -44,6 +44,7 @@ final class AgentWorkspace {
   AgentUI.row(a,connection,"默认 Agent 与工作区",target,"",()->AgentConnectionsPage.defaults(a));AgentUI.divider(a,connection);
   AgentUI.row(a,connection,"眼镜提醒","",AgentCardRuntime.enabled()?"已开启":"已关闭",this::reminders);AgentUI.divider(a,connection);
   AgentUI.row(a,connection,"资料同步","开关与同步方式","",()->AgentMaterialPage.settings(a));
+  LinearLayout exportCard=AgentUI.card(a,settingsBody);AgentUI.row(a,exportCard,"默认保存位置",ExportDestination.label(a),"",()->ExportDestination.settings(a,this::renderSettings));
   AgentUI.gap(a,settingsBody,24);settingsBody.addView(AgentUI.text(a,"更多",13,AgentUI.MUTED));LinearLayout more=AgentUI.card(a,settingsBody);
   AgentUI.row(a,more,"扩展工具","阅读、导航及原有扩展","",()->EditorialUI.home(a));AgentUI.divider(a,more);AgentUI.row(a,more,"账号与设备","沿用原厂登录和配对","",this::account);AgentUI.divider(a,more);AgentUI.row(a,more,"关于 iO Agent","","",this::about);
   AgentUI.gap(a,settingsBody,24);settingsBody.addView(AgentUI.text(a,"高级",13,AgentUI.MUTED));LinearLayout advanced=AgentUI.card(a,settingsBody);AgentUI.row(a,advanced,"开发者选项","测试、诊断与固件","",this::developer);

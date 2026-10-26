@@ -1,0 +1,15 @@
+package com.turboio.addon;
+import java.io.*;import java.time.*;import java.util.*;import java.nio.file.Files;
+
+/** Latest verified day membership controls the reading view. Retained source
+ * caches and already-exported files are not deleted when a list changes. */
+final class MaterialVisibility implements AutoCloseable {
+ private final AtomicDocument file;final String account;private Map<String,Set<String>> days=new TreeMap<>();
+ MaterialVisibility(File root,String account)throws IOException{MaterialWire.require(account.matches("[a-f0-9]{64}"),"MATERIAL_LOCAL_BINDING");this.account=account;File path=new File(root,"material-accounts/"+account+"/local-library/visibility.json");for(File p=path;p!=null&&!p.equals(root);p=p.getParentFile())MaterialWire.require(!Files.isSymbolicLink(p.toPath()),"MATERIAL_LOCAL_PATH");file=new AtomicDocument(path,1048576);try{Object raw=file.read();if(raw!=null){Map<String,Object> data=WireJson.map(raw);BoundedJson.keys(data,"schema","account","days");MaterialWire.require(Long.valueOf(1).equals(data.get("schema"))&&account.equals(data.get("account")),"MATERIAL_LOCAL_BINDING");for(Object value:WireJson.list(data.get("days"))){Map<String,Object> d=WireJson.map(value);BoundedJson.keys(d,"date","timezone","ids");days.put(key((String)d.get("date"),(String)d.get("timezone")),ids(d.get("ids")));}MaterialWire.require(days.size()<=366,"MATERIAL_LOCAL_BUDGET");}}catch(IOException|RuntimeException failure){file.close();throw failure;}}
+ private static String key(String date,String timezone){LocalDate.parse(date);ZoneId.of(timezone);return date+"\n"+timezone;}
+ private static Set<String> ids(Object value){Set<String> ids=new TreeSet<>();for(Object raw:WireJson.list(value))ids.add(MaterialWire.id(raw));MaterialWire.require(ids.size()<=2048,"MATERIAL_LOCAL_BUDGET");return ids;}
+ private void save(MaterialLocalLibrary.Guard guard)throws Exception{MaterialWire.require(account.equals(guard.current()),"OFFICIAL_ACCOUNT_CHANGED");List<Object> values=new ArrayList<>();for(Map.Entry<String,Set<String>> e:days.entrySet()){String[] pair=e.getKey().split("\n",2);values.add(WireJson.object("date",pair[0],"timezone",pair[1],"ids",new ArrayList<>(e.getValue())));}file.save(WireJson.object("schema",1,"account",account,"days",values));}
+ void readDay(String date,String timezone,OfficialLifelogDiscovery.Snapshot fresh,MaterialLocalLibrary.Guard guard)throws Exception{MaterialWire.require(fresh!=null&&account.equals(fresh.account)&&fresh.days==1,"MATERIAL_LOCAL_BINDING");Set<String> observed=new TreeSet<>();for(OfficialLifelogSnapshot.Source source:fresh.sources)observed.add(source.materialId(account));days.put(key(date,timezone),observed);while(days.size()>366)days.remove(days.keySet().iterator().next());save(guard);}
+ Set<LocalDate> visible(MaterialCatalog.Entry entry){Set<LocalDate> result=new TreeSet<>();for(LocalDate date:entry.dates){Set<String> known=days.get(key(date.toString(),entry.zone.getId()));if(known==null||known.contains(entry.id))result.add(date);}return result;}
+ @Override public void close()throws IOException{file.close();}
+}

@@ -1,0 +1,10 @@
+{
+ "schema": 1,
+ "probe_id": "865b4e7b6383f4900def8cec549aadd8",
+ "read_only": true,
+ "network_requests": 1,
+ "text_or_identifiers_exported": false,
+ "daily_count": 3,
+ "parsed_daily_count": 3,
+ "same_day_boundaries": true
+}

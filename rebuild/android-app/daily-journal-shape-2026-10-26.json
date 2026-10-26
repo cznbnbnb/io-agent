@@ -1,0 +1,576 @@
+{
+  "schema": 1,
+  "probe_id": "feb9e446067476cbd237bf40a6ca08c0",
+  "read_only": true,
+  "network_requests": 0,
+  "text_or_identifiers_exported": false,
+  "log_files": 161,
+  "examined_files": 19,
+  "scanned_bytes": 134217728,
+  "oversized_lines": 0,
+  "other_host_lines": 2,
+  "newest_log_age_hours": 0,
+  "oldest_examined_log_age_hours": 16,
+  "routes": {
+    "GET /lifelog/api/v1/journal/latest": {
+      "log_lines": 80,
+      "response_bodies": 40,
+      "shape": {
+        "types": [
+          "object"
+        ],
+        "seen": 40,
+        "keys": {
+          "code": {
+            "types": [
+              "int"
+            ],
+            "seen": 40
+          },
+          "data": {
+            "types": [
+              "array"
+            ],
+            "seen": 40,
+            "length": [
+              3,
+              3
+            ],
+            "items": {
+              "types": [
+                "object"
+              ],
+              "seen": 120,
+              "keys": {
+                "context": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    798,
+                    957
+                  ],
+                  "formats": [
+                    "text"
+                  ],
+                  "multiline": 120
+                },
+                "countData": {
+                  "types": [
+                    "array"
+                  ],
+                  "seen": 120,
+                  "length": [
+                    5,
+                    5
+                  ],
+                  "items": {
+                    "types": [
+                      "object"
+                    ],
+                    "seen": 600,
+                    "keys": {
+                      "count": {
+                        "types": [
+                          "int"
+                        ],
+                        "seen": 600
+                      },
+                      "type": {
+                        "types": [
+                          "string"
+                        ],
+                        "seen": 600,
+                        "chars": [
+                          4,
+                          16
+                        ],
+                        "formats": [
+                          "text"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "createdAt": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    27,
+                    27
+                  ],
+                  "formats": [
+                    "datetime"
+                  ]
+                },
+                "generatedAt": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    27,
+                    27
+                  ],
+                  "formats": [
+                    "datetime"
+                  ]
+                },
+                "glyph": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    56,
+                    56
+                  ],
+                  "formats": [
+                    "url"
+                  ]
+                },
+                "id": {
+                  "types": [
+                    "int"
+                  ],
+                  "seen": 120
+                },
+                "mode": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    8,
+                    8
+                  ],
+                  "formats": [
+                    "enum_lower"
+                  ]
+                },
+                "periodEnd": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    10,
+                    10
+                  ],
+                  "formats": [
+                    "date"
+                  ]
+                },
+                "periodStart": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    10,
+                    10
+                  ],
+                  "formats": [
+                    "date"
+                  ]
+                },
+                "periodType": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    5,
+                    5
+                  ],
+                  "formats": [
+                    "enum_lower"
+                  ]
+                },
+                "status": {
+                  "types": [
+                    "int"
+                  ],
+                  "seen": 120
+                },
+                "timezone": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    13,
+                    13
+                  ],
+                  "formats": [
+                    "text"
+                  ]
+                },
+                "title": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    13,
+                    16
+                  ],
+                  "formats": [
+                    "text"
+                  ]
+                },
+                "visualTag": {
+                  "types": [
+                    "string"
+                  ],
+                  "seen": 120,
+                  "chars": [
+                    1,
+                    1
+                  ],
+                  "formats": [
+                    "text"
+                  ]
+                }
+              }
+            }
+          },
+          "msg": {
+            "types": [
+              "string"
+            ],
+            "seen": 40,
+            "chars": [
+              7,
+              7
+            ],
+            "formats": [
+              "enum_lower"
+            ]
+          }
+        }
+      },
+      "known_contract_enums": [
+        "periodType=daily"
+      ]
+    },
+    "POST /lifelog/api/v1/journal/detail": {
+      "log_lines": 14,
+      "response_bodies": 7,
+      "shape": {
+        "types": [
+          "object"
+        ],
+        "seen": 7,
+        "keys": {
+          "code": {
+            "types": [
+              "int"
+            ],
+            "seen": 7
+          },
+          "data": {
+            "types": [
+              "object"
+            ],
+            "seen": 7,
+            "keys": {
+              "contentAudited": {
+                "types": [
+                  "boolean"
+                ],
+                "seen": 7
+              },
+              "contentDesensitized": {
+                "types": [
+                  "boolean"
+                ],
+                "seen": 7
+              },
+              "generatedAt": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  32,
+                  32
+                ],
+                "formats": [
+                  "datetime"
+                ]
+              },
+              "id": {
+                "types": [
+                  "int"
+                ],
+                "seen": 7
+              },
+              "mode": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  8,
+                  8
+                ],
+                "formats": [
+                  "enum_lower"
+                ]
+              },
+              "periodEnd": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  10,
+                  10
+                ],
+                "formats": [
+                  "date"
+                ]
+              },
+              "periodStart": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  10,
+                  10
+                ],
+                "formats": [
+                  "date"
+                ]
+              },
+              "periodType": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  5,
+                  5
+                ],
+                "formats": [
+                  "enum_lower"
+                ]
+              },
+              "sections": {
+                "types": [
+                  "array"
+                ],
+                "seen": 7,
+                "length": [
+                  2,
+                  3
+                ],
+                "items": {
+                  "types": [
+                    "object"
+                  ],
+                  "seen": 19,
+                  "keys": {
+                    "blocks": {
+                      "types": [
+                        "array"
+                      ],
+                      "seen": 19,
+                      "length": [
+                        1,
+                        5
+                      ],
+                      "items": {
+                        "types": [
+                          "object"
+                        ],
+                        "seen": 46,
+                        "keys": {
+                          "blockType": {
+                            "types": [
+                              "string"
+                            ],
+                            "seen": 46,
+                            "chars": [
+                              4,
+                              4
+                            ],
+                            "formats": [
+                              "enum_lower"
+                            ]
+                          },
+                          "content": {
+                            "types": [
+                              "string"
+                            ],
+                            "seen": 46,
+                            "chars": [
+                              30,
+                              957
+                            ],
+                            "formats": [
+                              "text"
+                            ],
+                            "multiline": 7
+                          },
+                          "contentPayload": {
+                            "types": [
+                              "string"
+                            ],
+                            "seen": 46,
+                            "chars": [
+                              30,
+                              957
+                            ],
+                            "formats": [
+                              "text"
+                            ],
+                            "multiline": 7
+                          },
+                          "id": {
+                            "types": [
+                              "int"
+                            ],
+                            "seen": 46
+                          },
+                          "properties": {
+                            "types": [
+                              "object"
+                            ],
+                            "seen": 46,
+                            "keys": {
+                              "sourceId": {
+                                "types": [
+                                  "string"
+                                ],
+                                "seen": 11,
+                                "chars": [
+                                  32,
+                                  32
+                                ],
+                                "formats": [
+                                  "hex_id"
+                                ]
+                              },
+                              "sourceType": {
+                                "types": [
+                                  "string"
+                                ],
+                                "seen": 11,
+                                "chars": [
+                                  12,
+                                  12
+                                ],
+                                "formats": [
+                                  "enum_lower"
+                                ]
+                              },
+                              "title": {
+                                "types": [
+                                  "string"
+                                ],
+                                "seen": 11,
+                                "chars": [
+                                  9,
+                                  15
+                                ],
+                                "formats": [
+                                  "text"
+                                ]
+                              }
+                            }
+                          },
+                          "source": {
+                            "types": [
+                              "string"
+                            ],
+                            "seen": 46,
+                            "chars": [
+                              12,
+                              12
+                            ],
+                            "formats": [
+                              "enum_lower"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "id": {
+                      "types": [
+                        "int"
+                      ],
+                      "seen": 19
+                    },
+                    "title": {
+                      "types": [
+                        "string"
+                      ],
+                      "seen": 19,
+                      "chars": [
+                        0,
+                        4
+                      ],
+                      "formats": [
+                        "empty",
+                        "text"
+                      ]
+                    },
+                    "type": {
+                      "types": [
+                        "string"
+                      ],
+                      "seen": 19,
+                      "chars": [
+                        2,
+                        8
+                      ],
+                      "formats": [
+                        "enum_lower",
+                        "text"
+                      ]
+                    }
+                  }
+                }
+              },
+              "timezone": {
+                "types": [
+                  "string"
+                ],
+                "seen": 7,
+                "chars": [
+                  13,
+                  13
+                ],
+                "formats": [
+                  "text"
+                ]
+              }
+            }
+          },
+          "msg": {
+            "types": [
+              "string"
+            ],
+            "seen": 7,
+            "chars": [
+              7,
+              7
+            ],
+            "formats": [
+              "enum_lower"
+            ]
+          }
+        }
+      },
+      "known_contract_enums": [
+        "periodType=daily"
+      ]
+    }
+  }
+}

@@ -29,7 +29,7 @@ final class MaterialCatalog {
    List<Segment> list=new ArrayList<>();for(Object raw:WireJson.list(body.get("utterances"))){Map<String,Object> u=WireJson.map(raw);list.add(new Segment((String)u.get("text"),speakers.getOrDefault(u.get("speaker_id"),"未标记说话人"),u.get("start_ms")==null?null:MaterialWire.number(u.get("start_ms")),u.get("end_ms")==null?null:MaterialWire.number(u.get("end_ms"))));}
    segments=Collections.unmodifiableList(list);
   }
-  private Entry(Entry entry,String title,Set<LocalDate> memberships){id=entry.id;this.title=title==null||title.trim().isEmpty()?entry.title:title;source=entry.source;state=entry.state;error=entry.error;fullText=entry.fullText;audioState=entry.audioState;coverage=entry.coverage;revision=entry.revision;startedAt=entry.startedAt;endedAt=entry.endedAt;storedAt=entry.storedAt;observedAt=entry.observedAt;day=entry.day;zone=entry.zone;segments=entry.segments;Set<LocalDate> dates=new TreeSet<>(entry.dates);dates.addAll(memberships);this.dates=Collections.unmodifiableSet(dates);}
+  private Entry(Entry entry,String title,Set<LocalDate> memberships){id=entry.id;this.title=title==null||title.trim().isEmpty()?entry.title:title;source=entry.source;state=entry.state;error=entry.error;fullText=entry.fullText;audioState=entry.audioState;coverage=entry.coverage;revision=entry.revision;startedAt=entry.startedAt;endedAt=entry.endedAt;storedAt=entry.storedAt;observedAt=entry.observedAt;day=entry.day;zone=entry.zone;segments=entry.segments;Set<LocalDate> dates=new TreeSet<>(memberships);this.dates=Collections.unmodifiableSet(dates);}
   String timeRange(){DateTimeFormatter f=DateTimeFormatter.ofPattern("HH:mm",Locale.ROOT);return f.format(Instant.ofEpochMilli(startedAt).atZone(zone))+" – "+f.format(Instant.ofEpochMilli(endedAt).atZone(zone));}
   String syncLabel(){switch(state){case "local_only":return "文字已读取 · 仅保存在手机";case "local_updated":return "文字已更新 · 尚未上传";case "server_stored":return "文字已同步";case "blocked":return "同步需处理";case "expired":return "同步凭据或事件已到期";case "reconcile":return "正在核对同步结果";case "sending":return "正在同步";default:return "文字待同步";}}
  }
@@ -41,6 +41,7 @@ final class MaterialCatalog {
   this.deleted=Collections.unmodifiableSet(new HashSet<>(deleted));Set<LocalDate> dates=new TreeSet<>();int stored=0,pending=0,attention=0,localOnly=0;for(Entry e:entries){dates.addAll(e.dates);if(e.state.equals("server_stored"))stored++;else if(e.state.equals("local_only")||e.state.equals("local_updated"))localOnly++;else if(e.state.equals("blocked")||e.state.equals("expired")||e.state.equals("reconcile"))attention++;else pending++;}
   this.dates=Collections.unmodifiableSet(dates);this.stored=stored;this.pending=pending;this.attention=attention;this.localOnly=localOnly;
  }
+ static MaterialCatalog visible(MaterialCatalog source,MaterialVisibility visibility){MaterialWire.require(source.account.equals(visibility.account),"OFFICIAL_ACCOUNT_CHANGED");List<Entry> entries=new ArrayList<>();for(Entry entry:source.entries){Set<LocalDate> dates=visibility.visible(entry);if(!dates.isEmpty())entries.add(new Entry(entry,entry.title,dates));}return new MaterialCatalog(source.account,source.zone,entries,source.lastStoredAt,source.deleted);}
  static MaterialCatalog empty(String account,ZoneId zone){return new MaterialCatalog(account,zone,new ArrayList<>(),0);}
  static MaterialCatalog fromRows(String account,String producer,List<Object> rows,ZoneId zone){
   MaterialWire.require(account!=null&&account.matches("[a-f0-9]{64}")&&zone!=null,"MATERIAL_CATALOG_BINDING");
@@ -60,7 +61,7 @@ final class MaterialCatalog {
   for(MaterialLocalLibrary.Record record:local.records){if(uploaded.deleted.contains(record.id))continue;Map<String,Object> body=WireJson.map(WireJson.read(record.source.materialBody(local.account,record.revision),8388608,500000));Entry prior=combined.get(record.id);Map<String,Object> row=WireJson.object("state",prior==null?"local_only":"local_updated","error","","ack",null);Entry current=new Entry(body,row,uploaded.zone,record.source.title,record.dates(uploaded.zone),record.readAt);
    // An outbox event can be renewed or repaired long after its source was read.
    // created_at is never source freshness proof and must not replace local text.
-   if(prior!=null&&sameContent(prior,current))combined.put(record.id,new Entry(prior,record.source.title,record.dates(uploaded.zone)));else combined.put(record.id,current);
+   if(prior!=null&&sameContent(prior,current))combined.put(record.id,new Entry(prior,record.source.title,current.dates));else combined.put(record.id,current);
   }
   List<Entry> entries=new ArrayList<>(combined.values());entries.sort(Comparator.comparingLong((Entry e)->e.startedAt).reversed().thenComparing(e->e.id));return new MaterialCatalog(local.account,uploaded.zone,entries,uploaded.lastStoredAt,uploaded.deleted);
  }
