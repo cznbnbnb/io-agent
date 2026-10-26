@@ -1,0 +1,76 @@
+{
+  "version": "0.5.3-dev114",
+  "version_code": 10536,
+  "sha256": "6dd1d8e3313113426db2573a5a95673fe32527e1ce8c20420b3e7969041b69e0",
+  "candidate_signed": true,
+  "installed": true,
+  "device_current_version": "dev114",
+  "compile_sources_passed": 256,
+  "delta_bytes": 1911592,
+  "verification_status": "passed",
+  "dev113_component_probe": {
+    "passed": true,
+    "checks": 20,
+    "repeated_browse_does_not_select": true,
+    "synthetic_perform_click_only": true
+  },
+  "dev113_real_touch_failure": {
+    "swipe_browsed_first_visible": "2026-10-05",
+    "selected_title_after_swipe": "今天 · 10月26日 周一",
+    "selected_title_after_tap": "今天 · 10月26日 周一",
+    "cause": "ACTION_UP unconditionally set moving=true before Android posted its click callback",
+    "fixed_in_dev114": true
+  },
+  "dev114_probe_uses_actual_down_up": true,
+  "dev114_native_probe": {
+    "passed": true,
+    "checks": 20,
+    "actual_down_up_day_click": true,
+    "only_explicit_day_click_selects": true,
+    "repeat_browse_recycles_without_selecting": true,
+    "swipe_and_settle_do_not_select_day": true,
+    "cancel_returns_without_selecting": true,
+    "reverse_drag_interrupts_fling_without_jump": true,
+    "detached_animation_cannot_select": true,
+    "distinct_drag_positions": 12,
+    "distinct_release_positions": 6
+  },
+  "dev114_material_page_probe": {
+    "initial": {
+      "first_visible_date": "2026-10-19",
+      "selected_title": "今天 · 10月26日 周一",
+      "pid": "17794"
+    },
+    "swipes": [
+      {
+        "first_visible_date": "2026-10-05",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "17794"
+      },
+      {
+        "first_visible_date": "2026-09-28",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "17794"
+      },
+      {
+        "first_visible_date": "2026-09-21",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "17794"
+      }
+    ],
+    "refresh_preserves_browse_and_selection": true,
+    "explicit_click": {
+      "date": "2026-09-21",
+      "after": {
+        "first_visible_date": "2026-09-21",
+        "selected_title": "9月21日 周一",
+        "pid": "17794"
+      }
+    },
+    "passed": true
+  },
+  "remote_files_unverified_until_reconnect": false,
+  "materials_deleted_or_exported": false,
+  "installed_full_sha_verified": true,
+  "rollback_version": "dev112"
+}

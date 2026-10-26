@@ -1,0 +1,61 @@
+{
+  "version": "0.5.3-dev115",
+  "version_code": 10537,
+  "installed": true,
+  "installed_full_sha_verified": true,
+  "sha256": "a22eaca914e8c68d77c2c32637be22e8e675e912ac62d5d949a10fa34e081d72",
+  "delta_bytes": 1911592,
+  "rollback_version": "dev114",
+  "compile_sources_passed": 256,
+  "native_probe": {
+    "passed": true,
+    "checks": 22,
+    "actual_down_up_day_click": true,
+    "large_fast_swipes_max_one_week_both_directions": true,
+    "each_repeated_swipe_exactly_one_week": true,
+    "swipe_and_settle_do_not_select_day": true,
+    "only_explicit_day_click_selects": true,
+    "repeat_browse_recycles_without_selecting": true,
+    "cancel_returns_without_selecting": true,
+    "reverse_drag_interrupts_fling_without_jump": true,
+    "detached_animation_cannot_select": true,
+    "distinct_drag_positions": 12,
+    "distinct_release_positions": 14
+  },
+  "material_page_probe": {
+    "initial": {
+      "first_visible_date": "2026-10-26",
+      "selected_title": "今天 · 10月26日 周一",
+      "pid": "25701"
+    },
+    "swipes": [
+      {
+        "first_visible_date": "2026-10-19",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "25701"
+      },
+      {
+        "first_visible_date": "2026-10-12",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "25701"
+      },
+      {
+        "first_visible_date": "2026-10-05",
+        "selected_title": "今天 · 10月26日 周一",
+        "pid": "25701"
+      }
+    ],
+    "refresh_preserves_browse_and_selection": true,
+    "explicit_click": {
+      "date": "2026-10-05",
+      "after": {
+        "first_visible_date": "2026-10-05",
+        "selected_title": "10月5日 周一",
+        "pid": "25701"
+      }
+    },
+    "passed": true
+  },
+  "materials_deleted_or_exported": false,
+  "subjective_user_feel_confirmed": false
+}
