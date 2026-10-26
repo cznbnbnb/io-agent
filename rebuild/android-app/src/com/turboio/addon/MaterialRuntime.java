@@ -24,15 +24,16 @@ final class MaterialRuntime {
  private final Handler main=new Handler(Looper.getMainLooper());private final ExecutorService io=Executors.newSingleThreadExecutor(),viewIO=Executors.newSingleThreadExecutor(),cancel=Executors.newSingleThreadExecutor();
  private volatile CatalogSnapshot recentCatalog;private volatile long recentCatalogAt;
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());private volatile boolean visible;private volatile long generation,backgroundOwner=-1,lastUiAt,autoDeadline;private boolean autoQueued,networkWake;private final java.util.concurrent.atomic.AtomicInteger foregroundCatalogs=new java.util.concurrent.atomic.AtomicInteger();private volatile MaterialHttp transport;
- private volatile Host107LifelogHttp officialTransport;private MaterialConfig config;private MaterialSyncSession.Status status=new MaterialSyncSession.Status();private String note="unconfigured",autoError="",autoTarget="";
+ private volatile Host107LifelogHttp officialTransport;private MaterialConfig config;private MaterialSyncSession.Status status=new MaterialSyncSession.Status();private String note="unconfigured",autoError="",autoTarget="";private boolean prewarming;private final List<CatalogResult> prewarmWaiters=new ArrayList<>();
  private MaterialRuntime(Activity activity){this(activity,activity);}
  private MaterialRuntime(Context context,Activity activity){app=context.getApplicationContext();settings=new MaterialSettings(app);if(activity!=null){foreground.add(activity);visible=true;}((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
   public void onActivityStarted(Activity a){foreground.add(a);visible=true;}public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!visible&&backgroundOwner!=generation)invalidate();}public void onActivityDestroyed(Activity a){foreground.remove(a);}public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
  });main.postDelayed(autoTick,10000);
   try{android.net.ConnectivityManager network=(android.net.ConnectivityManager)app.getSystemService(Context.CONNECTIVITY_SERVICE);if(network!=null)network.registerDefaultNetworkCallback(new android.net.ConnectivityManager.NetworkCallback(){public void onAvailable(android.net.Network value){main.post(()->wakeAuto(true));}});}catch(RuntimeException ignored){}
  }
- static synchronized MaterialRuntime get(Activity activity){if(instance==null)instance=new MaterialRuntime(activity);instance.foreground.add(activity);instance.visible=true;return instance;}
+ static synchronized MaterialRuntime get(Activity activity){if(instance==null)instance=new MaterialRuntime(activity);instance.foreground.add(activity);instance.visible=true;instance.prewarm();return instance;}
  static synchronized MaterialRuntime boot(Context context){if(instance==null)instance=new MaterialRuntime(context,null);return instance;}
+ private void prewarm(){synchronized(guard){if(recentCatalog!=null||prewarming||foregroundCatalogs.get()>0)return;prewarming=true;}catalog((value,error)->{List<CatalogResult> waiting=new ArrayList<>(prewarmWaiters);prewarmWaiters.clear();synchronized(guard){prewarming=false;}for(CatalogResult waiter:waiting)waiter.done(value,error);});}
  private final Runnable autoTick=new Runnable(){public void run(){wakeAuto(false);main.postDelayed(this,30000);}};
  void wakeAuto(boolean networkRecovered){
   final long observed;final boolean recovered;synchronized(guard){networkWake|=networkRecovered;if(autoQueued)return;autoQueued=true;observed=generation;recovered=networkWake;networkWake=false;}
@@ -62,7 +63,8 @@ final class MaterialRuntime {
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
  void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
  /** Browsing belongs to the official signed-in account, independently of an
-  * optional remote upload connection. All local owners share this serial IO. */
+  * optional remote upload connection. Read-only catalogs use the view lane;
+  * source refreshes, uploads and configuration writes remain on serial IO. */
  private CatalogSnapshot loadCatalog(long owner)throws Exception{
   checkView(owner);OfficialAccountBinding current=account(owner);MaterialConfig saved=null;String uploadError="";java.time.ZoneId zone=java.time.ZoneId.systemDefault();
   // Upload settings/receipts are optional views. Their failure must not hide
@@ -85,7 +87,7 @@ final class MaterialRuntime {
   // Revalidate after the result reaches the UI queue, without blocking that
   // queue on the host secure-store handler. Lifecycle generation also fences
   // a login screen transition before the final callback is allowed to render.
-  viewIO.execute(()->{String rejected="";try{MaterialWire.require(snapshot.catalog.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");}catch(Exception stale){rejected=safe(stale);}final String failure=rejected;
+  viewIO.execute(()->{String rejected="";try{MaterialWire.require(snapshot.catalog.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");}catch(Exception stale){rejected=safe(stale);if(snapshot==recentCatalog)recentCatalog=null;}final String failure=rejected;
    main.post(()->{try{checkView(owner);}catch(Exception stale){result.done(null,safe(stale));return;}result.done(failure.isEmpty()?snapshot:null,failure.isEmpty()?error:failure);});
   });
  });}
@@ -97,16 +99,16 @@ final class MaterialRuntime {
   CatalogCall(CatalogResult result,boolean takeOwnership){this.result=result;foregroundCatalogs.incrementAndGet();owner=takeOwnership?invalidate():generation;}
   public void done(CatalogSnapshot value,String error){if(!finished.compareAndSet(false,true))return;try{result.done(value,error);}finally{foregroundCatalogs.decrementAndGet();}}
  }
- void catalog(CatalogResult result){CatalogCall call;synchronized(guard){call=new CatalogCall(result,backgroundOwner==generation);}long owner=call.owner;io.execute(()->{CatalogSnapshot found=null;String error="";try{found=loadCatalog(owner);}catch(Exception failed){error=safe(failed);}deliverCatalog(owner,found,error,call);});}
+ void catalog(CatalogResult result){CatalogCall call;synchronized(guard){call=new CatalogCall(result,backgroundOwner==generation);}long owner=call.owner;viewIO.execute(()->{CatalogSnapshot found=null;String error="";try{found=loadCatalog(owner);}catch(Exception failed){error=safe(failed);}deliverCatalog(owner,found,error,call);});}
  /** A short-lived, immutable reading view. Revalidate the official account on
   * an independent lane so an HTTP request cannot hold an already-loaded page.
   * Settings, export and task admission keep using fresh state and their guards. */
  void browse(CatalogResult result){CatalogSnapshot cached=recentCatalog;long age=android.os.SystemClock.elapsedRealtime()-recentCatalogAt;
-  if(cached==null||age<0||age>=60000||!cached.catalog.zone.equals(java.time.ZoneId.systemDefault())){catalog(result);return;}
+  if(cached==null&&prewarming){prewarmWaiters.add(result);return;}if(cached==null||age<0||age>=60000||!cached.catalog.zone.equals(java.time.ZoneId.systemDefault())){catalog(result);return;}
   verifyCatalog(cached,result);
  }
  void verifyCatalog(CatalogSnapshot snapshot,CatalogResult result){CatalogCall call=new CatalogCall(result,false);long owner=call.owner;
-  viewIO.execute(()->{String error="";try{checkView(owner);MaterialWire.require(snapshot!=null&&snapshot.catalog.account.equals(account(owner).binding),"OFFICIAL_ACCOUNT_CHANGED");}catch(Exception failed){error=safe(failed);recentCatalog=null;}deliverCatalog(owner,error.isEmpty()?snapshot:null,error,call);});
+  if(snapshot==null){call.done(null,"MATERIAL_UNAVAILABLE");return;}deliverCatalog(owner,snapshot,"",call);
  }
  /** One foreground, account-verified official day read. No MaterialApi,
   * credentials issuance, outbox staging or remote upload is performed here. */

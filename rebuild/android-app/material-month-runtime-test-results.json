@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "at": "2026-10-25T02:58:02.546Z",
+  "at": "2026-10-26T03:50:36.451Z",
   "scope": "Real MaterialRuntime, local library/filesystem, catalog, day discovery/source and month/config core; synthetic Android lifecycle/main queue, settings, official transport and upload session boundaries",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 458,
+  "checks": 484,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "373feb4b27db14849b7a6ee71c5773eb67bbfb21615dc19fa78f90bfac682666"
+      "sha256": "55f283a69d226a36acf8119ffa38d2cbec6ff4b6e78528097903904460f3f841"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
@@ -26,7 +26,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "db9c137cad4d87f6eccea966ea538a8e9ca107c0eb10e97621399381c128d207"
+      "sha256": "60365bd191a7bd1e176ea570f4c3a291c40c838db20903ab9e059c6a642ece0c"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -50,7 +50,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "4bc2271bc2fdafce8f064611f893606ba3b2414aaef553705fe6b2cfefb7661e"
+      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialRecordingDeletion.java",
+      "sha256": "07aa4e78d3fe534374120a1b18ce97ff2de802775d76c5621bd54998feeb4d47"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogMonthDiscovery.java",
@@ -90,7 +94,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "2773f6078b400c29745af0eed41c89318aa79dbe296b9dd19855cae3fc1ce99d"
+      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
@@ -162,11 +166,11 @@
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "cdbea3a8b6679e43c8875591c8f025a4fde24e66ddb01792a2049c284bce8bb1"
+      "sha256": "cc0fd5f2883813db8b5724de795eb4366fdc132c3996aca25de458977458238f"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",
-      "sha256": "d65e13b72bf8495b8c679a4ce118eea12680015b050918017dc2e96ddec0de06"
+      "sha256": "426efdf07ae2c80f7d4c7ca6e5c6b32500c67b17cda1661d5cba82e1232dc15b"
     }
   ],
   "temporary_classes_removed": true

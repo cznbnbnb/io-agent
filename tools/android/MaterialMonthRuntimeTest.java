@@ -239,6 +239,12 @@ public final class MaterialMonthRuntimeTest {
     release.countDown();f.io.submit(()->{}).get(2,TimeUnit.SECONDS);Host107Login.current=OWNER;Catalog hidden=new Catalog();f.runtime.verifyCatalog(loaded.value,hidden);f.viewIO.submit(()->{}).get(2,TimeUnit.SECONDS);f.app.callbacks.onActivityStopped(f.activity);f.deliver();rejected(hidden,"MATERIAL_PAUSED");
    }finally{release.countDown();}
   }
+  // Opening during the startup prewarm joins that one read instead of queuing
+  // another complete account/library load behind it.
+  try(Fixture f=new Fixture()){
+   Method prewarm=MaterialRuntime.class.getDeclaredMethod("prewarm");prewarm.setAccessible(true);prewarm.invoke(f.runtime);
+   Catalog first=new Catalog(),second=new Catalog();f.runtime.browse(first);f.runtime.browse(second);f.finish(first);f.finish(second);good(first);good(second);yes(first.value==second.value&&Host107Login.reads==3);
+  }
   // A stale list must load from disk; a cache is not permission to serve old
   // content indefinitely or reuse the previous account after a login switch.
   try(Fixture f=new Fixture()){

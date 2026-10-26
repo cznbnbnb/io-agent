@@ -29,7 +29,7 @@ final class AgentConnectionsPage {
    snapshot=state;if(!visible()||busy)return;
    if(!error.isEmpty())feedback=TaskWorkspace.label(error);
    else if(state.contexts.isEmpty()&&state.note.matches("[A-Z][A-Z0-9_]+"))feedback=TaskWorkspace.label(state.note);
-   String key=state.fingerprint+"/"+feedback+"/"+history+"/"+choice;
+   String key=state.fingerprint()+"/"+feedback+"/"+history+"/"+choice;
    for(TaskHub.View view:state.contexts)key+="/"+(view.profile.connection.expiresAt<=System.currentTimeMillis());
    if(key.equals(last))return;last=key;render();
   }

@@ -11,18 +11,21 @@ final class TaskRuntime {
  static {TaskSessionDirectory.elapsedClock(SystemClock::elapsedRealtime);}
  interface Result {void done(Snapshot snapshot,String error);}
  static final class Snapshot {
-  final TaskSettings.Saved saved;final String binding,note,fingerprint,device,pairing;final List<TaskHub.View> contexts;
+  final TaskSettings.Saved saved;final String binding,note,device,pairing;final List<TaskHub.View> contexts;
   final TaskSessionDirectory directory;final String directoryNote,defaultBinding,defaultStatus,directoryProducer;final Map<String,Object> defaultRoute,pendingDefault;
+  private String fingerprint;
   Snapshot(TaskHub hub,String note){this(hub,note,"","");}
   Snapshot(TaskHub hub,String note,String device,String pairing){this(hub,note,device,pairing,null,"DIRECTORY_REFRESH_REQUIRED",null,"");}
   Snapshot(TaskHub hub,String note,String device,String pairing,TaskSessionDirectory directory,String directoryNote,Map<String,Object> pendingDefault,String directoryProducer){
    this.note=note;this.device=device;this.pairing=pairing;contexts=hub==null?Collections.emptyList():hub.views();TaskProfiles.Profile p=hub==null?null:hub.profiles().selected();binding=p==null?"":p.binding;saved=p==null?null:new TaskSettings.Saved(p.connection,p.enabled);
    this.directory=directory;this.directoryNote=directoryNote;this.directoryProducer=directoryProducer;this.pendingDefault=pendingDefault==null?null:WireJson.map(WireJson.copy(pendingDefault));defaultRoute=directory==null?null:directory.defaultRoute();defaultBinding=bindingFor(defaultRoute);
    TaskHub.View chosen=context(defaultBinding);defaultStatus=directory==null?"DIRECTORY_REFRESH_REQUIRED":defaultRoute==null?"DIRECTORY_DEFAULT_MISSING":chosen!=null&&!chosen.profile.enabled?"TASK_PAUSED":chosen==null&&directory.gate(defaultRoute,TaskSessionDirectory.elapsed()).isEmpty()?"TASK_PROFILES_FULL":directory.gate(defaultRoute,TaskSessionDirectory.elapsed());
+  }
+  String fingerprint(){if(fingerprint==null){
    List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"session_control",v.sessionControl,"pending",v.pending,"objects",v.objects));
    List<Object> directoryRows=new ArrayList<>();if(directory!=null)for(TaskSessionDirectory.Entry e:directory.sessions)directoryRows.add(WireJson.object("route",e.route,"label",e.label,"status",e.status(TaskSessionDirectory.elapsed()),"generation",e.generation));
    fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing,"directory",directoryRows,"directory_note",directoryNote,"default",directory==null?null:directory.defaultTarget,"default_status",defaultStatus,"default_pending",this.pendingDefault)));
-  }
+  }return fingerprint;}
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
   String bindingFor(Map<String,Object> route){if(route!=null)for(TaskHub.View v:contexts)if(directory!=null&&v.profile.connection.producer.equals(directoryProducer)&&v.profile.connection.server.equals(directory.server)&&v.profile.connection.owner.equals(directory.owner)&&TaskWire.same(v.profile.connection.route(),route))return v.binding;return "";}
  }

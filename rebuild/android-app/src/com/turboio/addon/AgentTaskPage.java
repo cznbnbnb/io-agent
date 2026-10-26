@@ -28,7 +28,7 @@ final class AgentTaskPage {
  private ScrollView taskScroll;
  private AgentUI.Screen detail;
  private String detailKey="",filter="running",fingerprint="";
- private boolean closed,showAllQuestions,showHistory,openingQuestion;
+ private boolean active,closed,showAllQuestions,showHistory,openingQuestion;
  private long nextExpiry=Long.MAX_VALUE;
 
  AgentTaskPage(Activity a,Runnable openConnections){
@@ -40,13 +40,14 @@ final class AgentTaskPage {
   create=AgentUI.button(a,footer,"＋ 交给 Agent 一件事",false,this::delegate);root.addView(footer);
   body.addView(AgentUI.text(a,"正在读取任务…",15,AgentUI.MUTED));
   observer=(value,error)->{
-   if(!alive())return;snapshot=value;
-   if(!fingerprint.equals(value.fingerprint)||System.currentTimeMillis()>=nextExpiry){fingerprint=value.fingerprint;render();}
+   if(!active||!alive())return;snapshot=value;
+   if(!fingerprint.equals(value.fingerprint())||System.currentTimeMillis()>=nextExpiry){fingerprint=value.fingerprint();render();}
   };
   runtime.observe(a,observer);
  }
  View view(){return root;}
- void refresh(){if(!closed)runtime.read(null);}
+ void setActive(boolean value){active=value;}
+ void refresh(){if(!closed&&active)runtime.read(null);}
  void close(){if(closed)return;closed=true;runtime.unobserve(observer);for(AgentUI.Screen form:new ArrayList<>(forms))if(form.dialog.isShowing())form.dialog.dismiss();forms.clear();if(detail!=null&&detail.dialog.isShowing())detail.dialog.dismiss();}
  private boolean alive(){return !closed&&!activity.isFinishing()&&!activity.isDestroyed();}
  private void render(){

@@ -75,8 +75,8 @@ final class TaskWorkspace {
  static void show(Activity activity){
   EditorialUI.Screen screen=new EditorialUI.Screen(activity,"电脑任务");TaskRuntime runtime=TaskRuntime.get(activity);
   final Runnable[] redraw={null};final boolean[] closed={false};final String[] previous={""};
-  TaskRuntime.Result render=(state,error)->{if(!closed[0]&&screen.dialog.isShowing()&&runtime.active(activity)&&!previous[0].equals(state.fingerprint+"#"+foldVersion)){
-   previous[0]=state.fingerprint+"#"+foldVersion;ScrollView scroll=(ScrollView)screen.body.getParent();int position=scroll.getScrollY();render(activity,screen,state,error,runtime,redraw[0]);scroll.post(()->{if(screen.dialog.isShowing())scroll.scrollTo(0,position);});
+  TaskRuntime.Result render=(state,error)->{if(!closed[0]&&screen.dialog.isShowing()&&runtime.active(activity)&&!previous[0].equals(state.fingerprint()+"#"+foldVersion)){
+   previous[0]=state.fingerprint()+"#"+foldVersion;ScrollView scroll=(ScrollView)screen.body.getParent();int position=scroll.getScrollY();render(activity,screen,state,error,runtime,redraw[0]);scroll.post(()->{if(screen.dialog.isShowing())scroll.scrollTo(0,position);});
   }};
   redraw[0]=()->runtime.read(null);screen.dialog.setOnDismissListener(dialog->{closed[0]=true;runtime.unobserve(render);});runtime.observe(activity,render);
  }
