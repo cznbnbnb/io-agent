@@ -56,7 +56,7 @@ final class TaskRuntime {
  boolean active(Activity activity){return foreground.contains(activity)&&!activity.isFinishing()&&!activity.isDestroyed();}
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
- private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
+ private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);TurboAddon.pending(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
  private Snapshot snapshot(){TaskDevice d=device;return new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);}
  private void cancelAll(){for(TaskHttp t:transports.values())t.cancel();}
  private void load()throws Exception{

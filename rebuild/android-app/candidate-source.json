@@ -278,7 +278,7 @@
     },
     {
       "path": "src/com/turboio/addon/TurboAddon.java",
-      "sha256": "09e7dbc1b964203dfb566972c77b8aead98c7285d223cef83c2f01a387f70eb4"
+      "sha256": "dfaf16800cd2b333801cc851c6757a0b0dd556543c507b42111cd16f7074a978"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/TurboStyle.java",
@@ -314,11 +314,11 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "8c9ce2a4f87f69d7767ae6d2557178d5e8d8e6c0d19d9064a18a078d8948e786"
+      "sha256": "42c3bd0984fc330da65044bf91429ebf9be79cd9b67900ae3d1cde69fbcd3fd6"
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
-      "sha256": "e1bbb61b2683b726a808ad95ffdfe05db0d25a87ba24664c4519061dcb95acce"
+      "sha256": "75278198e4aca4febc3e1721af6923dda4f0d5447974adf06ba0bdc80f9eb190"
     },
     {
       "path": "src/com/turboio/addon/AgentUI.java",
@@ -678,7 +678,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialReadingUI.java",
-      "sha256": "ee80ce8b2906dcaeeb25c47f3ec11ff56fec343c1ff7528881d0c4ea98a9ac4c"
+      "sha256": "bf3b222d7a015ae0a60ddd375d2e9a3ded6d8ad4f1bc085ab4885e912ae44f27"
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
@@ -894,7 +894,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "984402fe4707564748ac2d671b7e137da4db39ee6be69126ad4cfa6bc359b220"
+      "sha256": "550f59712811f63910f65fabb359243dac6579cc195df169e7de8cf07e2f7a9c"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -970,11 +970,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "e31f7f0f3668b624fa59fbc1a4045c90c608448746a32543c963fd5a661702e1"
+      "sha256": "afa9b13ca62e750df4712759637a625a6910b1f4ec32580951b1f7413ac7333b"
     }
   ],
-  "product_sha256": "4a9c8cd4cd51e71698c55cc309b216ddcde5778f7c7909aa9053d480bbfc5600",
-  "addon_sha256": "fe03fd5c405d0f4be28f70b3fe57c13300a312d809dd0405ac9fe8f3ed87e548",
+  "product_sha256": "3a4cb8d92557215baf83ba3151752efb1be4201861d3b7ab87973bf2e9dde203",
+  "addon_sha256": "0552f2c6430ac4f02f77fd3a1bb26171a4b9e877e4434d97205e6102ea380717",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

@@ -38,6 +38,24 @@ public final class TurboAddon {
     private static Context app;
     private static WeakReference<Activity> activity = new WeakReference<>(null);
     private static WeakReference<View> entry = new WeakReference<>(null);
+    private static WeakReference<TextView> badge = new WeakReference<>(null);
+    private static int pending;
+    /** Questions still waiting for the user; updated with every published task snapshot. */
+    static void pending(TaskRuntime.Snapshot snapshot) {
+        int count = 0;
+        try {
+            List<TaskPresentation.Source> sources = new ArrayList<>();
+            for (TaskHub.View context : snapshot.contexts) sources.add(new TaskPresentation.Source(context.profile, context.objects, context.pending));
+            long now = System.currentTimeMillis();
+            for (TaskPresentation.Question q : new TaskPresentation(sources, now).questions) if (!q.queuedAnswer() && q.available(now)) count++;
+        } catch (RuntimeException unreadable) { count = 0; }
+        pending = count; showPending(count);
+    }
+    private static void showPending(int count) {
+        TextView view = badge.get(); if (view == null) return;
+        view.setText(count > 9 ? "9+" : Integer.toString(count)); view.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
+        View owner = entry.get(); if (owner != null) owner.setContentDescription(count > 0 ? "打开 iO Agent，" + count + " 个问题等你回复" : "打开 iO Agent");
+    }
     private static SharedPreferences prefs;
     private static Object listener, template;
     private static String question = "", sid = "", emitted = "", lastFinal = "";
@@ -97,15 +115,31 @@ public final class TurboAddon {
         initialize(host);
         ViewGroup root = host.findViewById(android.R.id.content);
         if (root.findViewWithTag("turboio-entry") != null) return;
-        TextView button = new TextView(host);
-        button.setText("iO Agent"); button.setTextColor(Color.WHITE); button.setTextSize(15);
-        button.setTypeface(null, Typeface.BOLD); button.setGravity(Gravity.CENTER);
-        GradientDrawable bg = new GradientDrawable(); bg.setColor(Color.rgb(15, 37, 32)); bg.setCornerRadius(dp(24));
-        bg.setStroke(dp(1), Color.rgb(55, 212, 151)); button.setBackground(bg);
-        button.setElevation(dp(8)); button.setTag("turboio-entry");
-        FrameLayout.LayoutParams layout = new FrameLayout.LayoutParams(dp(112), dp(44), Gravity.RIGHT | Gravity.TOP);
-        layout.topMargin = dp(90); layout.rightMargin = dp(18);
+        // Sits left of the stock avatar (36 dp, 16 dp from the right edge, centred
+        // 29 dp below the status bar on the 1.0.7 home header) and matches its height.
+        LinearLayout button = new LinearLayout(host);
+        button.setOrientation(LinearLayout.HORIZONTAL); button.setGravity(Gravity.CENTER_VERTICAL);
+        button.setPadding(dp(8), 0, dp(12), 0);
+        GradientDrawable bg = new GradientDrawable(); bg.setColor(Color.rgb(28, 31, 30)); bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.rgb(45, 51, 49)); button.setBackground(bg);
+        TextView mark = new TextView(host); mark.setText("iO"); mark.setTextColor(Color.rgb(4, 35, 26)); mark.setTextSize(9);
+        mark.setTypeface(null, Typeface.BOLD); mark.setGravity(Gravity.CENTER); mark.setIncludeFontPadding(false);
+        GradientDrawable dot = new GradientDrawable(); dot.setShape(GradientDrawable.OVAL); dot.setColor(Color.rgb(2, 169, 123)); mark.setBackground(dot);
+        button.addView(mark, new LinearLayout.LayoutParams(dp(20), dp(20)));
+        TextView label = new TextView(host); label.setText("Agent"); label.setTextColor(Color.rgb(242, 244, 243)); label.setTextSize(13);
+        label.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); label.setIncludeFontPadding(false);
+        LinearLayout.LayoutParams labelLayout = new LinearLayout.LayoutParams(-2, -2); labelLayout.leftMargin = dp(6); button.addView(label, labelLayout);
+        TextView count = new TextView(host); count.setTextColor(Color.rgb(36, 23, 3)); count.setTextSize(10); count.setTypeface(null, Typeface.BOLD);
+        count.setGravity(Gravity.CENTER); count.setIncludeFontPadding(false); count.setMinWidth(dp(16)); count.setPadding(dp(4), 0, dp(4), 0);
+        GradientDrawable pill = new GradientDrawable(); pill.setColor(Color.rgb(240, 180, 85)); pill.setCornerRadius(dp(8)); count.setBackground(pill);
+        LinearLayout.LayoutParams countLayout = new LinearLayout.LayoutParams(-2, dp(16)); countLayout.leftMargin = dp(6); button.addView(count, countLayout);
+        button.setTag("turboio-entry"); badge = new WeakReference<>(count); showPending(pending);
+        int statusBar = 0, id = host.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (id > 0) statusBar = host.getResources().getDimensionPixelSize(id);
+        FrameLayout.LayoutParams layout = new FrameLayout.LayoutParams(-2, dp(36), Gravity.RIGHT | Gravity.TOP);
+        layout.topMargin = (statusBar > 0 ? statusBar : dp(47)) + dp(12); layout.rightMargin = dp(62);
         root.addView(button, layout); entry = new WeakReference<>(button);
+        button.setContentDescription("打开 iO Agent");
         button.setOnClickListener(v -> showHome());
         diagnostic = "扩展已加载 · " + REVISION;
     }

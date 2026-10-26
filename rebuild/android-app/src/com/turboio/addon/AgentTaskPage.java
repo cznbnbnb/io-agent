@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
@@ -20,21 +21,19 @@ final class AgentTaskPage {
  private final ScrollView scroll;
  private final TextView create;
  private final TaskRuntime.Result observer;
- private final Map<String,Integer> listPositions=new HashMap<>();
  private final List<AgentUI.Screen> forms=new ArrayList<>();
  private final Set<String> submittingControls=new HashSet<>();
  private TaskRuntime.Snapshot snapshot;
  private TaskPresentation presentation;
- private ScrollView taskScroll;
  private AgentUI.Screen detail;
  private String detailKey="",filter="running",fingerprint="";
- private boolean active,closed,showAllQuestions,showHistory,openingQuestion;
+ private boolean active,closed,showHistory,openingQuestion;
  private long nextExpiry=Long.MAX_VALUE;
 
  AgentTaskPage(Activity a,Runnable openConnections){
   activity=a;this.openConnections=openConnections;runtime=TaskRuntime.get(a);
   root=AgentUI.column(a);scroll=new ScrollView(a);scroll.setFillViewport(true);
-  body=AgentUI.column(a);int side=AgentUI.dp(a,20);body.setPadding(side,AgentUI.dp(a,12),side,AgentUI.dp(a,20));scroll.addView(body);
+  body=AgentUI.column(a);int side=AgentUI.dp(a,16);body.setPadding(side,AgentUI.dp(a,12),side,AgentUI.dp(a,20));scroll.addView(body);
   root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
   LinearLayout footer=AgentUI.column(a);footer.setPadding(side,0,side,AgentUI.dp(a,12));
   create=AgentUI.button(a,footer,"＋ 交给 Agent 一件事",false,this::delegate);root.addView(footer);
@@ -51,52 +50,68 @@ final class AgentTaskPage {
  void close(){if(closed)return;closed=true;runtime.unobserve(observer);for(AgentUI.Screen form:new ArrayList<>(forms))if(form.dialog.isShowing())form.dialog.dismiss();forms.clear();if(detail!=null&&detail.dialog.isShowing())detail.dialog.dismiss();}
  private boolean alive(){return !closed&&!activity.isFinishing()&&!activity.isDestroyed();}
  private void render(){
-  if(!alive()||snapshot==null)return;int position=scroll.getScrollY();rememberList();
+  if(!alive()||snapshot==null)return;int position=scroll.getScrollY();Activity a=activity;
   List<TaskPresentation.Source> sources=new ArrayList<>();for(TaskHub.View context:snapshot.contexts)sources.add(new TaskPresentation.Source(context.profile,context.objects,context.pending));
   long now=System.currentTimeMillis();presentation=new TaskPresentation(sources,now);nextExpiry=Long.MAX_VALUE;
   for(TaskPresentation.Question question:presentation.questions){long expiry=TaskWire.stamp(question.item.get("expires_at"));if(expiry>now)nextExpiry=Math.min(nextExpiry,expiry);if(question.profile.connection.expiresAt>now)nextExpiry=Math.min(nextExpiry,question.profile.connection.expiresAt);}body.removeAllViews();
-  LinearLayout connection=new LinearLayout(activity);connection.setGravity(Gravity.CENTER_VERTICAL);
-  int enabled=0;for(TaskHub.View context:snapshot.contexts)if(context.profile.enabled&&context.profile.connection.expiresAt>System.currentTimeMillis())enabled++;
-  TextView connected=AgentUI.text(activity,snapshot.contexts.isEmpty()?"尚未连接电脑":enabled+" 个连接已启用",12,AgentUI.MUTED);connection.addView(connected,new LinearLayout.LayoutParams(0,-2,1));
-  TextView manage=link("查看连接",openConnections);connection.addView(manage);body.addView(connection);AgentUI.gap(activity,body,18);
-  if(!TaskWire.set("contexts_ready","contexts_updated","ready","received","queued","awaiting_refresh","paused","unconfigured").contains(snapshot.note)){
-   TextView warning=AgentUI.text(activity,TaskWorkspace.label(snapshot.note),13,AgentUI.MUTED);body.addView(warning);AgentUI.gap(activity,body,12);
-  }
+  // Connection strip: one tappable line instead of a heading plus a link.
+  int enabled=0;for(TaskHub.View context:snapshot.contexts)if(context.profile.enabled&&context.profile.connection.expiresAt>now)enabled++;
+  LinearLayout connection=new LinearLayout(a);connection.setGravity(Gravity.CENTER_VERTICAL);connection.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,8),0);connection.setBackground(MaterialReadingUI.pressable(a,MaterialReadingUI.fill(a,0xff161918,10)));
+  View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,enabled>0?MaterialReadingUI.ACCENT_SOFT:MaterialReadingUI.DIM,4));LinearLayout.LayoutParams dp=new LinearLayout.LayoutParams(AgentUI.dp(a,7),AgentUI.dp(a,7));dp.rightMargin=AgentUI.dp(a,8);connection.addView(dot,dp);
+  String connected=snapshot.contexts.isEmpty()?"尚未连接电脑":enabled>0?enabled+" 个电脑连接可用":"电脑连接都已暂停或到期";connection.addView(AgentUI.text(a,connected,13,AgentUI.MUTED),new LinearLayout.LayoutParams(0,-2,1));connection.addView(AgentUI.text(a,"查看连接",12,AgentUI.MUTED));MaterialReadingUI.glyph(a,connection,"right",AgentUI.MUTED,14);
+  connection.setFocusable(true);connection.setContentDescription(connected+"，查看连接");connection.setOnClickListener(v->openConnections.run());body.addView(connection,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,40)));
+  if(!TaskWire.set("contexts_ready","contexts_updated","ready","received","queued","awaiting_refresh","paused","unconfigured").contains(snapshot.note)){TextView warning=AgentUI.text(a,TaskWorkspace.label(snapshot.note),13,MaterialReadingUI.AMBER);warning.setPadding(0,AgentUI.dp(a,10),0,0);body.addView(warning);}
+  // Questions first: the one decision that matters now, others as single lines.
   int decisions=0;for(TaskPresentation.Question question:presentation.questions)if(!question.queuedAnswer())decisions++;
-  TextView heading=AgentUI.text(activity,decisions>0?"需要你决定  "+decisions:presentation.questions.isEmpty()?"需要你决定":"回复进度",17,AgentUI.INK);heading.setTypeface(null,Typeface.BOLD);body.addView(heading);
-  if(presentation.questions.isEmpty()){
-   LinearLayout empty=AgentUI.card(activity,body);empty.addView(AgentUI.text(activity,"暂无等待回复的问题",16,AgentUI.INK));AgentUI.gap(activity,empty,6);empty.addView(AgentUI.text(activity,snapshot.contexts.isEmpty()?"添加电脑连接后，Agent 的问题会出现在这里。":"有新的问题时，会在这里等待你处理。",13,AgentUI.MUTED));
-  }else{
-   int limit=showAllQuestions?presentation.questions.size():1;for(int i=0;i<limit;i++)questionCard(body,presentation.questions.get(i));
-   if(presentation.questions.size()>1)body.addView(link(showAllQuestions?"收起其他问题":"还有 "+(presentation.questions.size()-1)+" 个问题",()->{showAllQuestions=!showAllQuestions;render();}));
-  }
-  AgentUI.gap(activity,body,22);LinearLayout tabs=new LinearLayout(activity);String[] labels={"进行中 "+presentation.filter("running").size(),"已完成","全部"},keys={"running","completed","all"};
-  for(int i=0;i<keys.length;i++){final String selected=keys[i];TextView tab=AgentUI.text(activity,labels[i],14,filter.equals(selected)?AgentUI.ACCENT:AgentUI.MUTED);tab.setGravity(Gravity.CENTER);tab.setPadding(0,AgentUI.dp(activity,12),0,AgentUI.dp(activity,12));tab.setSelected(filter.equals(selected));tab.setContentDescription(labels[i]+(filter.equals(selected)?"，已选择":""));tab.setFocusable(true);tabs.addView(tab,new LinearLayout.LayoutParams(0,-2,1));tab.setOnClickListener(v->{rememberList();taskScroll=null;filter=selected;render();});}
-  body.addView(tabs);taskScroll=new ScrollView(activity);taskScroll.setFillViewport(true);taskScroll.setNestedScrollingEnabled(true);LinearLayout list=AgentUI.column(activity);taskScroll.addView(list);body.addView(taskScroll,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,248)));
-  List<TaskPresentation.Row> rows=presentation.filter(filter);if(rows.isEmpty()){TextView empty=AgentUI.text(activity,"completed".equals(filter)?"还没有已完成的任务":"暂无任务",14,AgentUI.MUTED);empty.setGravity(Gravity.CENTER);list.addView(empty,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,240)));}else for(TaskPresentation.Row row:rows)taskRow(list,row);
-  AgentUI.gap(activity,body,14);TextView note=AgentUI.text(activity,"每个回复，都会回到发起它的原任务。",12,AgentUI.MUTED);note.setGravity(Gravity.CENTER);body.addView(note);
+  LinearLayout heading=new LinearLayout(a);heading.setGravity(Gravity.BOTTOM);heading.setPadding(0,AgentUI.dp(a,22),0,AgentUI.dp(a,2));heading.addView(MaterialReadingUI.bold(AgentUI.text(a,decisions>0||presentation.questions.isEmpty()?"等你回复":"回复进度",17,AgentUI.INK)));
+  if(decisions>0){TextView n=MaterialReadingUI.bold(AgentUI.text(a,"  "+decisions,17,MaterialReadingUI.AMBER));heading.addView(n);}body.addView(heading);
+  if(presentation.questions.isEmpty()){LinearLayout empty=MaterialReadingUI.card(a,body,10);empty.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,14),AgentUI.dp(a,16),AgentUI.dp(a,14));empty.addView(AgentUI.text(a,"暂无等待回复的问题",15,AgentUI.INK));AgentUI.gap(a,empty,4);empty.addView(AgentUI.text(a,snapshot.contexts.isEmpty()?"添加电脑连接后，Agent 的问题会出现在这里。":"Agent 提问时会出现在这里，也会推到眼镜上。",12,AgentUI.MUTED));}
+  else{questionCard(body,presentation.questions.get(0));for(int i=1;i<presentation.questions.size();i++)questionLine(body,presentation.questions.get(i));}
+  // Tasks: filter pills, then one card holding the rows.
+  LinearLayout bar=new LinearLayout(a);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding(0,AgentUI.dp(a,24),0,AgentUI.dp(a,10));bar.addView(MaterialReadingUI.bold(AgentUI.text(a,"任务",17,AgentUI.INK)),new LinearLayout.LayoutParams(0,-2,1));
+  String[] labels={"进行中 "+presentation.filter("running").size(),"已完成","全部"},keys={"running","completed","all"};
+  for(int i=0;i<keys.length;i++){final String selected=keys[i];boolean on=filter.equals(selected);TextView pill=AgentUI.text(a,labels[i],13,on?0xff0f1110:AgentUI.MUTED);if(on)MaterialReadingUI.bold(pill);pill.setGravity(Gravity.CENTER);pill.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,12),0);pill.setBackground(on?MaterialReadingUI.fill(a,AgentUI.INK,15):MaterialReadingUI.outline(a,15));pill.setContentDescription(labels[i]+(on?"，已选择":""));pill.setFocusable(true);pill.setOnClickListener(v->{filter=selected;shown=PAGE;render();});LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-2,AgentUI.dp(a,30));pp.leftMargin=AgentUI.dp(a,6);bar.addView(pill,pp);}
+  body.addView(bar);
+  List<TaskPresentation.Row> rows=presentation.filter(filter);
+  if(rows.isEmpty()){TextView empty=AgentUI.text(a,"completed".equals(filter)?"还没有已完成的任务":"running".equals(filter)?"没有进行中的任务":"暂无任务",14,AgentUI.MUTED);empty.setGravity(Gravity.CENTER);empty.setBackground(MaterialReadingUI.fill(a,MaterialReadingUI.CARD,16));body.addView(empty,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,96)));}
+  else{LinearLayout list=MaterialReadingUI.card(a,body,0);int limit=Math.min(rows.size(),shown);for(int i=0;i<limit;i++)taskRow(list,rows.get(i),i>0);
+   if(rows.size()>limit){TextView more=AgentUI.text(a,"再显示 "+Math.min(PAGE,rows.size()-limit)+" 个（共 "+rows.size()+" 个）",13,AgentUI.ACCENT);more.setGravity(Gravity.CENTER);more.setFocusable(true);more.setOnClickListener(v->{shown+=PAGE;render();});body.addView(more,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}}
+  if("running".equals(filter)){int done=presentation.filter("completed").size();if(done>0){TextView history=AgentUI.text(a,"已完成 "+done+" 个  ›",13,AgentUI.MUTED);history.setGravity(Gravity.CENTER);history.setFocusable(true);history.setOnClickListener(v->{filter="completed";shown=PAGE;render();});body.addView(history,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}}
+  AgentUI.gap(a,body,10);TextView note=AgentUI.text(a,"每个回复，都会回到发起它的原任务。",12,AgentUI.MUTED);note.setGravity(Gravity.CENTER);body.addView(note);
   create.setText("＋ 交给 Agent 一件事");
-  final ScrollView currentList=taskScroll;final int inner=listPositions.containsKey(filter)?listPositions.get(filter):0;
-  scroll.post(()->{if(alive()){scroll.scrollTo(0,position);if(currentList==taskScroll)currentList.scrollTo(0,inner);}});
+  scroll.post(()->{if(alive())scroll.scrollTo(0,position);});
   if(detail!=null&&detail.dialog.isShowing()){TaskPresentation.Row row=presentation.find(detailKey);if(row!=null)renderDetails(row);}
  }
- private void rememberList(){if(taskScroll!=null)listPositions.put(filter,taskScroll.getScrollY());}
+ private static final int PAGE=30;private int shown=PAGE;
  private TextView link(String text,Runnable action){TextView view=AgentUI.text(activity,text,13,AgentUI.ACCENT);view.setPadding(0,AgentUI.dp(activity,10),0,AgentUI.dp(activity,10));view.setMinHeight(AgentUI.dp(activity,44));view.setGravity(Gravity.CENTER_VERTICAL);view.setFocusable(true);view.setOnClickListener(v->action.run());return view;}
- private void questionCard(LinearLayout parent,TaskPresentation.Question question){
-  LinearLayout card=AgentUI.card(activity,parent);card.addView(AgentUI.text(activity,TaskPresentation.source(question.profile),12,AgentUI.MUTED));AgentUI.gap(activity,card,9);
-  TextView text=AgentUI.text(activity,(String)TaskWire.body(question.item).get("question"),17,AgentUI.INK);text.setMaxLines(3);text.setEllipsize(android.text.TextUtils.TruncateAt.END);card.addView(text);
-  AgentUI.gap(activity,card,7);card.addView(AgentUI.text(activity,TaskPresentation.firstLine((String)TaskWire.body(question.parent).get("command")),13,AgentUI.MUTED));
-  if(question.queuedAnswer())card.addView(AgentUI.text(activity,TaskPresentation.queueStatus(question.localAnswer),12,AgentUI.MUTED));
-  else if(!question.available(System.currentTimeMillis()))card.addView(AgentUI.text(activity,question.profile.enabled?"连接已到期，请更新连接后回复":"连接已暂停，恢复后可回复",12,AgentUI.MUTED));
-  AgentUI.button(activity,card,question.queuedAnswer()?"查看提交状态":question.available(System.currentTimeMillis())?"查看并回复":"查看问题",true,()->openQuestion(question));
-  if(!question.queuedAnswer()&&question.available(System.currentTimeMillis()))card.addView(link("在眼镜上显示问题",()->AgentCardRuntime.offer(activity,question.binding,question.id,TaskWire.positive(question.item.get("revision")))));
+ private static String ago(long time){if(time<=0)return "";long minutes=(System.currentTimeMillis()-time)/60000;if(minutes<1)return "刚刚";if(minutes<60)return minutes+" 分钟前";java.time.ZonedDateTime at=java.time.Instant.ofEpochMilli(time).atZone(java.time.ZoneId.systemDefault());if(at.toLocalDate().equals(java.time.LocalDate.now()))return String.format(Locale.ROOT,"%02d:%02d",at.getHour(),at.getMinute());return at.getMonthValue()+"月"+at.getDayOfMonth()+"日";}
+ private static long stamp(Object value){try{return TaskWire.stamp(value);}catch(RuntimeException invalid){return 0;}}
+ /** The most urgent question: what is asked, by whom, and one clear way to answer. */
+ private void questionCard(LinearLayout parent,TaskPresentation.Question question){Activity a=activity;long now=System.currentTimeMillis();boolean open=!question.queuedAnswer()&&question.available(now);
+  LinearLayout card=MaterialReadingUI.card(a,parent,10);card.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,14),AgentUI.dp(a,16),AgentUI.dp(a,8));GradientDrawable frame=MaterialReadingUI.fill(a,MaterialReadingUI.CARD,16);frame.setStroke(AgentUI.dp(a,1),open?0xff3a3220:0xff2d3331);card.setBackground(frame);
+  LinearLayout meta=new LinearLayout(a);meta.setGravity(Gravity.CENTER_VERTICAL);MaterialReadingUI.chip(a,meta,question.queuedAnswer()?"已回复":open?"需要决定":"暂不可回复",open?MaterialReadingUI.AMBER:MaterialReadingUI.SOFT,open?0xff2e2614:MaterialReadingUI.RAISED);meta.addView(MaterialReadingUI.line(a,TaskPresentation.source(question.profile),12,AgentUI.MUTED,1),new LinearLayout.LayoutParams(0,-2,1));meta.addView(AgentUI.text(a,ago(stamp(question.item.get("stored_at"))),12,AgentUI.MUTED));card.addView(meta);
+  TextView text=AgentUI.text(a,(String)TaskWire.body(question.item).get("question"),16,AgentUI.INK);text.setLineSpacing(AgentUI.dp(a,4),1);text.setMaxLines(4);text.setEllipsize(android.text.TextUtils.TruncateAt.END);LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=AgentUI.dp(a,12);card.addView(text,tp);
+  TextView task=MaterialReadingUI.line(a,"来自任务："+TaskPresentation.firstLine((String)TaskWire.body(question.parent).get("command")),12,AgentUI.MUTED,1);LinearLayout.LayoutParams kp=new LinearLayout.LayoutParams(-1,-2);kp.topMargin=AgentUI.dp(a,8);card.addView(task,kp);
+  if(question.queuedAnswer())card.addView(AgentUI.text(a,TaskPresentation.queueStatus(question.localAnswer),12,AgentUI.MUTED));
+  else if(!question.available(now))card.addView(AgentUI.text(a,question.profile.enabled?"连接已到期，请更新连接后回复":"连接已暂停，恢复后可回复",12,AgentUI.MUTED));
+  AgentUI.button(a,card,question.queuedAnswer()?"查看提交状态":open?"查看并回复":"查看问题",open,()->openQuestion(question));
+  if(open)card.addView(link("在眼镜上显示这个问题",()->AgentCardRuntime.offer(a,question.binding,question.id,TaskWire.positive(question.item.get("revision")))));
  }
- private void taskRow(LinearLayout parent,TaskPresentation.Row row){
-  LinearLayout card=AgentUI.column(activity);card.setPadding(0,AgentUI.dp(activity,14),0,AgentUI.dp(activity,12));
-  LinearLayout summary=AgentUI.column(activity);TextView title=AgentUI.text(activity,row.title(),15,AgentUI.INK);title.setMaxLines(2);title.setEllipsize(android.text.TextUtils.TruncateAt.END);summary.addView(title);
-  AgentUI.gap(activity,summary,4);summary.addView(AgentUI.text(activity,TaskPresentation.source(row.profile),12,AgentUI.MUTED));AgentUI.gap(activity,summary,6);summary.addView(AgentUI.text(activity,"• "+TaskPresentation.status(row)+"   ›",12,AgentUI.MUTED));summary.setFocusable(true);summary.setContentDescription(row.title()+"，"+TaskPresentation.status(row)+"，查看任务");summary.setOnClickListener(v->openDetails(row));card.addView(summary);
-  controls(card,row);
-  parent.addView(card);View divider=new View(activity);divider.setBackgroundColor(0x224b725e);parent.addView(divider,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,1)));
+ private void questionLine(LinearLayout parent,TaskPresentation.Question question){Activity a=activity;LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,12),AgentUI.dp(a,10),AgentUI.dp(a,12));row.setBackground(MaterialReadingUI.pressable(a,MaterialReadingUI.fill(a,MaterialReadingUI.CARD,14)));
+  View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,question.queuedAnswer()?MaterialReadingUI.DIM:MaterialReadingUI.AMBER,4));LinearLayout.LayoutParams dp=new LinearLayout.LayoutParams(AgentUI.dp(a,8),AgentUI.dp(a,8));dp.rightMargin=AgentUI.dp(a,12);row.addView(dot,dp);
+  LinearLayout text=AgentUI.column(a);text.addView(MaterialReadingUI.line(a,(String)TaskWire.body(question.item).get("question"),15,AgentUI.INK,1));AgentUI.gap(a,text,3);text.addView(MaterialReadingUI.line(a,TaskPresentation.source(question.profile)+" · "+ago(stamp(question.item.get("stored_at"))),12,AgentUI.MUTED,1));row.addView(text,new LinearLayout.LayoutParams(0,-2,1));MaterialReadingUI.glyph(a,row,"right",AgentUI.MUTED,14);
+  row.setFocusable(true);row.setContentDescription((String)TaskWire.body(question.item).get("question"));row.setOnClickListener(v->openQuestion(question));LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.topMargin=AgentUI.dp(a,8);parent.addView(row,lp);}
+ /** One task line: status icon, title, how it is going, where it runs. Controls live in the task detail. */
+ private void taskRow(LinearLayout parent,TaskPresentation.Row row,boolean rule){Activity a=activity;
+  if(rule){View line=new View(a);line.setBackgroundColor(MaterialReadingUI.LINE);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,AgentUI.dp(a,1));lp.leftMargin=AgentUI.dp(a,58);parent.addView(line,lp);}
+  String status=TaskPresentation.status(row);boolean waiting="waiting_answer".equals(row.state),running=TaskWire.set("running","agent_received").contains(row.state),done=row.completed(),stopping=TaskWire.set("cancel_requested","stop_requested","stop_unconfirmed","stopped","resume_requested","execution_unknown").contains(row.state);
+  int tone=waiting?MaterialReadingUI.AMBER:running?MaterialReadingUI.ACCENT_SOFT:done?0xff7f8a84:AgentUI.MUTED;int toneBg=waiting?0xff2e2614:running?MaterialReadingUI.ACCENT_BG:MaterialReadingUI.RAISED;
+  LinearLayout line=new LinearLayout(a);line.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,14),AgentUI.dp(a,14),AgentUI.dp(a,14));line.setBackground(MaterialReadingUI.pressable(a,null));
+  LinearLayout icon=new LinearLayout(a);icon.setGravity(Gravity.CENTER);icon.setBackground(MaterialReadingUI.fill(a,toneBg,16));MaterialReadingUI.glyph(a,icon,waiting?"alert":running?"arc":done?"check":stopping?"pause":"clock",tone,16);LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(AgentUI.dp(a,32),AgentUI.dp(a,32));ip.rightMargin=AgentUI.dp(a,12);line.addView(icon,ip);
+  LinearLayout text=AgentUI.column(a);LinearLayout first=new LinearLayout(a);first.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,row.title(),15,AgentUI.INK,1)),new LinearLayout.LayoutParams(0,-2,1));TextView when=AgentUI.text(a,ago(row.order()),12,AgentUI.MUTED);when.setPadding(AgentUI.dp(a,8),0,0,0);first.addView(when);text.addView(first);
+  LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,-2);sp.topMargin=AgentUI.dp(a,5);text.addView(MaterialReadingUI.line(a,status,13,waiting?MaterialReadingUI.AMBER:done?AgentUI.MUTED:MaterialReadingUI.SOFT,2),sp);
+  LinearLayout.LayoutParams op=new LinearLayout.LayoutParams(-1,-2);op.topMargin=AgentUI.dp(a,4);text.addView(MaterialReadingUI.line(a,TaskPresentation.source(row.profile),12,AgentUI.MUTED,1),op);line.addView(text,new LinearLayout.LayoutParams(0,-2,1));
+  line.setFocusable(true);line.setContentDescription(row.title()+"，"+status+"，查看任务");line.setOnClickListener(v->openDetails(row));parent.addView(line);
  }
  private void delegate(){
   if(snapshot==null)return;

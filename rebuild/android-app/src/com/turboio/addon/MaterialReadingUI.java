@@ -18,6 +18,29 @@ final class MaterialReadingUI {
  static GradientDrawable fill(Activity a,int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(AgentUI.dp(a,radius));return d;}
  static GradientDrawable outline(Activity a,int radius){GradientDrawable d=new GradientDrawable();d.setColor(0);d.setCornerRadius(AgentUI.dp(a,radius));d.setStroke(AgentUI.dp(a,1),0xff2d3331);return d;}
  static Drawable pressable(Activity a,Drawable base){return new RippleDrawable(ColorStateList.valueOf(0x2636c49b),base,fill(a,0xffffffff,16));}
+ /** Rounded only at the top and/or bottom, for cards split across list rows. */
+ static GradientDrawable corners(Activity a,int color,int top,int bottom){GradientDrawable d=new GradientDrawable();d.setColor(color);float t=AgentUI.dp(a,top),b=AgentUI.dp(a,bottom);d.setCornerRadii(new float[]{t,t,t,t,b,b,b,b});return d;}
+ /** A row that pages on a sideways swipe while taps still reach its children. */
+ static final class SwipeRow extends LinearLayout {
+  interface Pager{void page(int direction);}
+  private final Pager pager;private final int slop,distance;private float downX,downY;private boolean dragging;
+  SwipeRow(Activity a,Pager pager){super(a);this.pager=pager;slop=ViewConfiguration.get(a).getScaledTouchSlop();distance=AgentUI.dp(a,48);}
+  @Override public boolean onInterceptTouchEvent(MotionEvent e){
+   if(e.getActionMasked()==MotionEvent.ACTION_DOWN){downX=e.getX();downY=e.getY();dragging=false;return false;}
+   if(e.getActionMasked()==MotionEvent.ACTION_MOVE){float dx=e.getX()-downX,dy=e.getY()-downY;if(Math.abs(dx)>slop&&Math.abs(dx)>Math.abs(dy)*1.5f){dragging=true;getParent().requestDisallowInterceptTouchEvent(true);return true;}}
+   return false;
+  }
+  @Override public boolean onTouchEvent(MotionEvent e){
+   float dx=e.getX()-downX;
+   switch(e.getActionMasked()){
+    case MotionEvent.ACTION_DOWN:downX=e.getX();downY=e.getY();return true;
+    case MotionEvent.ACTION_MOVE:if(dragging)setTranslationX(dx*0.35f);return true;
+    case MotionEvent.ACTION_UP:animate().translationX(0).setDuration(120).start();if(dragging&&Math.abs(dx)>=distance)pager.page(dx<0?1:-1);dragging=false;return true;
+    case MotionEvent.ACTION_CANCEL:animate().translationX(0).setDuration(120).start();dragging=false;return true;
+    default:return true;
+   }
+  }
+ }
  static LinearLayout card(Activity a,LinearLayout parent,int topMargin){LinearLayout c=AgentUI.column(a);c.setBackground(fill(a,CARD,16));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.topMargin=AgentUI.dp(a,topMargin);parent.addView(c,p);return c;}
  static TextView line(Activity a,String value,int size,int color,int lines){TextView t=AgentUI.text(a,value,size,color);if(lines>0){t.setMaxLines(lines);t.setEllipsize(TextUtils.TruncateAt.END);}return t;}
  static TextView bold(TextView t){t.setTypeface(Typeface.create("sans-serif-medium",Typeface.NORMAL));return t;}
@@ -36,11 +59,18 @@ final class MaterialReadingUI {
    switch(name){
     case "down":p.moveTo(6,9);p.lineTo(12,15);p.lineTo(18,9);break;
     case "right":p.moveTo(9,6);p.lineTo(15,12);p.lineTo(9,18);break;
-    case "refresh":p.addArc(new RectF(4,4,20,20),-30,290);p.moveTo(20,4);p.lineTo(20,10);p.lineTo(14,10);break;
+    case "refresh":{float r=7.5f,from=-60,sweep=300;p.addArc(new RectF(12-r,12-r,12+r,12+r),from,sweep);double end=Math.toRadians(from+sweep);float tx=12+(float)(r*Math.cos(end)),ty=12+(float)(r*Math.sin(end));
+     // Arrow head at the arc's end, pointing along its clockwise direction.
+     float dx=(float)-Math.sin(end),dy=(float)Math.cos(end),nx=(float)Math.cos(end),ny=(float)Math.sin(end);p.moveTo(tx-3.5f*dx+3*nx,ty-3.5f*dy+3*ny);p.lineTo(tx,ty);p.lineTo(tx-3.5f*dx-3*nx,ty-3.5f*dy-3*ny);break;}
     case "sort":p.moveTo(7,4);p.lineTo(7,20);p.moveTo(3,16);p.lineTo(7,20);p.lineTo(11,16);p.moveTo(17,20);p.lineTo(17,4);p.moveTo(13,8);p.lineTo(17,4);p.lineTo(21,8);break;
     case "pin":p.moveTo(12,21);p.cubicTo(12,21,5,14.8f,5,9.5f);p.arcTo(new RectF(5,2.5f,19,16.5f),180,180);p.cubicTo(19,14.8f,12,21,12,21);p.addCircle(12,9.5f,2.5f,Path.Direction.CW);break;
     case "spark":p.moveTo(12,3);p.lineTo(13.8f,7.7f);p.lineTo(18.5f,9.5f);p.lineTo(13.8f,11.3f);p.lineTo(12,16);p.lineTo(10.2f,11.3f);p.lineTo(5.5f,9.5f);p.lineTo(10.2f,7.7f);p.close();p.moveTo(19,15);p.lineTo(19.8f,17.2f);p.lineTo(22,18);p.lineTo(19.8f,18.8f);p.lineTo(19,21);p.lineTo(18.2f,18.8f);p.lineTo(16,18);p.lineTo(18.2f,17.2f);p.close();break;
     case "export":p.moveTo(12,15);p.lineTo(12,3);p.moveTo(7,8);p.lineTo(12,3);p.lineTo(17,8);p.moveTo(5,14);p.lineTo(5,19);p.quadTo(5,21,7,21);p.lineTo(17,21);p.quadTo(19,21,19,19);p.lineTo(19,14);break;
+    case "check":p.moveTo(5,12.5f);p.lineTo(10,17);p.lineTo(19,7.5f);break;
+    case "alert":p.moveTo(12,6.5f);p.lineTo(12,13.5f);p.moveTo(12,17.5f);p.lineTo(12,17.6f);break;
+    case "arc":p.addArc(new RectF(4,4,20,20),-90,250);break;
+    case "pause":p.moveTo(9,6.5f);p.lineTo(9,17.5f);p.moveTo(15,6.5f);p.lineTo(15,17.5f);break;
+    case "clock":p.addCircle(12,12,8,Path.Direction.CW);p.moveTo(12,7.5f);p.lineTo(12,12);p.lineTo(15,14);break;
     default:p.addCircle(12,12,8,Path.Direction.CW);
    }
    c.drawPath(p,paint);c.restore();}
