@@ -23,6 +23,8 @@ const clean = operation => {
 export async function createClaudeModBroker({directory, binding, clock = Date.now}) {
   need(path.isAbsolute(directory) && object(binding) && uuid(binding.route?.session_id) &&
     binding.host_kind === 'claude' && path.isAbsolute(binding.workspace), 'CLAUDE_MOD_BINDING_INVALID');
+  binding = {server_id:binding.server_id, owner_id:binding.owner_id, host_kind:binding.host_kind,
+    workspace:binding.workspace, route:structuredClone(binding.route)};
   fs.mkdirSync(directory, {recursive:true, mode:0o700});
   need((fs.statSync(directory).mode & 0o077) === 0, 'CLAUDE_MOD_DIRECTORY_NOT_PRIVATE');
   const stateFile = path.join(directory, 'broker.json');
