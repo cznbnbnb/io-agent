@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "date": "2026-10-26",
+  "scope": "Real phone UI, public server, one isolated real Claude 2.1.308 process/session; no glasses wake simulation",
+  "app_version": "0.5.3-dev115",
+  "version_code": 10537,
+  "installed_sha256": "a22eaca914e8c68d77c2c32637be22e8e675e912ac62d5d949a10fa34e081d72",
+  "new_product_apk_built": false,
+  "test_agent": "caller602-20261026-codex",
+  "native_session": "6ee49509-cc52-489d-997a-a674fab38271",
+  "default_dispatch": {
+    "passed": true,
+    "phone_default_badge_seen": true,
+    "submitted_from_normal_delegate_form": true,
+    "task_id": "task-android-88362c4cb7a47c5e2a59ad2b076e5e09270125b7da8fa489fa1f8a31b5cbf434",
+    "turn_id": "1069512a-197c-4d35-a4e4-8c335a626f11",
+    "same_native_session_context_verified": true,
+    "nonce_sha256": "3c73e0e2cf64534d6c4bc3c2226d1bff8523dd0e12bb6a499c39cd027f0e733b",
+    "phone_final_result_and_completed_seen": true
+  },
+  "interrupt": {
+    "phone_stop_clicked": true,
+    "task_id": "task-android-d44d26edf92b279b378a27253f57f6467e9e3d947930d0dea7b35aa5bad03b56",
+    "expected_command_id": "44967e4a-603d-5f81-a3ab-8c3dcbc914c1",
+    "expected_turn_id": "1cef8020-ff38-41eb-a81a-60667b575dd5",
+    "actual_native_turn": "1cef8020-ff38-41eb-a81a-60667b575dd5",
+    "exact_turn_match": true,
+    "native_interrupted": true,
+    "controlled_child": {
+      "original_child_exited": true,
+      "elapsed_seconds": 68.6,
+      "heartbeat": "38",
+      "heartbeat_quiet": true,
+      "signal_marker": "15",
+      "natural_end": false
+    },
+    "native_child_stop_receipt": {
+      "phase": "stop_requested",
+      "native_result": "success"
+    },
+    "phone_state": "stop_unconfirmed",
+    "phone_label": "停止尚未确认，暂不能继续",
+    "resume_enabled": false,
+    "complete_phone_stop_resume_passed": false,
+    "blocker": "Production Claude broker inspectStop hardcodes descendantsStopped:false; the independent controlled-child proof is not wired into SessionControl."
+  },
+  "glasses_active_wake": {
+    "tested": false,
+    "product_wired": false,
+    "blocker": "Wake gate and delegate draft core have no production runtime call sites; independent delegate capture/confirm prototypes remain untracked and excluded from installed builds."
+  },
+  "codex_native_control_tested_this_run": false,
+  "cleanup": {
+    "original_default_route": null,
+    "restored_default_route": null,
+    "restored_default_revision": 5,
+    "native_engine_exited": true,
+    "test_session_online": false,
+    "phone_test_connection_paused": true,
+    "unconfirmed_synthetic_task_closed_as": "failed",
+    "global_pairing_credential_preserved": true,
+    "glasses_progress_enabled": false,
+    "temporary_server_credential_created": false,
+    "local_mod_listener_closed": true
+  }
+}

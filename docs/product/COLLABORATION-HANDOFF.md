@@ -1,3 +1,16 @@
+## [codex] 2026-10-26 手机主动派发/打断实测：默认 Claude 通过，停止确认与眼镜 wake 未收口
+
+用户要求在手机验主动调用默认 Agent、指定会话打断。设备为 dev115 /10537，完整现装 SHA 再核对；没有构建新 App。复用既有账号配对与正式服务，建 `caller602-20261026-codex` 隔离 Claude 2.1.308 引擎，在同一个真实 session 内执行两项合成任务，不碰用户现用聊天/模型配置，也未发眼镜题或开麦。
+
+- 通过：CLI 标准 set-default + 真实目录在线，手机表单自动选中默认（可见“默认/Claude”）。正常填写并提交后，模型读回仅在原 session 种下的 nonce；手机详情显示完整结果、已完成和真实回执。原 session `6ee49509-cc52-489d-997a-a674fab38271`，完成 turn `1069512a-197c-4d35-a4e4-8c335a626f11`。
+- 部分通过：手机详情正常点击“打断任务”，控制指向精确 turn `1cef8020-ff38-41eb-a81a-60667b575dd5`；原生确为 interrupted。实际受控 Python 收 SIGTERM、原 PID 身份消失，心跳停在38且1秒不变，无自然结束标记（自然期限120秒）。原生 TaskStop 结构化回执 success。此证明只涵盖这一受控进程，不提升任意派生工作为已停止。
+- 未通过：手机停在“停止尚未确认，暂不能继续”，没有追加继续入口。真实原因是 `hosts/claude-mod/broker.mjs inspectStop` 仍固定 `descendantsStopped:false`，独立 OS 退出证据没有接入生产控制器。没有修改保护值、伪造 stopped/continued 或另建任务冒充继续。Codex 当前桌面控制本批未验。
+- 眼镜主动入口仍未接：Host107WakeGateCore / AgentDelegateSession 只有 core；无生产 wake/capture owner 及确认接线。未完成 DelegateCapture/Confirm 文件继续原样排除在候选外。手机文字派发通过不证明眼镜双击/口述入口已可用。
+
+收尾：CAS 恢复原共享默认 null（revision5），精确关闭自有引擎/桥与目录租约，原引擎 PID 已无、目录离线，手机 QA 连接已暂停；共享配对不撤销（没有签发新的服务器设备凭据）；本机 Mod 监听已关闭，失效本机 bearer 文件已移除。未确认测试任务以 failed 结束并保留历史，非 stopped 成功。诊断包和临时 XML 收尾；现装/回退仍 dev115/dev114。证据：[手机默认/打断](../../rebuild/android-app/phone-default-interrupt-2026-10-26.json)。私有运行记录在 `rebuild/agent-bridge/private/phone-acceptance-caller602-20261026-codex`，不提交凭据/引擎输出。
+
+下一项应先设计并接通精确原轮次的受控工作停止证明→服务状态→手机继续门禁，再接主动 wake→独立口述→确认→默认会话。不能靠改手机提示或直接放行继续解决证明缺口。
+
 ## [codex] 2026-10-26 dev115：每次手势最多一周，滑动仍不选择日期
 
 用户在 dev114 验证中继续反馈幅度稍大可跳两周。为惯性、拖动停靠和无障碍翻页统一约束落点，只允许中心周的前后一周；保留连续动画和触摸接管。浏览周与选中日期仍分离，滚动只更换日期带，点击才切换智记。沿用 Claude dev108 的布局与本批样式，未触碰未完成 DelegateCapture 文件。
