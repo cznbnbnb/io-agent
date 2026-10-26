@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+import {exe,PYTHON} from './host-tools.mjs';
+const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const root=path.join(workspace,'rebuild/android-app');
+const output=path.join(root,'build/ui-performance-probe');
+const sdk=path.join(root,'.tools/sdk'),buildTools=path.join(sdk,'build-tools/36.0.0'),androidJar=path.join(sdk,'platforms/android-36/android.jar');
+fs.mkdirSync(path.join(output,'classes'),{recursive:true});fs.mkdirSync(path.join(output,'dex'),{recursive:true});
+const env={...process.env,IO_AGENT_SIGN_PASS:fs.readFileSync(path.join(root,'.private/signing/keystore-pass.txt'),'utf8').trim()};
+function run(command,args){const result=spawnSync(command,args,{cwd:workspace,env,encoding:'utf8',timeout:60000,maxBuffer:1048576});if(result.error||result.status!==0)throw Error('Probe build failed: '+command+'\n'+result.stderr);}
+const manifest=path.join(output,'AndroidManifest.xml');
+fs.writeFileSync(manifest,'<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.turboio.performance.codex" android:versionCode="1" android:versionName="1"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/><application android:label="iO Agent performance probe" android:allowBackup="false"/><instrumentation android:name="com.turboio.androidtests.UiPerformanceProbe" android:targetPackage="com.rayneo.venus.pub"/></manifest>');
+run('javac',['-encoding','UTF-8','-source','8','-target','8','-cp',androidJar,'-d',path.join(output,'classes'),'tools/android/UiPerformanceProbe.java']);
+run('jar',['cf',path.join(output,'input.jar'),'-C',path.join(output,'classes'),'.']);
+run('java',['-cp',path.join(buildTools,'lib/d8.jar'),'com.android.tools.r8.D8','--lib',androidJar,'--min-api','29','--output',path.join(output,'dex'),path.join(output,'input.jar')]);
+const unsigned=path.join(output,'unsigned.apk'),aligned=path.join(output,'aligned.apk'),signed=path.join(output,'performance-probe.apk');
+run(path.join(buildTools,exe('aapt2')),['link','--manifest',manifest,'-I',androidJar,'-o',unsigned]);
+run(PYTHON,['-S','-c','import zipfile,sys\nwith zipfile.ZipFile(sys.argv[1],"a") as archive: archive.write(sys.argv[2],"classes.dex",compress_type=zipfile.ZIP_DEFLATED)',unsigned,path.join(output,'dex/classes.dex')]);
+run(path.join(buildTools,exe('zipalign')),['-f','4',unsigned,aligned]);
+run('java',['-jar',path.join(buildTools,'lib/apksigner.jar'),'sign','--ks',path.join(root,'.private/signing/io-agent.jks'),'--ks-key-alias','io-agent','--ks-pass','env:IO_AGENT_SIGN_PASS','--key-pass','env:IO_AGENT_SIGN_PASS','--v1-signing-enabled','false','--v2-signing-enabled','true','--v4-signing-enabled','false','--out',signed,aligned]);
+run('java',['-jar',path.join(buildTools,'lib/apksigner.jar'),'verify',signed]);
+fs.unlinkSync(unsigned);fs.unlinkSync(aligned);console.log(signed);

@@ -82,20 +82,23 @@ final class HeadGestureRuntime {
  private boolean claimRestore(){Fixed60Session.Link link=Host107Ota.link();if(!session.healthy()||!session.pending()||!session.matchesTarget(link.peer)||FirmwareQueue.busy()||Fixed60OfficialRuntime.pending()||!NativeTransfer.acquireMessages(lease))return false;claimed=true;return true;}
  private void releaseLease(){if(claimed){NativeTransfer.releaseMessages(lease);claimed=false;}}
  private void pump(){
-  main();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;available=usable();session.tick(link.peer,link.generation,now());
+  main();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
+  // No card/restore owner means no permission to grant and no login read.
+  // Active guards still recheck fresh login on every tick; claim() checks too.
+  available=(claimed||session.pending()||session.working())&&usable();session.tick(link.peer,link.generation,now());
   if(claimed&&session.pending()&&!session.matchesTarget(link.peer))releaseLease();
   if(claimed&&!NativeTransfer.acquireMessages(lease)&&(session.working()||session.phase().equals("HELD")))session.fault("其他设备操作已占用；本卡停止接收答案");
-  if(!usable()&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("设备操作或账号状态变化；不再接收本卡答案");
+  if(!available&&!session.restoring()&&(session.working()||session.phase().equals("HELD")))session.fault("设备操作或账号状态变化；不再接收本卡答案");
   if(!session.pending()&&!session.working())releaseLease();
   // One cold-recovery attempt per connection. Failure stays visible and durable, without a retry loop.
   if(session.pending()&&!session.cardPending()&&!session.working()&&session.phase().equals("RECOVERY_PENDING")&&recoveryGeneration!=link.generation&&claimRestore()){
    recoveryGeneration=link.generation;session.recover(link.peer,link.generation,now());
   }
-  if(claimed&&(usable()||session.restoring())&&!FirmwareQueue.busy()){
+  if(claimed&&(available||session.restoring())&&!FirmwareQueue.busy()){
    HeadGestureSession.Emission e=session.next(link.peer,link.generation,now());
    if(e!=null)Host107HeadSettings.send(session,link,e,ok->{session.result(e.ticket,ok,now());pump();});
   }
-  String state=session.status();boolean ready=session.ready(session.owner(),link.peer,link.generation,now())&&claimed&&usable();String fingerprint=ready+":"+state;
+  String state=session.status();boolean ready=session.ready(session.owner(),link.peer,link.generation,now())&&claimed&&available;String fingerprint=ready+":"+state;
   if(listener!=null&&!fingerprint.equals(notified)){notified=fingerprint;try{listener.changed(ready,session.phase());}catch(RuntimeException unavailable){listener=null;session.fault("卡片接收方未就绪；保留设置恢复义务");}}
   refreshCheck();
  }

@@ -3,9 +3,11 @@ package com.turboio.addon;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /** Strict bounded JSON for task/material documents. No Android or host classes. */
 final class WireJson {
+ private static final Pattern NUMBER=Pattern.compile("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?"),INTEGER=Pattern.compile("-?(0|[1-9][0-9]*)");
  private final String input;private int at,nodes;private final int maxNodes;
  private WireJson(String input,int nodes){this.input=input;maxNodes=nodes;}
  static Object read(byte[] data){return read(data,1048576,100000);}
@@ -28,8 +30,8 @@ final class WireJson {
   for(String literal:new String[]{"true","false","null"})if(c==literal.charAt(0)&&input.startsWith(literal.substring(1),at)){at+=literal.length()-1;return literal.equals("null")?null:Boolean.valueOf(literal);}
   if(c=='-'||(c>='0'&&c<='9')){
    int begin=at-1;while(at<input.length()&&"0123456789.eE+-".indexOf(input.charAt(at))>=0)at++;
-   String number=input.substring(begin,at);require(number.length()<=128&&number.matches("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?"),"WIRE_NUMBER");
-   try{if(number.matches("-?(0|[1-9][0-9]*)"))return Long.valueOf(number);BigDecimal n=new BigDecimal(number);require(n.scale()>=-1000&&n.scale()<=1000,"WIRE_NUMBER");return n;}catch(NumberFormatException error){throw new IllegalArgumentException("WIRE_NUMBER");}
+   String number=input.substring(begin,at);require(number.length()<=128&&NUMBER.matcher(number).matches(),"WIRE_NUMBER");
+   try{if(INTEGER.matcher(number).matches())return Long.valueOf(number);BigDecimal n=new BigDecimal(number);require(n.scale()>=-1000&&n.scale()<=1000,"WIRE_NUMBER");return n;}catch(NumberFormatException error){throw new IllegalArgumentException("WIRE_NUMBER");}
   }
   throw new IllegalArgumentException("WIRE_VALUE");
  }

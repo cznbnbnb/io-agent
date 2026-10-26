@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "at": "2026-10-26T09:02:33.027062+00:00",
+  "base_commit": "515a7d9",
+  "version": "0.5.3-dev102",
+  "version_code": 10524,
+  "device": "Xiaomi M332BF / Android 16 / USB",
+  "scope": "Shared runtime hot paths; original home and Agent material UI. Task dispatch feature deferred.",
+  "method": {
+    "clock_ticks_per_second": 100,
+    "idle": "Same signed instrumentation, 15s warmup then 25s original homepage, no scrolling. Scoped activity KEEP_SCREEN_ON, resumed for every sample. 100ms main Handler pings and Java stack sampling. Normal background App work remains active.",
+    "scroll": "Normal process after instrumentation, explicitly awake/unlocked and foreground checked; 12 alternating 450ms swipes with 250ms between; original home before/after and native material list after. Choreographer callback gaps are diagnostics, not presented FPS.",
+    "probe_overhead": "Sampling uses CPU; same build/config both runs. Short runs, no claim of sustained whole-device FPS or battery life.",
+    "discarded": [
+      "Earlier screen-off trace had zero frames; rejected.",
+      "Initial sampler lacked full foreground proof; used for finding hotspots only."
+    ]
+  },
+  "before": {
+    "version": "0.5.3-dev101",
+    "sample_ms": 25030,
+    "cpu_ms": 15899,
+    "equivalent_single_core_percent": 63.52,
+    "main_cpu_ms": 6800,
+    "main_ping_count": 242,
+    "main_ping_p50_ms": 0,
+    "main_ping_p95_ms": 59,
+    "main_ping_max_ms": 97,
+    "foreground_samples": 242,
+    "samples": 242,
+    "raw_sha256": "85d5bc11e85c79f1a6619da50b9983a1fad12b6b261bd42b9faa8647a4e5123a",
+    "sampled_addon_hotspots": [
+      {
+        "samples": 7,
+        "stack": "main | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.TaskConnection.stamp\ncom.turboio.addon.TaskWire.stamp\ncom.turboio.addon.TaskNotice.<init>\ncom.turboio.addon.TaskNotice.read\ncom.turboio.addon.TaskNoticeQueue.collect\ncom.turboio.addon.AgentCardRuntime.maybeNotice\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run"
+      },
+      {
+        "samples": 3,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.pending\ncom.turboio.addon.TaskHub$View.<init>"
+      },
+      {
+        "samples": 3,
+        "stack": "main | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.AgentCardRuntime.hasAnswer\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run"
+      },
+      {
+        "samples": 3,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.objects\ncom.turboio.addon.TaskHub$View.<init>"
+      },
+      {
+        "samples": 3,
+        "stack": "main | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.TaskConnection.stamp\ncom.turboio.addon.TaskWire.stamp\ncom.turboio.addon.TaskWire.object\ncom.turboio.addon.TaskWire.object\ncom.turboio.addon.TaskNotice.read\ncom.turboio.addon.TaskNoticeQueue.collect\ncom.turboio.addon.AgentCardRuntime.maybeNotice\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600"
+      },
+      {
+        "samples": 3,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.acceptPage\ncom.turboio.addon.TaskApi.pump\ncom.turboio.addon.TaskHub.pump"
+      },
+      {
+        "samples": 3,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.acceptPage"
+      },
+      {
+        "samples": 3,
+        "stack": "main | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.TaskConnection.stamp\ncom.turboio.addon.TaskWire.stamp\ncom.turboio.addon.TaskWire.object\ncom.turboio.addon.TaskWire.object\ncom.turboio.addon.AgentCardRequest.prepare\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run\nandroid.os.Handler.handleCallback"
+      },
+      {
+        "samples": 2,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.pending\ncom.turboio.addon.TaskApi.pump\ncom.turboio.addon.TaskHub.pump"
+      },
+      {
+        "samples": 2,
+        "stack": "main | RUNNABLE\njava.util.TreeMap.getEntry\njava.util.TreeMap.get\ncom.turboio.addon.TaskHub$View.item\ncom.turboio.addon.TaskNoticeQueue.collect\ncom.turboio.addon.AgentCardRuntime.maybeNotice\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run\nandroid.os.Handler.handleCallback\nandroid.os.Handler.dispatchMessage\nandroid.os.Looper.loopOnce\nandroid.os.Looper.loop\nandroid.app.ActivityThread.main\njava.lang.reflect.Method.invoke\ncom.android.internal.os.RuntimeInit$MethodAndArgsCaller.run\ncom.android.internal.os.ZygoteInit.main"
+      },
+      {
+        "samples": 2,
+        "stack": "pool-23-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.acceptPage\ncom.turboio.addon.TaskApi.pump"
+      },
+      {
+        "samples": 2,
+        "stack": "main | RUNNABLE\njdk.internal.misc.Unsafe.park\njava.util.concurrent.locks.LockSupport.parkNanos\njava.util.concurrent.FutureTask.awaitDone\njava.util.concurrent.FutureTask.get\ncom.turboio.addon.Host107Login.records\ncom.turboio.addon.Host107Login.loggedIn\ncom.turboio.addon.HeadGestureRuntime.usable\ncom.turboio.addon.HeadGestureRuntime.pump\ncom.turboio.addon.HeadGestureRuntime.access$300\ncom.turboio.addon.HeadGestureRuntime$4.run\nandroid.os.Handler.handleCallback\nandroid.os.Handler.dispatchMessage\nandroid.os.Looper.loopOnce\nandroid.os.Looper.loop\nandroid.app.ActivityThread.main\njava.lang.reflect.Method.invoke\ncom.android.internal.os.RuntimeInit$MethodAndArgsCaller.run\ncom.android.internal.os.ZygoteInit.main"
+      }
+    ]
+  },
+  "after": {
+    "version": "0.5.3-dev102",
+    "sample_ms": 25087,
+    "cpu_ms": 7143,
+    "equivalent_single_core_percent": 28.47,
+    "main_cpu_ms": 2060,
+    "main_ping_count": 241,
+    "main_ping_p50_ms": 0,
+    "main_ping_p95_ms": 2,
+    "main_ping_max_ms": 22,
+    "foreground_samples": 241,
+    "samples": 241,
+    "raw_sha256": "134e1b132714a291ed894b3e21324d6ea213e7031f7dc0e9bd893865ad150173",
+    "sampled_addon_hotspots": [
+      {
+        "samples": 2,
+        "stack": "pool-19-thread-1 | RUNNABLE\nandroid.os.BinderProxy.transactNative\nandroid.os.BinderProxy.transact\nandroid.system.keystore2.IKeystoreSecurityLevel$Stub$Proxy.createOperation\nandroid.security.KeyStoreSecurityLevel.createOperation\nandroid.security.keystore2.AndroidKeyStoreCipherSpiBase.ensureKeystoreOperationInitialized\nandroid.security.keystore2.AndroidKeyStoreCipherSpiBase.engineInit\njavax.crypto.Cipher.tryTransformWithProvider\njavax.crypto.Cipher.tryCombinations\njavax.crypto.Cipher$SpiAndProviderUpdater.updateAndGetSpiAndProvider\njavax.crypto.Cipher.chooseProvider\njavax.crypto.Cipher.init\njavax.crypto.Cipher.init\ncom.turboio.addon.TaskSettings.open\ncom.turboio.addon.TaskSettings.loadAll\ncom.turboio.addon.TaskSettings.syncDevice\ncom.turboio.addon.TaskRuntime.device\ncom.turboio.addon.TaskRuntime.lambda$new$25$com-turboio-addon-TaskRuntime\ncom.turboio.addon.TaskRuntime$$ExternalSyntheticLambda17.run"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\nlibcore.util.CharsetUtils.toUtf8Bytes\njava.lang.String.getBytes\ncom.turboio.addon.WireJson.bytes\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.objects\ncom.turboio.addon.TaskHub$View.<init>\ncom.turboio.addon.TaskHub.views\ncom.turboio.addon.TaskRuntime.device\ncom.turboio.addon.TaskRuntime.lambda$new$25$com-turboio-addon-TaskRuntime\ncom.turboio.addon.TaskRuntime$$ExternalSyntheticLambda17.run\njava.util.concurrent.ThreadPoolExecutor.runWorker\njava.util.concurrent.ThreadPoolExecutor$Worker.run\njava.lang.Thread.run"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\ncom.android.icu.util.regex.PatternNative.compileImpl\ncom.android.icu.util.regex.PatternNative.<init>\ncom.android.icu.util.regex.PatternNative.create\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.<init>\njava.util.regex.Pattern.compile\njava.util.regex.Pattern.matches\njava.lang.String.matches\ncom.turboio.addon.TaskHttp.exchange\ncom.turboio.addon.TaskRuntime$2.exchange\ncom.turboio.addon.TaskApi.preflight\ncom.turboio.addon.TaskApi.pump\ncom.turboio.addon.TaskHub.pump\ncom.turboio.addon.TaskRuntime.lambda$new$25$com-turboio-addon-TaskRuntime\ncom.turboio.addon.TaskRuntime$$ExternalSyntheticLambda17.run\njava.util.concurrent.ThreadPoolExecutor.runWorker\njava.util.concurrent.ThreadPoolExecutor$Worker.run\njava.lang.Thread.run"
+      },
+      {
+        "samples": 1,
+        "stack": "main | RUNNABLE\ncom.turboio.addon.Host107Connection.require\ncom.turboio.addon.Host107Connection.bluetooth\ncom.turboio.addon.Host107Connection.otaPeer\ncom.turboio.addon.Host107Ota.link\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run\nandroid.os.Handler.handleCallback\nandroid.os.Handler.dispatchMessage\nandroid.os.Looper.loopOnce\nandroid.os.Looper.loop\nandroid.app.ActivityThread.main\njava.lang.reflect.Method.invoke\ncom.android.internal.os.RuntimeInit$MethodAndArgsCaller.run\ncom.android.internal.os.ZygoteInit.main"
+      },
+      {
+        "samples": 1,
+        "stack": "main | RUNNABLE\norg.json.JSONTokener.nextString\norg.json.JSONTokener.nextValue\norg.json.JSONTokener.readObject\norg.json.JSONTokener.nextValue\norg.json.JSONTokener.readArray\norg.json.JSONTokener.nextValue\norg.json.JSONArray.<init>\nY3.k.g\nY3.z.b\nY3.u.g\njava.lang.reflect.Method.invoke\ncom.turboio.addon.NavReflect.call\ncom.turboio.addon.Host107Connection.call\ncom.turboio.addon.Host107Connection.snapshot\ncom.turboio.addon.Host107Connection.otaPeer\ncom.turboio.addon.Host107Ota.link\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\njava.lang.AbstractStringBuilder.append\njava.lang.StringBuilder.append\ncom.turboio.addon.WireJson.quote\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.bytes\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.pending\ncom.turboio.addon.TaskApi.pump\ncom.turboio.addon.TaskHub.pump\ncom.turboio.addon.TaskRuntime.lambda$new$25$com-turboio-addon-TaskRuntime\ncom.turboio.addon.TaskRuntime$$ExternalSyntheticLambda17.run\njava.util.concurrent.ThreadPoolExecutor.runWorker"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\nandroid.os.BinderProxy.transactNative\nandroid.os.BinderProxy.transact\nandroid.system.keystore2.IKeystoreSecurityLevel$Stub$Proxy.createOperation\nandroid.security.KeyStoreSecurityLevel.createOperation\nandroid.security.keystore2.AndroidKeyStoreCipherSpiBase.ensureKeystoreOperationInitialized\nandroid.security.keystore2.AndroidKeyStoreCipherSpiBase.engineInit\njavax.crypto.Cipher.tryTransformWithProvider\njavax.crypto.Cipher.tryCombinations\njavax.crypto.Cipher$SpiAndProviderUpdater.updateAndGetSpiAndProvider\njavax.crypto.Cipher.chooseProvider\njavax.crypto.Cipher.init\njavax.crypto.Cipher.init\ncom.turboio.addon.TaskSettings.seal\ncom.turboio.addon.TaskSettings.saveDirectory\ncom.turboio.addon.TaskRuntime.refreshDirectory\ncom.turboio.addon.TaskRuntime.device\ncom.turboio.addon.TaskRuntime.lambda$new$25$com-turboio-addon-TaskRuntime\ncom.turboio.addon.TaskRuntime$$ExternalSyntheticLambda17.run"
+      },
+      {
+        "samples": 1,
+        "stack": "com.it_nomads.fluttersecurestorage.worker | RUNNABLE\njava.lang.Character.toUpperCase\njava.lang.CaseMapper.toUpperCase\njava.lang.String.toUpperCase\njava.security.Provider$ServiceKey.<init>\njava.security.Provider$ServiceKey.<init>\njava.security.Provider.getService\njavax.crypto.Cipher.tryCombinations\njavax.crypto.Cipher$SpiAndProviderUpdater.updateAndGetSpiAndProvider\njavax.crypto.Cipher.chooseProvider\njavax.crypto.Cipher.init\njavax.crypto.Cipher.init\nh7.m.b\ng7.o.x\njava.lang.reflect.Method.invoke\ncom.turboio.addon.NavReflect.call\ncom.turboio.addon.Host107Login.lambda$records$0\ncom.turboio.addon.Host107Login$$ExternalSyntheticLambda1.call\njava.util.concurrent.FutureTask.run"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\ncom.android.icu.util.regex.MatcherNative.useAnchoringBoundsImpl\ncom.android.icu.util.regex.MatcherNative.useAnchoringBounds\njava.util.regex.Matcher.resetForInput\njava.util.regex.Matcher.reset\njava.util.regex.Matcher.reset\njava.util.regex.Matcher.<init>\njava.util.regex.Pattern.matcher\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.value\ncom.turboio.addon.WireJson.read\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.objects\ncom.turboio.addon.TaskHub$View.<init>\ncom.turboio.addon.TaskHub.views\ncom.turboio.addon.TaskRuntime$Snapshot.<init>"
+      },
+      {
+        "samples": 1,
+        "stack": "pool-19-thread-1 | RUNNABLE\njava.lang.String.checkIndex\njava.lang.StringUTF16.checkIndex\njava.lang.StringUTF16.putCharSB\njava.lang.AbstractStringBuilder.append\njava.lang.StringBuilder.append\ncom.turboio.addon.WireJson.quote\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.write\ncom.turboio.addon.WireJson.bytes\ncom.turboio.addon.WireJson.copy\ncom.turboio.addon.TaskMailbox.copy\ncom.turboio.addon.TaskMailbox.pending"
+      },
+      {
+        "samples": 1,
+        "stack": "main | RUNNABLE\nlibcore.util.CharsetUtils.toUtf8Bytes\njava.lang.String.getBytes\ncom.turboio.addon.WireJson.bytes\ncom.turboio.addon.TaskConnection.binding\ncom.turboio.addon.TaskNotice.<init>\ncom.turboio.addon.TaskNotice.read\ncom.turboio.addon.TaskNoticeQueue.collect\ncom.turboio.addon.AgentCardRuntime.maybeNotice\ncom.turboio.addon.AgentCardRuntime.maybeAuto\ncom.turboio.addon.AgentCardRuntime.pump\ncom.turboio.addon.AgentCardRuntime.access$600\ncom.turboio.addon.AgentCardRuntime$5.run\nandroid.os.Handler.handleCallback\nandroid.os.Handler.dispatchMessage\nandroid.os.Looper.loopOnce\nandroid.os.Looper.loop\nandroid.app.ActivityThread.main\njava.lang.reflect.Method.invoke"
+      },
+      {
+        "samples": 1,
+        "stack": "main | RUNNABLE\njava.lang.reflect.Executable.getMethodNameInternal\njava.lang.reflect.Method.getName\njava.lang.reflect.Method$1.compare\njava.lang.reflect.Method$1.compare\njava.util.TimSort.mergeHi\njava.util.TimSort.mergeAt\njava.util.TimSort.mergeCollapse\njava.util.TimSort.sort\njava.util.Arrays.sort\njava.util.ArrayList.sort\njava.util.Collections.sort\nlibcore.util.CollectionUtils.removeDuplicates\njava.lang.Class.getMethods\ncom.turboio.addon.NavReflect.call\ncom.turboio.addon.Host107Connection.call\ncom.turboio.addon.Host107Connection.snapshot\ncom.turboio.addon.Host107Connection.otaPeer\ncom.turboio.addon.Host107Ota.link"
+      }
+    ]
+  },
+  "improvement": {
+    "process_cpu_reduction_percent": 55.2,
+    "main_cpu_reduction_percent": 69.8
+  },
+  "scroll": {
+    "dev101": {
+      "pid": 15216,
+      "trace_sha256": "a433ebd8d16a25555aab84a1b042a1bfa99f9fd70e8e69cbdf92ded1aa47e40e",
+      "main_frame_duration": {
+        "n": 894,
+        "p50_ms": 0.078,
+        "p95_ms": 0.218,
+        "max_ms": 0.399
+      },
+      "callback_intervals": {
+        "n": 893,
+        "p50_ms": 8.322,
+        "p95_ms": 10.344,
+        "max_ms": 86.814
+      },
+      "callback_gaps_over_25ms": 32,
+      "resync_markers": 37,
+      "note": "Main Choreographer callbacks, not Flutter presented frames/FPS. Includes swipe boundaries and cold normal-process startup after instrumentation."
+    },
+    "dev102": {
+      "pid": 19801,
+      "trace_sha256": "e9dec93ba28e6095b7887080981eae23d42c17b1e687a6432c159367bb5ea9e8",
+      "main_frame_duration": {
+        "n": 1094,
+        "p50_ms": 0.072,
+        "p95_ms": 0.156,
+        "max_ms": 0.369
+      },
+      "callback_intervals": {
+        "n": 1093,
+        "p50_ms": 8.321,
+        "p95_ms": 8.883,
+        "max_ms": 67.542
+      },
+      "callback_gaps_over_25ms": 4,
+      "resync_markers": 12,
+      "note": "Main Choreographer callbacks, not Flutter presented frames/FPS. Includes swipe boundaries and cold normal-process startup after instrumentation."
+    },
+    "dev102-material": {
+      "pid": 19801,
+      "trace_sha256": "1f8f301a8cfcf24e9f98b7880e45625114bebe35ccba46790728a327e5bb8d19",
+      "main_frame_duration": {
+        "n": 1112,
+        "p50_ms": 0.931,
+        "p95_ms": 1.836,
+        "max_ms": 9.172
+      },
+      "callback_intervals": {
+        "n": 1111,
+        "p50_ms": 8.33,
+        "p95_ms": 8.966,
+        "max_ms": 26.196
+      },
+      "callback_gaps_over_25ms": 1,
+      "resync_markers": 24,
+      "note": "Main Choreographer callbacks, not Flutter presented frames/FPS. Includes swipe boundaries and cold normal-process startup after instrumentation."
+    }
+  },
+  "ui_smoke": {
+    "material_recycled_list_visible": true,
+    "swipes": 12,
+    "detail_title_visible": true,
+    "detail_export_control_visible": true,
+    "detail_delegate_control_visible": true,
+    "detail_first_xml_observation_seconds": 2.299,
+    "timing_includes_adb_uiautomator": true,
+    "capture_started": false,
+    "exports_created": false,
+    "test_correction": "Initial assertion expected short labels 导出/原音与导出; actual existing footer uses 导出文档到手机. Detail already opened successfully; no product fix needed."
+  },
+  "install": {
+    "baseline_sha256": "7d9facc79a023f29bbebfb581aedaa4711c7f1aad9366c72406ba8cd7016b932",
+    "candidate_sha256": "d6f47afa7637c18aaa64b33cbeb3ac93385744f7f19e433939c5cbf3988b5f49",
+    "apk_bytes": 429879577,
+    "delta_bytes": 1596741,
+    "commands": 8089,
+    "delta_sha256": "eb9958b30fb39cbc1076c87e751ca4ab5bc03442214a161db3d9bc5a2efe3091",
+    "reconstruction_hash_verified": true,
+    "baseline_full_sha_verified_on_phone": true,
+    "reconstructed_full_sha_verified_on_phone": true,
+    "installed_full_sha_verified_on_phone": true,
+    "version_verified": true,
+    "product_data_cleared": false,
+    "rollback": "dev101"
+  },
+  "tests": {
+    "agent_card": 831,
+    "head_guard": 498,
+    "task_prompter": 150,
+    "wire_hot_paths": 50,
+    "wire_concurrent_cases": 8000,
+    "task_device": 28,
+    "task_directory": 123,
+    "task_control": 88,
+    "task_contexts": 59,
+    "task_status": 35,
+    "task_presentation": 37,
+    "connection_and_mailbox_contracts": "passed",
+    "java8_d8_compile": "243 sources; three deferred Delegate sources excluded",
+    "signing_v2_v3_source_abi_audit": "passed"
+  },
+  "limitations": [
+    "Subjective scrolling experience remains for natural user observation.",
+    "Remaining background snapshots/keystore operations still consume CPU; not eliminated in this batch.",
+    "Original vendor Flutter rendering has not been replaced or disabled.",
+    "No glasses interaction/capture re-acceptance was run."
+  ],
+  "cleanup": {
+    "probe_removed": true,
+    "known_device_temporary_files_removed": true,
+    "apk_retention": [
+      "dev102 current",
+      "dev101 rollback"
+    ],
+    "older_dev100_apk_hash_verified_before_removal": true
+  }
+}

@@ -20,7 +20,7 @@ final class TaskWire {
  static long nonnegative(Object value){require(value instanceof Long||value instanceof Integer,"TASK_NUMBER_INVALID");long n=((Number)value).longValue();require(n>=0&&n<=9007199254740991L,"TASK_NUMBER_INVALID");return n;}
  static long stamp(Object value){return TaskConnection.stamp(value);}
  static String now(long time){return Instant.ofEpochMilli(time).toString();}
- static String hash(byte[] bytes){try{byte[] raw=MessageDigest.getInstance("SHA-256").digest(bytes);StringBuilder s=new StringBuilder();for(byte b:raw)s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString();}catch(Exception error){throw new IllegalStateException(error);}}
+ static String hash(byte[] bytes){try{byte[] raw=MessageDigest.getInstance("SHA-256").digest(bytes);char[] hex=new char[raw.length*2];String digits="0123456789abcdef";for(int i=0;i<raw.length;i++){int n=raw[i]&255;hex[i*2]=digits.charAt(n>>>4);hex[i*2+1]=digits.charAt(n&15);}return new String(hex);}catch(Exception error){throw new IllegalStateException(error);}}
  static Map<String,Object> body(Map<String,Object> item){return WireJson.map(item.get("body"));}
  static String requestFingerprint(Map<String,Object> request){
   object(request);require("request".equals(request.get("kind")),"TASK_REQUEST_INVALID");Map<String,Object> semantic=WireJson.map(WireJson.copy(body(request)));semantic.remove("state");

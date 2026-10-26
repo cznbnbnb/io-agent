@@ -117,8 +117,11 @@ final class AgentCardRuntime {
     preflight=new MinuteCardSession(new MinuteCardSession.Store(){public Object read(){return null;}public void save(Object value){throw new IllegalStateException();}});TaskWire.require(preflight.inspect(link.peer,link.generation,now(),false),"TASK_GLASS_BUSY");message="正在核对原眼镜状态";headStarted=restoreStarted=false;lastCleanupOwner="";checkingShow=false;pump();
  }
  private void maybeAuto(){
-  if(!enabled()||!usable()||fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||snapshot==null||now()<nextAuto)return;
-  for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled)for(Object raw:c.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"request".equals(item.get("kind")))continue;Map<String,Object> b=TaskWire.body(item);String id=(String)item.get("object_id");long revision=TaskWire.positive(item.get("revision"));if(phoneFocus.contains(focusKey(c.binding,id))||hasAnswer(c,id,revision,null))continue;
+  if(!enabled()||fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||snapshot==null||now()<nextAuto)return;
+  // The 250ms timer serves live device deadlines. An empty inbox must also
+  // back off, before login IO, instead of rescanning all history four times/s.
+  nextAuto=now()+1000;if(!usable())return;long wallNow=System.currentTimeMillis();
+  for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled&&c.profile.connection.expiresAt>wallNow)for(Object raw:c.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"request".equals(item.get("kind"))||!("pending".equals(item.get("state"))||"presented".equals(item.get("state"))))continue;Map<String,Object> b=TaskWire.body(item);if(!TaskWire.canAnswer(item,c.item("task",(String)b.get("task_id")),wallNow))continue;String id=(String)item.get("object_id");long revision=TaskWire.positive(item.get("revision"));if(phoneFocus.contains(focusKey(c.binding,id))||hasAnswer(c,id,revision,null))continue;
    if(reoffer.remove(c.binding+"\n"+id)){forget(prompterKey(c.binding,item));try{forget(AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis()).owner);}catch(RuntimeException prompterOnly){}}
    try{AgentCardRequest r=AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis());if(offered.contains(r.owner))continue;nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}
    catch(RuntimeException notDisplayable){if("TASK_GLASS_PROMPTER".equals(notDisplayable.getMessage())&&!offered.contains(prompterKey(c.binding,item))){nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}/* Otherwise the full question stays in the phone inbox. */}
@@ -290,7 +293,7 @@ final class AgentCardRuntime {
    if(preflight==null&&session.pending()&&session.phase().equals("PREPARING")){
     if(head)showAfterRefresh();else if(headStarted&&!HeadGestureRuntime.active(session.owner())){session.cancelUnshown();message="交互保护未确认，问题保留在手机";}
    }
-   session.tick(link.peer,link.generation,now(),System.currentTimeMillis(),head,attended(),current());persistChoice();
+   session.tick(link.peer,link.generation,now(),System.currentTimeMillis(),head,attended(),session.pending()&&current());persistChoice();
    if(session.nextPageReady(now())){if(usable()&&current()&&HeadGestureRuntime.extendForPage(session.owner())&&HeadGestureRuntime.cardMayShow(session.owner())&&session.show(link.peer,link.generation,now(),System.currentTimeMillis(),true))message="已提交下一个完整选项";else session.suspend("下一选项暂不可显示，原问题留在手机");}
    if(session.pending()&&preflight==null&&TaskWire.set("RECOVERY_PENDING","CLEANUP_PENDING","ANSWER_SAVE_FAILED").contains(session.phase())&&(!lastCleanupOwner.equals(session.owner())||lastCleanupGeneration!=link.generation)){
     if(session.cancelUnshown()){releaseLocal();}

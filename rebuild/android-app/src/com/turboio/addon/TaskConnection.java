@@ -6,9 +6,15 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /** Runtime/platform-independent port of task-connection-v1; never enables a queue. */
 final class TaskConnection {
+ private static final Pattern TIME=Pattern.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?Z");
+ private static final DateTimeFormatter TIME_FORMAT=DateTimeFormatter.ISO_OFFSET_DATE_TIME.withResolverStyle(ResolverStyle.STRICT);
+ // Cache only the pure conversion of validated timestamp strings. Expiry and
+ // account/permission decisions always compare fresh state at the call site.
+ private static final Map<String,Long> TIMES=new LinkedHashMap<String,Long>(512,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,Long> row){return size()>512;}};
  static final String FORMAT="turboio-task-connection/1";
  static final String[] KEYS={"format","base_url","owner_id","producer_id","server_id","token","token_id","expires_at","computer_id","agent_id","project_id","session_id"};
  static final List<String> SCOPES=Collections.unmodifiableList(Arrays.asList("tasks:read","tasks:write","tasks:update","requests:read","answers:write","messages:receive"));
@@ -43,8 +49,9 @@ final class TaskConnection {
   List<Object> scopes=BoundedJson.list(identity.get("scopes"));require(scopes.containsAll(SCOPES),"TASK_PHONE_SCOPE_REQUIRED");
  }
  static long stamp(Object value){
-  String s=text(value,40);require(s.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?Z"),"TASK_TIME_INVALID");
-  try{return OffsetDateTime.parse(s,DateTimeFormatter.ISO_OFFSET_DATE_TIME.withResolverStyle(ResolverStyle.STRICT)).toInstant().toEpochMilli();}
+  if(value instanceof String)synchronized(TIMES){Long known=TIMES.get(value);if(known!=null)return known;}
+  String s=text(value,40);require(TIME.matcher(s).matches(),"TASK_TIME_INVALID");
+  try{long parsed=OffsetDateTime.parse(s,TIME_FORMAT).toInstant().toEpochMilli();synchronized(TIMES){TIMES.put(s,parsed);}return parsed;}
   catch(RuntimeException error){throw new IllegalArgumentException("TASK_TIME_INVALID");}
  }
  private static String base(String s){

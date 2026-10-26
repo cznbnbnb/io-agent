@@ -1,3 +1,16 @@
+## [codex] 2026-10-26 dev102：全局主线程卡顿修复，原厂首页实测响应延迟下降
+
+用户要求暂缓任务下发，先处理整个 App 的滑动卡顿。Codex 工作区已快进合入 Claude `515a7d9`，保留其 dev101 UI/原厂登录续期；本批只改共用热路径。dev102 /10524 已差异覆盖安装，完整基线/重建/现装 SHA 核对通过；差异 1,596,741 字节。当前包 dev102，回退 dev101。修正了本工作区落后的 rollback 元数据（仍指向已不存在的 dev97）；dev101 在升级前实际 SHA 已确认。已核对后删除旧 dev100 包，临时诊断驱动与手机临时文件已清理；设备锁收尾释放，不采音、不发眼镜消息。
+
+- 根因证据：原厂首页也持续运行 `AgentCardRuntime` 250ms 轮询；没有可发消息时不退避，反复扫描已结束问题/提醒、编译日期正则、格式化哈希；后台快照解析每个数字也重新编译正则。空闲头势组件每个 tick 多次同步读安全存储。
+- 修复：自动扫描空闲退避 1 秒并在登录 IO 前判断；先排除关闭/过期请求及连接；无 pending 卡时不重算原题；头势仅有实际拥有者/恢复义务才查登录，同一次 tick 复用结果，实际 claim/活跃卡继续查新鲜权限；复用数字/时间正则、日期 formatter，512 条有界纯时间转换缓存，SHA-256 输出改为直接十六进制。账号、有效期、答案和恢复校验保持。
+- 同一诊断配置（15 秒预热 +25 秒原厂首页、全程前台）：主线程探针 p95 **59→2 ms**，max **97→22 ms**；主线程 CPU **6.80→2.06 秒（约 -70%）**，全进程 **15.899→7.143 秒（约 -55%）**。12 次原厂首页滑动的 Choreographer >25ms 间隔 **32→4**；这是回调数据，不冒充实际呈现帧率。原先熄屏的无效 trace 已排除。原厂首页 Flutter gfxinfo 无完整帧，不以其零 jank 下结论。
+- dev102 资料 ListView 12 次滑动：main frame duration p95 1.836ms；详情首个 XML 观察 2.299 秒（包含 adb/uiautomator，不冒充纯加载耗时），标题/导出/委托按钮正常。初始脚本找错旧短标签已更正，不是产品故障。
+- 回归：agent-card 831、head 498、prompter 150、wire 热路径 50+8000 并发、device 28、directory 123、control 88、contexts 59、status 35、presentation 37，connection/mailbox 合同通过；Java8/D8 243 源文件、签名/ABI/来源审计通过。未完成的三份 Delegate 源文件暂移出构建并原样恢复，不进入本包/本次提交。
+- 剩余：后台快照序列化、Keystore 重复读写还有负载，后续可继续优化；本批不宣称长期耗电/温度或所有页面完全无卡顿。自然手感记录 A26-P01，不催用户重测 R2。任务下发/双击仍暂停。
+
+证据：[ui-performance-dev102-2026-10-26.json](../../rebuild/android-app/ui-performance-dev102-2026-10-26.json)。可复用的只读采样驱动 `UiPerformanceProbe.java` / `build-ui-performance-probe.mjs`：构建后安装自有驱动，通过 `am instrument -w -e probe_id <32位hex> -e seconds 25 com.turboio.performance.codex/com.turboio.androidtests.UiPerformanceProbe` 采样，启动后 adb 明确前台打开 MainActivity；报告中 foreground_samples 必须等于 samples；驱动不请求网络/采音，只记栈名、时间与 CPU，宿主原后台工作照常。取回报告后卸载驱动并删除报告。
+
 ## [claude] 2026-10-26 dev101：资料页换成复用列表、任务页改版、入口与头像对齐、横滑切周
 
 dev101 /10523 已装（基于 dev100 `0683f2c`，回退 dev100；dev99 已移入废纸篓）。

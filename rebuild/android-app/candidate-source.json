@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "76198c7ca99d18fb15bc652a770027fde081fdc92b73eb015e2352e7544c9648"
+      "sha256": "817fcf97e3e3778275f51a72861b76c8c69dc9efda5080e78460150c1b586cfa"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -482,7 +482,7 @@
     },
     {
       "path": "src/com/turboio/addon/HeadGestureRuntime.java",
-      "sha256": "b274f65f55c59852b2e73b4bd93d9c7ea92af06fbed9f9dcf4d1a83797a0b06f"
+      "sha256": "653661588699f0d7655bd09a8957f3d38d60551fd97c466610c181ee1f6c2df2"
     },
     {
       "path": "src/com/turboio/addon/HeadGestureSession.java",
@@ -834,7 +834,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
-      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+      "sha256": "fd7c141cc893999ff771b16d3edd3a56fc9a7e9e4594094c12a718c5f15c0746"
     },
     {
       "path": "src/com/turboio/addon/TaskConnectionUI.java",
@@ -906,7 +906,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
+      "sha256": "b1485e4bb6c920dd592200625d3582e1915454c47fb3646822a1c66e943547a7"
     },
     {
       "path": "src/com/turboio/addon/TaskWorkspace.java",
@@ -966,15 +966,15 @@
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "afa9b13ca62e750df4712759637a625a6910b1f4ec32580951b1f7413ac7333b"
+      "sha256": "b9a41b2bfedf10febe6dab3bc2ee4ef4828cbc249bb605f6bd1af9c607ebb01d"
     }
   ],
-  "product_sha256": "3a4cb8d92557215baf83ba3151752efb1be4201861d3b7ab87973bf2e9dde203",
-  "addon_sha256": "0552f2c6430ac4f02f77fd3a1bb26171a4b9e877e4434d97205e6102ea380717",
+  "product_sha256": "521094dc033eeb8c77fb825b755f9800d7f8eccb04509ca410e16ce4bbf22ac1",
+  "addon_sha256": "e3a2c656631f5cb5ae9d8befe7f599f5290913a61fe61a3a5bb24516ca61f24a",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

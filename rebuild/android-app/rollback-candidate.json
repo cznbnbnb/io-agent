@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev97",
-  "version_code": 10519,
-  "revision": "io-agent-android-107-ui-performance",
+  "version": "0.5.3-dev101",
+  "version_code": 10523,
+  "revision": "io-agent-android-107-recycled-reading",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-26T03:52:43.051Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev97.apk",
-  "bytes": 429855001,
-  "sha256": "7d8a8432540e6dabf44ed480196bbbc83a079dc61f7a859818f0f555d9c656c1",
+  "signed": "2026-10-26T08:22:14.945Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev101.apk",
+  "bytes": 429879577,
+  "sha256": "7d9facc79a023f29bbebfb581aedaa4711c7f1aad9366c72406ba8cd7016b932",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -50,5 +50,7 @@
   "installed": true,
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false
+  "release_gate_passed": false,
+  "retention_eligible_rollback": true,
+  "phone_install_evidence": "ui-performance-dev102-2026-10-26.json"
 }

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-23T08:07:53.816Z",
+  "at": "2026-10-26T08:50:35.831Z",
   "assertions": 498,
   "sources": [
     {
@@ -29,11 +29,11 @@
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
-      "sha256": "a4b5ee622f933b4be4d14b2019bf94fe832a7aadb72739fd0c03dd00fb963b63"
+      "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
