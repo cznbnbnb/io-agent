@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-26T13:50:48.537261+00:00",
+  "authorization": "用户要求清除手机与服务器旧 Agent 对话，重新扫码验收",
+  "owner": "turboio-user",
+  "server": {
+    "queue_heads_removed": 147,
+    "queue_revisions_removed": 183,
+    "event_idempotency_rows_removed": 183,
+    "watches_removed": 3,
+    "remaining_queue_heads": 0,
+    "protected_tables_hash_equal": true,
+    "queue_sequence_preserved": true
+  },
+  "phone": {
+    "removed_history_files": 214,
+    "phone_pairing_preserved": true,
+    "materials_login_audio_exports_untouched": true,
+    "probe": "TaskHistoryResetProbe",
+    "instrumentation_code": -1
+  },
+  "not_reset": [
+    "account login",
+    "lifelog materials",
+    "audio archives",
+    "exported phone files",
+    "computer credentials",
+    "session directory registrations"
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "version": "0.5.3-dev110",
+  "version_code": 10532,
+  "installed_sha256": "68913df677f92cfa676bbae4d83c4a31afb10e20fbe704c4048c822c36e07c42",
+  "baseline_sha256": "558e6ba290c702d81737916b72ebc653aaa126ac28647e624a292c4037f392a6",
+  "delta_bytes": 1907496,
+  "verified_install": true,
+  "phone_empty_tasks_verified": true,
+  "optical_scan_user_confirmed": true,
+  "phone_approval_user_confirmed": true,
+  "runtime": "codex",
+  "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+  "topic": "扫码绑定与眼镜问答验收",
+  "pair_claim_verified": true,
+  "join_verified": true,
+  "question_id": "req-dc4c9357f657d145147aa0ec903b33001216c597e08e26b4d3c7dfda932b1372",
+  "answer_verified": true,
+  "progress_notices_enabled": false,
+  "navigation_device_checks": {
+    "week_swipes": [
+      {
+        "from": "2026-10-26",
+        "to": "2026-10-19",
+        "process_unchanged": true
+      },
+      {
+        "from": "2026-10-19",
+        "to": "2026-10-26",
+        "process_unchanged": true
+      },
+      {
+        "from": "2026-10-26",
+        "to": "2026-10-19",
+        "process_unchanged": true
+      },
+      {
+        "from": "2026-10-19",
+        "to": "2026-10-26",
+        "process_unchanged": true
+      }
+    ],
+    "system_edge_back": [
+      "delete confirmation closed only",
+      "selection cancelled to materials",
+      "reenter selection has zero selected",
+      "back again exits to official App"
+    ],
+    "actual_delete_executed": false
+  },
+  "workbuddy_other_computer": "not_tested",
+  "answer_id": "answer-android-23f5408e2090305b97dabab207a829b5494aa7b5d4b1c12808019611987342cd",
+  "answer_text": "选一。",
+  "answer_option": "date-swipe",
+  "answer_input_source": "voice",
+  "answer_stored_at": "2026-10-26T13:56:14.344Z",
+  "same_native_codex_session": true,
+  "approved_session_credential_saved_durably": true,
+  "task_final_state": "completed",
+  "task_final_revision": 6,
+  "repository_prior_unsettled_questions": false
+}
