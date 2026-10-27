@@ -118,8 +118,11 @@ async function join(value){
 // is shown on the glasses and arms a server watch, so a forgotten report still reaches the wearer as a
 // server-made notice once the declared check-in time passes. Every reply carries `progress` with the duty.
 const POLICY={schema:1,glasses_progress:true,checkin_minutes:20};
-const CONTRACT=['每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；默认推送到眼镜。',
- '需要用户决定时用 ask，阻塞时用 notify；它们不代替 checkpoint。',
+// 2026-10-27 user: progress and blocker notices travel as ordinary phone notifications that leave the glasses by
+// themselves; only questions use the prompter, which needs a long-press to leave.
+const CONTRACT=['每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；以手机普通通知推到眼镜，自动消失，无需长按。',
+ 'checkpoint 的 done/next 与 notify 正文写短句（各约 40 字内），一眼看完；细节留在手机任务页。',
+ '需要用户决定时用 ask（只有提问走眼镜提词器，看完长按退出后口述），阻塞时用 notify（普通通知）；它们不代替 checkpoint。',
  '回复里 progress.checkpoint_due=true 时，在结束本轮前先 checkpoint。',
  'next_checkin_minutes 是你承诺的下次报到时间；超时未报到，服务器会自己在眼镜上提醒用户。',
  '用户要求不推送时调用 config {"glasses_progress":false}；恢复用 true。'];

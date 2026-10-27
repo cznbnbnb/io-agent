@@ -1,3 +1,7 @@
+## [claude] 2026-10-27 dev124：进度/阻塞通知改走手机普通通知，不再占用提词器（已装机，回退 dev118）
+
+用户要求普通通知不走提词器（要长按才能退出）。`AgentCardRuntime.maybeNotice` 改为发系统通知（渠道 turboio_agent_notice，无声无振动，标题「Claude进度/提醒」等短词、正文原文，同一连接只保留最新一条，按通知期限撤下），由原厂 App 转到眼镜后自动消失；发出后立即 `noticeQueue.closed`。CLI 合同、`AGENT-CONTRACT.md` 与 turboio-ask-user 技能写明：checkpoint/notify 走普通通知、写短句（各约 40 字），只有 ask 走提词器。真机：10:51 真实 checkpoint 生成本 App 通知，用户确认眼镜弹出「Claude进度」并自动消失。测试：CLI/join 4、task-prompter 150、agent-card、task-presentation 通过。未改：录音忙碌提示 BUSY_NOTICE 仍走提词器。
+
 ## [claude] 2026-10-27 dev122–123：口述核对页统一为 Agent 深绿主题（已装机，回退 dev118）
 
 用户截图指出原问题语音回答页仍是旧 Turbo IO 紫底柠檬绿、系统白色输入框（浅字几乎看不见）。`VoiceAnswerWorkspace.Page` 保留 EditorialUI.Screen 的生命周期与返回逻辑，只换外观：深绿背景、AgentUI 文字与按钮，识别文字放进 SURFACE 深色卡（可编辑时绿色描边，标签「完整原话（可直接改字）」），主按钮「保存并回复电脑」，次按钮「识别有误，重新口述」。dev123 另把回答页顶部来源行改用 `TaskPresentation.source`（Claude Code · 电脑 1fafa8）。test-voice 1960、task-presentation 37、task-control 88 通过；真机截图核对 dev122 核对页（保留草稿，未保存、未开麦）。

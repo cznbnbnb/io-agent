@@ -135,10 +135,25 @@ final class AgentCardRuntime {
   if(notice==null||NativeTransfer.connected().isEmpty()||!noticeQueue.claim(notice,at))return;
   nextAuto=now()+10000;
   PrompterSharePort.trace("progress notice claimed key="+notice.key+" seq="+notice.sequence);
-  if(!noticePrompt(notice.text,notice.expires-at,notice.binding)){
-   noticeQueue.closed(System.currentTimeMillis());message="通知未确认显示，已保留在手机，不自动重复投送";return;
-  }
-  message="最新任务提醒已提交到眼镜；长按退出，无需回答";
+  // 2026-10-27 user: progress/blocker notices are ordinary notifications, not the prompter (only a long-press
+  // leaves it). The stock app mirrors the phone notification to the glasses, where it leaves by itself.
+  boolean posted=noticeNotification(notice,at);noticeQueue.closed(System.currentTimeMillis());
+  message=posted?"最新任务提醒已作为普通通知发到眼镜，会自动消失":"通知未能发出，已保留在手机，不自动重复投送";
+ }
+ private static final String NOTICE_CHANNEL="turboio_agent_notice";
+ /** One notification per task connection: a newer notice replaces the older one, and it expires with the notice. */
+ private boolean noticeNotification(TaskNotice notice,long at){
+  try{
+   NotificationManager manager=app.getSystemService(NotificationManager.class);if(manager==null||!manager.areNotificationsEnabled())return false;
+   if(manager.getNotificationChannel(NOTICE_CHANNEL)==null){NotificationChannel channel=new NotificationChannel(NOTICE_CHANNEL,"Agent 进度与提醒",NotificationManager.IMPORTANCE_DEFAULT);channel.setSound(null,null);channel.enableVibration(false);manager.createNotificationChannel(channel);}
+   TaskHub.View source=notice.binding==null||snapshot==null?null:snapshot.context(notice.binding);
+   String agent=source==null?"Agent":TaskPresentation.agentName(source.profile.connection.agent);agent=agent.startsWith("Claude")?"Claude":agent.equals("Codex")?"Codex":"Agent";
+   // Short titles without spaces: the glasses split a spaced Latin title and dropped part of it in testing.
+   String title=agent+(notice.text.startsWith("已完成：")?"进度":"提醒");
+   Notification n=new Notification.Builder(app,NOTICE_CHANNEL).setSmallIcon(android.R.drawable.stat_notify_more).setContentTitle(title).setContentText(notice.text)
+    .setStyle(new Notification.BigTextStyle().bigText(notice.text)).setAutoCancel(true).setOnlyAlertOnce(true).setTimeoutAfter(Math.max(60000,notice.expires-at)).build();
+   manager.notify(notice.binding==null?"agent":notice.binding,1,n);return true;
+  }catch(RuntimeException failed){android.util.Log.w("TurboIOCard","notice notification failed "+failed.getClass().getSimpleName());return false;}
  }
  private static String prompterKey(String binding,Map<String,Object> request){return TaskWire.hash(WireJson.bytes(WireJson.object("prompter",binding,"request",TaskWire.requestFingerprint(request))));}
  static final int PROMPTER_SPEED=120;
