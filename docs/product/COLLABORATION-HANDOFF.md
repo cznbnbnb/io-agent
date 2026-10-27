@@ -1,3 +1,9 @@
+## [codex] 2026-10-27 一次电脑配对便携包已按已推送源码核对
+
+本批代码已提交推送 `6787022`，随后重新打包同一便携ZIP（不额外保存副本），manifest精确指向该源码。ZIP 161,715字节，含manifest共43文件，SHA `e09627b50033d6c82f52f7bf7d5185c5d9f07f4ea8823b28535de75ce32abdda`。Node22独立解压核对42份文件SHA，首次电脑配对/二维码字符串→新session无扫码复用→首次notify自动join→同路问答收答通过，未用真实手机、外网或生产凭据；Windows/WorkBuddy执行仍未验。固定安装副本已记录本批源码commit及逐文件SHA；两个正式job保持运行。真机完整眼镜往返、dev137与当前Desktop默认设置拒绝的范围见下一条。[包证据](../../rebuild/agent-bridge/hosts/automatic-glasses-cli-package-2026-10-27.json)。
+
+诊断驱动已卸载，设备XML/差异临时文件已清理，仅保留dev137和回退dev136；当前测试watch已核对关闭，不改后续进度偏好。旧未跟踪voice7与DS_Store仍不提交。提交后释放设备锁。
+
 ## [codex] 2026-10-27 电脑一次配对与主动眼镜 CLI：dev137，手机→真实Codex→眼镜口述→原任务→手机结果通过
 
 用户要求电脑只配对一次、新session自动接眼镜CLI。新扫码/字符串明确 `mode:computer`，由手机确认电脑后续会话授权，电脑共用用户目录长期可撤销凭据；旧session-only token不扩权。普通CLI新session首次ask/notify/checkpoint自动join；ACP每轮自动带 `IO_AGENT_CLI_ARGS`，由新 `questions/managed-cli.mjs` 绑定原task、route、native session、turn，重复question key不另建题，旧轮次结束即拒绝。实际Codex沙箱禁止联网导致第一次CLI help失败，改为工作区`.io-agent-cli/<turn>`邮箱由既有连接器联网，两端100毫秒轮询；没有放宽模型/审批/网络/文件权限或重新启用Desktop覆盖。两条正式job和配对、默认仍保留，稳定安装副本已同步本批源码。

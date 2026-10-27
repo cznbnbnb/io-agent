@@ -1,0 +1,24 @@
+{
+  "verified_at": "2026-10-27T12:25:54.123251+00:00",
+  "source_commit": "67870221b73b1995300996c2040d7090d2c22a57",
+  "zip": "outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip",
+  "bytes": 161715,
+  "sha256": "e09627b50033d6c82f52f7bf7d5185c5d9f07f4ea8823b28535de75ce32abdda",
+  "files_with_manifest": 43,
+  "node_test_version": "v22.23.2",
+  "tests": {
+    "computer_pair_once_new_session_reuses": true,
+    "passed": true,
+    "files": 42,
+    "zip_hashes_verified": true,
+    "standalone_help_doctor_pair_string_qr": true,
+    "no_registration_reports_error": true,
+    "generic_workbuddy_join_ask_wait": true,
+    "synthetic_answer_received": true,
+    "real_devices_or_public_server_accessed": false,
+    "windows_tested": false
+  },
+  "contains_credentials": false,
+  "formal_services_preserved": true,
+  "current_test_watch_disabled": true
+}
