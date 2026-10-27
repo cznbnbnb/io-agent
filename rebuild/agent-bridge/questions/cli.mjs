@@ -6,6 +6,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {sessionFile,sessionPair} from './session-pair-cli.mjs';
 import {privatePath} from './private-path.mjs';
 import {ensureResident,residentStatus,leaveResident} from '../hosts/resident-manager.mjs';
+import {discoverCodexEndpoint} from '../hosts/codex-endpoint.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),workspace=path.resolve(here,'../../..');
 const privateRoot=path.join(workspace,'rebuild/agent-bridge/private');
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
@@ -115,13 +116,15 @@ async function join(value){
  if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
  fs.unlinkSync(pendingFile);
  let resident;
- try{resident=await ensureResident(residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
+ try{resident=await ensureResident(await residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
  return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
 }
-function residentOptions(){
+async function residentOptions(){
  const {config,context}=binding(activeDirectory());
+ const transport=runtime==='codex'&&process.env.IO_AGENT_CODEX_ENDPOINT?await discoverCodexEndpoint({conversationId:session,endpoint:process.env.IO_AGENT_CODEX_ENDPOINT,rpcPath:process.env.IO_AGENT_CODEX_RPC_PATH??'/'}):null;
  return{runtime,agent:{...config.bridge,credential_file:path.resolve(config.bridge.credential_file)},
-  binding:{server_id:config.bridge.server_id,owner_id:config.bridge.owner_id,host_kind:runtime==='codex'?'codex':'claude',workspace:fs.realpathSync(workspace),route:context.route},
+  binding:{server_id:config.bridge.server_id,owner_id:config.bridge.owner_id,host_kind:runtime==='codex'?'codex':'claude',workspace:transport?.workspace??fs.realpathSync(workspace),route:context.route},
+  ...(transport?{endpoint:transport.endpoint,rpcPath:transport.rpcPath}:{}),
   label:config.topic??'当前会话',legacyTaskId:context.task_id};
 }
 // Glasses progress contract (2026-10-23, user: any agent handed this CLI must report every next step on the
@@ -171,7 +174,7 @@ async function input(){let bytes=0,parts=[];for await(const part of process.stdi
 export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
 async function dispatch(action,args){if(['pair','pair-status'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');try{return await sessionPair(action,await input(),current,workspace);}catch(e){fail(e.code??'PAIRING_FAILED');}}if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
  if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
- if(['session-status','leave'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');const value=await input();if(!value||Object.keys(value).length)fail('RUNTIME_TOOL_ARGUMENT_INVALID');const options=residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
+ if(['session-status','leave'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');const value=await input();if(!value||Object.keys(value).length)fail('RUNTIME_TOOL_ARGUMENT_INVALID');const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
  if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (QR and copyable string for the current real session)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
  if(action==='checkpoint')return checkpoint(directory,value);

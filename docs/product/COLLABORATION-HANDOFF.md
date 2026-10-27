@@ -1,3 +1,11 @@
+## [codex] 2026-10-27 用户重启后入口纠正：已安装 Desktop 透明转接，手机仍dev134
+
+用户确已正常重启：原生owner已换，CODEX_APP_SERVER_USE_LOCAL_DAEMON=1也进入App；但其自带 features.code_mode_host 与 codex-app-tools 启动覆盖让源码的“无覆盖”条件不成立，仍起独立stdio。上次“重启即可”的结论不充分，已保留失败证据，未让用户删除工具或改模型/审批。
+
+已实现并安装 `--desktop-proxy`：用户级 CODEX_CLI_PATH 指向本工具启动器，所有原参数（包括实际 -c 在 app-server 前的顺序）保留。原生引擎通过私有Unix监听，原App继续同一JSON-RPC标准输入输出，第二客户端连到同一原生owner；只注入本工具两项入口环境元数据，兼容用户现用core继承策略。由原生元数据读取真实cwd，避免把CLI代码目录误当聊天工作区。正常退出时原引擎与临时socket收尾；没有改App安装包、当前模型/权限或手机包。新增一次App级Node转接样本约58MiB，已有每会话监听开销另计。设置已应用，保留原CODEX_CLI_PATH可回滚；当前已运行的App未强制关闭，仍需下一次正常重启后验收当前真实聊天。
+
+90项定向回归通过（含只由原UI应答审批的透传、来源/工作区和安装/回滚隔离），实际已安装启动器以同原生引擎验证双连接/启动参数/core环境/工作目录/退出收尾，未发模型轮次或眼镜问题。首次直接调用官方proxy在普通Unix监听上超时，不作为证据；现复用已验证WebSocket通道透明模式，原RPC ID不改。手机dev134未操作/重装；原deferred voice7文件未动。设备锁已释放，本轮进度看守已关闭，等待重启不自动重复提醒。下一项是A27-S01再次正常重启后的当前聊天 join/status，不重跑手机已通过流程。[证据](../../rebuild/agent-bridge/hosts/desktop-relay-proof-2026-10-27.json)。
+
 ## [codex] 2026-10-27 常驻普通会话接入交付：dev134 已装，当前 Desktop 待一次正常重启
 
 已合入 Claude `6abb2d9`（dev133），本批继续在 codex/agent-workspace-ui 独立目录开发。前一提交 `206db8b` 的两份服务文件已按旧 SHA 校验、备份并发布；会话扫码凭据只能读写自己的目录和默认 route，其它权限未扩大。本批无资料数据或凭据迁移。

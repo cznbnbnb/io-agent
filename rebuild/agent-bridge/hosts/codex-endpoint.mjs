@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {CodexAppServerChannel} from './codex-app-server.mjs';
 
 const uuid=value=>typeof value==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -12,6 +13,22 @@ const privateDirectory=(value,uid)=>value.isDirectory()&&!value.isSymbolicLink()
 const socketKey=value=>[value.dev,value.ino,value.uid].join(':');
 const rpcPathValid=value=>typeof value==='string'&&/^\/(?:[A-Za-z0-9._~-]+\/?)*$/.test(value)&&
   !value.split('/').some(part=>part==='.'||part==='..');
+
+export async function probeCodexOwner({endpoint,rpcPath,conversationId}){
+  const channel=await new CodexAppServerChannel(endpoint,{rpcPath,timeoutMs:3000}).connect();
+  try{
+    let cursor=null,loaded=false;
+    for(let n=0;n<10;n++){
+      const page=await channel.request('thread/loaded/list',{...(cursor?{cursor}:{}),limit:100});
+      if(!Array.isArray(page?.data))throw Error('invalid loaded list');
+      if(page.data.includes(conversationId)){loaded=true;break;}
+      cursor=page.nextCursor;if(!cursor)break;
+    }
+    if(!loaded)return{loaded:false};
+    const reply=await channel.request('thread/read',{threadId:conversationId,includeTurns:false});
+    return{loaded:true,thread:reply.thread};
+  }finally{channel.close();}
+}
 
 /** Verify both sides of an official stable socket symlink. The stable parent
  * and canonical socket parent must be private to the current UID. This helper
@@ -44,11 +61,11 @@ function unixCandidate(endpoint,codexHome){
  * canAcceptDirectInput,parentThreadId?}}. No thread/resume, process launch,
  * history scan, queue mutation, or optimistic online declaration occurs here. */
 export async function discoverCodexEndpoint({conversationId,workspace,endpoint,rpcPath,
-  codexHome=process.env.CODEX_HOME||path.join(os.homedir(),'.codex'),probe}={}){
-  need(uuid(conversationId)&&typeof workspace==='string'&&path.isAbsolute(workspace)&&
+  codexHome=process.env.CODEX_HOME||path.join(os.homedir(),'.codex'),probe=probeCodexOwner}={}){
+  need(uuid(conversationId)&&(workspace===undefined?endpoint!==undefined:typeof workspace==='string'&&path.isAbsolute(workspace))&&
     typeof codexHome==='string'&&path.isAbsolute(codexHome)&&typeof probe==='function'&&
     (endpoint===undefined||typeof endpoint==='string')&&(rpcPath===undefined||rpcPathValid(rpcPath)),'CODEX_SESSION_DISCOVERY_INVALID');
-  let canonicalWorkspace;try{canonicalWorkspace=fs.realpathSync(workspace);need(fs.statSync(canonicalWorkspace).isDirectory(),'CODEX_SESSION_DISCOVERY_INVALID');}
+  let canonicalWorkspace;try{if(workspace!==undefined){canonicalWorkspace=fs.realpathSync(workspace);need(fs.statSync(canonicalWorkspace).isDirectory(),'CODEX_SESSION_DISCOVERY_INVALID');}}
   catch{throw new CodexEndpointError('CODEX_SESSION_DISCOVERY_INVALID');}
   const shared=endpoint===undefined||endpoint==='unix://';let result,candidate,verified;
   if(shared||endpoint.startsWith('unix:')){
@@ -75,10 +92,11 @@ export async function discoverCodexEndpoint({conversationId,workspace,endpoint,r
   const thread=observation.thread;let observedWorkspace;
   try{need(typeof thread.cwd==='string'&&path.isAbsolute(thread.cwd),'CODEX_SESSION_WORKSPACE_MISMATCH');observedWorkspace=fs.realpathSync(thread.cwd);}
   catch{throw new CodexEndpointError('CODEX_SESSION_WORKSPACE_MISMATCH');}
-  need(observedWorkspace===canonicalWorkspace,'CODEX_SESSION_WORKSPACE_MISMATCH');
+  need(canonicalWorkspace===undefined||observedWorkspace===canonicalWorkspace,'CODEX_SESSION_WORKSPACE_MISMATCH');
+  need(fs.statSync(observedWorkspace).isDirectory(),'CODEX_SESSION_WORKSPACE_MISMATCH');
   need(thread.canAcceptDirectInput===true&&thread.parentThreadId==null&&thread.ephemeral!==true,'CODEX_SESSION_INPUT_UNAVAILABLE');
   if(candidate)need(trustedCodexUnixEndpoint(candidate).key===verified.key,'CODEX_SESSION_ENDPOINT_CHANGED');
-  return Object.freeze(result);
+  return Object.freeze({...result,...(workspace===undefined?{workspace:observedWorkspace}:{})});
 }
 
 /** Installation advice only. Nothing reads or changes global configuration.
@@ -89,8 +107,8 @@ export const DESKTOP_SHARED_DAEMON_ADVICE=Object.freeze({
   inspectedSource:'.vite/build/application-network-startup-B4Wezh-6.js',
   inspectedSourceSha256:'9775ead462eb9ab9c31b4a8aedf92b18a5a657f186be21f207a9b7adb143895f',
   optInEnvironmentName:'CODEX_APP_SERVER_USE_LOCAL_DAEMON',optInEnvironmentValue:'1',
-  prerequisite:'Start a compatible official shared daemon, then relaunch Desktop through its explicit local-daemon opt-in. Do not interrupt the running Desktop to do so.',
-  blockers:'Windows, startup config overrides, CODEX_APP_SERVER_FORCE_CLI=1, CODEX_CLI_PATH, or custom codex_cli_command keep this inspected Desktop on its ordinary transport.',
+  prerequisite:'The reviewed Desktop supplies built-in startup overrides and therefore skips the daemon opt-in even after restart. Use the explicit Desktop stdio/Unix relay to preserve those overrides; ordinary --remote unix:// CLI sessions can use the daemon directly.',
+  blockers:'Built-in features.code_mode_host and codex-app-tools overrides make the no-overrides Desktop gate false. Do not remove these tools/settings to force the gate. The relay changes only transport and its own endpoint metadata.',
   readOnlyVersionCheck:'codex app-server daemon version',
   explicitDaemonStart:'codex app-server daemon start',
   terminalAlternative:'codex --remote unix://',

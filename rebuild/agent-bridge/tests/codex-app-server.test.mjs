@@ -88,6 +88,21 @@ test('connects a private Unix official endpoint and only reads the explicitly lo
   assert.deepEqual(f.calls[0].params.capabilities,{experimentalApi:true});assert.equal(f.calls[1].method,'initialized');
   assert(f.calls.every(m=>['initialize','initialized','thread/loaded/list','thread/read','thread/turns/list'].includes(m.method)));
 });
+test('transparent owner transport preserves RPC ids and relays approval only from the original owner',async t=>{
+  const f=await fixture(t),channel=await new CodexAppServerChannel(f.endpoint,{transparent:true}).connect(),received=[];t.after(()=>channel.close());
+  channel.listen(message=>received.push(message));assert.equal(f.calls.length,0);
+  channel.sendWire({id:7,method:'initialize',params:{clientInfo:{name:'original-desktop',version:'1'}}});
+  for(let n=0;n<50&&!received.some(m=>m.id===7);n++)await new Promise(r=>setTimeout(r,10));
+  assert.equal(received.find(m=>m.id===7).result.platformFamily,'unix');assert.equal(f.calls[0].id,7);assert.equal(f.calls[0].params.clientInfo.name,'original-desktop');
+  const nativeDispatch=f.dispatch.bind(f);let approval;
+  f.dispatch=async m=>{if(m.id==='approval-1'&&!m.method){approval=m;return;}return nativeDispatch(m);};
+  const request={id:'approval-1',method:'item/commandExecution/requestApproval',params:{threadId:f.threadId,turnId:'owned-turn',itemId:'owned-item'}};
+  f.socket.write(frame(request));
+  for(let n=0;n<50&&!received.some(m=>m.id==='approval-1');n++)await new Promise(r=>setTimeout(r,10));
+  assert.deepEqual(received.find(m=>m.id==='approval-1'),request);assert.equal(approval,undefined);
+  const ownerReply={id:'approval-1',result:{decision:'decline'}};channel.sendWire(ownerReply);
+  for(let n=0;n<50&&!approval;n++)await new Promise(r=>setTimeout(r,10));assert.deepEqual(approval,ownerReply);
+});
 
 test('metadata-only connect and readiness never query turns, items, queues or dialogue history',async t=>{
   const f=await fixture(t);f.preview='Private conversation preview';

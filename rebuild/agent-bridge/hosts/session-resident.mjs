@@ -7,26 +7,11 @@ import {atomic} from '../session-pairing.mjs';
 import {createNativeBridgeAdapter} from './native-config.mjs';
 import {createClaudeModBroker} from './claude-mod/broker.mjs';
 import {discoverCodexEndpoint} from './codex-endpoint.mjs';
-import {CodexAppServerChannel} from './codex-app-server.mjs';
+export {probeCodexOwner} from './codex-endpoint.mjs';
 import {privateRecord,privateDirectory,validateResidentConfig,processIdentity,sameProcess,residentKey} from './resident-manager.mjs';
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const code=e=>/^[A-Z][A-Z0-9_]{0,100}$/.test(e?.code??'')?e.code:'SESSION_RESIDENT_UNAVAILABLE';
-export async function probeCodexOwner({endpoint,rpcPath,conversationId}){
-  const channel=await new CodexAppServerChannel(endpoint,{rpcPath,timeoutMs:3000}).connect();
-  try{
-    let cursor=null,loaded=false;
-    for(let n=0;n<10;n++){
-      const page=await channel.request('thread/loaded/list',{...(cursor?{cursor}:{}),limit:100});
-      if(!Array.isArray(page?.data))throw Error('invalid loaded list');
-      if(page.data.includes(conversationId)){loaded=true;break;}
-      cursor=page.nextCursor;if(!cursor)break;
-    }
-    if(!loaded)return{loaded:false};
-    const reply=await channel.request('thread/read',{threadId:conversationId,includeTurns:false});
-    return{loaded:true,thread:reply.thread};
-  }finally{channel.close();}
-}
 // The UI can distinguish a live paired helper from a controllable host. A
 // pending one-time plugin reload must never advertise executable capability.
 function pendingSnapshot(c,reason){return{schema_version:1,observed_at:new Date().toISOString(),sessions:[{
@@ -43,7 +28,7 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
   async function connect(){
     let endpoint;
     if(c.runtime==='codex')try{endpoint=await discoverCodexEndpoint({conversationId:c.binding.route.session_id,workspace:c.binding.workspace,
-      ...(c.endpoint?{endpoint:c.endpoint,rpcPath:c.rpcPath}:{}),probe:probeCodexOwner});}catch(e){reason=code(e);}
+      ...(c.endpoint?{endpoint:c.endpoint,rpcPath:c.rpcPath}:{})});}catch(e){reason=code(e);}
     const native={...c.agent,state_file:'bridge.json',native_runtime:{state_file:'native.json',sessions:[{
       host_kind:c.binding.host_kind,workspace:c.binding.workspace,route:c.binding.route,label:c.label,
       ...(c.runtime==='claude-code'?{broker_directory:path.join(directory,'broker')}:{endpoint:endpoint?.endpoint??'unix:///nonexistent/io-agent-native.sock',rpc_path:endpoint?.rpcPath??'/'})}]}};

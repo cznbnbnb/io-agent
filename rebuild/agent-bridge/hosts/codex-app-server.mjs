@@ -55,10 +55,12 @@ function endpointOptions(endpoint,bearerToken) {
 /** A bounded RFC6455 client for local official app-server endpoints. The
  * native Node WebSocket API cannot connect to Unix-domain sockets. */
 export class CodexAppServerChannel {
-  #socket;#http;#pending=new Map();#listeners=new Set();#buffer=Buffer.alloc(0);#parts=[];#partBytes=0;#closed=false;#connected=false;#options;#diagnostic;
-  constructor(endpoint,{timeoutMs=5000,bearerToken,onDiagnostic,rpcPath}={}){
+  #socket;#http;#pending=new Map();#listeners=new Set();#buffer=Buffer.alloc(0);#parts=[];#partBytes=0;#closed=false;#connected=false;#options;#diagnostic;#transparent;#maxFrame;
+  constructor(endpoint,{timeoutMs=5000,bearerToken,onDiagnostic,rpcPath,transparent=false,maxFrameBytes=MAX_FRAME}={}){
     need(Number.isSafeInteger(timeoutMs)&&timeoutMs>=50&&timeoutMs<=60000,'CODEX_APP_SERVER_TIMEOUT_INVALID');
     need(onDiagnostic===undefined||typeof onDiagnostic==='function','CODEX_APP_SERVER_DIAGNOSTIC_INVALID');
+    need(typeof transparent==='boolean'&&Number.isSafeInteger(maxFrameBytes)&&maxFrameBytes>=MAX_FRAME&&maxFrameBytes<=256*1024*1024,'CODEX_APP_SERVER_TRANSPORT_INVALID');
+    this.#transparent=transparent;this.#maxFrame=maxFrameBytes;
     this.endpoint=endpoint;this.timeoutMs=timeoutMs;this.#options=endpointOptions(endpoint,bearerToken);this.#diagnostic=onDiagnostic;
     if(rpcPath!==undefined){
       need(typeof rpcPath==='string'&&/^\/(?:[A-Za-z0-9._~-]+\/?)*$/.test(rpcPath)&&!rpcPath.split('/').some(s=>s==='.'||s==='..'),'CODEX_APP_SERVER_ENDPOINT_INVALID');
@@ -91,6 +93,7 @@ export class CodexAppServerChannel {
         });
         request.end();
       });
+      if(this.#transparent)return this;
       const reply=await this.request('initialize',{clientInfo:{name:'io-agent-session-bridge',title:'iO Agent session bridge',version:'1'},capabilities:{experimentalApi:true}});
       need(object(reply)&&typeof reply.userAgent==='string'&&typeof reply.platformFamily==='string'&&typeof reply.platformOs==='string'&&path.isAbsolute(reply.codexHome??''),'CODEX_APP_SERVER_INITIALIZE_INVALID');
       this.serverInfo=Object.freeze({userAgent:reply.userAgent,platformFamily:reply.platformFamily,platformOs:reply.platformOs});
@@ -99,7 +102,7 @@ export class CodexAppServerChannel {
   }
   #write(opcode,payload){
     need(!this.#closed&&this.#connected&&this.#socket?.writable,'CODEX_APP_SERVER_DISCONNECTED');
-    need(payload.length<=MAX_FRAME,'CODEX_APP_SERVER_FRAME_LIMIT');
+    need(payload.length<=this.#maxFrame,'CODEX_APP_SERVER_FRAME_LIMIT');
     const extra=payload.length<126?0:payload.length<=65535?2:8,header=Buffer.alloc(2+extra+4);
     header[0]=0x80|opcode;header[1]=0x80|(extra===0?payload.length:extra===2?126:127);
     if(extra===2)header.writeUInt16BE(payload.length,2);if(extra===8)header.writeBigUInt64BE(BigInt(payload.length),2);
@@ -108,7 +111,11 @@ export class CodexAppServerChannel {
     this.#socket.write(Buffer.concat([header,body]));
   }
   #send(value){this.#write(1,Buffer.from(JSON.stringify(value)));}
+  // The desktop launcher relays the owner's JSON-RPC unchanged, including
+  // initialize and approval replies. It must not impersonate another client.
+  sendWire(message){need(this.#transparent&&object(message),'CODEX_APP_SERVER_TRANSPORT_INVALID');this.#send(message);}
   request(method,params={}, {mutation=false}={}){
+    need(!this.#transparent,'CODEX_APP_SERVER_TRANSPORT_INVALID');
     need(id(method)&&object(params),'CODEX_APP_SERVER_REQUEST_INVALID');
     need(!this.#closed&&this.#connected,'CODEX_APP_SERVER_DISCONNECTED');
     need(this.#pending.size<32,'CODEX_APP_SERVER_PENDING_LIMIT');
@@ -126,27 +133,28 @@ export class CodexAppServerChannel {
   #ingest(chunk){
     if(this.#closed)return;
     try{
-      need(this.#buffer.length+chunk.length<=MAX_FRAME+65536,'CODEX_APP_SERVER_FRAME_LIMIT');
+      need(this.#buffer.length+chunk.length<=this.#maxFrame+65536,'CODEX_APP_SERVER_FRAME_LIMIT');
       this.#buffer=Buffer.concat([this.#buffer,chunk]);
       while(this.#buffer.length>=2){
         const b=this.#buffer,first=b[0],opcode=first&15,fin=Boolean(first&128);let length=b[1]&127,at=2;
         need(!(first&0x70)&&!(b[1]&0x80),'CODEX_APP_SERVER_FRAME_INVALID');
         if(length===126){if(b.length<4)return;length=b.readUInt16BE(2);at=4;need(length>=126,'CODEX_APP_SERVER_FRAME_INVALID');}
-        else if(length===127){if(b.length<10)return;const large=b.readBigUInt64BE(2);need(large<=BigInt(MAX_FRAME)&&large>65535n,'CODEX_APP_SERVER_FRAME_LIMIT');length=Number(large);at=10;}
-        need(length<=MAX_FRAME&&[0,1,8,9,10].includes(opcode),'CODEX_APP_SERVER_FRAME_INVALID');
+        else if(length===127){if(b.length<10)return;const large=b.readBigUInt64BE(2);need(large<=BigInt(this.#maxFrame)&&large>65535n,'CODEX_APP_SERVER_FRAME_LIMIT');length=Number(large);at=10;}
+        need(length<=this.#maxFrame&&[0,1,8,9,10].includes(opcode),'CODEX_APP_SERVER_FRAME_INVALID');
         if(opcode>=8)need(fin&&length<=125,'CODEX_APP_SERVER_FRAME_INVALID');
         if(b.length<at+length)return;
         const payload=Buffer.from(b.subarray(at,at+length));this.#buffer=b.subarray(at+length);
         if(opcode===8){this.#fail('CODEX_APP_SERVER_DISCONNECTED');return;}
         if(opcode===9){this.#write(10,payload);continue;}if(opcode===10)continue;
         need(opcode===0?this.#parts.length>0:this.#parts.length===0,'CODEX_APP_SERVER_FRAME_INVALID');
-        this.#partBytes+=payload.length;need(this.#partBytes<=MAX_FRAME,'CODEX_APP_SERVER_FRAME_LIMIT');this.#parts.push(payload);
+        this.#partBytes+=payload.length;need(this.#partBytes<=this.#maxFrame,'CODEX_APP_SERVER_FRAME_LIMIT');this.#parts.push(payload);
         if(fin){const text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(this.#parts));this.#parts=[];this.#partBytes=0;this.#message(JSON.parse(text));}
       }
     }catch(error){this.#fail(error instanceof CodexAppServerError?error.code:'CODEX_APP_SERVER_PROTOCOL_INVALID');}
   }
   #message(message){
     need(object(message),'CODEX_APP_SERVER_PROTOCOL_INVALID');
+    if(this.#transparent){this.#emit(message);return;}
     if(typeof message.method==='string'){
       // Server requests belong to the native UI/owner. Never fabricate an
       // approval or an answer just because another client also sees it.

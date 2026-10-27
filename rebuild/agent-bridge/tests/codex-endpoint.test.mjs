@@ -34,6 +34,11 @@ test('explicit already-running Unix endpoint and default alias preserve their tr
   assert.equal((await discoverCodexEndpoint({...f.options(),endpoint:'unix://'+f.socket,rpcPath:'/rpc'})).rpcPath,'/rpc');
   assert.equal((await discoverCodexEndpoint({...f.options(),endpoint:'unix://'})).mode,'shared-daemon');
 });
+test('an explicit native owner can supply its actual workspace rather than the CLI installation folder',async t=>{
+  const f=await fixture(t),result=await discoverCodexEndpoint({...f.options(),workspace:undefined,endpoint:'unix://'+f.socket});
+  assert.equal(result.workspace,f.workspace);assert.equal(f.calls.length,1);assert.equal(f.calls[0].workspace,undefined);
+  await assert.rejects(discoverCodexEndpoint({...f.options(),workspace:undefined,endpoint:'unix://'+f.socket,probe:async input=>{const observed=await f.probe(input);observed.thread.parentThreadId=randomUUID();return observed;}}),{code:'CODEX_SESSION_INPUT_UNAVAILABLE'});
+});
 test('trusted official stable symlink may point only to a socket in another private owned directory',async t=>{
   const f=await fixture(t),stable=path.join(f.directory,'stable');fs.mkdirSync(stable,{mode:0o700});
   const link=path.join(stable,'control.sock');fs.symlinkSync(f.socket,link);

@@ -63,14 +63,14 @@ export function residentStatus(binding,{home=residentHome(),read=processIdentity
     return{resident_live:true,cloud_online:h.cloud_online===true,can_execute:h.can_execute===true,reason:h.reason??null,pid:h.worker.pid,session_id:binding.route.session_id};
   }catch{return{resident_live:false,reason:'RESIDENT_NOT_RUNNING'};}
 }
-export async function ensureResident({agent,binding,runtime,label,legacyTaskId},{home=residentHome(),read=processIdentity,
+export async function ensureResident({agent,binding,runtime,label,legacyTaskId,endpoint,rpcPath},{home=residentHome(),read=processIdentity,
   launch=spawn,waitMs=8000,owner=nativeOwner(runtime,{read})}={}){
   if(!['codex','claude-code'].includes(runtime))return{resident_live:false,can_execute:false,reason:'NATIVE_HOST_UNSUPPORTED'};
   if(process.platform==='win32')return{resident_live:false,can_execute:false,reason:'RESIDENT_PLATFORM_UNSUPPORTED'};
   if(!owner)return{resident_live:false,can_execute:false,reason:'NATIVE_OWNER_NOT_FOUND'};
   const workerFile=fileURLToPath(new URL('./session-resident.mjs',import.meta.url));
   if(!fs.existsSync(workerFile))return{resident_live:false,can_execute:false,reason:'RESIDENT_COMPONENT_NOT_INSTALLED'};
-  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId]});
+  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId],...(endpoint?{endpoint,rpcPath}:{})});
   privateDirectory(home);const root=privateDirectory(path.join(home,'sessions')),directory=privateDirectory(path.join(root,residentKey(binding)));
   let previous;try{previous=privateRecord(path.join(directory,'resident.json'));}catch{}
   const prior=residentStatus(binding,{home,read});

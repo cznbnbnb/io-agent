@@ -1,5 +1,7 @@
 # 默认 Agent、指定会话下发与打断：实施计划
 
+2026-10-27 重启验收纠正：用户已重启，开关已继承，但本版 Desktop 自带工具参数让 daemon 条件恒不成立；并非用户操作问题。已安装保留原参数的本地 stdio/Unix 转接，90项定向回归与实际启动器/同原生会话/环境策略测试通过，零模型调用。当前运行进程无法热迁移，需下一次正常重启后再验当前聊天；手机仍dev134，未改APK。[新证据](../../rebuild/agent-bridge/hosts/desktop-relay-proof-2026-10-27.json)。
+
 2026-10-27 常驻接入升级：已合入 Claude dev133，现装 dev134 /10556、回退 dev133。普通 join 自动启监听；会话局部目录权限已发布；普通 Claude/Codex 会话的本地任务投影、手机打断及追加修改原文档、结果回手机通过。当前主 Desktop 的 stdio owner 需正常重启后验收；Codex 无原生后台句柄的长同步工具调用仍保持停止未确认；眼镜主动入口没有因此完成。见[说明与代价](../../rebuild/agent-bridge/hosts/resident-guide.md)及[交付证据](../../rebuild/agent-bridge/hosts/session-resident-proof-2026-10-27.json)。
 
 2026-10-26 交付补充：现装 dev118/10540，回退 dev117。dev118 仅统一“继续也会处理已有队列，具体顺序由原 Agent 管理”的共用提示，复用 AgentUI 字号/间距；手机全链实测在 dev117 完成。新包的编译、签名、差异传输/现装完整 SHA、启动与已有结果保留已核对，控制与登录源码指纹不变；未重复运行同一全链。见[当前交付证据](../../rebuild/android-app/phone-session-delivery-dev118-2026-10-26.json)。

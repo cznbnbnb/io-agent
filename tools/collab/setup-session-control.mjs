@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {DESKTOP_SHARED_DAEMON_ADVICE} from '../../rebuild/agent-bridge/hosts/codex-endpoint.mjs';
 
 const PLUGIN='io-agent-session-bridge',MARKETPLACE='io-agent-local',IDENTITY=PLUGIN+'@'+MARKETPLACE;
-const OWNER='io-agent-session-control-setup/1',ENV_NAME='CODEX_APP_SERVER_USE_LOCAL_DAEMON';
+const OWNER='io-agent-session-control-setup/1',ENV_NAME='CODEX_APP_SERVER_USE_LOCAL_DAEMON',CLI_ENV_NAME='CODEX_CLI_PATH';
 const SOURCE_FILES=['LICENSE','.claude-plugin/plugin.json','hooks/hooks.json','hooks/register.js','hooks/protocol.js'];
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const digest=value=>createHash('sha256').update(value).digest('hex');
@@ -45,19 +45,21 @@ function sourceSnapshot(repo){
 }
 /** Pure plan: source/config reads only. It does not create directories, run
  * subprocesses, install plugins, start daemons, or change process environment. */
-export function sessionControlSetupPlan({repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),home=os.homedir(),claude,codex=false,desktopApp}={}){
-  need([repo,home].every(p=>typeof p==='string'&&path.isAbsolute(p))&&typeof codex==='boolean'&&(desktopApp===undefined||typeof desktopApp==='string'&&path.isAbsolute(desktopApp))&&(claude===undefined||path.isAbsolute(claude)),'SETUP_ARGUMENT_INVALID');
+export function sessionControlSetupPlan({repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),home=os.homedir(),claude,codex=false,desktopProxy=false,desktopApp}={}){
+  need([repo,home].every(p=>typeof p==='string'&&path.isAbsolute(p))&&typeof codex==='boolean'&&typeof desktopProxy==='boolean'&&(!desktopProxy||codex)&&(desktopApp===undefined||typeof desktopApp==='string'&&path.isAbsolute(desktopApp))&&(claude===undefined||path.isAbsolute(claude)),'SETUP_ARGUMENT_INVALID');
   const source=sourceSnapshot(repo),root=path.join(home,'.turboio/session-control'),marketplace=path.join(root,'marketplace');
   return{schema_version:1,operation:'plan',home,root,sessions:path.join(root,'sessions'),state:path.join(root,'install-state.json'),
     source:{repo,sha256:source.sha256},claude:{binary:claude??executable('claude'),identity:IDENTITY,marketplace,scope:'user',
       installArguments:['plugin','install',PLUGIN,'--marketplace',marketplace,'--scope','user','--json'],
       uninstallArguments:['plugin','uninstall',IDENTITY,'--scope','user','--keep-data','--json']},
-    codex:{enabled:codex,app:desktopApp??null,desktopPathRequired:codex&&!desktopApp,asar:desktopApp?path.join(desktopApp,'Contents/Resources/app.asar'):null,binary:desktopApp?path.join(desktopApp,'Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex'):null,
+    codex:{enabled:codex,desktopProxy,app:desktopApp??null,desktopPathRequired:codex&&!desktopApp,asar:desktopApp?path.join(desktopApp,'Contents/Resources/app.asar'):null,binary:desktopApp?path.join(desktopApp,'Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex'):null,
+      ...(desktopProxy?{launcherDirectory:path.join(root,'desktop-launcher'),launcher:path.join(root,'desktop-launcher','codex'),node:process.execPath,
+        launcherSources:['codex-desktop-launcher.mjs','codex-app-server.mjs'].map(relative=>{const file=path.join(repo,'rebuild/agent-bridge/hosts',relative);return{relative,file,sha256:digest(fs.readFileSync(file))};})}:{}),
       home:process.env.CODEX_HOME??path.join(home,'.codex'),
       environmentName:ENV_NAME,environmentValue:'1',requiresDesktopRestart:codex,expectedVersion:DESKTOP_SHARED_DAEMON_ADVICE.inspectedBundledCli,
       expectedSource:DESKTOP_SHARED_DAEMON_ADVICE.inspectedSource,expectedSha256:DESKTOP_SHARED_DAEMON_ADVICE.inspectedSourceSha256},
     effects:['Install only the owned user-scoped Claude plugin and its local catalog.','Existing sessions need normal plugin reload/restart; sessions without join remain inert.',
-      ...(codex?['Start or reuse a matching official local daemon; no remote-control flag.','Set one user launch environment flag for future Desktop processes. Current Desktop is not stopped or migrated.']:[])],
+      ...(codex?(desktopProxy?['Preserve native Desktop startup overrides through a local stdio/Unix relay.','Set CODEX_CLI_PATH for future Desktop starts; preserve its previous value. No App bundle/model/approval edits.']:['Start or reuse a matching official local daemon; no remote-control flag.','Set one user launch environment flag for future Desktop processes. Current Desktop is not stopped or migrated.']):[])],
     rollback:'Run this script with --rollback --apply. Existing session data and the official daemon are preserved.'};
 }
 
@@ -100,9 +102,9 @@ function daemonVersion(run,binary){
   let reply;try{reply=JSON.parse(r.stdout);}catch{throw new SetupError('SETUP_CODEX_VERSION_UNVERIFIED');}
   need(typeof reply.appServerVersion==='string','SETUP_CODEX_VERSION_UNVERIFIED');return reply.appServerVersion.replace(/^codex-cli /,'');
 }
-function getLaunchEnvironment(run){
-  const r=run('/bin/launchctl',['getenv',ENV_NAME]);
-  const value=r.stdout.replace(/\r?\n$/,'');need(/^[A-Za-z0-9_.-]{0,32}$/.test(value),'SETUP_ENVIRONMENT_UNAVAILABLE');
+function getLaunchEnvironment(run,name=ENV_NAME){
+  const r=run('/bin/launchctl',['getenv',name]);
+  const value=r.stdout.replace(/\r?\n$/,'');need(name===CLI_ENV_NAME?value.length<=4096&&!/[\r\n\0]/.test(value)&&(!value||path.isAbsolute(value)):/^[A-Za-z0-9_.-]{0,32}$/.test(value),'SETUP_ENVIRONMENT_UNAVAILABLE');
   if(r.status===0&&value)return{present:true,value};
   // launchctl returns 0+empty for both absence and an explicitly empty value.
   // Inspect only this domain's environment block, never log/store the full
@@ -110,7 +112,7 @@ function getLaunchEnvironment(run){
   need([0,1,113].includes(r.status)&&!value,'SETUP_ENVIRONMENT_UNAVAILABLE');
   const printed=success(run,'/bin/launchctl',['print','gui/'+process.getuid?.()],'SETUP_ENVIRONMENT_UNAVAILABLE');
   const match=/^([\t ])environment = \{\r?\n([\s\S]*?)^\1\}/m.exec(printed.stdout);
-  need(match,'SETUP_ENVIRONMENT_UNAVAILABLE');return{present:new RegExp('^\\s*'+ENV_NAME+'\\s*=>','m').test(match[2]),value:''};
+  need(match,'SETUP_ENVIRONMENT_UNAVAILABLE');return{present:new RegExp('^\\s*'+name+'\\s*=>','m').test(match[2]),value:''};
 }
 function installFiles(plan,source,version){
   const root=plan.claude.marketplace,marker=path.join(root,'.io-agent-installer.json');
@@ -129,7 +131,15 @@ export function applySessionControlSetup(plan,{run=command,verifyDesktop=verifyD
   need(plan.schema_version===1&&plan.operation==='plan','SETUP_PLAN_INVALID');const source=sourceSnapshot(plan.source.repo);
   need(source.sha256===plan.source.sha256,'SETUP_SOURCE_CHANGED');need(plan.claude.binary,'SETUP_CLAUDE_UNAVAILABLE');
   if(run===command)need(fs.realpathSync(plan.home)===fs.realpathSync(os.homedir()),'SETUP_HOME_MISMATCH');
-  if(plan.codex.enabled){need(plan.codex.app&&!plan.codex.desktopPathRequired,'SETUP_DESKTOP_PATH_REQUIRED');verifyDesktop(plan);const actual=success(run,plan.codex.binary,['--version'],'SETUP_CODEX_UNAVAILABLE').stdout.trim().replace(/^codex-cli /,'');need(actual===plan.codex.expectedVersion,'SETUP_CODEX_VERSION_MISMATCH');const existing=daemonVersion(run,plan.codex.binary);need(existing===null||existing===actual,'SETUP_CODEX_VERSION_MISMATCH');if(existing===null)need(!fs.existsSync(path.join(plan.codex.home,'app-server-control/app-server-control.sock')),'SETUP_CODEX_DAEMON_UNAVAILABLE');}
+  let launcherSources;
+  if(plan.codex.enabled){
+    need(plan.codex.app&&!plan.codex.desktopPathRequired,'SETUP_DESKTOP_PATH_REQUIRED');verifyDesktop(plan);
+    const actual=success(run,plan.codex.binary,['--version'],'SETUP_CODEX_UNAVAILABLE').stdout.trim().replace(/^codex-cli /,'');need(actual===plan.codex.expectedVersion,'SETUP_CODEX_VERSION_MISMATCH');
+    if(plan.codex.desktopProxy){
+      launcherSources=plan.codex.launcherSources.map(s=>{const bytes=fs.readFileSync(s.file);need(digest(bytes)===s.sha256,'SETUP_SOURCE_CHANGED');return{relative:s.relative,text:bytes.toString('utf8')};});
+      const prior=getLaunchEnvironment(run,CLI_ENV_NAME);need(!prior.value||prior.value===plan.codex.launcher,'SETUP_CLI_PATH_CONFLICT');
+    }else{const existing=daemonVersion(run,plan.codex.binary);need(existing===null||existing===actual,'SETUP_CODEX_VERSION_MISMATCH');if(existing===null)need(!fs.existsSync(path.join(plan.codex.home,'app-server-control/app-server-control.sock')),'SETUP_CODEX_DAEMON_UNAVAILABLE');}
+  }
   privateDirectory(path.dirname(plan.root));privateDirectory(plan.root);privateDirectory(plan.sessions);const state=ownedState(plan),save=()=>atomic(plan.state,state),global=ownGlobalState(plan);
   need(state.plugin||!global.plugin&&!global.marketplace,'SETUP_PLUGIN_CONFLICT');
   if(state.plugin)requireOwnedCatalog(plan,global);
@@ -144,7 +154,19 @@ export function applySessionControlSetup(plan,{run=command,verifyDesktop=verifyD
     else success(run,plan.claude.binary,plan.claude.installArguments,'SETUP_CLAUDE_INSTALL_FAILED');
     state.plugin.phase='installed';save();
   }
-  if(plan.codex.enabled){
+  if(plan.codex.enabled&&plan.codex.desktopProxy){
+    state.codex??={};const prior=getLaunchEnvironment(run,CLI_ENV_NAME);
+    if(!state.codex.launcher||state.codex.launcher.phase==='rolled_back')state.codex.launcher={phase:'prepared',previousEnvironment:prior,path:plan.codex.launcher};
+    need(prior.value===plan.codex.launcher||prior.present===state.codex.launcher.previousEnvironment.present&&prior.value===state.codex.launcher.previousEnvironment.value,'SETUP_ENVIRONMENT_CHANGED');save();
+    privateDirectory(plan.codex.launcherDirectory);
+    for(const source of launcherSources)atomic(path.join(plan.codex.launcherDirectory,source.relative),source.text);
+    atomic(path.join(plan.codex.launcherDirectory,'launcher.json'),{schema_version:1,binary:plan.codex.binary,root:path.join(plan.root,'codex-desktop')});
+    const quote=value=>"'"+value.replaceAll("'","'\\''")+"'";
+    atomic(plan.codex.launcher,'#!/bin/sh\nexec '+quote(plan.codex.node)+' '+quote(path.join(plan.codex.launcherDirectory,'codex-desktop-launcher.mjs'))+' "$@"\n');fs.chmodSync(plan.codex.launcher,0o700);
+    if(prior.value!==plan.codex.launcher)success(run,'/bin/launchctl',['setenv',CLI_ENV_NAME,plan.codex.launcher],'SETUP_ENVIRONMENT_WRITE_FAILED');
+    need(getLaunchEnvironment(run,CLI_ENV_NAME).value===plan.codex.launcher,'SETUP_ENVIRONMENT_WRITE_FAILED');
+    state.codex.launcher.phase='installed';state.codex.launcher.sources=plan.codex.launcherSources.map(({relative,sha256})=>({relative,sha256}));state.codex.phase='installed';save();
+  }else if(plan.codex.enabled){
     let existing=daemonVersion(run,plan.codex.binary);
     if(existing===null){
       const socket=path.join(plan.codex.home,'app-server-control/app-server-control.sock');need(!fs.existsSync(socket),'SETUP_CODEX_DAEMON_UNAVAILABLE');
@@ -156,13 +178,19 @@ export function applySessionControlSetup(plan,{run=command,verifyDesktop=verifyD
     if(now.value!=='1'){success(run,'/bin/launchctl',['setenv',ENV_NAME,'1'],'SETUP_ENVIRONMENT_WRITE_FAILED');need(getLaunchEnvironment(run).value==='1','SETUP_ENVIRONMENT_WRITE_FAILED');}
     state.codex.phase='installed';state.codex.daemonVersion=existing;save();
   }
-  return{applied:true,claude_plugin:IDENTITY,claude_user_scope:true,codex_future_desktop_shared_daemon:state.codex?.phase==='installed',desktop_restart_pending:state.codex?.phase==='installed',
+  return{applied:true,claude_plugin:IDENTITY,claude_user_scope:true,codex_future_desktop_shared_daemon:state.codex?.phase==='installed'&&state.codex?.launcher?.phase!=='installed',codex_desktop_transport:state.codex?.launcher?.phase==='installed'?'stdio-unix-relay':null,desktop_restart_pending:state.codex?.phase==='installed',
     current_desktop_restarted:false,daemon_killed:false,state_file:plan.state};
 }
 export function rollbackSessionControlSetup(plan,{run=command}={}){
   const state=ownedState(plan);need(state.plugin||state.codex,'SETUP_NOT_INSTALLED');const save=()=>atomic(plan.state,state);
   if(state.plugin)requireOwnedCatalog(plan,ownGlobalState(plan));
-  if(state.codex?.phase==='installed'||state.codex?.phase==='prepared'){
+  if(['installed','prepared'].includes(state.codex?.launcher?.phase)){
+    const old=state.codex.launcher.previousEnvironment,now=getLaunchEnvironment(run,CLI_ENV_NAME);
+    need(now.value===state.codex.launcher.path||now.present===old.present&&now.value===old.value,'SETUP_ROLLBACK_ENVIRONMENT_CHANGED');
+    if(now.value!==old.value||now.present!==old.present)success(run,'/bin/launchctl',old.present?['setenv',CLI_ENV_NAME,old.value]:['unsetenv',CLI_ENV_NAME],'SETUP_ENVIRONMENT_WRITE_FAILED');
+    state.codex.launcher.phase='rolled_back';save();
+  }
+  if(state.codex?.previousEnvironment&&(state.codex?.phase==='installed'||state.codex?.phase==='prepared')){
     const now=getLaunchEnvironment(run),old=state.codex.previousEnvironment;need(old,'SETUP_STATE_UNTRUSTED');
     need(now.value==='1'||now.value===old.value&&now.present===old.present,'SETUP_ROLLBACK_ENVIRONMENT_CHANGED');
     if(now.value!==old.value||now.present!==old.present)success(run,'/bin/launchctl',old.present?['setenv',ENV_NAME,old.value]:['unsetenv',ENV_NAME],'SETUP_ENVIRONMENT_WRITE_FAILED');
@@ -180,9 +208,9 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   try{
     const args=process.argv.slice(2),options={};let apply=false,rollback=false;
     for(let i=0;i<args.length;i++){
-      const arg=args[i];if(arg==='--apply')apply=true;else if(arg==='--rollback')rollback=true;else if(arg==='--codex')options.codex=true;
+      const arg=args[i];if(arg==='--apply')apply=true;else if(arg==='--rollback')rollback=true;else if(arg==='--codex')options.codex=true;else if(arg==='--desktop-proxy')options.desktopProxy=true;
       else if(arg==='--claude'||arg==='--home'||arg==='--desktop-app'){need(args[i+1],'SETUP_ARGUMENT_INVALID');options[arg==='--desktop-app'?'desktopApp':arg.slice(2)]=path.resolve(args[++i]);}
-      else if(arg==='--help'){process.stdout.write('Usage: node tools/collab/setup-session-control.mjs [--claude /absolute/cli] [--codex --desktop-app /absolute/Inspected.app] [--apply] [--rollback]\nDefault: read-only plan. --apply: user-scoped local plugin and optional future Desktop daemon opt-in. Codex requires an explicit inspected --desktop-app path and matching pinned build. --rollback --apply: uninstall only this plugin/catalog and restore its environment flag; preserve all sessions and the daemon.\n');process.exit(0);}
+      else if(arg==='--help'){process.stdout.write('Usage: node tools/collab/setup-session-control.mjs [--claude /absolute/cli] [--codex --desktop-app /absolute/Inspected.app [--desktop-proxy]] [--apply] [--rollback]\nDefault: read-only plan. --desktop-proxy preserves built-in Desktop startup overrides through a local stdio/Unix relay. --apply installs only the owned user plugin/launcher and saves previous launch environment values. Matching pinned Desktop build required. --rollback --apply restores owned environment settings and removes the plugin; sessions and the daemon are preserved.\n');process.exit(0);}
       else throw new SetupError('SETUP_ARGUMENT_INVALID');
     }
     const plan=sessionControlSetupPlan(options);process.stdout.write(JSON.stringify(apply?(rollback?rollbackSessionControlSetup(plan):applySessionControlSetup(plan)):{...plan,operation:rollback?'rollback-plan':'plan'},null,2)+'\n');

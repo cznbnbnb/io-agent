@@ -1,5 +1,7 @@
 # 还需要你验证的事项
 
+A27-S01 2026-10-27 续记：用户已完成第一次正常重启；原开关进入了 App，但其内置工具参数让共享入口条件失败，不能标为通过。开发者已安装保留参数的 stdio/Unix 转接启动器，实际安装入口/两端同原生会话/core环境/原工作目录自测通过；等待用户再次正常退出并重开 App，在当前聊天说已重启后由 Codex自行 join/status检查。当前聊天执行能力仍未确认，保留上次失败，不让用户重复手机端已通过的流程。
+
 A27-S01 普通 Desktop 常驻控制（部分可测）：dev134 已装；普通 Claude 全局插件会话和 Codex 共享终端会话的文档→手机打断→原 task 追加改预算→结果回手机已由开发者完成，不重复催测。当前主 Codex Desktop 仍是旧 stdio owner，已准备共享 daemon 和仅后续进程生效的启动开关，尚未自动关闭 App。用户合适时正常退出并重开 Desktop，在原聊天重新 join；预期 session-status 的 can_execute=true，手机原会话可执行/打断。若需要继续已有 Claude 聊天，先正常 /reload-plugins。反馈是否成功及实际原因码。电脑须联网醒着；不改变原审批。眼镜双击仍另项，不算通过。[证据](../../rebuild/agent-bridge/hosts/session-resident-proof-2026-10-27.json)。
 
 2026-10-26 交付补充：现装 dev118/10540，回退 dev117。dev118 仅统一“继续也会处理已有队列，具体顺序由原 Agent 管理”的共用提示，复用 AgentUI 字号/间距；手机全链实测在 dev117 完成。新包的编译、签名、差异传输/现装完整 SHA、启动与已有结果保留已核对，控制与登录源码指纹不变；未重复运行同一全链。见[当前交付证据](../../rebuild/android-app/phone-session-delivery-dev118-2026-10-26.json)。
