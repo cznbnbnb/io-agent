@@ -1,4 +1,8 @@
 {
+  "status": "withdrawn_after_actual_desktop_startup_failure",
+  "superseded_by": "desktop-relay-withdrawal-2026-10-27.json",
+  "actual_desktop_startup_passed": false,
+  "do_not_reinstall": true,
   "schema_version": 1,
   "recorded_at": "2026-10-27T08:10:11.623326+00:00",
   "base_commit": "a8479e5577705222634febb022d0c22ed71dace0",

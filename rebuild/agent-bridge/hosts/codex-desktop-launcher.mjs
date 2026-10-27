@@ -57,5 +57,5 @@ export async function runDesktopLauncher(config,args,{input=process.stdin,output
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const file=new URL('./launcher.json',import.meta.url);
   try{process.exitCode=await runDesktopLauncher(JSON.parse(fs.readFileSync(file)),process.argv.slice(2));}
-  catch{process.stderr.write('DESKTOP_LAUNCHER_FAILED: rerun setup or restore the previous CODEX_CLI_PATH.\n');process.exitCode=1;}
+  catch{process.stderr.write('DESKTOP_LAUNCHER_FAILED: Desktop relay integration is disabled; remove its CODEX_CLI_PATH override and use the bundled native CLI.\n');process.exitCode=1;}
 }

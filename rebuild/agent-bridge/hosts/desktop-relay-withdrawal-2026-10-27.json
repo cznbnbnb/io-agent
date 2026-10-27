@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-27T08:48:55.185948+00:00",
+  "supersedes_commit": "7f96220",
+  "status": "desktop_integration_withdrawn_after_real_startup_failure",
+  "failure": {
+    "observed_local_log_reason": "Desktop startup policy read failed attempt=1 phase=policy-read reason=protocol",
+    "native_component_tests_did_not_cover_real_desktop_startup": true,
+    "specific_rejected_method_not_established": true
+  },
+  "recovery": {
+    "performed_before_this_turn_by_user_side": true,
+    "app_pid": 9364,
+    "native_child_pids": [
+      9411,
+      9515
+    ],
+    "bundled_native_engine_selected": true,
+    "current_app_start_success": true,
+    "current_app_policy_read_failures": 0,
+    "launch_overrides_present": {
+      "CODEX_CLI_PATH": false,
+      "CODEX_APP_SERVER_USE_LOCAL_DAEMON": false
+    },
+    "startup_references_in_inspected_user_launch_agents_and_shell_profiles": []
+  },
+  "withdrawal": {
+    "setup_codex_phase": "disabled",
+    "setup_launcher_phase": "disabled",
+    "claude_plugin_phase": "installed",
+    "claude_config_and_plugin_hashes_unchanged_during_disable": true,
+    "legacy_install_command_exit_code": 1,
+    "legacy_install_command_error": "SETUP_CODEX_DESKTOP_DISABLED",
+    "already_absent_values_reinjected": false,
+    "app_restarted_or_killed_by_this_turn": false,
+    "phone_apk_changed": false,
+    "user_files_or_credentials_deleted": false,
+    "native_daemon_killed": false
+  },
+  "regression": {
+    "passed": 28,
+    "failed": 0,
+    "command": "node --test tools/collab/setup-session-control.test.mjs rebuild/agent-bridge/tests/codex-endpoint.test.mjs",
+    "coverage": [
+      "legacy_global_install_modes_rejected_before_mutation",
+      "owned_overrides_only_removed",
+      "already_cleared_values_stay_absent",
+      "Claude_setup_does_not_reinject",
+      "external_environment_and_original_values_preserved",
+      "legacy_full_rollback_retained",
+      "native_endpoint_discovery"
+    ],
+    "disable_only_preview_has_no_side_effects": true
+  },
+  "remaining": {
+    "ordinary_current_desktop_session_control_complete": false,
+    "do_not_repeat_restart_request": true,
+    "Claude_and_explicit_shared_terminal_previous_evidence_retained": true,
+    "question_only_cli_unchanged": true,
+    "future_alternative_requires_isolated_real_desktop_startup_verification": true
+  },
+  "progress_cleanup": {
+    "checkpoint_server_stored": true,
+    "lens_display_confirmed": false,
+    "server_watch_enabled": false,
+    "device_lock_released": true
+  },
+  "references": {
+    "similar_user_recovery_reports_not_proof_of_specific_local_protocol_method": "https://github.com/openai/codex/issues/50254",
+    "official_app_server": "https://learn.chatgpt.com/docs/app-server"
+  },
+  "source_sha256": {
+    "tools/collab/setup-session-control.mjs": "952e6b146a65c7678510ca0a5334b15691135bd6187c181bbb28c324980f3e3e",
+    "tools/collab/setup-session-control.test.mjs": "2be289a10f097d00fd198d5cf89d94111347b6729624b1d62a2bc21b8c1f3b12",
+    "rebuild/agent-bridge/hosts/codex-endpoint.mjs": "bc9fe9c55c50451c6c95100daca80a5fee3e35402b6abbcb734de02341d79b4a"
+  }
+}

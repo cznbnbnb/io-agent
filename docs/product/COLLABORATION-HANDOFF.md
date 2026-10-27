@@ -1,3 +1,13 @@
+## [codex] 2026-10-27 撤回 Desktop 转接：真实启动协议失败，已保留恢复环境并禁止重装
+
+覆盖下方两条“正常重启后待验”说明：本工具 `CODEX_CLI_PATH` 转接实际阻止了 Desktop 启动。用户侧撤销两个 launch 覆盖后恢复，本机确认 PID9364/自带原生子进程、`app_start outcome=success`，该次日志无 policy-read 失败；此前多次失败的 `reason=protocol` 保留。原生协议组件与已安装 shell 启动器的90项通过不构成真实 Desktop 启动兼容性验收。具体被拒协议方法尚未建立，不能把相似公开问题当作精确根因证明。
+
+- **已停用**：本机安装登记 codex/launcher 均 disabled，已清空的变量没有重新写入。移除安装器中的 Desktop 全局注入实现，旧 `--codex` / `--desktop-proxy --apply` 在任何命令或写入前返回 `SETUP_CODEX_DESKTOP_DISABLED`；新增 `--disable-codex --apply` 只移除仍由本工具控制的覆盖、保留用户外部替换/已清除值及 Claude。未结束/重启 App，未碰模型、组织策略、审批、账号或明文凭据。
+- **边界与代价**：当前普通 Codex Desktop 原聊天的手机下发/打断仍未完成，A27-S01 改为失败后停用、暂不可验收。Claude 插件/扫码配对/眼镜问答 CLI 和显式共享终端的既有证据不撤销。后续先做隔离真实 App 启动/策略/工具验证，不再让用户反复重启、不冷启动另一引擎冒充原会话。AGENTS 增加这一边界；这部分仅在 Codex 自有工作区改动，未动 Claude 工作目录。
+- **验证与收尾**：28项安装/停用/回滚及发现回归全过；实际禁用后的旧安装命令明确被拒，Claude 配置/插件哈希保持。本批手机仍dev134，未操作ADB、未开麦、未签身份，deferred voice7未动。真实当前CLI checkpoint已入库，不声称镜片已看到；随后关闭本任务超时watch、保留推送偏好，设备锁free。已fetch，Claude仍6abb2d9，无新合并需求。
+
+[恢复及停用证据](../../rebuild/agent-bridge/hosts/desktop-relay-withdrawal-2026-10-27.json)。下一项建议先整理无需接管日常启动链的原会话控制替代方案和隔离验收，再决定实现；不恢复已撤回的启动覆盖。
+
 ## [codex] 2026-10-27 用户重启后入口纠正：已安装 Desktop 透明转接，手机仍dev134
 
 用户确已正常重启：原生owner已换，CODEX_APP_SERVER_USE_LOCAL_DAEMON=1也进入App；但其自带 features.code_mode_host 与 codex-app-tools 启动覆盖让源码的“无覆盖”条件不成立，仍起独立stdio。上次“重启即可”的结论不充分，已保留失败证据，未让用户删除工具或改模型/审批。

@@ -93,5 +93,5 @@ test('invalid bindings and RPC request-targets do not invoke the probe',async t=
   const f=await fixture(t);
   for(const patch of [{conversationId:'bad'},{workspace:'relative'},{codexHome:'relative'},{rpcPath:'/rpc?token=x'},{rpcPath:'/../rpc'},{rpcPath:'/rpc\r\nX: y'},{probe:null}])
     await assert.rejects(discoverCodexEndpoint({...f.options(),...patch}),{code:'CODEX_SESSION_DISCOVERY_INVALID'});
-  assert.equal(f.calls.length,0);assert.equal(DESKTOP_SHARED_DAEMON_ADVICE.optInEnvironmentName,'CODEX_APP_SERVER_USE_LOCAL_DAEMON');
+  assert.equal(f.calls.length,0);assert.equal(DESKTOP_SHARED_DAEMON_ADVICE.desktopSupported,false);
 });

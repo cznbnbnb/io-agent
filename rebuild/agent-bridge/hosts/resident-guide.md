@@ -1,6 +1,6 @@
 # 会话常驻在线与手机控制
 
-2026-10-27 续进：用户已按上轮说明重启，但当前 App 自带的两项启动参数会让共享 daemon 开关失效；上轮将重启当作充分条件的判断已纠正。本机已安装透明 stdio/Unix 转接器并完成实际启动器自测，仍需一次正常重启才能用于当前桌面聊天。见[重启排查及新方案证据](desktop-relay-proof-2026-10-27.json)。
+2026-10-27 故障纠正：此前 Desktop 转接器导致真实 App 启动时 `policy-read reason=protocol`，已停用。用户移除覆盖后恢复；当前自带原生 Codex 启动成功。本工具不会再安装 Desktop 启动覆盖，也不要求再次重启。组件/Unix 双连接测试没有覆盖真实 Desktop 的组织策略启动流程，不能据此称作兼容。[恢复和停用证据](desktop-relay-withdrawal-2026-10-27.json)。
 
 2026-10-27：普通 CLI 接入升级，手机 dev134 /10556，回退 dev133。最新验收见 [交付证据](session-resident-proof-2026-10-27.json)。此前 dev117 是显式装配隔离宿主的验证，不能代替本次普通会话接入。
 
@@ -8,18 +8,25 @@
 
 电脑先完成一次账号配对；当前真实会话运行 `questions/cli.mjs pair`，手机扫码或粘贴配对字符串保存，再运行 `join`。已有本机配对仍可复用。会话 ID 来自原生宿主环境，不在 JSON 中手填，不能借其它聊天的 ID。
 
-每台 Mac 首次使用需要安装一次宿主接入：
+Claude 每台 Mac 首次使用安装一次宿主接入：
 
 ```sh
-# 默认只读预览，不改配置
-node tools/collab/setup-session-control.mjs --codex --desktop-app /Applications/ChatGPT.app --desktop-proxy
-# 用户已授权的实际安装
-node tools/collab/setup-session-control.mjs --codex --desktop-app /Applications/ChatGPT.app --desktop-proxy --apply
+# 默认只读预览；--apply 安装用户级 Claude 插件
+node tools/collab/setup-session-control.mjs
+node tools/collab/setup-session-control.mjs --apply
 ```
 
 Claude 安装用户级本地插件 `io-agent-session-bridge@io-agent-local`。新会话自动加载；已开的会话需正常 `/reload-plugins` 或重新打开。未 join 的会话只检查本机登记，不连接服务器、不提交输入。
 
-Codex 普通终端可直接使用官方共享 daemon。当前 Desktop 的内置 code-mode 与 App 工具参数使原 daemon 开关始终跳过，不能靠删掉这些工具强行启用。桌面方案改为 `--desktop-proxy`：设置用户级 `CODEX_CLI_PATH` 指向本机启动器，完整转交原生参数；原生引擎改用私有 Unix 入口，原 App 的标准输入输出通过本地转接保持相同 JSON-RPC。只向子工具补上两项本机入口元数据，保留 core 环境策略、模型、审批和工具配置。启动器使用原 App 自带二进制，不修改 App 安装包。已经运行的 stdio owner 仍不能热迁移，新设置需正常重启后生效。
+Codex Desktop 原聊天接管尚未完成。禁止设置全局 `CODEX_CLI_PATH` 或 `CODEX_APP_SERVER_USE_LOCAL_DAEMON` 来绕过这个缺口；旧 Desktop 安装参数在本版脚本中返回 `SETUP_CODEX_DESKTOP_DISABLED`。原 App 使用自己的原生引擎和组织策略检查。普通 CLI 显式 `--remote unix://` 是单独已验证的共享终端路径，不代表 Desktop 原聊天可控制，也不自动迁移聊天。
+
+如果本机之前装过 Desktop 集成，只停用这一项：
+
+```sh
+node tools/collab/setup-session-control.mjs --disable-codex --apply
+```
+
+命令仅移除本工具仍在使用的启动覆盖；已经由用户清除的值保持为空，外部替换和原来已存在的值不覆盖。Claude 插件、配对、会话数据和原生 daemon 保留，不结束日常 App。安装记录会标记 disabled。
 
 在原生会话内调用：
 
@@ -47,9 +54,9 @@ WorkBuddy ZIP 仍是跨电脑问答包；不包含常驻宿主组件，也不宣
 
 普通全局 Claude 插件会话、普通 Codex `--remote unix://` 终端会话均完成真实文档写入、手机精确打断、父子进程提前退出、追加修改原文件预算 8000→9000、保留原上下文及结果回手机。没有使用临时 `--plugin-dir` 或手写宿主连接文件来替代日常接入。
 
-用户第一次重启后已确认启动开关继承，但内置工具参数使它仍由独立 stdio owner 持有。已安装转接方案，当前旧进程仍显示 `CODEX_SESSION_NOT_LOADED`、执行关闭；这部分等待正常重启后验收，不能称作当前聊天已可被手机打断。眼镜双击主动唤起尚未接线，不从手机通过推定眼镜通过。
+当前 Desktop 使用原始 stdio owner，手机下发/打断原聊天的能力仍未完成。真实启动失败后已撤回转接路线；后续兼容性研究须先在隔离 App/配置验证组织策略加载、工具和退出，再考虑用户日常环境。不能用原生协议单测、相同版本或创建另一个引擎代替验收。眼镜双击主动唤起尚未接线，不从手机通过推定眼镜通过。
 
-桌面转接额外增加一个 Node 进程，安装器实际启动样本约58 MiB RSS，每个 App 一份。每个接入会话另有一个 Node 监听进程。本机空闲样本约 68 MiB RSS、1.2% CPU（单次采样），会持续轮询并续租；电脑需联网且醒着。空闲监听不调用模型、不消耗推理 token，执行手机指示按原 Agent 正常计费/扣额度。Claude 正常重载可能重建提示缓存。插件和 daemon 接口升级会有维护成本。
+每个已接入会话有一个 Node 监听进程。本机空闲样本约 68 MiB RSS、1.2% CPU（单次采样），会持续轮询并续租；电脑需联网且醒着。空闲监听不调用模型、不消耗推理 token，执行手机指示按原 Agent 正常计费/扣额度。Claude 正常重载可能重建提示缓存。已停用的 Desktop 转接器不再从 App 启动，也不再增加其约58MiB的转接进程。插件和原生接口升级仍有维护成本。
 
 真实发现：Codex 长时间同步工具调用可能不暴露可终止的后台句柄，`turn/interrupt` 能停模型，但其命令仍可能运行到自己的截止。此时保持“停止未确认”，禁止继续该任务，不猜 PID、不清空整个会话终端。常规已返回句柄的后台命令路径已通过。旧的未确认历史不会伪改为成功；后续另一个已证明停止的任务可按其自己的明确继续指示推进。
 
@@ -59,4 +66,4 @@ WorkBuddy ZIP 仍是跨电脑问答包；不包含常驻宿主组件，也不宣
 node tools/collab/setup-session-control.mjs --rollback --apply
 ```
 
-仅撤下本工具登记的插件/目录配置并恢复原 CODEX_CLI_PATH 和启动环境值，保留会话数据和官方 daemon。需要先用 `leave` 停止自己会话的监听；不删除用户聊天、凭据或工作文件。
+此完整回滚还会撤下 Claude 插件；若只处理 Desktop，使用上面的 `--disable-codex --apply`。旧版本记录尚未停用时，完整回滚仍可恢复其原环境；已经标 disabled 的覆盖不会再恢复。保留会话数据和官方 daemon，不删除用户聊天、凭据或工作文件。

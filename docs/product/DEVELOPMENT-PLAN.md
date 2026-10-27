@@ -1,5 +1,7 @@
 # 雷鸟 iO：按用户场景逐项完成的开发计划
 
+2026-10-27 启动故障纠正（覆盖下方待重启说明）：用户报告并恢复了真实 Desktop 启动失败。本机日志确认转接期间出现 `Desktop startup policy read failed ... phase=policy-read reason=protocol`；撤销启动覆盖后 App PID9364 使用自带 Codex，记录 `app_start outcome=success`，该次日志无 policy-read 失败。两项 launch 环境覆盖均已为空；本工具登记的 Desktop 集成已单独标记 disabled，未卸载 Claude 插件。安装器已移除 Desktop 全局注入实现，旧 `--codex` / `--desktop-proxy --apply` 明确拒绝；不能要求用户再次重启或把组件测试写成 Desktop 可用。A27-S01 当前为失败后停用、待隔离替代方案；普通原会话手机控制未完成。眼镜问答、已验 Claude 和显式共享终端路径保留，手机仍 dev134。本批不重装、不改模型/审批/账号凭据。[停用与恢复证据](../../rebuild/agent-bridge/hosts/desktop-relay-withdrawal-2026-10-27.json)。
+
 2026-10-27 重启验收纠正：用户已重启，开关已继承，但本版 Desktop 自带工具参数让 daemon 条件恒不成立；并非用户操作问题。已安装保留原参数的本地 stdio/Unix 转接，90项定向回归与实际启动器/同原生会话/环境策略测试通过，零模型调用。当前运行进程无法热迁移，需下一次正常重启后再验当前聊天；手机仍dev134，未改APK。[新证据](../../rebuild/agent-bridge/hosts/desktop-relay-proof-2026-10-27.json)。
 
 2026-10-27 常驻接入升级：已合入 Claude dev133，现装 dev134 /10556、回退 dev133。普通 join 自动启监听；会话局部目录权限已发布；普通 Claude/Codex 会话的本地任务投影、手机打断及追加修改原文档、结果回手机通过。当前主 Desktop 的 stdio owner 需正常重启后验收；Codex 无原生后台句柄的长同步工具调用仍保持停止未确认；眼镜主动入口没有因此完成。见[说明与代价](../../rebuild/agent-bridge/hosts/resident-guide.md)及[交付证据](../../rebuild/agent-bridge/hosts/session-resident-proof-2026-10-27.json)。

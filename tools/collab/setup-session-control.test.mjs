@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {sessionControlSetupPlan,applySessionControlSetup,rollbackSessionControlSetup} from './setup-session-control.mjs';
+import {sessionControlSetupPlan,applySessionControlSetup,rollbackSessionControlSetup,disableCodexDesktopSetup} from './setup-session-control.mjs';
 
 const ID='io-agent-session-bridge@io-agent-local';
 function fixture(t,{codex=false,desktopProxy=false,daemonVersion=null,environment,environmentPresent=environment!==undefined}={}){
@@ -18,7 +18,7 @@ function fixture(t,{codex=false,desktopProxy=false,daemonVersion=null,environmen
   const original={enabledPlugins:{'other-plugin@other-market':true},otherSetting:{keep:'untouched'}};
   fs.writeFileSync(settings,JSON.stringify(original));fs.writeFileSync(marketplaces,JSON.stringify({'other-market':{source:{source:'directory',path:'/synthetic/other'}}}));
   const calls=[],f={directory,repo,home,source,settings,marketplaces,original,calls,daemonVersion,environment,environmentPresent,starts:0,installs:0,updates:0,cachedVersion:null};
-  f.plan=()=>sessionControlSetupPlan({repo,home,claude:'/synthetic/claude',codex,desktopProxy,desktopApp:'/synthetic/InspectedDesktop.app'});
+  f.plan=(extra={})=>sessionControlSetupPlan({repo,home,claude:'/synthetic/claude',codex,desktopProxy,desktopApp:'/synthetic/InspectedDesktop.app',...extra});
   f.run=(binary,args)=>{
     calls.push({binary,args:[...args]});
     const ok=(stdout='')=>({status:0,stdout,stderr:''}),read=p=>JSON.parse(fs.readFileSync(p,'utf8')),write=(p,j)=>fs.writeFileSync(p,JSON.stringify(j));
@@ -35,9 +35,6 @@ function fixture(t,{codex=false,desktopProxy=false,daemonVersion=null,environmen
       if(args[1]==='marketplace'&&args[2]==='update'){assert.equal(args[3],'io-agent-local');return ok('{"success":true}');}
       if(args[1]==='marketplace'&&args[2]==='remove'){assert(args.includes('--scope')&&args.includes('user'));const m=read(marketplaces);delete m['io-agent-local'];write(marketplaces,m);return ok('{"success":true}');}
     }
-    if(args.length===1&&args[0]==='--version')return ok('codex-cli '+f.plan().codex.expectedVersion+'\n');
-    if(args.join(' ')==='app-server daemon version')return f.daemonVersion?ok(JSON.stringify({appServerVersion:f.daemonVersion})):{status:1,stdout:'',stderr:'synthetic missing daemon'};
-    if(args.join(' ')==='app-server daemon start'){f.starts++;f.daemonVersion=f.plan().codex.expectedVersion;return ok();}
     if(binary==='/bin/launchctl'){
       if(args[0]==='getenv')return ok(args[1]==='CODEX_CLI_PATH'?(f.cliEnvironment??''):f.environmentPresent?(f.environment??'')+'\n':'');
       if(args[0]==='print')return ok('gui/'+process.getuid()+' = {\n\tenvironment = {\n\t\tOTHER_APP_SECRET => must-not-leak\n'+(f.environmentPresent?'\t\tCODEX_APP_SERVER_USE_LOCAL_DAEMON => '+(f.environment??'')+'\n':'')+(f.cliEnvironment?'\t\tCODEX_CLI_PATH => '+f.cliEnvironment+'\n':'')+'\t}\n}\n');
@@ -46,28 +43,57 @@ function fixture(t,{codex=false,desktopProxy=false,daemonVersion=null,environmen
     }
     assert.fail('Unexpected subprocess '+binary+' '+args.join(' '));
   };
-  f.apply=()=>applySessionControlSetup(f.plan(),{run:f.run,verifyDesktop:()=>true});f.rollback=()=>rollbackSessionControlSetup(f.plan(),{run:f.run});
+  f.apply=()=>applySessionControlSetup(f.plan(),{run:f.run});f.rollback=()=>rollbackSessionControlSetup(f.plan(),{run:f.run});
+  f.disable=()=>disableCodexDesktopSetup(f.plan(),{run:f.run});
+  f.seedLegacyCodex=()=>{
+    const plan=f.plan({codex:false,desktopProxy:false});applySessionControlSetup(plan,{run:f.run});
+    const state=JSON.parse(fs.readFileSync(plan.state));
+    state.codex={phase:'installed',previousEnvironment:{present:f.environmentPresent,value:f.environment??''},launcher:{phase:'installed',
+      path:path.join(plan.root,'desktop-launcher','codex'),previousEnvironment:{present:!!f.cliEnvironment,value:f.cliEnvironment??''}}};
+    fs.writeFileSync(plan.state,JSON.stringify(state),{mode:0o600});
+    f.cliEnvironment=state.codex.launcher.path;f.environment='1';f.environmentPresent=true;
+  };
   t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));return f;
 }
 
 test('default plan reads public sources only and does not create local management or execute commands',t=>{
   const f=fixture(t),plan=f.plan();assert.equal(plan.operation,'plan');assert.equal(plan.codex.enabled,false);assert.equal(fs.existsSync(path.join(f.home,'.turboio')),false);assert.equal(f.calls.length,0);
-  const codex=sessionControlSetupPlan({repo:f.repo,home:f.home,claude:'/synthetic/claude',codex:true});assert.equal(codex.codex.desktopPathRequired,true);assert.equal(codex.codex.app,null);
+  const codex=sessionControlSetupPlan({repo:f.repo,home:f.home,claude:'/synthetic/claude',codex:true});assert.equal(codex.codex.supported,false);assert.equal(codex.codex.reason,'SETUP_CODEX_DESKTOP_DISABLED');
 });
-test('Desktop relay installs idempotently, preserves other launch settings and rolls back its own CLI path',t=>{
-  const f=fixture(t,{codex:true,desktopProxy:true,environment:'1'}),plan=f.plan();
-  assert.equal(fs.existsSync(plan.root),false);const result=f.apply();
-  assert.equal(result.codex_desktop_transport,'stdio-unix-relay');assert.equal(f.starts,0);assert.equal(f.cliEnvironment,plan.codex.launcher);assert.equal(f.environment,'1');
-  assert.equal(fs.statSync(plan.codex.launcher).mode&0o777,0o700);
-  const config=JSON.parse(fs.readFileSync(path.join(plan.codex.launcherDirectory,'launcher.json')));assert.equal(config.binary,plan.codex.binary);
-  f.apply();assert.equal(f.installs,1);f.rollback();assert.equal(f.cliEnvironment,undefined);assert.equal(f.environment,'1');
-  assert.equal(JSON.parse(fs.readFileSync(f.settings)).otherSetting.keep,'untouched');
+test('both legacy Desktop install modes are blocked before any command or filesystem write',t=>{
+  for(const desktopProxy of [false,true]){
+    const f=fixture(t,{codex:true,desktopProxy});
+    assert.throws(()=>f.apply(),{code:'SETUP_CODEX_DESKTOP_DISABLED'});
+    assert.equal(f.calls.length,0);assert.equal(fs.existsSync(path.join(f.home,'.turboio')),false);
+  }
 });
-test('Desktop relay refuses another custom CLI and changed source before installing anything',t=>{
-  const f=fixture(t,{codex:true,desktopProxy:true});f.cliEnvironment='/synthetic/other-cli';
-  assert.throws(()=>f.apply(),{code:'SETUP_CLI_PATH_CONFLICT'});assert.equal(f.installs,0);
-  f.cliEnvironment=undefined;const plan=f.plan();fs.appendFileSync(plan.codex.launcherSources[0].file,'changed');
-  assert.throws(()=>applySessionControlSetup(plan,{run:f.run,verifyDesktop:()=>true}),{code:'SETUP_SOURCE_CHANGED'});assert.equal(f.installs,0);
+test('disabling owned Desktop integration clears only our active overrides and preserves Claude/data',t=>{
+  const f=fixture(t);f.seedLegacyCodex();const plan=f.plan(),before=fs.readFileSync(f.settings);
+  const file=path.join(plan.sessions,'synthetic-session.txt');fs.writeFileSync(file,'preserve synthetic session');
+  const result=f.disable();assert.equal(result.codex_desktop_disabled,true);
+  assert.deepEqual(result.cleared_environment,['CODEX_CLI_PATH','CODEX_APP_SERVER_USE_LOCAL_DAEMON']);
+  assert.equal(f.cliEnvironment,undefined);assert.equal(f.environmentPresent,false);assert.deepEqual(fs.readFileSync(f.settings),before);
+  assert.equal(fs.readFileSync(file,'utf8'),'preserve synthetic session');assert.equal(f.starts,0);
+  const state=JSON.parse(fs.readFileSync(plan.state));assert.equal(state.plugin.phase,'installed');assert.equal(state.codex.phase,'disabled');assert.equal(state.codex.launcher.phase,'disabled');
+  assert(!f.calls.some(c=>c.args[1]==='uninstall'||c.args.includes('stop')));
+});
+test('already-cleared Desktop settings stay absent across disable, repeated disable and Claude setup',t=>{
+  const f=fixture(t);f.seedLegacyCodex();f.cliEnvironment=undefined;f.environment=undefined;f.environmentPresent=false;
+  const priorWrites=f.calls.filter(c=>['setenv','unsetenv'].includes(c.args[0])).length;
+  assert.deepEqual(f.disable().cleared_environment,[]);f.disable();const result=f.apply();
+  assert.equal(result.codex_desktop_transport,null);assert.equal(result.desktop_restart_pending,false);
+  assert.equal(f.calls.filter(c=>['setenv','unsetenv'].includes(c.args[0])).length,priorWrites);
+  assert.equal(f.environmentPresent,false);assert.equal(f.cliEnvironment,undefined);
+});
+test('disable without an old Codex install is a no-op and never installs the Claude plugin',t=>{
+  const f=fixture(t);assert.equal(f.disable().codex_desktop_disabled,true);assert.equal(f.calls.length,0);
+  assert.equal(fs.existsSync(path.join(f.home,'.turboio')),false);
+});
+test('disable preserves external overrides and preexisting daemon settings',t=>{
+  const f=fixture(t,{environment:'1'});f.seedLegacyCodex();f.cliEnvironment='/synthetic/other-cli';
+  const result=f.disable();assert.deepEqual(result.cleared_environment,[]);
+  assert.deepEqual(result.preserved_external_environment,['CODEX_CLI_PATH','CODEX_APP_SERVER_USE_LOCAL_DAEMON']);
+  assert.equal(f.cliEnvironment,'/synthetic/other-cli');assert.equal(f.environment,'1');assert(!f.calls.some(c=>c.args[0]==='unsetenv'));
 });
 test('owned user-scoped plugin installation is durable, private and idempotent',t=>{
   const f=fixture(t),result=f.apply();assert.equal(result.applied,true);assert.equal(f.installs,1);assert.equal(f.cachedVersion,'0.2.0');
@@ -95,30 +121,20 @@ test('a symlink under the owned marketplace cannot redirect plugin writes elsewh
   const before=fs.readFileSync(path.join(outside,'io-agent-session-bridge/hooks/register.js'));fs.appendFileSync(path.join(f.source,'hooks/register.js'),'// second version\n');
   assert.throws(()=>f.apply(),{code:'SETUP_DIRECTORY_UNTRUSTED'});assert.deepEqual(fs.readFileSync(path.join(outside,'io-agent-session-bridge/hooks/register.js')),before);
 });
-test('Codex requires an explicit inspected Desktop path and verified matching build before global writes',t=>{
-  const f=fixture(t,{codex:true}),noPath=sessionControlSetupPlan({repo:f.repo,home:f.home,claude:'/synthetic/claude',codex:true});
-  assert.throws(()=>applySessionControlSetup(noPath,{run:f.run,verifyDesktop:()=>assert.fail('must require path first')}),{code:'SETUP_DESKTOP_PATH_REQUIRED'});
-  assert.throws(()=>applySessionControlSetup(f.plan(),{run:f.run,verifyDesktop:()=>{throw Object.assign(Error('unverified'),{code:'SETUP_CODEX_BUILD_UNVERIFIED'});}}),{code:'SETUP_CODEX_BUILD_UNVERIFIED'});
-  assert.equal(f.calls.length,0);assert.equal(fs.existsSync(path.join(f.home,'.turboio')),false);
-});
-test('an incompatible existing daemon is not restarted or replaced',t=>{
-  const f=fixture(t,{codex:true,daemonVersion:'0.1.0'});assert.throws(()=>f.apply(),{code:'SETUP_CODEX_VERSION_MISMATCH'});assert.equal(f.starts,0);assert.equal(f.installs,0);assert.equal(fs.existsSync(path.join(f.home,'.turboio')),false);
-});
-test('Codex installation uses one official daemon start and records exact environment for safe rollback',t=>{
-  const f=fixture(t,{codex:true,environment:'0'}),result=f.apply();assert.equal(f.starts,1);assert.equal(f.environment,'1');assert.equal(result.desktop_restart_pending,true);assert.equal(result.current_desktop_restarted,false);
-  const state=JSON.parse(fs.readFileSync(f.plan().state));assert.deepEqual(state.codex.previousEnvironment,{present:true,value:'0'});assert(!JSON.stringify(state).includes('must-not-leak'));
-  f.apply();assert.equal(f.starts,1);assert.equal(f.installs,1);f.rollback();assert.equal(f.environment,'0');assert.equal(f.environmentPresent,true);
-  assert.deepEqual(JSON.parse(fs.readFileSync(f.settings)),f.original);assert.equal(JSON.parse(fs.readFileSync(f.marketplaces))['other-market'].source.path,'/synthetic/other');
-  assert(!f.calls.some(c=>c.args.includes('stop')||c.args.includes('restart')||c.args.includes('--remote-control')));
+test('legacy full rollback can still restore original values and uninstall only the owned Claude plugin',t=>{
+  const f=fixture(t,{environment:'0'});f.seedLegacyCodex();f.rollback();
+  assert.equal(f.environment,'0');assert.equal(f.environmentPresent,true);assert.equal(f.cliEnvironment,undefined);
+  assert.deepEqual(JSON.parse(fs.readFileSync(f.settings)),f.original);
+  assert.equal(JSON.parse(fs.readFileSync(f.marketplaces))['other-market'].source.path,'/synthetic/other');
 });
 test('rollback distinguishes an absent flag from an originally present empty value',t=>{
   for(const present of [true,false]){
-    const f=fixture(t,{codex:true,environment:'',environmentPresent:present});f.apply();assert(!JSON.stringify(JSON.parse(fs.readFileSync(f.plan().state))).includes('must-not-leak'));f.rollback();
+    const f=fixture(t,{environment:'',environmentPresent:present});f.seedLegacyCodex();assert(!JSON.stringify(JSON.parse(fs.readFileSync(f.plan().state))).includes('must-not-leak'));f.rollback();
     assert.equal(f.environmentPresent,present);assert.equal(f.environment??'','');
   }
 });
 test('a third-party change after installation prevents rollback from overwriting environment',t=>{
-  const f=fixture(t,{codex:true});f.apply();f.environment='third-party';assert.throws(()=>f.rollback(),{code:'SETUP_ROLLBACK_ENVIRONMENT_CHANGED'});assert.equal(f.environment,'third-party');assert.equal(JSON.parse(fs.readFileSync(f.settings)).enabledPlugins[ID],true);
+  const f=fixture(t);f.seedLegacyCodex();f.environment='third-party';assert.throws(()=>f.rollback(),{code:'SETUP_ROLLBACK_ENVIRONMENT_CHANGED'});assert.equal(f.environment,'third-party');assert.equal(JSON.parse(fs.readFileSync(f.settings)).enabledPlugins[ID],true);
 });
 test('a repointed marketplace is not overwritten or uninstalled as though it still belonged to setup',t=>{
   const f=fixture(t);f.apply();const catalogs=JSON.parse(fs.readFileSync(f.marketplaces));catalogs['io-agent-local'].source.path='/unrelated/replacement';fs.writeFileSync(f.marketplaces,JSON.stringify(catalogs));
