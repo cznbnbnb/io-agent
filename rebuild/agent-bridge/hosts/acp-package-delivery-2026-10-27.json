@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "date": "2026-10-27T10:41:36.914774+00:00",
+  "feature_commit": "378b5a005da1cfb3b75fcf4650f19974c52d7c16",
+  "zip_path": "outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip",
+  "bytes": 156154,
+  "sha256": "5ac76104f37c86ad53856c7e4f5e242b079ea3c9afd8c025fba553282d6d8ccf",
+  "archive_files": 42,
+  "manifest_source_files": 41,
+  "standalone_test": {
+    "passed": true,
+    "hashes_verified": true,
+    "help_doctor_pair_qr_string_join_ask_wait": true,
+    "synthetic_answer_received": true,
+    "real_devices_or_public_server_accessed": false,
+    "windows_tested": false
+  },
+  "includes_keys_or_apk_or_runtime_engine": false,
+  "revoked_qa_credential_directories_removed": true,
+  "independent_voice_candidates_staged": false
+}

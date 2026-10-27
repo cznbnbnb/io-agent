@@ -1,3 +1,9 @@
+## [codex] 2026-10-27 ACP 便携包核对完成（源码378b5a0）
+
+统一连接器、dev136与双Agent手机验收已提交378b5a0。重新生成原路径 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip`（156,154字节、42文件），SHA `5ac76104f37c86ad53856c7e4f5e242b079ea3c9afd8c025fba553282d6d8ccf`。Manifest固定上述源码提交，41份源文件逐项hash通过；独立解压的help/doctor、二维码及字符串配对、WorkBuddy通用问答/合成答案全过，测试只访问本机SQLite/HTTP且配对目录隔离于临时目录。此fixture不等于WorkBuddy真实引擎验收；Windows未实测。包不含APK、运行引擎、账号密钥、原生历史或资料。
+
+本次QA两个会话设备均已撤销，旧凭据拒绝、租约离线、桥/新引擎退出；仅对应两个私有凭据/QR目录已移除，原共享配对及会话邮箱保留。诊断驱动和设备临时文件已清理。未提交voice7/DS_Store候选；只保留当前dev136和回退dev135 APK。[便携包交付核对](../../rebuild/agent-bridge/hosts/acp-package-delivery-2026-10-27.json)。本条提交后推送同一codex分支，关闭本次进度超时watch并释放设备锁；后续推荐WorkBuddy CLI正常授权验收，首次连接历史追赶延迟另批优化。
+
 ## [codex] 2026-10-27 CLI＋ACP 统一连接器已交付：dev136、Claude/Codex 手机全链通过
 
 用户确认拓扑并要求执行后，新增 `connector.mjs` 与独立 stdio ACP 宿主，复用既有配对、问答、服务器、耐久控制和手机任务页。受管路由与原生 session ID 分开保存；真实宿主 ID 校验后才允许 CLI 映射。初始化仅落配置，run 新建/恢复本地引擎，未知输入不重发，权限只提供手机“允许本次/拒绝本次”。当前 Desktop 原聊天仍不受控；全局启动覆盖继续禁用。Claude/Codex 原专用控制器保留，不将 ACP 新会话冒充接管原聊天。
