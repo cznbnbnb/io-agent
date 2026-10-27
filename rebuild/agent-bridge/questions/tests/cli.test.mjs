@@ -33,7 +33,7 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  assert.equal(notified.value.progress.checkpoint_due,true);assert.ok((await run(caller,'help')).value.contract.length>=3);
  const point={checkpoint_key:'step-1',done:'完成断网恢复',next:'测试蓝牙断连',next_checkin_minutes:15};
  const pointed=await run(caller,'checkpoint',point);assert.equal(pointed.code,0,JSON.stringify(pointed));assert.equal(pointed.value.glasses_display,'notice');assert.equal(pointed.value.server_watch,'armed');
- const pointObject=store.queueGet(phone.token,'message',pointed.value.message_id);assert.equal(pointObject.body.channel,'progress');assert.equal(pointObject.body.text,'已完成：完成断网恢复\n下一步：测试蓝牙断连');assert.equal(pointObject.body.task_id,registered.value.task_id);
+ const pointObject=store.queueGet(phone.token,'message',pointed.value.message_id);assert.equal(pointObject.body.channel,'progress');assert.equal(pointObject.body.text,'已完成：完成断网恢复；下一步：测试蓝牙断连');assert.equal(pointObject.body.task_id,registered.value.task_id);
  const watched=store.watchGet(agent.token,registered.value.task_id);assert.equal(watched.enabled,true);assert.equal(watched.note,'测试蓝牙断连');assert.ok(Date.parse(watched.next_checkin_at)>Date.now()+14*60000);
  assert.equal((await run(caller,'checkpoint',point)).value.message_id,pointed.value.message_id);
  assert.equal((await run(caller,'checkpoint',{...point,next:'changed'})).value.error,'CALLER_CHECKPOINT_CONFLICT');

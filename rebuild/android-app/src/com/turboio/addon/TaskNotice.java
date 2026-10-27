@@ -23,6 +23,8 @@ final class TaskNotice {
   String key="notice-"+TaskWire.hash(WireJson.bytes(WireJson.object("server",connection.server,"owner",connection.owner,"route",connection.route(),"id",item.get("object_id"),"revision",item.get("revision"))));
   String legacy="notice-"+TaskWire.hash(WireJson.bytes(WireJson.object("binding",connection.binding(),"id",item.get("object_id"),"revision",item.get("revision"))));
   String scope=TaskWire.hash(WireJson.bytes(WireJson.object("server",connection.server,"owner",connection.owner,"route",connection.route(),"task",b.get("task_id"))));
-  return new TaskNotice(key,legacy,connection.agent+" 提醒："+TaskWire.text(p.get("command"),65536,false)+"\n\n"+text+"\n\n仅通知，无需回答；长按退出。",scope,connection,item,parent);
+  // Since dev124 notices are ordinary notifications that leave the lens on their own: the message alone,
+  // without the old prompter wrapper (agent id, task title, "long-press to exit").
+  return new TaskNotice(key,legacy,text,scope,connection,item,parent);
  }
 }

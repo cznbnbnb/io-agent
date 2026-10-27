@@ -142,17 +142,23 @@ final class AgentCardRuntime {
  }
  private static final String NOTICE_CHANNEL="turboio_agent_notice";
  /** One notification per task connection: a newer notice replaces the older one, and it expires with the notice. */
+ /** The lens mirrors a few short lines; a line break leaves most of one empty, so breaks become 「；」. */
+ static String oneLine(String text){return text.trim().replaceAll("[ \\t]*[\\r\\n]+[ \\t]*","；").replaceAll("([。；，！？：、])；","$1");}
  private boolean noticeNotification(TaskNotice notice,long at){
+  TaskHub.View source=notice.binding==null||snapshot==null?null:snapshot.context(notice.binding);
+  String agent=source==null?"Agent":TaskPresentation.agentName(source.profile.connection.agent);agent=agent.startsWith("Claude")?"Claude":agent.equals("Codex")?"Codex":"Agent";
+  // Short titles without spaces: the glasses split a spaced Latin title and dropped part of it in testing.
+  return postNotice(agent+(notice.text.startsWith("已完成：")?"进度":"提醒"),notice.text,notice.binding==null?"agent":notice.binding,Math.max(60000,notice.expires-at));
+ }
+ /** Ordinary phone notification, mirrored to the lens by the host and dismissed there on its own (no long press). */
+ private boolean postNotice(String title,String body,String tag,long timeout){
   try{
    NotificationManager manager=app.getSystemService(NotificationManager.class);if(manager==null||!manager.areNotificationsEnabled())return false;
    if(manager.getNotificationChannel(NOTICE_CHANNEL)==null){NotificationChannel channel=new NotificationChannel(NOTICE_CHANNEL,"Agent 进度与提醒",NotificationManager.IMPORTANCE_DEFAULT);channel.setSound(null,null);channel.enableVibration(false);manager.createNotificationChannel(channel);}
-   TaskHub.View source=notice.binding==null||snapshot==null?null:snapshot.context(notice.binding);
-   String agent=source==null?"Agent":TaskPresentation.agentName(source.profile.connection.agent);agent=agent.startsWith("Claude")?"Claude":agent.equals("Codex")?"Codex":"Agent";
-   // Short titles without spaces: the glasses split a spaced Latin title and dropped part of it in testing.
-   String title=agent+(notice.text.startsWith("已完成：")?"进度":"提醒");
-   Notification n=new Notification.Builder(app,NOTICE_CHANNEL).setSmallIcon(android.R.drawable.stat_notify_more).setContentTitle(title).setContentText(notice.text)
-    .setStyle(new Notification.BigTextStyle().bigText(notice.text)).setAutoCancel(true).setOnlyAlertOnce(true).setTimeoutAfter(Math.max(60000,notice.expires-at)).build();
-   manager.notify(notice.binding==null?"agent":notice.binding,1,n);return true;
+   String text=oneLine(body);
+   Notification n=new Notification.Builder(app,NOTICE_CHANNEL).setSmallIcon(android.R.drawable.stat_notify_more).setContentTitle(title).setContentText(text)
+    .setStyle(new Notification.BigTextStyle().bigText(text)).setAutoCancel(true).setOnlyAlertOnce(true).setTimeoutAfter(timeout).build();
+   manager.notify(tag,1,n);return true;
   }catch(RuntimeException failed){android.util.Log.w("TurboIOCard","notice notification failed "+failed.getClass().getSimpleName());return false;}
  }
  private static String prompterKey(String binding,Map<String,Object> request){return TaskWire.hash(WireJson.bytes(WireJson.object("prompter",binding,"request",TaskWire.requestFingerprint(request))));}
@@ -260,7 +266,7 @@ final class AgentCardRuntime {
   VoiceAnswerWorkspace.showHeadless(app,tasks,binding,id,revision,fingerprint,()->tasks.read(null));
   return true;
  }
- static final String BUSY_NOTICE="iO Agent 提醒：口述没有开始\n\n眼镜回报正忙：语音助手或其他应用可能还没退出。\n\n这道题保留在手机：可以直接在手机回答，或回到眼镜桌面后，在手机打开这道题重新口述。\n\n仅通知，无需回答；长按退出。";
+ static final String BUSY_NOTICE="口述没开始：眼镜正忙（语音助手或其他应用未退出）。问题留在手机，可直接在手机回答，或回到眼镜桌面后重新口述。";
  /** 2026-10-23: a glasses-started dictation refused as busy used to end silently on the lens after
   * the long press. One lens notice per attempt says why. (全天智记 alone no longer counts: LifelogState.) */
  static void glassesBusy(){
@@ -268,10 +274,10 @@ final class AgentCardRuntime {
   r.message="眼镜正忙，口述没有开始（语音助手或其他应用可能未退出）；问题留在手机";r.refresh();
   r.busyNotice(0);
  }
- // The refused recording may still hold the message lane for a moment; retry briefly, then give up.
+ // An ordinary notification needs no prompter lane and leaves the lens on its own.
  private void busyNotice(int attempt){
-  if(!NewsTele.active()&&!NativeTransfer.fileBusy()&&noticePrompt(BUSY_NOTICE,60000,null)){android.util.Log.i("TurboIOCard","glasses busy notice shown attempt="+attempt);return;}
-  if(attempt<8)main.postDelayed(()->busyNotice(attempt+1),1000);else android.util.Log.i("TurboIOCard","glasses busy notice not shown");
+  if(postNotice("眼镜提醒",BUSY_NOTICE,"glasses-busy",60000)){android.util.Log.i("TurboIOCard","glasses busy notice posted");return;}
+  android.util.Log.i("TurboIOCard","glasses busy notice not posted");
  }
  private void confirmVoice(AgentCardRequest voice){
   message=VoiceAnswerWorkspace.confirmFromGlasses(voice.binding,voice.requestId,voice.confirm)?"已在眼镜确认，正在保存并提交原文":"手机上的口述已变化或暂不能保存，请在手机核对后保存";refresh();

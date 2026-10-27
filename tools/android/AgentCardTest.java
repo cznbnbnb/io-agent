@@ -62,7 +62,7 @@ public final class AgentCardTest {
 
  static void notices()throws Exception{
   TaskConnection c=connection("codex");Map<String,Object> parent=task(c),notice=item("message",WireJson.object("message_id","notice-"+String.join("",Collections.nCopies(64,"a")),"revision",1,"task_id","same-task-id","route",c.route(),"request_id",null,"channel","progress","text","等待查明录音占用，无需回答"),3);notice.put("state","recorded");
-  TaskNotice prepared=TaskNotice.prepare(c,notice,parent,NOW);yes(prepared.text.contains("无需回答")&&prepared.text.contains("长按退出"));yes(prepared.key.equals(TaskNotice.prepare(c,notice,parent,NOW).key));
+  TaskNotice prepared=TaskNotice.prepare(c,notice,parent,NOW);yes(prepared.text.equals(TaskWire.text(TaskWire.body(notice).get("text"),1800,false))&&!prepared.text.contains("长按退出"));yes(prepared.key.equals(TaskNotice.prepare(c,notice,parent,NOW).key));
   // A re-pair derives a new binding (new producer and token) for the same session: the notice is not shown again.
   {Map<String,Object> v=TaskConnectionTest.sample();v.put("computer_id","pc");v.put("agent_id",c.agent);v.put("project_id","project");v.put("session_id",c.session);v.put("expires_at",TaskWire.now(NOW+86400000));v.put("producer_id","synthetic-repaired-phone");v.put("token","B".repeat(43));
    TaskConnection repaired=TaskConnection.parse(WireJson.bytes(v),NOW);TaskNotice again=TaskNotice.prepare(repaired,notice,parent,NOW);yes(!repaired.binding().equals(c.binding())&&again.key.equals(prepared.key)&&!again.legacy.equals(prepared.legacy));}

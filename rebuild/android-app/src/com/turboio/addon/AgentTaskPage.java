@@ -159,7 +159,7 @@ final class AgentTaskPage {
   });
  }
  private void openDetails(TaskPresentation.Row row){
-  if(detail!=null&&detail.dialog.isShowing())detail.dialog.dismiss();detailKey=row.key;showHistory=false;detail=new AgentUI.Screen(activity,"任务详情");AgentUI.Screen current=detail;current.dialog.setOnDismissListener(d->{if(detail==current){detail=null;detailKey="";}});renderDetails(row);
+  if(detail!=null&&detail.dialog.isShowing())detail.dialog.dismiss();detailKey=row.key;showHistory=false;timelineFilter="all";openEntries.clear();detail=new AgentUI.Screen(activity,"任务详情");AgentUI.Screen current=detail;current.dialog.setOnDismissListener(d->{if(detail==current){detail=null;detailKey="";}});renderDetails(row);
   if(!row.localOnly()&&row.profile.enabled&&row.profile.connection.expiresAt>System.currentTimeMillis())runtime.detail(row.binding,"task",row.id,(updated,error)->{if(alive()&&detail==current&&current.dialog.isShowing()&&!error.isEmpty())AgentUI.notice(activity,TaskWorkspace.label(error));});
  }
  private void renderDetails(TaskPresentation.Row row){
@@ -173,13 +173,85 @@ final class AgentTaskPage {
   for(TaskPresentation.Question question:presentation.questions)if(question.binding.equals(row.binding)&&question.taskId.equals(row.id))questionCard(content,question);
   controls(content,row);
   String draft=instructions().getString(instructionKey(row),"");if(!draft.isEmpty()){LinearLayout saved=AgentUI.card(activity,content);saved.addView(AgentUI.text(activity,"本机指示草稿 · 未发送",14,AgentUI.ACCENT));full(saved,draft,15);}
-  TaskHub.View context=snapshot.context(row.binding);List<Map<String,Object>> messages=new ArrayList<>(),previousQuestions=new ArrayList<>();if(context!=null)for(Object raw:context.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!row.id.equals(TaskWire.body(item).get("task_id")))continue;if("message".equals(item.get("kind")))messages.add(item);else if("request".equals(item.get("kind"))&&!TaskWire.canAnswer(item,row.item,System.currentTimeMillis()))previousQuestions.add(item);}
-  if(!previousQuestions.isEmpty()){AgentUI.gap(activity,content,18);content.addView(AgentUI.text(activity,"往来问题",16,AgentUI.INK));for(Map<String,Object> request:previousQuestions){LinearLayout card=AgentUI.card(activity,content);card.addView(AgentUI.text(activity,TaskPresentation.questionStatus(request,row.item,System.currentTimeMillis()),12,AgentUI.MUTED));full(card,(String)TaskWire.body(request).get("question"),15);if(request.get("answer")!=null){AgentUI.gap(activity,card,12);card.addView(AgentUI.text(activity,"你的完整回复",12,AgentUI.ACCENT));Map<String,Object> answer=WireJson.map(request.get("answer"));full(card,answerText(request,TaskWire.body(answer)),15);receiptLines(card,answer);}receiptLines(card,request);}}
-  if(context!=null)for(Object raw:context.pending){Map<String,Object> local=WireJson.map(raw),event=WireJson.map(WireJson.read(((String)local.get("payload")).getBytes(java.nio.charset.StandardCharsets.UTF_8)));if(!"answer".equals(event.get("kind")))continue;Map<String,Object> answer=TaskWire.body(event);if(!row.id.equals(answer.get("task_id")))continue;Map<String,Object> request=context.item("request",(String)answer.get("request_id"));if("server_stored".equals(local.get("state"))&&request!=null&&request.get("answer")!=null)continue;LinearLayout card=AgentUI.card(activity,content);card.addView(AgentUI.text(activity,"本机完整回复 · "+TaskPresentation.queueStatus(local),13,AgentUI.MUTED));full(card,request==null?(String)answer.get("text"):answerText(request,answer),15);if(!"".equals(local.get("error")))card.addView(AgentUI.text(activity,TaskWorkspace.label((String)local.get("error")),13,AgentUI.MUTED));}
-  if(!messages.isEmpty()){AgentUI.gap(activity,content,18);content.addView(AgentUI.text(activity,"电脑进展",16,AgentUI.INK));int first=showHistory?0:Math.max(0,messages.size()-1);for(int i=first;i<messages.size();i++){Map<String,Object> message=TaskWire.body(messages.get(i));LinearLayout card=AgentUI.card(activity,content);card.addView(AgentUI.text(activity,"result".equals(message.get("channel"))?"任务结果":"电脑消息",12,AgentUI.MUTED));full(card,(String)message.get("text"),15);}if(messages.size()>1&&!showHistory)content.addView(link("查看此前 "+(messages.size()-1)+" 条消息",()->{showHistory=true;renderDetails(row);}));}
-  if(row.item!=null&&row.item.get("receipts")!=null&&!WireJson.list(row.item.get("receipts")).isEmpty()){AgentUI.gap(activity,content,20);content.addView(AgentUI.text(activity,"送达回执",15,AgentUI.INK));receiptLines(content,row.item);}
+  timeline(content,row);
+  if(row.item!=null&&row.item.get("receipts")!=null&&!WireJson.list(row.item.get("receipts")).isEmpty())new MaterialReadingUI.Fold(activity,content,"送达回执",WireJson.list(row.item.get("receipts")).size()+" 条",false,box->receiptLines(box,row.item));
   AgentUI.gap(activity,content,18);content.addView(AgentUI.text(activity,"状态与回执来自原电脑任务。保存到服务器不代表电脑已继续执行。",12,AgentUI.MUTED));
   AgentUI.Screen current=detail;current.scroll.post(()->{if(alive()&&detail==current)current.scroll.scrollTo(0,position);});
+ }
+ /** One timeline card. "qa" covers questions and replies; the other kinds are computer-side updates. */
+ private static final class Entry {
+  final String key,kind,label,summary,sub;final long at;final java.util.function.Consumer<LinearLayout> full;
+  Entry(String key,String kind,String label,String summary,String sub,long at,java.util.function.Consumer<LinearLayout> full){this.key=key;this.kind=kind;this.label=label;this.summary=summary;this.sub=sub;this.at=at;this.full=full;}
+  boolean qa(){return kind.equals("qa")||kind.equals("local");}
+ }
+ private static final int QA_BLUE=0xff6fa8ff;
+ private final Map<String,Boolean> openEntries=new HashMap<>();private String timelineFilter="all";
+ private static long storedAt(Object item){try{return item instanceof Map&&((Map<?,?>)item).get("stored_at")!=null?TaskWire.stamp(((Map<?,?>)item).get("stored_at")):0;}catch(RuntimeException bad){return 0;}}
+ private static final java.util.regex.Pattern POINT=java.util.regex.Pattern.compile("^已完成：(.*?)(?:[；;\\s]*下一步：(.*))?$",java.util.regex.Pattern.DOTALL);
+ /** Task history newest first: color-coded by kind, only the newest open, the rest one-line summaries. */
+ private void timeline(LinearLayout content,TaskPresentation.Row row){
+  TaskHub.View context=snapshot.context(row.binding);if(context==null)return;long now=System.currentTimeMillis();List<Entry> entries=new ArrayList<>();
+  for(Object raw:context.objects){
+   Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item")),body=TaskWire.body(item);if(!row.id.equals(body.get("task_id")))continue;
+   if("message".equals(item.get("kind"))){
+    String text=String.valueOf(body.get("text")).trim();java.util.regex.Matcher m=POINT.matcher(text);boolean result="result".equals(body.get("channel")),point=!result&&m.matches(),late=text.startsWith("已超过约定报到时间");
+    String done=point?m.group(1).trim():text,next=point&&m.group(2)!=null?m.group(2).trim():"";
+    entries.add(new Entry("m/"+item.get("object_id"),result?"result":point?"progress":"alert",result?"任务结果":point?"进度":late?"超时提醒":"提醒",done,next.isEmpty()?"":"下一步："+next,storedAt(item),box->{
+     if(!point){full(box,text,15);return;}
+     box.addView(AgentUI.text(activity,"已完成",12,AgentUI.MUTED));full(box,done,15);
+     if(!next.isEmpty()){AgentUI.gap(activity,box,10);box.addView(AgentUI.text(activity,"下一步",12,AgentUI.MUTED));full(box,next,15);}
+    }));
+   }else if("request".equals(item.get("kind"))&&!TaskWire.canAnswer(item,row.item,now)){
+    Map<String,Object> answer=item.get("answer")==null?null:WireJson.map(item.get("answer"));String reply=answer==null?"":AgentCardRuntime.oneLine(answerText(item,TaskWire.body(answer)));
+    entries.add(new Entry("q/"+item.get("object_id"),"qa","问答 · "+TaskPresentation.questionStatus(item,row.item,now),String.valueOf(body.get("question")),answer==null?"":"你答："+reply,Math.max(storedAt(item),storedAt(answer)),box->{
+     full(box,(String)body.get("question"),15);
+     if(answer!=null){AgentUI.gap(activity,box,12);box.addView(AgentUI.text(activity,"你的完整回复",12,QA_BLUE));full(box,reply,15);receiptLines(box,answer);}
+     receiptLines(box,item);
+    }));
+   }
+  }
+  for(Object raw:context.pending){
+   Map<String,Object> local=WireJson.map(raw),event=WireJson.map(WireJson.read(((String)local.get("payload")).getBytes(java.nio.charset.StandardCharsets.UTF_8)));if(!"answer".equals(event.get("kind")))continue;
+   Map<String,Object> answer=TaskWire.body(event);if(!row.id.equals(answer.get("task_id")))continue;Map<String,Object> request=context.item("request",(String)answer.get("request_id"));
+   if("server_stored".equals(local.get("state"))&&request!=null&&request.get("answer")!=null)continue;
+   String text=request==null?(String)answer.get("text"):answerText(request,answer);
+   entries.add(new Entry("l/"+local.get("operation_id"),"local","本机回复 · "+TaskPresentation.queueStatus(local),text,request==null?"":"回复：「"+TaskWire.body(request).get("question")+"」",now,box->{
+    full(box,text,15);if(!"".equals(local.get("error")))box.addView(AgentUI.text(activity,TaskWorkspace.label((String)local.get("error")),13,AgentUI.MUTED));
+   }));
+  }
+  if(entries.isEmpty())return;
+  entries.sort((x,y)->Long.compare(y.at,x.at));
+  int qa=0;for(Entry e:entries)if(e.qa())qa++;
+  AgentUI.gap(activity,content,22);LinearLayout head=new LinearLayout(activity);head.setGravity(Gravity.CENTER_VERTICAL);
+  head.addView(MaterialReadingUI.bold(AgentUI.text(activity,"动态",17,AgentUI.INK)),new LinearLayout.LayoutParams(0,-2,1));
+  String[][] filters={{"all","全部 "+entries.size()},{"qa","问答 "+qa},{"work","进展 "+(entries.size()-qa)}};
+  for(String[] f:filters){boolean on=f[0].equals(timelineFilter);TextView chip=MaterialReadingUI.chip(activity,head,f[1],on?MaterialReadingUI.ACCENT_SOFT:AgentUI.MUTED,on?MaterialReadingUI.ACCENT_BG:MaterialReadingUI.RAISED);
+   chip.setOnClickListener(v->{timelineFilter=f[0];showHistory=false;renderDetails(row);});}
+  content.addView(head);
+  List<Entry> visible=new ArrayList<>();for(Entry e:entries)if(timelineFilter.equals("all")||timelineFilter.equals("qa")==e.qa())visible.add(e);
+  if(visible.isEmpty()){content.addView(AgentUI.text(activity,"这一类暂时没有记录。",13,AgentUI.MUTED));return;}
+  int limit=showHistory?visible.size():Math.min(visible.size(),6);
+  for(int i=0;i<limit;i++)entryCard(content,visible.get(i),openEntries.getOrDefault(visible.get(i).key,i==0),row);
+  if(visible.size()>limit)content.addView(link("查看更早 "+(visible.size()-limit)+" 条",()->{showHistory=true;renderDetails(row);}));
+ }
+ private int tone(String kind){switch(kind){case "qa":return QA_BLUE;case "alert":return MaterialReadingUI.AMBER;case "local":return MaterialReadingUI.SOFT;default:return MaterialReadingUI.ACCENT_SOFT;}}
+ private void entryCard(LinearLayout parent,Entry e,boolean open,TaskPresentation.Row row){
+  Activity a=activity;int color=tone(e.kind);
+  LinearLayout outer=new LinearLayout(a);outer.setBackground(AgentUI.shape(a,e.kind.equals("result")?MaterialReadingUI.ACCENT_BG:AgentUI.SURFACE,16));
+  LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.topMargin=AgentUI.dp(a,10);parent.addView(outer,lp);
+  View stripe=new View(a);GradientDrawable bar=new GradientDrawable();bar.setColor(color);bar.setCornerRadius(AgentUI.dp(a,2));stripe.setBackground(bar);
+  LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(AgentUI.dp(a,3),-1);sp.setMargins(AgentUI.dp(a,12),AgentUI.dp(a,14),0,AgentUI.dp(a,14));outer.addView(stripe,sp);
+  LinearLayout col=AgentUI.column(a);col.setPadding(AgentUI.dp(a,12),AgentUI.dp(a,12),AgentUI.dp(a,14),AgentUI.dp(a,14));outer.addView(col,new LinearLayout.LayoutParams(0,-2,1));
+  LinearLayout head=new LinearLayout(a);head.setGravity(Gravity.CENTER_VERTICAL);head.setMinimumHeight(AgentUI.dp(a,26));
+  TextView label=MaterialReadingUI.bold(AgentUI.text(a,e.label,12,color));head.addView(label);
+  TextView time=AgentUI.text(a,e.at>0&&!e.kind.equals("local")?"  ·  "+ago(e.at):"",12,AgentUI.MUTED);head.addView(time,new LinearLayout.LayoutParams(0,-2,1));
+  head.addView(AgentUI.text(a,open?"收起":"展开",12,AgentUI.MUTED));col.addView(head);AgentUI.gap(a,col,6);
+  Runnable toggle=()->{openEntries.put(e.key,!open);renderDetails(row);};
+  head.setOnClickListener(v->toggle.run());head.setContentDescription(e.label+(open?"，已展开":"，已收起"));
+  if(open){e.full.accept(col);return;}
+  TextView summary=AgentUI.text(a,e.summary,15,AgentUI.INK);summary.setMaxLines(2);summary.setEllipsize(android.text.TextUtils.TruncateAt.END);col.addView(summary);
+  if(!e.sub.isEmpty()){AgentUI.gap(a,col,6);TextView sub=AgentUI.text(a,e.sub,13,e.qa()?QA_BLUE:AgentUI.MUTED);sub.setMaxLines(1);sub.setEllipsize(android.text.TextUtils.TruncateAt.END);col.addView(sub);}
+  outer.setOnClickListener(v->toggle.run());
  }
  private void full(LinearLayout parent,String text,int size){TextView view=AgentUI.text(activity,text,size,AgentUI.INK);view.setTextIsSelectable(true);parent.addView(view);}
  private void track(AgentUI.Screen form){forms.removeIf(prior->!prior.dialog.isShowing());forms.add(form);}

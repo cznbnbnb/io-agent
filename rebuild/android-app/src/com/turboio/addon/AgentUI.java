@@ -22,7 +22,25 @@ final class AgentUI {
  static TextView text(Activity a,String value,int size,int color){TextView t=new TextView(a);t.setText(value);t.setTextSize(size);t.setTextColor(color);t.setLineSpacing(dp(a,3),1);t.setIncludeFontPadding(false);return t;}
  static GradientDrawable shape(Activity a,int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(a,radius));d.setStroke(dp(a,1),0xff34463b);return d;}
  static EditText input(Activity a){EditText edit=new EditText(new ContextThemeWrapper(a,android.R.style.Theme_Material_NoActionBar));edit.setTextColor(INK);edit.setHintTextColor(MUTED);edit.setTextSize(16);edit.setGravity(Gravity.TOP|Gravity.START);edit.setPadding(dp(a,14),dp(a,14),dp(a,14),dp(a,14));edit.setBackgroundTintList(null);StateListDrawable background=new StateListDrawable();GradientDrawable focused=shape(a,SURFACE,13);focused.setStroke(dp(a,2),ACCENT);background.addState(new int[]{android.R.attr.state_focused},focused);background.addState(new int[]{},shape(a,SURFACE,13));edit.setBackground(background);edit.setHighlightColor(0x6648c99c);return edit;}
- static AlertDialog.Builder alert(Activity a){return new AlertDialog.Builder(new ContextThemeWrapper(a,android.R.style.Theme_Material_Dialog_Alert));}
+ /** Builder-based dialogs (inputs, pickers) keep their content but take the Agent card look. */
+ static AlertDialog.Builder alert(Activity a){return new AlertDialog.Builder(new ContextThemeWrapper(a,android.R.style.Theme_Material_Dialog_Alert)){
+  @Override public AlertDialog create(){AlertDialog d=super.create();skin(a,d);return d;}
+ };}
+ private static void skin(Activity a,AlertDialog d){
+  Window w=d.getWindow();if(w==null)return;w.setBackgroundDrawable(new InsetDrawable(shape(a,SURFACE,22),dp(a,22),dp(a,16),dp(a,22),dp(a,16)));
+  // Buttons and title exist only once the dialog is attached; style them then, without taking the caller's show listener.
+  w.getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
+   @Override public void onViewAttachedToWindow(View v){v.post(()->paint(a,d));}
+   @Override public void onViewDetachedFromWindow(View v){}
+  });
+ }
+ private static void paint(Activity a,AlertDialog d){
+  ColorStateList primary=new ColorStateList(new int[][]{{-android.R.attr.state_enabled},{}},new int[]{0x66a2afa5,0xff36c49b});
+  for(int id:new int[]{AlertDialog.BUTTON_POSITIVE,AlertDialog.BUTTON_NEGATIVE,AlertDialog.BUTTON_NEUTRAL}){Button b=d.getButton(id);if(b==null)continue;
+   b.setAllCaps(false);b.setTextSize(15);if(id==AlertDialog.BUTTON_POSITIVE){b.setTextColor(primary);b.setTypeface(null,Typeface.BOLD);}else b.setTextColor(MUTED);}
+  TextView message=d.findViewById(android.R.id.message);if(message!=null){message.setTextColor(MUTED);message.setTextSize(15);message.setLineSpacing(dp(a,3),1);}
+  int titleId=a.getResources().getIdentifier("alertTitle","id","android");TextView title=titleId==0?null:d.findViewById(titleId);if(title!=null){title.setTextColor(INK);title.setTypeface(null,Typeface.BOLD);}
+ }
  static void gap(Activity a,LinearLayout parent,int size){parent.addView(new View(a),new LinearLayout.LayoutParams(1,dp(a,size)));}
  static TextView button(Activity a,LinearLayout parent,String title,boolean primary,Runnable action){
   Button button=new Button(new ContextThemeWrapper(a,android.R.style.Theme_Material_NoActionBar));button.setAllCaps(false);button.setText(title);button.setTextSize(15);button.setTextColor(primary?0xff062118:INK);button.setTypeface(null,Typeface.BOLD);button.setGravity(Gravity.CENTER);button.setMinHeight(dp(a,48));button.setMinimumWidth(0);button.setMinWidth(0);button.setPadding(dp(a,14),dp(a,12),dp(a,14),dp(a,12));button.setBackground(shape(a,primary?ACCENT:SURFACE,13));button.setStateListAnimator(null);button.setOnClickListener(v->action.run());

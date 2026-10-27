@@ -175,8 +175,8 @@ final class VoiceAnswerWorkspace {
   static final class Risky extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance{@Override public void updateDrawState(TextPaint paint){paint.bgColor=MaterialReadingUI.AMBER_BG;paint.setColor(MaterialReadingUI.AMBER_TEXT);}}
   /** The current text, including manual edits, is retired with the draft; it stays in the local record only. */
   void redo(){if(!owned()||busy||!"REVIEW".equals(latest.phase))return;
-   new AlertDialog.Builder(activity).setTitle("重新口述？").setMessage("当前识别文字和改动将不会作为答案，只保留在本机记录中。之后需要重新点击开始口述。").setNegativeButton("取消",null)
-    .setPositiveButton("重新口述",(dialog,which)->{if(!owned()||busy||!"REVIEW".equals(latest.phase))return;dirty=false;begin();runtime.redo(binding,requestId,revision,fingerprint,this::completed);}).show();
+   AgentUI.confirm(activity,"重新口述？","当前识别文字和改动将不会作为答案，只保留在本机记录中。之后需要重新点击开始口述。","重新口述",
+    ()->{if(!owned()||busy||!"REVIEW".equals(latest.phase))return;dirty=false;begin();runtime.redo(binding,requestId,revision,fingerprint,this::completed);});
   }
   boolean confirmed(String b,String r,String expected){
    if(closed||activity.isDestroyed()||!binding.equals(b)||!requestId.equals(r)||!owned()||busy||dirty||!"REVIEW".equals(latest.phase)||!latest.canSave||!expected.equals(latest.text)||!expected.equals(text.getText().toString()))return false;

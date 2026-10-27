@@ -126,7 +126,7 @@ final class TaskWorkspace {
  private static final Set<String> EXPANDED=new HashSet<>(),CLOSED_SHOWN=new HashSet<>();
  // Folding is local view state; bumping it makes the next read re-render even if the data did not change.
  private static int foldVersion;
- private static void removeButton(Activity a,LinearLayout section,TaskRuntime runtime,String binding,Runnable refresh){EditorialUI.button(a,section,"移除已到期会话",false,()->new android.app.AlertDialog.Builder(a).setTitle("移除已到期会话？").setMessage("只移除这条登记，腾出名额；本机队列和已提交答案记录仍保留。需要时可重新登记同一会话。").setNegativeButton("取消",null).setPositiveButton("移除",(dialog,which)->runtime.remove(binding,(state,code)->{if(!code.isEmpty())notice(a,label(code));refresh.run();})).show());}
+ private static void removeButton(Activity a,LinearLayout section,TaskRuntime runtime,String binding,Runnable refresh){EditorialUI.button(a,section,"移除已到期会话",false,()->AgentUI.confirm(a,"移除已到期会话？","只移除这条登记，腾出名额；本机队列和已提交答案记录仍保留。需要时可重新登记同一会话。","移除",()->runtime.remove(binding,(state,code)->{if(!code.isEmpty())notice(a,label(code));refresh.run();})));}
  private static final Set<String> OPEN_TASK=TaskWire.set("queued","agent_received","running","waiting_answer","cancel_requested","execution_unknown","stop_requested","stop_unconfirmed","stopped","resume_requested");
  /** Objects still needing attention: answerable questions, unfinished tasks and messages of those tasks. */
  private static List<Object> openObjects(TaskHub.View context,long now){

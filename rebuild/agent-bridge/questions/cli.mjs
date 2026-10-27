@@ -37,6 +37,8 @@ const topicValid=t=>typeof t==='string'&&t.length>=1&&t.length<=40&&t.trim()===t
 // (its task is gone from the server or has ended, or each question was expired/withdrawn there) must not block
 // a new registration forever. Only server evidence releases: an answer not yet consumed, a question the server
 // still holds open or any failed read keeps the denial. Released questions are closed locally as reported.
+// The lens shows one short run of text; a line break wastes most of it.
+const oneLine=text=>String(text).trim().replace(/[ \t]*[\r\n]+[ \t]*/g,'；').replace(/([。；，！？：、])；/g,'$1');
 const TASK_ENDED=new Set(['cancelled','completed','failed','expired']);
 const journalTool=(config,directory,code,...args)=>python(config.python,['-c',"import os,sys,json;sys.path.insert(0,sys.argv[1]);from context import load_context;"+code,here,...args],{env:{...process.env,IO_AGENT_CONTEXT:path.join(directory,'context.json')}});
 async function releasePrevious(previous){
@@ -121,7 +123,7 @@ const POLICY={schema:1,glasses_progress:true,checkin_minutes:20};
 // 2026-10-27 user: progress and blocker notices travel as ordinary phone notifications that leave the glasses by
 // themselves; only questions use the prompter, which needs a long-press to leave.
 const CONTRACT=['每完成一步（或改变计划）就调用 checkpoint：done=刚完成什么，next=推荐的下一步；以手机普通通知推到眼镜，自动消失，无需长按。',
- 'checkpoint 的 done/next 与 notify 正文写短句（各约 40 字内），一眼看完；细节留在手机任务页。',
+ 'checkpoint 的 done/next 与 notify 正文写短句（各约 40 字内），一眼看完，不要换行（镜片字数有限，换行会空掉一整行，手机也会把换行改成「；」）；细节留在手机任务页。',
  '需要用户决定时用 ask（只有提问走眼镜提词器，看完长按退出后口述），阻塞时用 notify（普通通知）；它们不代替 checkpoint。',
  '回复里 progress.checkpoint_due=true 时，在结束本轮前先 checkpoint。',
  'next_checkin_minutes 是你承诺的下次报到时间；超时未报到，服务器会自己在眼镜上提醒用户。',
@@ -138,7 +140,7 @@ async function checkpoint(directory,value){
  const {config,context}=binding(directory),p=policy(directory),id='notice-'+hash(JSON.stringify([context.task_id,'checkpoint',value.checkpoint_key])),file=privatePath(privateRoot,path.join(directory,'checkpoint-'+hash(value.checkpoint_key)+'.json'),{allowMissing:true});
  let saved;if(fs.existsSync(file)){saved=readLocal(file);if(!isDeepStrictEqual(saved.input,value))fail('CALLER_CHECKPOINT_CONFLICT');}
  else{const now=Date.now(),minutes=value.next_checkin_minutes??p.checkin_minutes;saved={input:value,glasses_progress:p.glasses_progress,next_checkin_at:new Date(now+minutes*60000).toISOString(),
-  event:p.glasses_progress?{schema_version:'1.0',event_id:'ev-'+id,idempotency_key:'idem-'+id,producer_id:config.bridge.producer_id,kind:'message',created_at:new Date(now).toISOString(),expires_at:new Date(now+3000000).toISOString(),body:{message_id:id,revision:1,task_id:context.task_id,route:context.route,request_id:null,channel:'progress',text:'已完成：'+value.done+'\n下一步：'+value.next}}:null};writeNew(file,saved);}
+  event:p.glasses_progress?{schema_version:'1.0',event_id:'ev-'+id,idempotency_key:'idem-'+id,producer_id:config.bridge.producer_id,kind:'message',created_at:new Date(now).toISOString(),expires_at:new Date(now+3000000).toISOString(),body:{message_id:id,revision:1,task_id:context.task_id,route:context.route,request_id:null,channel:'progress',text:oneLine('已完成：'+value.done+'；下一步：'+value.next)}}:null};writeNew(file,saved);}
  replace(path.join(directory,'progress.json'),{schema:1,last_checkpoint_key:value.checkpoint_key,last_checkpoint_at:saved.event?.created_at??new Date().toISOString(),next_checkin_at:saved.next_checkin_at});
  // Replaying immutable checkpoint bytes must still honor a later switch-off.
  const enabled=saved.glasses_progress===true&&p.glasses_progress,event=enabled?saved.event:null;

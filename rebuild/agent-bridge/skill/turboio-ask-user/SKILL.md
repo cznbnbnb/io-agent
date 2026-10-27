@@ -29,7 +29,7 @@ CLI的离线ask返回错误时，`locally_stored=true`和`request_id`表明原�
 
 ## 每一步都向眼镜报告进度（用户2026-10-23要求）
 
-2026-10-27 起 `checkpoint` 和 `notify` 以手机普通通知转到眼镜，自动消失、无需长按；只有 `ask` 走提词器。进度和提醒写短句（各约 40 字内），细节留在手机任务页。
+2026-10-27 起 `checkpoint` 和 `notify` 以手机普通通知转到眼镜，自动消失、无需长按；只有 `ask` 走提词器。进度和提醒写短句（各约 40 字内），细节留在手机任务页。正文不要换行：镜片一次只显示有限的字，换行会空出一整行；手机会把换行改成「；」。
 
 每完成一步或改变计划，调用 `cli.mjs checkpoint`，参数 `checkpoint_key / done / next`，可选 `next_checkin_minutes`（5–120，默认20）：`done` 写刚完成什么，`next` 写推荐的下一步，内容推送到眼镜。同一键重试必须保持原参数。每条命令回复都带 `progress`，`checkpoint_due=true` 时结束本轮前先报告。超过承诺的报到时间没有报告，服务器会自己在眼镜上提醒用户。用户要求不推送时调用 `config {"glasses_progress":false}`，恢复用 `true`。完整合同见 [AGENT-CONTRACT.md](../../questions/AGENT-CONTRACT.md)，`cli.mjs help` 打印同样规则。
 
