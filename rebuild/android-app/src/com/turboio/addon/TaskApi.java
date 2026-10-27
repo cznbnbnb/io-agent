@@ -27,6 +27,14 @@ final class TaskApi {
  private TaskSessionDirectory readDirectory()throws IOException{
   TaskWire.require(sessionDirectory,"DIRECTORY_UNSUPPORTED");long start=TaskSessionDirectory.elapsed();Response reply=transport.exchange("/agent-sessions",null);long end=TaskSessionDirectory.elapsed();if(reply.status!=200)throw new IOException(error(reply));return TaskSessionDirectory.fresh(reply.body,connection.server,connection.owner,start,end);
  }
+ /** One receipt for an exact request revision; its id is derived from the facts, so a repeat is an idempotent duplicate. */
+ void receipt(Map<String,Object> request,String stage,long now)throws IOException{
+  String id=TaskWire.id(request.get("object_id"));long revision=TaskWire.positive(request.get("revision"));
+  String stable=TaskWire.hash(WireJson.bytes(WireJson.object("receipt",stage,"request",id,"revision",revision,"producer",connection.producer)));
+  Map<String,Object> body=WireJson.object("receipt_id","rcpt-android-"+stable,"subject_kind","request","subject_id",id,"subject_revision",revision,"stage",stage,"actor_id",connection.producer,"related_event_id",request.get("event_id"),"error",null);
+  Response response=transport.exchange("/receipts",WireJson.bytes(TaskWire.envelope("receipt",connection.producer,body,stable,now,now+3600000)));
+  if(response.status!=200&&response.status!=201)throw new IOException(error(response));
+ }
  private Map<String,Object> detail(String kind,String id)throws IOException{
   TaskWire.require(TaskWire.set("task","request","message").contains(kind)&&!TaskWire.set(".","..").contains(TaskWire.id(id)),"TASK_QUERY_INVALID");
   Response response=transport.exchange("/"+kind+"s/"+encode(id),null);if(response.status!=200)throw new IOException(error(response));

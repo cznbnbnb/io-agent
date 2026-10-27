@@ -8,7 +8,7 @@ final class VoiceAnswerWorkspace {
   case "IDLE":return "正在核对原问题";case "PREPARED":case "prepared":case "voice_prepared":return "原问题已绑定，尚未开始采音";
   case "CAPTURING":case "capturing":return "正在接收口述";case "STOPPING":return "正在停止采音并核对结束状态";case "RECOVERY":case "VOICE_RECOVERY_REQUIRED":return "上次采音需要完成停止核对";
   case "REVIEW":case "review":return "口述已结束，请检查完整答案";case "VOICE_TIME_LIMIT":return "已到60秒采音上限：最后一句按截止时的识别保留，请核对；没说完可在这里补全后保存";case "INCOMPLETE":case "incomplete":return "口述尚不完整，已保留草稿";case "CANCELLED":case "cancelled":return "本次口述已停止，草稿保留";
-  case "SUBMITTING":return "正在保存完整答案到本机";case "SAVED":return "完整答案已保存到本机";case "BLOCKED":return "语音记录需要核对，暂不能继续";
+  case "SUBMITTING":return "正在保存完整答案到本机";case "SAVED":return "回答已保存，正在发给电脑";case "BLOCKED":return "语音记录需要核对，暂不能继续";
   case "VOICE_SOURCE_VERIFICATION_REQUIRED":return "开发者尚需完成真实声源与停止保护验证，当前不能开始口述，无需现在朗读。";
   case "VOICE_REQUEST_CHANGED":case "TASK_REQUEST_CHANGED":case "TASK_REVISION_CONFLICT":return "原问题内容或版本已变化，草稿保留，请返回重新查看问题";
   case "VOICE_REQUEST_CLOSED":case "TASK_REQUEST_CLOSED":case "REQUEST_CLOSED":case "REQUEST_NOT_FOUND":case "TASK_NOT_FOUND":return "原问题已结束或暂不可回答，草稿保留";
@@ -127,7 +127,7 @@ final class VoiceAnswerWorkspace {
    // A note that only repeats the phase (e.g. "review") carries no extra information.
    boolean note=value.note!=null&&!value.note.isEmpty()&&!label(value.note).equals(label(value.phase));
    status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"标黄的是数字和“不/没/别”等否定词，识别错一个字意思可能相反，请再看一眼。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");
-   localState.setText(exitPending?"退出前正在停止采音或保留编辑；确认结束后会返回，草稿保留。":"SAVED".equals(value.phase)?"完整答案已保存到本机。请在电脑任务页查看服务器保存和原任务继续的回执。":"完整答案先保存到本机；服务器接收和电脑执行状态另行核对。");
+   localState.setText(exitPending?"退出前正在停止采音或保留编辑；确认结束后会返回，草稿保留。":"SAVED".equals(value.phase)?"不用再点保存。电脑收到后，任务详情里会显示「电脑已接收」。":"完整答案先保存到本机；服务器接收和电脑执行状态另行核对。");
    if(!dirty&&!text.getText().toString().equals(value.text==null?"":value.text)){programmatic=true;text.setText(value.text==null?"":value.text);programmatic=false;}
    boolean editable=!busy&&value.canSave&&"REVIEW".equals(value.phase);text.setEnabled(editable);editor.setBackground(frame(activity,editable));actions.removeAllViews();
    // Only a fresh PREPARED draft may auto-start; a retained review/saved draft, an error or a stale page never records.
@@ -146,9 +146,11 @@ final class VoiceAnswerWorkspace {
    }
    if(fromGlasses&&review&&!dirty&&value.text!=null&&value.text.equals(offeredText))localState.setText("识别文字已提交给眼镜确认卡：眼镜上出现后按＋提交；没出现或按删除，就在这里核对后保存。");
    else if(fromGlasses&&review&&!dirty&&!refused.isEmpty())localState.setText("确认卡暂未发到眼镜："+refused+"。稍后自动重试，也可以在这里核对后保存。");
-   if(value.canSave)button("保存并回复电脑",true,this::save);
+   // Once saved (also via the glasses confirm card) the answer is on its way: no second save, going back is the next step.
+   boolean saved="SAVED".equals(value.phase);
+   if(value.canSave&&!saved)button("保存并回复电脑",true,this::save);
    if(review&&value.cleaned&&!value.needsStop)button("识别有误，重新口述",false,this::redo);
-   button("SAVED".equals(value.phase)?"返回查看提交状态":"返回原问题",false,this::exit);
+   button(saved?"返回查看提交状态":"返回原问题",saved,this::exit);
    if(exitPending&&!busy&&!value.needsStop&&value.cleaned)leave();
   }
   void button(String title,boolean primary,Runnable action){TextView button=AgentUI.button(activity,actions,title,primary,action);button.setEnabled(!busy);if(busy)button.setAlpha(.45f);}

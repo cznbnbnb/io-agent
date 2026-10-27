@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "name": "iO Agent Android",
-  "version": "0.5.3-dev130",
-  "version_code": 10552,
+  "version": "0.5.3-dev133",
+  "version_code": 10555,
   "revision": "io-agent-android-107-task-flows-ui",
-  "apk_stem": "iO-Agent-Android-0.5.3-dev130",
+  "apk_stem": "iO-Agent-Android-0.5.3-dev133",
   "launcher": "com.rayneo.venus.MainActivity",
   "rayneo_account_required_for_local_features": true,
   "ota_writes_enabled": false,

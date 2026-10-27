@@ -114,6 +114,7 @@ final class AgentCardRuntime {
     Fixed60Session.Link link=Host107Ota.link();TaskWire.require(link.peer!=null&&!link.peer.isEmpty()&&NativeTransfer.acquireMessages(lease),"TASK_GLASS_BUSY");localLease=true;
     if(!session.prepare(frozen,link.peer,link.generation))throw new IllegalArgumentException("TASK_CARD_STORE_INVALID");
     TaskWire.require(offered.size()<200||offered.contains(frozen.owner),"TASK_GLASS_HISTORY_FULL");Set<String> next=new HashSet<>(offered);next.add(frozen.owner);TaskWire.require(prefs.edit().putStringSet("offered",next).commit(),"TASK_CONFIG_SAVE_FAILED");offered.clear();offered.addAll(next);
+    if(confirm==null)tasks.receipt(source.binding,fresh,"glasses_displayed");// sent to the glasses = 「眼镜显示」
     preflight=new MinuteCardSession(new MinuteCardSession.Store(){public Object read(){return null;}public void save(Object value){throw new IllegalStateException();}});TaskWire.require(preflight.inspect(link.peer,link.generation,now(),false),"TASK_GLASS_BUSY");message="正在核对原眼镜状态";headStarted=restoreStarted=false;lastCleanupOwner="";checkingShow=false;pump();
  }
  private void maybeAuto(){
@@ -172,10 +173,13 @@ final class AgentCardRuntime {
   // Only a started manuscript counts as offered; a refused start (e.g. glasses still connecting) is retried.
   long startedAt=System.currentTimeMillis(),until=TaskPrompterOwner.deadline(source.profile.connection,request,startedAt);String[] display={""};
   if(!NewsTele.question(AgentCardRequest.manuscript(TaskWire.body(request),TaskWire.body(parent)),PROMPTER_SPEED,until-startedAt,()->openPrompterVoice(display[0]))){message="提词器暂不可用："+NewsTele.status()+"；稍后自动重试，长问题保留在手机";nextAuto=now()+10000;refresh();return false;}
-  display[0]=NewsTele.did();TaskPrompterOwner owner=TaskPrompterOwner.create(display[0],NativeTransfer.connected(),source.profile.connection,request,startedAt);
+  display[0]=NewsTele.did();
+  TaskPrompterOwner owner=TaskPrompterOwner.create(display[0],NativeTransfer.connected(),source.profile.connection,request,startedAt);
   Set<String> next=new HashSet<>(offered);next.add(key);
   if(!prefs.edit().putStringSet("offered",next).putString("prompter_owner",owner.encode()).commit()){NewsTele.cancelTask(display[0]);message="显示记录未保存，已请求退出；问题保留在手机";return false;}
   offered.clear();offered.addAll(next);
+  // The manuscript was accepted by the glasses link: that is what 「眼镜显示」 records (user's call, 2026-10-27).
+  tasks.receipt(source.binding,request,"glasses_displayed");
   message="长问题已发到眼镜提词器；看完长按退出后口述";refresh();return true;
  }
  private void forget(String key){if(!offered.contains(key))return;Set<String> next=new HashSet<>(offered);next.remove(key);if(prefs.edit().putStringSet("offered",next).commit()){offered.clear();offered.addAll(next);}}

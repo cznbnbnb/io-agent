@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "09dc2fd101e93b87ee7451b30a581837687a2dd8067b0b8a083f9e1aff4e4ac3"
+      "sha256": "1e26091a20b82555691d4e6e5e658ce7ab1c389e96dfc6e38551fd8649f3ff28"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -874,7 +874,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a675adfc53a8a5d0297a9908ffe8ecaf60dde3e2e28090b9306a4c944687dfa2"
+      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
     },
     {
       "path": "src/com/turboio/addon/TaskAttention.java",
@@ -906,7 +906,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "cb4f0b521e3a43ff874074426a23bf8d5cb669972c36b9afd114a200094e626e"
+      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
@@ -942,7 +942,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "432fbfc09155c8e4b679a5d3da9c6b73984bd444e70ca854f5d888a04f5340bc"
+      "sha256": "6be9f469c3a74fe9d10a5830f3954a829a86e8e381442cc2d2b0f7405d116bff"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -986,7 +986,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerWorkspace.java",
-      "sha256": "197faf326ce8155a25291f40c547f13b7289edd2c56df8b9fae1a1f0a6f98504"
+      "sha256": "4330883085880309c6e2b90f25dc0985e499ebed26dc2b41f5f0c234b46905b6"
     },
     {
       "path": "src/com/turboio/addon/VoiceAudioArchive.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "7b44d500c1e3620b71799ba3064d7a30c53dc3d4292126ca14e0676df03bb2f3"
+      "sha256": "6ddfd610faa63bf805d715da368f8739d6bb94d5e1a5cf047aa8b4c6307d48ad"
     }
   ],
-  "product_sha256": "9b1f6fdbe5197d65834a9a1a2c127c8739e8a54daebd1e1c9a642a48b1940440",
-  "addon_sha256": "de3c5c55696482b67003489f7804e74ef8d874949ffffd403207b96bb88c5987",
+  "product_sha256": "e4f5c3b1781748a30d0e7f4bcde6e441e44b081b998f7ffba47dcfc271060752",
+  "addon_sha256": "c44cef16f07c98e87c3470358a99a078341124eb6c1065795f999e31037e099c",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
