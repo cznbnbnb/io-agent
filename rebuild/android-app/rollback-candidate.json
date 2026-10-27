@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev117",
-  "version_code": 10539,
-  "revision": "io-agent-android-107-explicit-session-continue",
+  "version": "0.5.3-dev118",
+  "version_code": 10540,
+  "revision": "io-agent-android-107-session-queue-copy",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-26T18:42:26.314Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev117.apk",
+  "signed": "2026-10-26T19:01:00.365Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev118.apk",
   "bytes": 430199144,
-  "sha256": "11ae2b26e23d1e7e856de4b0bfd882b10df36e67c67869070cf0c786999e75d8",
+  "sha256": "b2e16c4549c5f77b5776b65f2eac3b799492ef6d2bb7305d7e11bbfa34476720",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -51,6 +51,8 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
+  "phone_session_control_complete": true,
   "phone_office_exact_stop_and_continue_verified": true,
-  "phone_session_control_complete": true
+  "full_phone_e2e_version": "0.5.3-dev117",
+  "dev118_change_scope": "Continuation scheduling explanation only; phone/backend behavior unchanged"
 }

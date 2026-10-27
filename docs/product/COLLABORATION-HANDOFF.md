@@ -1,3 +1,13 @@
+## [claude] 2026-10-27 dev120：任务分配、打断、眼镜回复三处 UI 改版（已装机，回退 dev118）
+
+按用户眼镜回答「三个流程一起改」，对照设计稿 https://claude.ai/artifact/PTEn7dwytAxRcYeZ4uFSWS 改手机端，沿用 AgentUI / MaterialReadingUI 现有配色与组件：
+
+- 任务分配（`TaskTargetUI`）：目标卡改为三行——Agent 名（Claude Code / Codex）+ 状态、「电脑 · Mac · 用户名」（目录没有机器名，从工作区家目录推断，推不出时用短 id）、「会话 · 标签 · 短 id」；选择面板标题「交给谁」，按电脑分组（按显示名合并同一台机器的多个 computer id）。任务列表/详情的来源行也改成「Claude Code · 电脑 1fafa8」这类可读名（`TaskPresentation.agentName/computerName`）。
+- 打断（`AgentTaskPage.controls`）：打断按钮用 CORAL 红色描边，需 3 秒内连点两下：第一下变实心红「再点一次，确认打断」，超时自动复原；停止相关状态在状态卡里显示四段步骤条（已打断 › 电脑确认停止 › 追加指示 › 继续执行），「追加指示并继续」改为主按钮。
+- 眼镜回复（`AgentTaskPage.questionCard`）：选择题在卡片里列出与眼镜一致的编号选项，提示「口述时说『选二』」；加四段回复进度（眼镜显示 › 你回答 › 电脑收到 › 任务继续，取自问题与答案回执）。
+
+测试：task-presentation 37、task-control 88、task-directory 35、task-device、agent-card 通过。真机 dev120/10542：分组面板、已停止任务步骤条、红色打断按钮截图核对。未验证：双击打断的实际提交（现有可打断任务都没有执行信息，按钮禁用）；口述核对页的否定词高亮未做。
+
 ## [claude] 2026-10-27 过期连接自动释放：旧问题不再永久挡住 join
 
 现象：Claude 会话 join 一直报 `CALLER_PENDING_REBIND_DENIED`。原因是旧绑定里有 3 道 10-24 的过期问题仍是本地 pending；服务器历史重置后，旧任务和这些问题都已 404（旧绑定还报 `CURSOR_RESET_REQUIRED`），永远对不上账，于是换绑被永久拒绝。

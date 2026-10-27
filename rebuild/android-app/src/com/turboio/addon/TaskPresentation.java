@@ -60,7 +60,11 @@ final class TaskPresentation {
  List<Row> filter(String filter){List<Row> out=new ArrayList<>();for(Row row:rows)if("all".equals(filter)||("completed".equals(filter)?row.completed():row.active()))out.add(row);return out;}
  Row find(String key){for(Row row:rows)if(row.key.equals(key))return row;return null;}
  static String firstLine(String text){String trimmed=text==null?"":text.trim();if(trimmed.isEmpty())return "未命名任务";return trimmed.split("\\R",2)[0];}
- static String source(TaskProfiles.Profile p){return p.connection.agent+" · "+p.connection.computer;}
+ static String source(TaskProfiles.Profile p){return agentName(p.connection.agent)+" · "+computerName(p.connection.computer);}
+ /** Wire ids read as product names: io-claude-code → Claude Code, generated computer ids shortened. */
+ static String agentName(String id){String s=id.toLowerCase(Locale.ROOT);return s.contains("codex")?"Codex":s.contains("claude")?"Claude Code":id;}
+ static String computerName(String id){return id.startsWith("computer-")?"电脑 "+shortComputer(id):id;}
+ static String shortComputer(String id){String s=id.replaceFirst("^computer-","");return s.length()>6?s.substring(0,6):s;}
  private static Map<String,Object> latestControl(List<Object> pending,Map<String,Object> task){
   for(int i=pending.size()-1;i>=0;i--){Map<String,Object> local=WireJson.map(pending.get(i)),event=event(local),body=TaskWire.body(event);
    if(!"task".equals(event.get("kind"))||!body.containsKey("control")||!task.get("object_id").equals(body.get("task_id")))continue;

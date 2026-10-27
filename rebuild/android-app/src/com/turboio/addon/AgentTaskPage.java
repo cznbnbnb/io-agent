@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.SystemClock;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
@@ -92,10 +93,35 @@ final class AgentTaskPage {
   LinearLayout meta=new LinearLayout(a);meta.setGravity(Gravity.CENTER_VERTICAL);MaterialReadingUI.chip(a,meta,question.queuedAnswer()?"已回复":open?"需要决定":"暂不可回复",open?MaterialReadingUI.AMBER:MaterialReadingUI.SOFT,open?0xff2e2614:MaterialReadingUI.RAISED);meta.addView(MaterialReadingUI.line(a,TaskPresentation.source(question.profile),12,AgentUI.MUTED,1),new LinearLayout.LayoutParams(0,-2,1));meta.addView(AgentUI.text(a,ago(stamp(question.item.get("stored_at"))),12,AgentUI.MUTED));card.addView(meta);
   TextView text=AgentUI.text(a,(String)TaskWire.body(question.item).get("question"),16,AgentUI.INK);text.setLineSpacing(AgentUI.dp(a,4),1);text.setMaxLines(4);text.setEllipsize(android.text.TextUtils.TruncateAt.END);LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=AgentUI.dp(a,12);card.addView(text,tp);
   TextView task=MaterialReadingUI.line(a,"来自任务："+TaskPresentation.firstLine((String)TaskWire.body(question.parent).get("command")),12,AgentUI.MUTED,1);LinearLayout.LayoutParams kp=new LinearLayout.LayoutParams(-1,-2);kp.topMargin=AgentUI.dp(a,8);card.addView(task,kp);
+  Object choices=TaskWire.body(question.item).get("options");
+  if(open&&choices instanceof List&&!((List<?>)choices).isEmpty()){
+   // Same numbering as the glasses prompter, so "选二" there means the second line here.
+   List<?> options=(List<?>)choices;for(int i=0;i<options.size();i++){Map<String,Object> option=WireJson.map(options.get(i));LinearLayout line=new LinearLayout(a);line.setGravity(Gravity.CENTER_VERTICAL);
+    TextView number=MaterialReadingUI.bold(AgentUI.text(a,String.valueOf(i+1),13,AgentUI.INK));number.setGravity(Gravity.CENTER);number.setBackground(MaterialReadingUI.fill(a,MaterialReadingUI.RAISED,6));line.addView(number,new LinearLayout.LayoutParams(AgentUI.dp(a,22),AgentUI.dp(a,22)));
+    TextView label=MaterialReadingUI.line(a,String.valueOf(option.get("label")),14,MaterialReadingUI.SOFT,2);label.setPadding(AgentUI.dp(a,10),0,0,0);line.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+    LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.topMargin=AgentUI.dp(a,i==0?12:8);card.addView(line,lp);}
+   TextView hint=AgentUI.text(a,"编号与眼镜一致，口述时说「选二」，可以补充条件",11,AgentUI.MUTED);hint.setPadding(0,AgentUI.dp(a,8),0,0);card.addView(hint);
+  }
+  steps(card,new String[]{"眼镜显示","你回答","电脑收到","任务继续"},replyStage(question),MaterialReadingUI.ACCENT_SOFT);
   if(question.queuedAnswer())card.addView(AgentUI.text(a,TaskPresentation.queueStatus(question.localAnswer),12,AgentUI.MUTED));
   else if(!question.available(now))card.addView(AgentUI.text(a,question.profile.enabled?"连接已到期，请更新连接后回复":"连接已暂停，恢复后可回复",12,AgentUI.MUTED));
   AgentUI.button(a,card,question.queuedAnswer()?"查看提交状态":open?"查看并回复":"查看问题",open,()->openQuestion(question));
   if(open)card.addView(link("在眼镜上显示这个问题",()->AgentCardRuntime.offer(a,question.binding,question.id,TaskWire.positive(question.item.get("revision")))));
+ }
+ /** How far a reply has travelled, from the receipts on the question and its answer. */
+ private static int replyStage(TaskPresentation.Question question){
+  Set<String> seen=new HashSet<>();receipts(seen,question.item);Object answer=question.item.get("answer");if(answer!=null)receipts(seen,WireJson.map(answer));
+  if(answer!=null&&seen.contains("task_resumed"))return 4;if(answer!=null&&seen.contains("agent_received"))return 3;
+  if(answer!=null||question.queuedAnswer()||seen.contains("user_answered"))return 2;return seen.contains("glasses_displayed")?1:0;
+ }
+ private static void receipts(Set<String> seen,Map<String,Object> item){if(item.get("receipts")==null)return;for(Object raw:WireJson.list(item.get("receipts")))seen.add(String.valueOf(WireJson.map(raw).get("stage")));}
+ /** A short progress strip: one bar and label per step, the first `done` lit. */
+ private void steps(LinearLayout parent,String[] labels,int done,int tone){Activity a=activity;LinearLayout strip=new LinearLayout(a);
+  for(int i=0;i<labels.length;i++){LinearLayout cell=AgentUI.column(a);View bar=new View(a);bar.setBackground(MaterialReadingUI.fill(a,i<done?tone:0xff3a423f,2));cell.addView(bar,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,4)));
+   TextView label=MaterialReadingUI.line(a,labels[i],11,i<done?MaterialReadingUI.SOFT:AgentUI.MUTED,1);label.setPadding(0,AgentUI.dp(a,6),0,0);cell.addView(label);
+   LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,-2,1);if(i>0)p.leftMargin=AgentUI.dp(a,6);strip.addView(cell,p);}
+  StringBuilder said=new StringBuilder();for(int i=0;i<labels.length;i++)said.append(labels[i]).append(i<done?"，已完成；":"，未完成；");strip.setContentDescription(said);
+  LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,-2);sp.topMargin=AgentUI.dp(a,14);parent.addView(strip,sp);
  }
  private void questionLine(LinearLayout parent,TaskPresentation.Question question){Activity a=activity;LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,12),AgentUI.dp(a,10),AgentUI.dp(a,12));row.setBackground(MaterialReadingUI.pressable(a,MaterialReadingUI.fill(a,MaterialReadingUI.CARD,14)));
   View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,question.queuedAnswer()?MaterialReadingUI.DIM:MaterialReadingUI.AMBER,4));LinearLayout.LayoutParams dp=new LinearLayout.LayoutParams(AgentUI.dp(a,8),AgentUI.dp(a,8));dp.rightMargin=AgentUI.dp(a,12);row.addView(dot,dp);
@@ -139,7 +165,9 @@ final class AgentTaskPage {
  private void renderDetails(TaskPresentation.Row row){
   if(detail==null)return;int position=detail.scroll.getScrollY();LinearLayout content=detail.body;content.removeAllViews();
   content.addView(AgentUI.text(activity,TaskPresentation.source(row.profile),13,AgentUI.MUTED));content.addView(AgentUI.text(activity,"工作区 · "+row.profile.connection.project,13,AgentUI.MUTED));AgentUI.gap(activity,content,14);full(content,row.command(),20);
-  LinearLayout status=AgentUI.card(activity,content);status.addView(AgentUI.text(activity,TaskPresentation.status(row),16,AgentUI.ACCENT));
+  int stopStep=TaskWire.set("stop_requested","stop_unconfirmed").contains(row.state)?1:"stopped".equals(row.state)?2:"resume_requested".equals(row.state)?3:0;
+  LinearLayout status=AgentUI.card(activity,content);status.addView(AgentUI.text(activity,TaskPresentation.status(row),16,stopStep>0?MaterialReadingUI.CORAL_TEXT:AgentUI.ACCENT));
+  if(stopStep>0)steps(status,new String[]{"已打断","电脑确认停止","追加指示","继续执行"},stopStep,MaterialReadingUI.ACCENT_SOFT);
   if(!row.profile.enabled||row.profile.connection.expiresAt<=System.currentTimeMillis())status.addView(AgentUI.text(activity,row.profile.enabled?"连接已到期，以上为最近收到的任务状态。":"连接已暂停，以上为最近收到的任务状态。暂停连接不会停止电脑任务。",13,AgentUI.MUTED));
   if(row.local!=null){status.addView(AgentUI.text(activity,TaskPresentation.queueStatus(row.local),13,AgentUI.MUTED));if(!"".equals(row.local.get("error")))status.addView(AgentUI.text(activity,TaskWorkspace.label((String)row.local.get("error")),13,AgentUI.MUTED));}
   for(TaskPresentation.Question question:presentation.questions)if(question.binding.equals(row.binding)&&question.taskId.equals(row.id))questionCard(content,question);
@@ -163,17 +191,31 @@ final class AgentTaskPage {
   String kind=TaskControl.eligible(row.item,"stop")?"stop":TaskControl.eligible(row.item,"resume")?"resume":"";
   if(kind.isEmpty()){
    if(TaskWire.set("stop_requested","stop_unconfirmed","resume_requested").contains(row.state))parent.addView(AgentUI.text(activity,row.state.equals("resume_requested")?"已保存继续指示，等待原电脑开始下一轮。":"等待原电脑确认，确认停止后才可追加指示继续。",12,AgentUI.MUTED));
-   else if(TaskWire.set("running","waiting_answer").contains(row.state)&&!row.body.containsKey("execution")){TextView unavailable=AgentUI.button(activity,parent,"打断任务",false,()->{});unavailable.setEnabled(false);unavailable.setAlpha(.45f);parent.addView(AgentUI.text(activity,"此任务尚未提供原会话执行信息，暂不能在手机打断。",12,AgentUI.MUTED));}
+   else if(TaskWire.set("running","waiting_answer").contains(row.state)&&!row.body.containsKey("execution")){TextView unavailable=AgentUI.button(activity,parent,"打断任务",false,()->{});stopStyle(unavailable,row);unavailable.setEnabled(false);unavailable.setAlpha(.45f);parent.addView(AgentUI.text(activity,"此任务尚未提供原会话执行信息，暂不能在手机打断。",12,AgentUI.MUTED));}
    return;
   }
   TaskHub.View source=snapshot==null?null:snapshot.context(row.binding);
   if(source!=null&&TaskControl.pending(source.pending,row.item,kind)!=null)return;
-  TextView button=AgentUI.button(activity,parent,kind.equals("stop")?"打断任务":"追加指示并继续",false,()->{
-   if(kind.equals("stop"))submitControl(row,"stop","",null,null);else instruction(row);
+  boolean stop=kind.equals("stop");TextView[] ref={null};
+  // Stopping needs two taps within STOP_CONFIRM_MS: the first only arms the red button.
+  TextView button=ref[0]=AgentUI.button(activity,parent,stop?"打断任务":"追加指示并继续",!stop,()->{
+   if(!stop){instruction(row);return;}
+   if(armed(row)){armedStop="";stopStyle(ref[0],row);submitControl(row,"stop","",null,null);return;}
+   armedStop=row.key;armedAt=SystemClock.uptimeMillis();stopStyle(ref[0],row);
   });
+  if(stop){stopStyle(button,row);TextView hint=AgentUI.text(activity,"连点两下打断 · 电脑停在当前一步，之后可追加指示再继续",12,AgentUI.MUTED);hint.setGravity(Gravity.CENTER);hint.setPadding(0,AgentUI.dp(activity,8),0,0);parent.addView(hint);}
   boolean available=source!=null&&source.sessionControl&&row.profile.enabled&&row.profile.connection.expiresAt>System.currentTimeMillis()&&!submittingControls.contains(row.key+"/"+kind);
   button.setEnabled(available);button.setAlpha(available?1f:.45f);
   if(!available)parent.addView(AgentUI.text(activity,source!=null&&!source.sessionControl?"当前连接尚未确认支持此功能，刷新后再试。":!row.profile.enabled?"恢复原连接后可操作。":"原连接暂不可用，请查看连接。",12,AgentUI.MUTED));
+ }
+ private static final long STOP_CONFIRM_MS=3000;private String armedStop="";private long armedAt;
+ private boolean armed(TaskPresentation.Row row){return armedStop.equals(row.key)&&SystemClock.uptimeMillis()-armedAt<STOP_CONFIRM_MS;}
+ /** Red outline at rest; once armed, solid red asking for the second tap, falling back after STOP_CONFIRM_MS. */
+ private void stopStyle(TextView button,TaskPresentation.Row row){Activity a=activity;boolean on=armed(row);
+  GradientDrawable shape=MaterialReadingUI.fill(a,on?MaterialReadingUI.CORAL:0,13);if(!on)shape.setStroke(Math.round(a.getResources().getDisplayMetrics().density*1.5f),MaterialReadingUI.CORAL);
+  button.setBackground(shape);button.setTextColor(on?MaterialReadingUI.ON_CORAL:MaterialReadingUI.CORAL_TEXT);button.setText(on?"再点一次，确认打断":"打断任务");
+  button.setContentDescription(on?"再点一次，确认打断任务":"打断任务，需要连点两下");
+  if(on)button.postDelayed(()->{if(!armed(row))stopStyle(button,row);},STOP_CONFIRM_MS-(SystemClock.uptimeMillis()-armedAt)+20);
  }
  private void instruction(TaskPresentation.Row row){
   if(!TaskControl.eligible(row.item,"resume"))return;
