@@ -92,13 +92,19 @@ export class AgentSessionDirectory {
   }
   list(token){
     const p=this.store.auth(token,'tasks:read'),now=this.store.clock();
-    return {...this.envelope(p.owner,now),sessions:this.db.prepare('SELECT * FROM agent_sessions WHERE owner=? ORDER BY route_key').all(p.owner).map(r=>this.view(r,now)),
-      default:this.defaultView(p.owner)};
+    const rows=p.sessionRoute?this.db.prepare('SELECT * FROM agent_sessions WHERE owner=? AND route_key=?').all(p.owner,p.sessionRoute):
+      this.db.prepare('SELECT * FROM agent_sessions WHERE owner=? ORDER BY route_key').all(p.owner);
+    const selected=this.defaultView(p.owner);
+    // Preserve the owner-wide CAS revision without disclosing another
+    // session's route to a credential approved for this one session only.
+    if(p.sessionRoute&&selected.route!==null&&canonical(selected.route)!==p.sessionRoute)selected.route=null;
+    return {...this.envelope(p.owner,now),sessions:rows.map(r=>this.view(r,now)),default:selected};
   }
   publish(token,input){
     return this.store.tx(()=>{
       const {p,d}=this.principal(token,true),now=this.store.clock(),keys=Object.hasOwn(actionFields,input?.action)?actionFields[input.action]:null;
       if(!keys||!fields(input,keys)||!uuid(input.request_id)||!uuid(input.instance_id)||!routeValid(input.route))reject(400,'INVALID_AGENT_SESSION');
+      if(p.sessionRoute&&canonical(input.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
       if(input.action==='acquire'){
         if(!integer(input.expected_generation)||!['claude','codex'].includes(input.host_kind)||!workspaceValid(input.workspace)||!labelValid(input.label)||
           !observationValid(input.observation)||!input.observation.ready)reject(400,'INVALID_AGENT_SESSION');
@@ -108,13 +114,16 @@ export class AgentSessionDirectory {
       const current=this.row(p.owner,input.route);
       if(input.action==='acquire'){
         const computer=this.db.prepare('SELECT * FROM agent_computer_bindings WHERE owner=? AND computer_id=?').get(p.owner,input.route.computer_id);
-        if(computer&&(computer.device_id!==d.device_id||computer.producer!==p.producer))reject(409,'COMPUTER_BINDING_CONFLICT');
+        // A phone-approved session pairing owns exactly one route, not a whole
+        // computer. Distinct pairings from the same computer use distinct
+        // devices; they may coexist but cannot acquire each other's routes.
+        if(!p.sessionRoute&&computer&&(computer.device_id!==d.device_id||computer.producer!==p.producer))reject(409,'COMPUTER_BINDING_CONFLICT');
         if(current&&(current.device_id!==d.device_id||current.producer!==p.producer||current.host_kind!==input.host_kind||current.workspace!==input.workspace))reject(409,'SESSION_BINDING_CONFLICT');
         if(input.expected_generation!==(current?.generation??0))reject(409,'SESSION_GENERATION_CONFLICT',{current_generation:current?.generation??0});
         if(current&&!current.released&&current.expires>now)reject(409,'SESSION_LEASE_ACTIVE');
         if(!current&&this.db.prepare('SELECT COUNT(*) AS count FROM agent_sessions WHERE owner=?').get(p.owner).count>=MAX_AGENT_SESSIONS)reject(409,'AGENT_SESSION_LIMIT');
         if(current?.generation===Number.MAX_SAFE_INTEGER)reject(409,'SESSION_GENERATION_CONFLICT');
-        if(!computer)this.db.prepare('INSERT INTO agent_computer_bindings VALUES (?,?,?,?)').run(p.owner,input.route.computer_id,d.device_id,p.producer);
+        if(!p.sessionRoute&&!computer)this.db.prepare('INSERT INTO agent_computer_bindings VALUES (?,?,?,?)').run(p.owner,input.route.computer_id,d.device_id,p.producer);
         const route=canonical(input.route),generation=(current?.generation??0)+1;
         this.db.prepare(`INSERT INTO agent_sessions VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
           ON CONFLICT(owner,route_key) DO UPDATE SET label=excluded.label,generation=excluded.generation,
@@ -138,8 +147,10 @@ export class AgentSessionDirectory {
     return this.store.tx(()=>{
       const {p,d}=this.principal(token),now=this.store.clock();
       if(!fields(input,['request_id','expected_revision','route'])||!uuid(input.request_id)||!integer(input.expected_revision)||input.route!==null&&!routeValid(input.route))reject(400,'INVALID_AGENT_DEFAULT');
+      if(p.sessionRoute&&input.route!==null&&canonical(input.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
       const replay=this.replay(p,d,'default',input);if(replay.response)return replay.response;
       const current=this.defaultView(p.owner);
+      if(p.sessionRoute&&input.route===null&&current.route!==null&&canonical(current.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
       if(current.revision!==input.expected_revision||current.revision===Number.MAX_SAFE_INTEGER)reject(409,'DEFAULT_REVISION_CONFLICT',{current_revision:current.revision});
       if(input.route!==null){
         const target=this.row(p.owner,input.route);if(!target)reject(404,'AGENT_SESSION_NOT_FOUND');

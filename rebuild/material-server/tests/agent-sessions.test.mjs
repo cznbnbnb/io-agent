@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,randomBytes} from 'node:crypto';
 import {MaterialStore} from '../store.mjs';
 import {listen} from '../http.mjs';
 import {SESSION_LEASE_MS,MAX_AGENT_SESSIONS,SESSION_ACK_RETENTION_MS} from '../agent-sessions.mjs';
@@ -248,4 +248,86 @@ test('concurrent acquire and default CAS have exactly one winner through real HT
   const selected=await Promise.all([f.set(defaults(winner.route)),f.set(defaults(null),f.agent)]);
   assert.equal(selected.filter(x=>x.status===200).length,1);error(selected.find(x=>x.status!==200),409,'DEFAULT_REVISION_CONFLICT');
   assert.equal((await f.get()).value.default.revision,1);
+});
+
+
+function pairedSession(f,approvedRoute={...route(),agent_id:'io-current-codex'}){
+  const input={id:randomUUID(),claim_secret:randomBytes(32).toString('base64url'),
+    metadata:{runtime:'codex',route:approvedRoute,topic:'Scoped native session',workspace:'/work/glasses'}};
+  const pending=f.store.sessionPairings.start(input),query=new URLSearchParams(new URL(pending.qr_url).hash.slice(1));
+  f.store.sessionPairings.approve(f.phone.token,{id:query.get('id'),code:query.get('code')});
+  return{...f.store.sessionPairings.claim({id:input.id,claim_secret:input.claim_secret}),route:approvedRoute,
+    renew:()=>f.store.sessionPairings.claim({id:input.id,claim_secret:input.claim_secret})};
+}
+
+test('phone-approved session pairing publishes and renews only its own entry beside other devices on the same computer',async t=>{
+  const f=await setup(t),computerSession=await f.start();await f.set(defaults(computerSession.route));
+  const scoped=pairedSession(f),input=acquire({route:scoped.route});
+  const before=(await f.get(scoped)).value;assert.deepEqual(before.sessions,[]);
+  assert.equal(before.default.revision,1);assert.equal(before.default.route,null);
+  const bound=f.store.db.prepare('SELECT * FROM agent_computer_bindings WHERE computer_id=?').get(scoped.route.computer_id);
+  assert.equal(bound.device_id,f.agent.device_id);
+  const own=await f.start(input,scoped);assert.equal(own.online,true);assert.equal(own.device_id,scoped.device_id);
+  assert.equal((await f.get()).value.sessions.length,2);
+  assert.deepEqual((await f.get(scoped)).value.sessions.map(s=>s.route),[scoped.route]);
+  assert.equal(f.store.db.prepare('SELECT device_id FROM agent_computer_bindings WHERE computer_id=?').get(scoped.route.computer_id).device_id,bound.device_id);
+  f.setTime(epoch+15000);const pulse=heartbeat(own,1),ack=await f.post(pulse,scoped);assert.equal(ack.status,200);
+  assert.deepEqual(await f.post(pulse,scoped),ack);
+  const released=await f.post(release(own,2),scoped);assert.equal(released.status,200);assert.equal(released.value.session.online,false);
+  const next=await f.start(acquire({route:scoped.route,expected_generation:1}),scoped);assert.equal(next.generation,2);
+  assert.equal((await f.get(scoped)).value.default.route,null);
+});
+
+test('distinct approved sessions on one computer coexist without claiming the computer or disclosing peer routes',async t=>{
+  const f=await setup(t),first=pairedSession(f),second=pairedSession(f),a=await f.start(acquire({route:first.route}),first),b=await f.start(acquire({route:second.route}),second);
+  assert.notEqual(first.device_id,second.device_id);assert.notEqual(first.producer_id,second.producer_id);
+  assert.equal(f.store.db.prepare('SELECT count(*) n FROM agent_computer_bindings').get().n,0);
+  assert.deepEqual((await f.get(first)).value.sessions.map(s=>s.route),[a.route]);
+  assert.deepEqual((await f.get(second)).value.sessions.map(s=>s.route),[b.route]);assert.equal((await f.get()).value.sessions.length,2);
+  for(const identity of [first,second]){
+    const foreign=identity===first?b:a;
+    error(await f.post(acquire({route:foreign.route,expected_generation:1}),identity),403,'FORBIDDEN');
+    error(await f.post(heartbeat(foreign),identity),403,'FORBIDDEN');
+    error(await f.post(release(foreign),identity),403,'FORBIDDEN');
+  }
+  const native=await f.start(acquire());assert.equal(native.online,true);
+  // A broad computer registration still cannot replace a route already owned
+  // by a distinct, phone-approved session credential.
+  error(await f.post(acquire({route:a.route,expected_generation:1})),409,'SESSION_BINDING_CONFLICT');
+});
+
+test('session directory and explicit default rights cannot escape the exact phone-approved route',async t=>{
+  const f=await setup(t),scoped=pairedSession(f),input=acquire({route:scoped.route}),own=await f.start(input,scoped);
+  const foreign=await f.start();await f.set(defaults(foreign.route));
+  for(const patch of [{computer_id:'forged-computer'},{agent_id:'other-agent'},{project_id:'other-project'},{session_id:randomUUID()}]){
+    const altered={...own.route,...patch};
+    error(await f.post(acquire({route:altered}),scoped),403,'FORBIDDEN');
+    error(await f.post(heartbeat(own,1,{route:altered}),scoped),403,'FORBIDDEN');
+    error(await f.post(release(own,1,{route:altered}),scoped),403,'FORBIDDEN');
+    error(await f.set(defaults(altered,1),scoped),403,'FORBIDDEN');
+  }
+  // A scoped caller may select itself; it cannot clear another caller's
+  // current selection or learn that selected route from the directory.
+  error(await f.set(defaults(null,1),scoped),403,'FORBIDDEN');
+  const hidden=(await f.get(scoped)).value;assert.equal(hidden.default.revision,1);assert.equal(hidden.default.route,null);
+  assert.equal(JSON.stringify(hidden).includes(foreign.route.session_id),false);
+  const chosen=defaults(own.route,1),selected=await f.set(chosen,scoped);assert.equal(selected.status,200);assert.equal(selected.value.default.revision,2);
+  assert.deepEqual(selected.value.default.route,own.route);assert.deepEqual(await f.set(chosen,scoped),selected);
+  const clear=await f.set(defaults(null,2),scoped);assert.equal(clear.status,200);assert.equal(clear.value.default.route,null);
+  // The new HTTP exceptions are exact endpoints/methods; they do not grant
+  // device administration, generic refresh, materials, or unrelated readers.
+  for(const [method,endpoint,body] of [['GET','/v1/materials',undefined],['GET','/v1/devices',undefined],
+    ['POST','/v1/credentials/refresh',{}],['POST','/v1/pairings',{role:'phone',label:'forbidden'}],
+    ['GET','/v1/agent-default',undefined],['DELETE','/v1/agent-sessions',undefined],['GET','/v1/agent-sessions/foreign',undefined]])
+    error(await f.http(method,endpoint,body,scoped),403,'SESSION_SCOPE_REQUIRED');
+});
+
+test('scoped directory binding survives renewal and restart; revocation immediately removes online state',async t=>{
+  const f=await setup(t),scoped=pairedSession(f),first=await f.start(acquire({route:scoped.route}),scoped);
+  let phone=f.phone;for(let i=1;i<=4;i++){f.setTime(epoch+i*12*3600000);phone=f.store.devices.refresh(phone.token);}
+  const renewed=scoped.renew();assert.equal(renewed.device_id,scoped.device_id);await f.restart();
+  const next=await f.start(acquire({route:scoped.route,expected_generation:first.generation}),renewed);assert.equal(next.generation,2);
+  assert.deepEqual((await f.get(renewed)).value.sessions.map(s=>s.route),[scoped.route]);
+  f.store.devices.revoke(renewed.device_id);error(await f.get(renewed),401,'UNAUTHENTICATED');
+  const record=(await f.get(phone)).value.sessions.find(s=>s.route.session_id===scoped.route.session_id);assert.equal(record.online,false);assert.equal(record.reason,'device_revoked');
 });

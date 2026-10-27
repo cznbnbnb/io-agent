@@ -67,7 +67,12 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         send(200,url.pathname.endsWith('/refresh')?store.materialPairings.refresh(token,input):store.materialPairings.revokeBy(token,input));return;
       }
       observation.principal=store.auth(token);
-      if(observation.principal.sessionRoute&&!/^\/v1\/(?:identity|inbox|tasks|requests|messages|receipts|events|watches)(?:\/|$)/.test(url.pathname))reject(403,'SESSION_SCOPE_REQUIRED');
+      // Session-paired callers may maintain only their own native directory
+      // entry/default. The directory enforces the exact approved route; these
+      // exceptions do not open unrelated device, material or pairing APIs.
+      const ownDirectory=url.pathname==='/v1/agent-sessions'&&['GET','POST'].includes(req.method)||
+        url.pathname==='/v1/agent-default'&&req.method==='PUT';
+      if(observation.principal.sessionRoute&&!ownDirectory&&!/^\/v1\/(?:identity|inbox|tasks|requests|messages|receipts|events|watches)(?:\/|$)/.test(url.pathname))reject(403,'SESSION_SCOPE_REQUIRED');
       if(req.method==='POST'&&['/v1/session-pairings/preview','/v1/session-pairings/approve'].includes(url.pathname)){
         if(url.search)reject(400,'INVALID_QUERY');const input=await smallJson(req,observation,1024);
         send(200,url.pathname.endsWith('/preview')?store.sessionPairings.preview(token,input):store.sessionPairings.approve(token,input));return;
