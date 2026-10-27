@@ -13,7 +13,7 @@ async function fixture(t){
  t.after(async()=>{abort.abort();const stopped=await running;assert.equal(stopped.status.started,false);assert.equal(stopped.status.owns_run,false);await new Promise(r=>server.close(r));store.close();fs.rmSync(directory,{recursive:true,force:true});});
  const submit=(body)=>store.queueSubmit(phone.token,{schema_version:'1.0',kind:'task',event_id:randomUUID(),idempotency_key:randomUUID(),producer_id:phone.producer_id,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+600000).toISOString(),body},'task');
  const task=id=>store.queueGet(phone.token,'task',id);
- return{store,phone,route,task,submit,start:()=>{running=runConnector(directory,{deviceFile,signal:abort.signal,maximumMs:15000});return running;},
+ return{directory,store,phone,route,task,submit,start:()=>{running=runConnector(directory,{deviceFile,signal:abort.signal,maximumMs:15000});return running;},
   request:(id,text)=>submit({task_id:id,revision:1,route,state:'queued',command:text,allow_create_session:false})};
 }
 test('phone HTTP task reaches managed ACP, result returns, exact stop remains unconfirmed without child proof',async t=>{
@@ -33,4 +33,23 @@ test('phone HTTP task reaches managed ACP, result returns, exact stop remains un
  f.request('waiting','wait');await wait(()=>f.task('waiting').state==='running');const current=f.task('waiting').body;
  f.submit({...current,revision:current.revision+1,state:'stop_requested',control:{control_id:randomUUID(),kind:'stop',expected_command_id:current.execution.command_id,expected_turn_id:current.execution.turn_id,expires_at:new Date(Date.now()+60000).toISOString()}});
  await wait(()=>f.task('waiting').state==='stop_unconfirmed');assert.equal(f.task('waiting').body.execution.phase,'stop_unconfirmed');
+});
+
+test('new paired-computer session automatically gets a real CLI bound to the original phone task',async t=>{
+ const f=await fixture(t);f.start();await wait(()=>f.store.agentSessions.list(f.phone.token).sessions.find(s=>s.online));
+ f.request('glasses-task','glasses-roundtrip');
+ const q=await wait(()=>{const row=f.store.db.prepare("SELECT body FROM queue_revisions WHERE kind='request' ORDER BY seq DESC LIMIT 1").get();return row&&JSON.parse(row.body);});
+ assert.equal(q.task_id,'glasses-task');assert.deepEqual(q.route,f.route);
+ f.store.queueSubmit(f.phone.token,{schema_version:'1.0',kind:'answer',event_id:randomUUID(),idempotency_key:randomUUID(),producer_id:f.phone.producer_id,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+60000).toISOString(),
+  body:{answer_id:'fixture-glasses-answer',task_id:'glasses-task',request_id:q.request_id,request_revision:1,route:f.route,option_id:'two',text:'The second choice',input_source:'glasses_semantic',raw_action:null}},'answer');
+ await wait(()=>f.task('glasses-task').state==='completed');
+ const requests=f.store.db.prepare("SELECT count(*) n FROM queue_revisions WHERE kind='request'").get();assert.equal(requests.n,1);
+ const messages=f.store.db.prepare("SELECT body FROM queue_revisions WHERE kind='message' ORDER BY seq").all().map(r=>JSON.parse(r.body));
+ assert(messages.some(m=>m.channel==='progress'&&m.text==='Synthetic Agent notice'&&m.task_id==='glasses-task'));
+ assert(messages.some(m=>m.channel==='result'&&m.text==='received:The second choice'));
+ assert(f.store.db.prepare("SELECT body FROM queue_revisions WHERE kind='receipt'").all().map(r=>JSON.parse(r.body)).some(r=>r.subject_id==='fixture-glasses-answer'&&r.stage==='agent_received'));
+ const journal=JSON.parse(fs.readFileSync(path.join(f.directory,'acp.json'))),op=Object.values(journal.operations)[0];
+ const {managedCli}=await import('../questions/managed-cli.mjs');
+ await assert.rejects(managedCli('help',{},op.cliContext,{env:{}}),{code:'MANAGED_CLI_TURN_CLOSED'});
+ await assert.rejects(managedCli('help',{},op.cliContext,{env:{CODEX_THREAD_ID:'foreign'}}),{code:'MANAGED_CLI_SESSION_MISMATCH'});
 });

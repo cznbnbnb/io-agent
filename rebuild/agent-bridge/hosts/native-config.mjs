@@ -69,7 +69,7 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
         for(const e of entries){
           let host;
           if(e.acp){
-            host=await connectAcp({...e.acp,workspace:e.binding.workspace,conversationId:e.binding.route.session_id,permissionMode:'phone',...(fs.existsSync(path.join(configDirectory,'connector.json'))?{connectorDirectory:configDirectory}:{})});
+            host=await connectAcp({...e.acp,workspace:e.binding.workspace,conversationId:e.binding.route.session_id,permissionMode:'phone',...(fs.existsSync(path.join(configDirectory,'connector.json'))?{connectorDirectory:configDirectory,glasses:{bridge:{...config,native_runtime:undefined},route:e.binding.route}}:{})});
             closers.push(()=>host.close());
           }else if(e.binding.host_kind==='codex'){
             let attempt=null,connectedHost=null;

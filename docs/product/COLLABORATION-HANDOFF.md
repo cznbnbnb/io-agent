@@ -1,3 +1,16 @@
+## [codex] 2026-10-27 电脑一次配对与主动眼镜 CLI：dev137，手机→真实Codex→眼镜口述→原任务→手机结果通过
+
+用户要求电脑只配对一次、新session自动接眼镜CLI。新扫码/字符串明确 `mode:computer`，由手机确认电脑后续会话授权，电脑共用用户目录长期可撤销凭据；旧session-only token不扩权。普通CLI新session首次ask/notify/checkpoint自动join；ACP每轮自动带 `IO_AGENT_CLI_ARGS`，由新 `questions/managed-cli.mjs` 绑定原task、route、native session、turn，重复question key不另建题，旧轮次结束即拒绝。实际Codex沙箱禁止联网导致第一次CLI help失败，改为工作区`.io-agent-cli/<turn>`邮箱由既有连接器联网，两端100毫秒轮询；没有放宽模型/审批/网络/文件权限或重新启用Desktop覆盖。两条正式job和配对、默认仍保留，稳定安装副本已同步本批源码。
+
+- **真机完整双向**：手机输入通过诊断驱动全字节核验，派发 `task-android-24af665b1ef1610a764baeacee15f657416fa04d81d7ff200b9a54aa57b4c15e`，真实Codex native `01a17d09-d939-78b1-ac2e-d601a8f7a544` 实际调用 notify、ask、wait。问题 `req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1` 有眼镜显示回执；用户眼镜口述确认“选一，双向链路一打通。”，voice/one及全文保留，answer有agent_received。原task继续completed，手机已完成列表和详情的“双向链路已打通”、已回答问答、提醒均已实际读屏核对。未替用户答题，未用另一任务替代；这证明受管Codex链路，不证明当前Desktop原聊天已可唤起。[证据](../../rebuild/agent-bridge/hosts/automatic-glasses-cli-proof-2026-10-27.json)。
+- **清理与默认**：用户中途要求清未用工作区、当前聊天设默认。服务器23条已释放/过期测试目录行（22条历史＋本批不用的QA）核对后备份移除，真实目录/资料/历史/账号凭据不删除；剩两条正式手机工作区及当前Desktop问答登记。新QA profile实际共用电脑配对直接online，无扫码，未提交模型输入，已停止并下线。当前Desktop原session `01a1670e-97c8-7083-a014-aa9ea3de6a98` 在App私有stdio owner，shared listener报CODEX_SESSION_NOT_LOADED；设置默认明确返回DEFAULT_SESSION_UNAVAILABLE，未伪造成功。默认仍revision18的Codex手机工作区，A27-S01继续未完成；未触碰启动链、组织策略或对方工作区。
+- **测试与限制**：受影响原生桥/控制/CLI/服务103项通过；最终Node22 ACP/真实子进程邮箱往返/配对13项通过，含重试不重复题、精确原路由、结束轮次拒绝、外来身份拒绝、电脑授权后新Agent session及40天续期/撤销，旧单会话范围保持。独立解压ZIP首次配对→新会话复用→首次notify自动join→问答往返通过。JVM设备28项及QR/string、预览电脑/单会话/未知mode检查通过。首次新电脑授权尚仅fixture/JVM，未要求用户再扫；Windows/WorkBuddy实际执行未验。Claude两次真实CLI help自检触发原生Bash按次授权，未批准而超时失败，明确不算通过；原工具权限不自动放行，正式Claude在线状态保留。
+- **手机**：dev137 /10559 SHA `9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4`，回退dev136 SHA `248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7`。仅1,919,784字节差异，基线、重建、安装完整SHA及签名核对；配对确认沿用AgentUI。256源文件/Java/D8/签名/原厂dex审计通过。保留当前+一回退，dev135已按旧SHA移除。voice7未跟踪Java/测试、DS_Store均未提交，构建时暂移后逐字恢复，未加入APK。
+- **服务端**：只更新session-pairings.mjs，SHA `bc189901f60001d01735964d10eae8dac45e99e8803093edef8f2fa181959839`，服务active；旧文件和清理目录行在`/opt/turboio/backup-codex-computer-pair-20261027`，无schema迁移、无历史清空。
+- **进度提醒收尾**：12:18:58Z的20分钟看守到12:21:10Z触发“没报告新进展”；期间聊天汇报未同步刷新CLI看守，是本批流程遗漏，非任务停滞。用户询问后已补完成checkpoint并核对该watch disabled/null，保留将来正常提醒及正式服务。提交后卸诊断/清设备XML、释放锁；不会撤销共享正式配对或默认。
+
+下一项推荐：优先解决A27-S01当前Desktop原对话的安全执行入口；不能以当前另一条受管session成功替代。若先用现成功能，默认Codex手机工作区已可日常任务与眼镜问答。Claude原生按次权限及新连接历史追赶体验另有待优化，不扩大本批范围。Claude分支最新仍6abb2d9，已包含，未提交对方文件。
+
 ## [codex] 2026-10-27 正式常驻已上线：手机可派发，默认Codex；正式服务必须保留
 
 用户报告全是离线记录，确实是上批只完成临时QA后关闭，没有留下日常服务。本批补交付两条正式托管会话，不能在收尾撤销：**Codex · 手机工作区** route session `85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30`；**Claude Code · 手机工作区** `45943428-a960-45f3-8c6c-c1fd7a5e8e60`。工作区分别`~/Documents/iO Agent/Codex`、`Claude`；原空默认已CAS设为Codex（revision18），手机真实显示默认和两条在线可接收。不是恢复旧QA、不是当前Desktop聊天接管。

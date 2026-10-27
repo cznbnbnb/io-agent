@@ -159,7 +159,7 @@ export class SessionControl {
     if(Date.parse(next.expires_at)<=this.#clock()){this.#change(next,'expired','deadline_before_dispatch');return this.list();}
     this.#change(next,'sending');
     try{
-      const reply=await this.#host.start({text:next.text,clientUserMessageId:next.client_user_message_id,expiresAt:next.expires_at});
+      const reply=await this.#host.start({text:next.text,taskId:next.task_id,clientUserMessageId:next.client_user_message_id,expiresAt:next.expires_at});
       need(reply?.accepted===true&&reply.clientUserMessageId===next.client_user_message_id,'SESSION_START_RECEIPT_INVALID');
       this.#change(next,'accepted','awaiting_native_turn');
     }catch(error){

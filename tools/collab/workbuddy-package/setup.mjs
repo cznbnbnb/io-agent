@@ -1,6 +1,7 @@
+import os from 'node:os';
 import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
 export const root=path.dirname(fileURLToPath(import.meta.url));
-export const device=path.join(root,'.io-agent','device.json');
+export const device=process.env.IO_AGENT_DEVICE_FILE||path.join(process.env.IO_AGENT_PAIRING_HOME||path.join(os.homedir(),'.turboio'),'agent-device.json');
 export function python(){
  for(const [command,...args] of [...(process.env.IO_AGENT_PYTHON?[[process.env.IO_AGENT_PYTHON]]:[]),['python3'],['python'],['py','-3']]){
   const r=spawnSync(command,[...args,'-I','-S','-B','-c','import sys,sqlite3,json;print(json.dumps({"path":sys.executable,"ok":sys.version_info>=(3,10)}))'],{encoding:'utf8',timeout:5000});

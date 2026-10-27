@@ -1,0 +1,110 @@
+{
+  "verified_at": "2026-10-27T12:12:58.118212+00:00",
+  "computer_pair_once": true,
+  "new_profile_without_qr": {
+    "route_session_id": "095acb54-dbbb-4f59-b920-a0745ed0e633",
+    "native_process_created": true,
+    "online_readiness_observed": true,
+    "model_prompt_sent": false,
+    "cleaned": true
+  },
+  "device": "dev137 /10559",
+  "phone_task_id": "task-android-24af665b1ef1610a764baeacee15f657416fa04d81d7ff200b9a54aa57b4c15e",
+  "route": {
+    "agent_id": "io-current-codex",
+    "computer_id": "io-mac-computer",
+    "project_id": "workspace-2215dbd52a60e11930077982",
+    "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+  },
+  "native_session_id": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+  "native_turn_id": "acp-7fb871fd-9e9f-4906-93a9-bd5dea8b312b",
+  "phone_submission_text_verified": true,
+  "agent_cli_notification": [
+    {
+      "message_id": "notice-04a3ae76dc7df7e29fceea689758caa97b90a474e26e0937be01b741e4f74c07",
+      "text": "眼镜双向测试开始，接下来请回答一道选择题。"
+    }
+  ],
+  "request_id": "req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1",
+  "request_revision": 1,
+  "question": "收到我的眼镜测试题后，你希望手机上的验收结果写哪一句？",
+  "options": [
+    {
+      "label": "双向链路已打通",
+      "option_id": "one"
+    },
+    {
+      "label": "眼镜回答已回到原任务",
+      "option_id": "two"
+    }
+  ],
+  "question_receipts": [
+    {
+      "actor_id": "phone-4226e391",
+      "error": null,
+      "receipt_id": "rcpt-android-231b13b01a42f8f51f6bc373725e95bcfc301ec6cf1ba9d259fbd460b7289f69",
+      "related_event_id": "ev-req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1",
+      "stage": "glasses_displayed",
+      "subject_id": "req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1",
+      "subject_kind": "request",
+      "subject_revision": 1
+    }
+  ],
+  "voice_answer": {
+    "answer_id": "answer-android-22c2856182e58f702c13b7fd8ffbba0d8fb6d3e018b45f9365d506f19e08cf33",
+    "input_source": "voice",
+    "option_id": "one",
+    "raw_action": null,
+    "request_id": "req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1",
+    "request_revision": 1,
+    "route": {
+      "agent_id": "io-current-codex",
+      "computer_id": "io-mac-computer",
+      "project_id": "workspace-2215dbd52a60e11930077982",
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+    },
+    "task_id": "task-android-24af665b1ef1610a764baeacee15f657416fa04d81d7ff200b9a54aa57b4c15e",
+    "text": "选一，双向链路一打通。"
+  },
+  "answer_event_id": "evt-android-22c2856182e58f702c13b7fd8ffbba0d8fb6d3e018b45f9365d506f19e08cf33",
+  "answer_receipts": [
+    {
+      "actor_id": "agent-1fa50a71",
+      "error": null,
+      "receipt_id": "rc-2057a34ae760ff56fb56377b780e01a4cba8f8f00c556ed22da2bb8b9937fe33",
+      "related_event_id": "evt-android-22c2856182e58f702c13b7fd8ffbba0d8fb6d3e018b45f9365d506f19e08cf33",
+      "stage": "agent_received",
+      "subject_id": "answer-android-22c2856182e58f702c13b7fd8ffbba0d8fb6d3e018b45f9365d506f19e08cf33",
+      "subject_kind": "answer",
+      "subject_revision": 1
+    }
+  ],
+  "native_operation_status": "completed",
+  "server_task_state": "completed",
+  "agent_result": "我会先发送通知，等通知退出并间隔五秒后创建选择题，再等待你在眼镜上的实际回答。双向链路已打通\n\n- option_id：`one`\n- 完整原话：“选一，双向链路一打通。”\n- request_id：`req-da62a721bc0f75c1b6caba8eb517726a9ac543292a25622ffb5d381789ce05b1`\n- task_id：`task-android-24af665b1ef1610a764baeacee15f657416fa04d81d7ff200b9a54aa57b4c15e`",
+  "same_original_task_continued": true,
+  "phone_result_visible": true,
+  "desktop_original_session_controllable": false,
+  "current_default_set_error": "DEFAULT_SESSION_UNAVAILABLE",
+  "formal_connectors_preserved": true,
+  "retired_directory_rows": 23,
+  "credential_material_included": false,
+  "phone_completed_visible": true,
+  "phone_question_answered_visible": true,
+  "verified_phone_result": "双向链路已打通",
+  "computer_mode_phone_approval_tested": false,
+  "computer_mode_approval_fixture_tested": true,
+  "old_scoped_grants_not_widened": true,
+  "claude_cli_permission_probe": "Two expired allow-once requests; not counted as a pass",
+  "server_session_pairings_sha256": "bc189901f60001d01735964d10eae8dac45e99e8803093edef8f2fa181959839",
+  "installed_apk_sha256": "9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4",
+  "rollback_apk_sha256": "248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7",
+  "phone_result_text_checked_full": true,
+  "tests": {
+    "node_affected_regressions": 103,
+    "node22_acp_and_pairing": 13,
+    "jvm_task_device": 28,
+    "pairing_code_parser_and_preview_modes": true,
+    "portable_zip_extracted_e2e": true
+  }
+}

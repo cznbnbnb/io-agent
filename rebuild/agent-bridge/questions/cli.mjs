@@ -3,7 +3,7 @@
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {AgentBridge} from '../bridge.mjs';import {BridgeClient,BridgeError,readPrivateJson} from '../client.mjs';import {AdapterHost} from '../adapter-host.mjs';
 import {isDeepStrictEqual} from 'node:util';
-import {sessionFile,sessionPair} from './session-pair-cli.mjs';
+import {sessionFile,sessionPair,computerDeviceFile} from './session-pair-cli.mjs';
 import {privatePath} from './private-path.mjs';
 import {ensureResident,residentStatus,leaveResident,privateRecord} from '../hosts/resident-manager.mjs';
 import {discoverCodexEndpoint} from '../hosts/codex-endpoint.mjs';
@@ -96,13 +96,13 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
 // One-time computer enrollment (2026-10-24, user): the computer holds one renewing device credential
 // (tools/collab/enroll-computer.mjs writes it), the phone pairs once, and each agent session only runs
 // `join` to put its own task on the phone. No connection file goes to the phone any more.
-export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);return fs.existsSync(candidate)?candidate:env.IO_AGENT_DEVICE_FILE||path.join(os.homedir(),'.turboio','agent-device.json');};
+export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);return fs.existsSync(candidate)?candidate:computerDeviceFile(env);};
 const JOIN_TASK_HOURS=12;
 async function join(value){
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python))))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
  const file=deviceFile();let device;try{device=readPrivateJson(file,8192);}catch{fail('DEVICE_NOT_ENROLLED');}
  if(device.role!=='agent'||typeof device.device_id!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(device.computer_id??''))fail('DEVICE_NOT_ENROLLED');
- if(device.session_pairing&&(device.session_pairing.metadata.runtime!==runtime||device.session_pairing.metadata.route.session_id!==session))fail('CALLER_SESSION_MISMATCH');
+ if(device.session_pairing&&device.session_pairing.metadata.mode!=='computer'&&(device.session_pairing.metadata.runtime!==runtime||device.session_pairing.metadata.route.session_id!==session))fail('CALLER_SESSION_MISMATCH');
  const python=value.python??process.env.IO_AGENT_PYTHON??path.join(workspace,'.runtime/hermes-agent/.venv/bin/python3'),base=location(),state=path.join(base,'join.json'),topic=value.topic??null;
  let previous=null;try{previous=readPrivateJson(state);}catch{}
  const reuse=previous&&previous.device_id===device.device_id&&previous.topic===topic&&Date.parse(previous.task_expires_at)>Date.now()+600000;
@@ -114,7 +114,7 @@ async function join(value){
  const key=pendingLive?pending.operation_key:reuse?previous.operation_key:'join-'+crypto.randomUUID();
  const expires=pendingLive?pending.task_expires_at:reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
  const spec={bridge:{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
-  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:device.session_pairing?.metadata.route.project_id??(current.managed?'workspace-'+hash(current.managed.workspace).slice(0,24):null)??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
+  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:(device.session_pairing?.metadata.mode==='computer'?null:device.session_pairing?.metadata.route.project_id)??(current.managed?'workspace-'+hash(current.managed.workspace).slice(0,24):null)??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
   operation_key:key,python,task_hours:JOIN_TASK_HOURS,...(topic===null?{}:{topic})};
  const specFile=path.join(joins,hash(JSON.stringify([base,key])).slice(0,32)+'.json');
  // The spec sits beside the device credential (outside the repository private root writeNew guards).
@@ -190,8 +190,10 @@ async function dispatch(action,args){if(['pair','pair-status'].includes(action))
   const {config,context}=binding(activeDirectory()),directory=await new BridgeClient(config.bridge).agentSessions(),entry=directory.sessions.find(e=>isDeepStrictEqual(e.route,context.route));
   return{managed_connector:true,cloud_online:entry?.online===true,can_execute:entry?.online===true&&entry.capabilities.can_execute,session_id:session};
  }const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
- if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (QR and copyable string for the current real session)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
- if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
+ if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (pair this computer once; later sessions reuse the credential)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+ if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');
+ if(['ask','notify','checkpoint'].includes(action)&&!fs.existsSync(path.join(location(),'active.json')))await join({});
+ const directory=activeDirectory(),value=await input();
  if(action==='checkpoint')return checkpoint(directory,value);
  if(action==='config')return configure(directory,value);
  if(action==='notify'){

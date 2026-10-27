@@ -41,3 +41,17 @@ test('malformed, changed and expired requests cannot bind',()=>{
  now+=600000;assert.throws(()=>s.sessionPairings.claim({id:p.id,claim_secret:p.claim_secret}),{code:'PAIRING_EXPIRED'});
  }finally{s.close();}
 });
+
+test('explicit computer approval covers new Agent sessions, renews and is revocable without widening old session grants',()=>{
+ let now=Date.now();const s=new MaterialStore(':memory:',{clock:()=>now});try{
+  const phone=s.devices.enroll({owner:'caller602-codex',role:'phone',label:'Synthetic phone'}),p=start('first');p.metadata.mode='computer';
+  const r=s.sessionPairings.start(p),a=approval(r);assert.equal(s.sessionPairings.preview(phone.token,a).metadata.mode,'computer');s.sessionPairings.approve(phone.token,a);
+  const proof={id:p.id,claim_secret:p.claim_secret},c=s.sessionPairings.claim(proof);assert(c.scopes.includes('devices:pair'));assert.equal(s.db.prepare('SELECT count(*) n FROM session_bindings WHERE producer=?').get(c.producer_id).n,0);
+  const route={...metadata('second').route,agent_id:'io-current-codex'};
+  const event={schema_version:'1.0',event_id:randomUUID(),idempotency_key:randomUUID(),kind:'task',producer_id:c.producer_id,created_at:new Date(now).toISOString(),expires_at:new Date(now+60000).toISOString(),body:{task_id:'new-session-task',revision:1,route,command:'Synthetic',state:'queued',allow_create_session:false}};
+  s.queueSubmit(c.token,event,'task');assert.equal(s.queueGet(c.token,'task','new-session-task').body.route.session_id,'second');
+  now+=40*86400000;const next=s.sessionPairings.claim(proof);assert.equal(next.device_id,c.device_id);assert(next.scopes.includes('devices:pair'));assert.notEqual(next.token,c.token);
+  assert.throws(()=>s.sessionPairings.start({...start('bad'),metadata:{...metadata('bad'),mode:'other'}}),{code:'PAIRING_INVALID'});
+  s.devices.revoke(c.device_id);assert.throws(()=>s.sessionPairings.claim(proof),{code:'PAIRING_REVOKED'});
+ }finally{s.close();}
+});

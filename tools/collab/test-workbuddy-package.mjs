@@ -19,7 +19,7 @@ try{
  assert.equal((await run('io-agent.mjs',['pair-status'],{})).value.waiting_for_phone,true);
  const html=fs.readFileSync(pair.value.qr_html,'utf8');assert(html.includes('<svg')&&html.includes(pair.value.pairing_string));
  const [prefix,id,code]=pair.value.pairing_string.split(':');assert.equal(prefix,'io-agent-pair/1');
- const preview=store.sessionPairings.preview(phone.token,{id,code});assert.equal(preview.metadata.route.session_id,env.IO_AGENT_CALLER_SESSION);store.sessionPairings.approve(phone.token,{id,code});
+ const preview=store.sessionPairings.preview(phone.token,{id,code});assert.equal(preview.metadata.route.session_id,env.IO_AGENT_CALLER_SESSION);assert.equal(preview.metadata.mode,'computer');store.sessionPairings.approve(phone.token,{id,code});
  assert.equal((await run('io-agent.mjs',['pair-status'],{})).value.paired,true);
  const joined=await run('io-agent.mjs',['join'],{topic:'合成问答'});assert.equal(joined.code,0,JSON.stringify(joined.value));assert.equal(joined.value.joined,true);
  assert.equal((await run('io-agent.mjs',['config'],{glasses_progress:false})).code,0);
@@ -27,5 +27,8 @@ try{
  const requestRow=store.queueGet(phone.token,'request',ask.value.request_id);
  store.queueSubmit(phone.token,{schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),kind:'answer',producer_id:phone.producer_id,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+300000).toISOString(),body:{answer_id:'synthetic-workbuddy-answer',task_id:joined.value.task_id,request_id:requestRow.object_id,request_revision:requestRow.revision,route:requestRow.body.route,option_id:'yes',text:'Synthetic package answer',input_source:'phone',raw_action:null}},'answer');
  const waited=await run('io-agent.mjs',['wait'],{request_id:ask.value.request_id,wait_seconds:0});assert.equal(waited.code,0,JSON.stringify(waited.value));assert.equal(waited.value.state,'answered');assert.equal(waited.value.answer.body.option_id,'yes');assert.equal(requestRow.body.route.agent_id,'io-workbuddy');assert.equal(requestRow.body.route.session_id,env.IO_AGENT_CALLER_SESSION);
- console.log(JSON.stringify({passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
+ env.IO_AGENT_CALLER_SESSION='synthetic-new-'+crypto.randomUUID();
+ const reused=await run('io-agent.mjs',['pair'],{});assert.equal(reused.value.paired,true);assert.equal(reused.value.scope,'computer');
+ const second=await run('io-agent.mjs',['notify'],{notification_key:'new-session-auto-join',text:'Synthetic auto-join notice',expires_at:new Date(Date.now()+300000).toISOString()});assert.equal(second.code,0,JSON.stringify(second.value));assert.equal(second.value.server_stored,true);
+ console.log(JSON.stringify({computer_pair_once_new_session_reuses:true,passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
 }finally{await new Promise(r=>server.close(r));store.close();fs.rmSync(temp,{recursive:true,force:true});}

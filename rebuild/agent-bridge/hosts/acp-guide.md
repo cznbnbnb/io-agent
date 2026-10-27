@@ -62,7 +62,7 @@ node rebuild/agent-bridge/connector.mjs run --directory /absolute/private/my-cod
 
 `init` 只保存配置，不启动引擎。`run` 建立或恢复原生会话，但不会自行发送模型输入。有些 Agent 不持久保存零轮次空会话，因此在首次输入意图落盘时才保存原生 session ID。进行过任务后，保留整个私有目录；删除账本不能解决执行状态不明，也不要把它打包给另一台电脑。
 
-已有同一电脑配对可显式 `run --device /absolute/private/device.json`。正式使用优先用各会话的扫码/字符串配对；同一路由一旦被服务器绑定到某个设备身份，不能拿另一份配对凭据抢用。问答 CLI `join` 在受管会话里由连接器负责常驻，不再启动第二个监听器。
+已有同一电脑配对可显式 `run --device /absolute/private/device.json`。正式使用按电脑一次扫码/字符串配对，后续新会话自动复用；同一路由一旦被服务器绑定到某个设备身份，不能拿另一份配对凭据抢用。问答 CLI `join` 在受管会话里由连接器负责常驻，不再启动第二个监听器。
 
 ## 权限、停止和恢复
 
@@ -114,3 +114,13 @@ node "$HOME/.turboio/connector-runtime/tools/collab/connector-service.mjs" stop 
 Claude的现有供应商认证来自原终端环境，后台服务不会自动继承。只保存白名单中的现有Claude配置到该配置目录的私有`service-env.json`（0600），worker读取后交给同一官方引擎；不写进plist、仓库、分享包或全局环境。更新这些配置后，正常停止/启动服务即可重新取当前终端配置。首次遗漏环境导致的401自检保留为失败记录，原未知输入不重放；修正后使用新的正式会话通过了真实执行与恢复。
 
 本次正式服务在交付后继续运行，不纳入QA撤销。WorkBuddy仍需独立官方CLI的正常认证验收。
+
+## 2026-10-27：电脑配对与 Agent 主动投送
+
+电脑授权保存在用户目录 `~/.turboio/agent-device.json`。新的 profile 直接 run，不重复要求手机批准。新二维码/字符串带显式 `mode:computer`，手机确认授权这台电脑后续使用 CLI 的会话；历史 session-only 授权不扩大。续期仍是短期访问令牌＋长期可撤销电脑配对，不向二维码暴露续期密钥。
+
+受管任务每轮自动带 `IO_AGENT_CLI_ARGS`。Agent 运行该命令的 notify/ask/wait/status 即可主动投送；上下文指向原手机 task、真实 native session 和这一轮，回答可直接继续原任务。无需另跑 join，不新建替代任务，不依赖 Python。普通问答 CLI 的新会话首次 ask/notify/checkpoint 自动 join，也可先 join 设置主题。
+
+实际 Codex 工具沙箱禁止联网，因此 CLI 只向工作区 `.io-agent-cli/<turn>` 写本地命令，已有连接器转发到服务器并回传结果。没有更改 Agent 的网络、文件、模型、审批或 Desktop 启动设置；两端各按100毫秒轮询，网络耗时另计。电脑离线或连接器退出时命令会明确超时，不谎报已显示。每轮命令和回执为小型本地状态，未知输入不会重放。
+
+当前普通 Desktop 聊天仍不支持该受管执行入口。2026-10-27 用户要求将主聊天设为默认，读取真实 App 与监听器后，原会话只在 App 私有 stdio owner 加载，共享 listener 报 CODEX_SESSION_NOT_LOADED，设置默认返回 DEFAULT_SESSION_UNAVAILABLE。没有改变共享默认，也没有将另一个手机工作区冒充主聊天。已清理22条过期/已释放测试目录行，留可恢复备份；实际目录、资料和聊天不删除。

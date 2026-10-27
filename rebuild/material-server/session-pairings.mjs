@@ -17,7 +17,7 @@ export class SessionPairings {
  start(input){
   if(!keys(input,'id,claim_secret,metadata')||!uuid(input.id)||!secret(input.claim_secret))reject(400,'PAIRING_INVALID');
   const m=input.metadata;
-  if(!keys(m,'runtime,route,topic,workspace')||!text(m.topic,40)||!text(m.workspace,512)||! /^[a-z][a-z0-9-]{1,31}$/.test(m.runtime??'')||!keys(m.route,'computer_id,agent_id,project_id,session_id')||!Object.values(m.route).every(id)||m.route.agent_id!==(m.runtime==='codex'?'io-current-codex':'io-'+m.runtime))reject(400,'PAIRING_INVALID');
+  if(!(keys(m,'runtime,route,topic,workspace')||keys(m,'runtime,route,topic,workspace,mode')&&m.mode==='computer')||!text(m.topic,40)||!text(m.workspace,512)||! /^[a-z][a-z0-9-]{1,31}$/.test(m.runtime??'')||!keys(m.route,'computer_id,agent_id,project_id,session_id')||!Object.values(m.route).every(id)||m.route.agent_id!==(m.runtime==='codex'?'io-current-codex':'io-'+m.runtime))reject(400,'PAIRING_INVALID');
   return this.store.tx(()=>{
    const now=this.store.clock(),code=sha('session-approval/1:'+input.claim_secret),digest=sha(input.claim_secret),metadata=canonical(m);
    let row=this.db.prepare('SELECT * FROM session_pairings WHERE id=?').get(input.id);
@@ -50,7 +50,7 @@ export class SessionPairings {
    const m=JSON.parse(row.metadata);let device,issued;
    if(!row.device_id){
     issued=this.store.devices.enroll({owner:row.owner,role:'agent',label:(m.runtime+' · '+m.topic).slice(0,64).trim()});row.device_id=issued.device_id;
-    this.db.prepare('INSERT INTO session_bindings VALUES (?,?,?,?)').run(row.owner,issued.producer_id,canonical(m.route),row.id);
+    if(m.mode!=='computer')this.db.prepare('INSERT INTO session_bindings VALUES (?,?,?,?)').run(row.owner,issued.producer_id,canonical(m.route),row.id);
     this.db.prepare('UPDATE session_pairings SET device_id=? WHERE id=?').run(row.device_id,row.id);
    }
    device=this.db.prepare('SELECT * FROM devices WHERE device_id=?').get(row.device_id);
@@ -58,12 +58,12 @@ export class SessionPairings {
    let credential=row.token_id?this.db.prepare('SELECT * FROM credentials WHERE token_id=?').get(row.token_id):null;
    if(!credential||credential.revoked||credential.expires<=now+TTL/2){
     issued??=this.store.devices.issue(row.device_id);const token=createHmac('sha256',input.claim_secret).update('session-access/1:'+issued.token_id).digest('base64url');
-    this.db.prepare('UPDATE credentials SET digest=?,scopes=? WHERE token_id=?').run(sha(token),JSON.stringify(SESSION_SCOPES),issued.token_id);
+    this.db.prepare('UPDATE credentials SET digest=?,scopes=? WHERE token_id=?').run(sha(token),JSON.stringify(m.mode==='computer'?issued.scopes:SESSION_SCOPES),issued.token_id);
     this.db.prepare('UPDATE session_pairings SET token_id=? WHERE id=?').run(issued.token_id,row.id);credential=this.db.prepare('SELECT * FROM credentials WHERE token_id=?').get(issued.token_id);
    }
    return {pending:false,id:row.id,metadata:m,device_id:device.device_id,role:'agent',label:device.label,owner_id:row.owner,producer_id:device.producer,
     server_id:this.store.devices.serverId(),token_id:credential.token_id,token:createHmac('sha256',input.claim_secret).update('session-access/1:'+credential.token_id).digest('base64url'),
-    expires_at:new Date(credential.expires).toISOString(),refresh_after:new Date(credential.expires-TTL/2).toISOString(),scopes:SESSION_SCOPES};
+    expires_at:new Date(credential.expires).toISOString(),refresh_after:new Date(credential.expires-TTL/2).toISOString(),scopes:JSON.parse(credential.scopes)};
   });
  }
 }

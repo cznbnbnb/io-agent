@@ -7,7 +7,7 @@ import {createNativeBridgeAdapter} from './hosts/native-config.mjs';
 import {AgentBridge} from './bridge.mjs';
 import {runtimeDigest} from './runtime-events.mjs';
 import {atomic} from './session-pairing.mjs';
-import {sessionPair,sessionFile} from './questions/session-pair-cli.mjs';
+import {sessionPair,sessionFile,computerDeviceFile} from './questions/session-pair-cli.mjs';
 import {privateDirectory,privateRecord} from './hosts/resident-manager.mjs';
 import {readPrivateJson} from './client.mjs';
 
@@ -30,16 +30,16 @@ export async function initializeConnector(directory,input){
   privateDirectory(directory);need(!fs.existsSync(path.join(directory,'connector.json')),'CONNECTOR_ALREADY_INITIALIZED');
   const workspace=fs.realpathSync(input.workspace),profile={schema_version:1,managed:true,runtime:input.runtime,label:input.label,workspace,command:input.command,route_session_id:randomUUID()};
   atomic(path.join(directory,'connector.json'),profile);
-  return{initialized:true,managed:true,session_id:profile.route_session_id,workspace,next:'pair',native_process_started:false};
+  return{initialized:true,managed:true,session_id:profile.route_session_id,workspace,next:fs.existsSync(computerDeviceFile())?'run':'pair',native_process_started:false};
 }
 export function connectorConfig(directory,{deviceFile}={}){
   const p=readConnector(directory),caller={runtime:p.runtime,session:p.route_session_id},paired=sessionFile(caller,p.workspace);
-  const file=deviceFile??(fs.existsSync(paired)?paired:path.join(os.homedir(),'.turboio','agent-device.json'));
+  const file=deviceFile??(fs.existsSync(paired)?paired:computerDeviceFile());
   need(fs.existsSync(file),'CONNECTOR_PAIRING_REQUIRED');const device=readPrivateJson(file,8192);
   need(device.role==='agent'&&typeof device.computer_id==='string','CONNECTOR_PAIRING_REQUIRED');
   const route={computer_id:device.computer_id,agent_id:p.runtime==='codex'?'io-current-codex':'io-'+p.runtime,
     project_id:'workspace-'+hash(p.workspace).slice(0,24),session_id:p.route_session_id};
-  if(device.session_pairing)need(runtimeDigest(device.session_pairing.metadata.route)===runtimeDigest(route)&&device.session_pairing.metadata.runtime===p.runtime,'CONNECTOR_PAIRING_MISMATCH');
+  if(device.session_pairing&&device.session_pairing.metadata.mode!=='computer')need(runtimeDigest(device.session_pairing.metadata.route)===runtimeDigest(route)&&device.session_pairing.metadata.runtime===p.runtime,'CONNECTOR_PAIRING_MISMATCH');
   return{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
     computer_id:route.computer_id,agent_id:route.agent_id,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{}),
     native_runtime:{state_file:'runtime.json',sessions:[{host_kind:p.runtime==='codex'?'codex':p.runtime==='claude-code'?'claude':'acp',workspace:p.workspace,route,label:p.label,

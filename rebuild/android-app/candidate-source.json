@@ -322,7 +322,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
-      "sha256": "df34d1faf62bab6af4ca6d0d38c88e7a6bf8c24f060f776a11d54da94cf8310e"
+      "sha256": "6cd6ec2b92ca75f1c1691e1e5d16c3aed7a68714a63aa09d7810a3eb0e8e48e4"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionScanner.java",
@@ -866,7 +866,7 @@
     },
     {
       "path": "src/com/turboio/addon/SessionPairingCode.java",
-      "sha256": "ea994a1c453f5bdddedfba182636075415308694dfdf40174c0b670bc26a2f06"
+      "sha256": "d1b492d2b62807792cba96e7b2def2bed997ba3f38422dfe3771ffd676837031"
     },
     {
       "path": "src/com/turboio/addon/SuggestionGate.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "2eb42756fb846af971e0f563956f631e5ddbf5be264380f83272855e966a9597"
+      "sha256": "44ba1b148ab634a5994ebc4aba64c351aee7f0ac7b5cfd7d5618bffcf6f52629"
     }
   ],
-  "product_sha256": "72216eec95681b4e1df1768476fc280536b507adcd2aaf96065516ea73a1174f",
-  "addon_sha256": "fad75f2f9cdeb5d2b7aa08e3568ecfadb46f6cb73b5df43342e336689266b4e7",
+  "product_sha256": "4306f14b7d7a553f52adbcddc238842759ad2e04c1e7f296c8663537d0e8e658",
+  "addon_sha256": "ffe5320679fd833e61a9af18e357a188577b8a6287c9eea63066693bea6ffcf7",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

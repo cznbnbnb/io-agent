@@ -3,6 +3,7 @@ import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {atomic} from '../session-pairing.mjs';
+import {prepareManagedCli,drainManagedCli} from '../questions/managed-cli.mjs';
 import {privateRecord} from './resident-manager.mjs';
 
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
@@ -13,14 +14,14 @@ const MAX_FRAME=4*1024*1024,MAX_RESULT=1024*1024;
  * attaches to Desktop IPC, automatically approves tools, or retries a prompt.
  * ACP cancellation alone cannot certify that background work has stopped. */
 export class AcpSession {
-  static async connect({command,workspace,stateFile,sessionId,conversationId,timeoutMs=15000,permissionMode='cancel',connectorDirectory}){
+  static async connect({command,workspace,stateFile,sessionId,conversationId,timeoutMs=15000,permissionMode='cancel',connectorDirectory,glasses}){
     need(Array.isArray(command)&&command.length>0&&command.every(v=>typeof v==='string'&&!/[\0\r\n]/.test(v))&&
       path.isAbsolute(command[0])&&path.isAbsolute(workspace??'')&&path.isAbsolute(stateFile??'')&&
       ['cancel','phone'].includes(permissionMode)&&Number.isInteger(timeoutMs)&&timeoutMs>=100&&timeoutMs<=60000&&
       (sessionId===undefined||typeof sessionId==='string'&&sessionId.length>0&&sessionId.length<=256)&&
       (conversationId===undefined||typeof conversationId==='string'&&conversationId)&&(connectorDirectory===undefined||path.isAbsolute(connectorDirectory)),'ACP_CONFIG_INVALID');
     workspace=fs.realpathSync(workspace);need(fs.statSync(workspace).isDirectory(),'ACP_WORKSPACE_INVALID');
-    const host=new AcpSession({command,workspace,stateFile,timeoutMs,conversationId,permissionMode,connectorDirectory});
+    const host=new AcpSession({command,workspace,stateFile,timeoutMs,conversationId,permissionMode,connectorDirectory,glasses});
     try{
       const init=await host.request('initialize',{protocolVersion:1,clientCapabilities:{},clientInfo:{name:'io-agent-connector',version:'1.0.0'}});
       need(object(init)&&init.protocolVersion===1&&object(init.agentCapabilities),'ACP_VERSION_UNSUPPORTED');
@@ -37,8 +38,9 @@ export class AcpSession {
   }
   capabilities=Object.freeze({atomic_idle_start:true,exact_turn_interrupt:true,final_result_evidence:true,native_queue_expiry:false});
   ready=false;closed=false;sessionId=null;conversationId;workspace;
-  #child;#pending=new Map();#next=0;#active=null;#operations={};#stateFile;#timeout;#buffer='';#exit;#saveError=false;#permissions=new Map();#permissionMode;#closing=null;
-  constructor({command,workspace,stateFile,timeoutMs,conversationId,permissionMode,connectorDirectory}){
+  #child;#pending=new Map();#next=0;#active=null;#operations={};#stateFile;#timeout;#buffer='';#exit;#saveError=false;#permissions=new Map();#permissionMode;#closing=null;#glasses;#connectorDirectory;#cliPump=null;#cliBusy=false;
+  constructor({command,workspace,stateFile,timeoutMs,conversationId,permissionMode,connectorDirectory,glasses}){
+    this.#glasses=glasses;this.#connectorDirectory=connectorDirectory;
     this.#permissionMode=permissionMode;
     this.workspace=workspace;this.conversationId=conversationId;this.#stateFile=stateFile;this.#timeout=timeoutMs;
     const env={...process.env};
@@ -142,17 +144,28 @@ export class AcpSession {
   async status(){need(this.ready&&!this.closed&&!this.#saveError,'ACP_HOST_UNAVAILABLE');return{conversationId:this.conversationId,workspace:this.workspace,busy:this.#active!==null};}
   async readiness(){return{...await this.status(),canExecute:true,reason:null};}
   lifecycle(){return{closed:this.closed};}
-  async start({text,clientUserMessageId,expiresAt}){
+  async start({text,clientUserMessageId,expiresAt,taskId}){
     await this.status();need(!this.#active,'ACP_HOST_BUSY');need(Date.parse(expiresAt)>Date.now(),'ACP_INPUT_EXPIRED');
     const previous=this.#operations[clientUserMessageId];
     if(previous){need(previous.input===text,'ACP_OPERATION_CONFLICT');return{accepted:true,clientUserMessageId};}
     need(Object.keys(this.#operations).length<1000,'ACP_OPERATION_LIMIT');
     const op={id:clientUserMessageId,input:text,text:'',turnId:'acp-'+randomUUID(),status:'inProgress',sawTools:false,permissionCancelled:false};
+    const prompt=[{type:'text',text}];
+    if(this.#glasses){
+      need(typeof taskId==='string'&&taskId,'ACP_TASK_ID_REQUIRED');op.taskId=taskId;
+      const cli=prepareManagedCli({directory:this.#connectorDirectory,journal:this.#stateFile,sessionId:this.sessionId,workspace:this.workspace,op,taskId,expiresAt,...this.#glasses});
+      op.cliContext=cli.file;
+      this.#cliPump=setInterval(()=>{
+        if(this.#cliBusy)return;this.#cliBusy=true;
+        void drainManagedCli(cli.file).catch(()=>{this.#saveError=true;}).finally(()=>{this.#cliBusy=false;});
+      },100);
+      prompt.unshift({type:'text',text:cli.instruction});
+    }
     this.#operations[op.id]=op;this.save();this.#active=op;
     // A durable intent precedes the wire write. A lost reply remains unknown,
     // including across restart; session/load never causes this input to replay.
-    const finish=(status)=>{for(const q of this.#permissions.values())if(q.turnId===op.turnId)this.replyPermission(q.requestId,null);op.status=status;this.save();this.#active=null;};
-    void this.request('session/prompt',{sessionId:this.sessionId,prompt:[{type:'text',text}]},{prompt:true}).then(result=>{
+    const finish=(status)=>{clearInterval(this.#cliPump);this.#cliPump=null;for(const q of this.#permissions.values())if(q.turnId===op.turnId)this.replyPermission(q.requestId,null);op.status=status;this.save();this.#active=null;};
+    void this.request('session/prompt',{sessionId:this.sessionId,prompt},{prompt:true}).then(result=>{
       need(object(result)&&typeof result.stopReason==='string','ACP_PROMPT_RESULT_INVALID');
       if(result.stopReason==='cancelled')finish('interrupted');
       else finish(result.stopReason==='end_turn'&&!op.permissionCancelled?'completed':'failed');
@@ -183,7 +196,7 @@ export class AcpSession {
     return{conversationId:this.conversationId,turnId,terminal:op?.status==='interrupted',descendantsStopped:false};
   }
   close(){return this.#closing??=(async()=>{
-    this.ready=false;
+    this.ready=false;clearInterval(this.#cliPump);this.#cliPump=null;
     for(const q of this.#permissions.values())clearTimeout(q.timer);this.#permissions.clear();
     if(this.#child.exitCode===null&&this.#child.signalCode===null&&this.#child.pid){
       // Only this connector's newly spawned process group is a cleanup target.

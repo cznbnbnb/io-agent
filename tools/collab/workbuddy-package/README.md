@@ -3,7 +3,7 @@
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
 需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴已接入同一确认流程，Windows 与 WorkBuddy 原会话仍需实际验证。
 
-## 1. 在对应的真实会话中配对
+## 1. 电脑只配对一次
 
 在解压目录运行 `node setup.mjs doctor` 检查环境。然后让 WorkBuddy 读取 AGENTS.md，由它使用宿主提供的真实会话 ID 执行配对。无需把登记文件发回另一台电脑。
 
@@ -12,7 +12,7 @@
 | 命令 | JSON 输入 | 结果 |
 | --- | --- | --- |
 | `node io-agent.mjs pair` | `{"topic":"本次任务主题","workspace":"实际工作区路径或名称"}` | 返回二维码 HTML 路径、可复制配对字符串 |
-| `node io-agent.mjs pair-status` | `{}` | 手机确认后领取当前会话连接；未确认则返回 waiting_for_phone |
+| `node io-agent.mjs pair-status` | `{}` | 手机确认后领取电脑授权；未确认则返回 waiting_for_phone |
 
 打开返回的 `qr_html` 文件。手机进入 **iO Agent → 设置 → 电脑连接 → 添加 Agent 会话**，任选一种方式：
 
@@ -41,7 +41,7 @@
 | `node io-agent.mjs ask` | 见下方 |
 | `node io-agent.mjs wait` | `{"request_id":"使用 ask 返回的 ID","wait_seconds":30}` |
 
-完成配对后先 join，再关闭进度推送，然后一次只发一道测试题。示例问答（`expires_at` 必须替换为实际未来 10 分钟内的 UTC 时间，最长一小时）：
+电脑首次配对后运行 join。后续新会话复用同一电脑凭据，首次 ask / notify / checkpoint 会自动 join；也可先主动 join 设置主题。一次只发一道测试题。示例问答（`expires_at` 必须替换为实际未来 10 分钟内的 UTC 时间，最长一小时）：
 
 ```json
 {
@@ -62,9 +62,9 @@
 
 - 此包连接的是已经运行的 Agent 会话。不会启动 WorkBuddy，也不能保证从手机远程唤醒、打断或恢复其进程。
 - 进度推送默认按用户要求关闭；`notify` 不受这个开关控制，试用时不要连续发通知。
-- 新会话绑定可在长期离线后自动恢复短期凭据；服务器撤销绑定对应的设备后，续期和旧凭据都会失效。旧登记文件使用原有机制，不自动替换其他电脑。
+- 电脑配对后新会话无需再次扫码；配对可在长期离线后自动恢复短期凭据；服务器撤销绑定对应的设备后，续期和旧凭据都会失效。旧登记文件使用原有机制，不自动替换其他电脑。
 - 这个 ZIP 不含已授权连接。手机需先登录原厂账号，并已有本项目的手机账号配对；此包不能自行创建服务器账号。
-- 运行状态与解压目录有关，登记后保持目录位置。移到其他电脑时重新登记，不复制运行状态。
+- 电脑授权默认保存在用户目录 ~/.turboio/agent-device.json，多个解压目录和 Agent 共用。显式 IO_AGENT_DEVICE_FILE / IO_AGENT_PAIRING_HOME 可隔离配置。旧单会话授权保持原有范围，不自动扩大。移到其他电脑需重新配对，不复制凭据。
 
 ## 验证包内容
 
@@ -85,6 +85,8 @@ node io-agent.mjs connector init --directory /absolute/private/connector
 {"runtime":"codex","label":"我的受管任务","workspace":"/absolute/workspace","command":["/absolute/node","/absolute/codex-acp/dist/index.js"]}
 ```
 
-随后用 `connector pair --directory ...` 生成二维码/字符串，手机确认后用 `connector pair-status --directory ...` 领取连接，再 `connector run --directory ...` 常驻。已有正式电脑配对也可显式使用 `run --device /absolute/private/device.json`。关闭该终端会退出连接器；后续 run 恢复已有受管上下文，不重发历史输入。初始化只保存配置；run 建立或恢复原生会话，首次提交任务才发起模型轮次。空会话可能不被原 Agent 持久保存。
+首次使用 `connector pair --directory ...` 生成电脑二维码/字符串，手机确认后用 `connector pair-status --directory ...` 领取授权。此后任何新 profile 直接 `connector run --directory ...`，共用这台电脑授权，无需再次扫码。已有正式电脑配对直接复用，也可显式使用 `run --device /absolute/private/device.json`。关闭该终端会退出连接器；后续 run 恢复已有受管上下文，不重发历史输入。初始化只保存配置；run 建立或恢复原生会话，首次提交任务才发起模型轮次。空会话可能不被原 Agent 持久保存。
 
 工具权限由手机/眼镜选择“仅允许本次”或“拒绝本次”，不自动选择永久授权。通用 ACP 取消尚不能证明所有后台工作已停止，因此保持“停止未确认”，不承诺通用继续。本机 WorkBuddy 5.8.3 的内置 CLI 未完成 ACP 握手；官方独立 CodeBuddy CLI 2.177.0 已握手，创建会话需要登录，尚未完成真实执行。WorkBuddy 官方云端 ACP 另需要第三方应用授权，不包含在本包已验的本地 stdio 路径中。ACP 连接器已在 macOS 验证；Windows/Linux 端执行仍需分别验收。
+
+受管会话的每轮手机任务都会获得 `IO_AGENT_CLI_ARGS`，直接运行 `notify / ask / wait / status`。命令固定绑定原 task、route 和 native turn，不创建替代任务，不再依赖 Python。工具沙箱内只写本地工作区 `.io-agent-cli` 邮箱，常驻连接器负责联网；不扩大 Agent 网络/文件权限。已结束轮次的命令会拒绝，等待同一 request 不重复投题。Agent 仍自行决定是否按任务调用 CLI，未执行命令不能算已投送；服务器保存也不等于镜片实际显示。

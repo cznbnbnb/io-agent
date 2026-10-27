@@ -1,5 +1,7 @@
 # 还需要你验证的事项
 
+A27-S04 电脑一次配对与 Agent 主动眼镜问答（2026-10-27 真机双向已通过）：dev137，电脑配对复用及新会话自动 join 已完成，CLI/ACP 新轮次自动绑定原 task。用户本次在眼镜口述“选一，双向链路一打通。”并确认，option_id=one、input_source=voice，同一手机 task 在真实 Codex 原 native session 继续并完成；服务器已有 glasses_displayed 与 answer agent_received 回执。手机“已完成”、任务结果及“问答·已回答”已实际读屏核对，不将另一个受管会话称为当前 Desktop 聊天。Claude 路径的 CLI Bash 权限须正常按次批准，本轮两次自动自检请求未获批准而超时，不记通过。当前 Desktop 默认设置返回 DEFAULT_SESSION_UNAVAILABLE，A27-S01 仍未完成；未恢复启动覆盖。旧测试目录已移除23条（含本批不用的临时项），实际文件/聊天保留。电脑配对确认页改动保持原 AgentUI；Windows/WorkBuddy 实机、首次电脑授权确认及系统重启另待验证。[证据](../../rebuild/agent-bridge/hosts/automatic-glasses-cli-proof-2026-10-27.json)。
+
 A27-S03 正式常驻可用（开发者已自测）：本Mac现保留“Codex · 手机工作区”（默认）、“Claude Code · 手机工作区”，手机选择器均显示在线可接收；实际手机下发、任务完成及结果回显通过。两条服务重启后恢复原生session/上下文通过。服务会保留，不再随QA收尾撤销；用户无需重复验收。系统注销/重启未实测，已配置登录自启；睡眠/断网仍会离线。原Desktop聊天仍属A27-S01未完成范围。[证据](../../rebuild/agent-bridge/hosts/formal-resident-proof-2026-10-27.json)。
 
 A27-S02 ACP 受管会话（Claude/Codex 手机自测已通过）：Claude/Codex 的独立受管会话和原生上下文恢复已自动实测；dev136 已通过手机选会话、真实提交、原上下文测试码及完整结果回显；不要求用户重复同一流程。日常 Desktop 原聊天仍为 A27-S01 停用状态。WorkBuddy 需正常完成独立官方 CLI 登录后才可验执行/恢复；不复制 Desktop 内部密钥。后续用户仅需检查手机任务页统一样式与自行使用体验；通用 ACP 打断保持“停止未确认”，不是可继续验收项。[范围与代价](../../rebuild/agent-bridge/hosts/acp-guide.md)。
