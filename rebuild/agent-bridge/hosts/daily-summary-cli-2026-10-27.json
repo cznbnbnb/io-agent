@@ -100,14 +100,22 @@
     "credentials_and_default_preserved": true,
     "formal_services_running": true,
     "phone_app_changed": false,
-    "installed_app": "0.5.3-dev139"
+    "installed_app": "0.5.3-dev139",
+    "installed_source_commit": "378d09564e7b321b15b5bb35993b356dca031fab"
   },
   "package": {
-    "final_repack_after_source_commit": "pending"
+    "source_commit": "378d09564e7b321b15b5bb35993b356dca031fab",
+    "file": "outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip",
+    "bytes": 166074,
+    "sha256": "3ee24fac792d47c310e540a0caf8a5340d7b757344c5fc650ae0c3e7e626051f",
+    "files": 44,
+    "manifest_file_hashes_verified": true,
+    "contains_credentials": false
   },
   "limits": [
     "Only already-synced daily AI summaries; empty result does not prove no activity",
     "No new daily automation created",
     "Windows/WorkBuddy application and Claude native tool approval not newly tested"
-  ]
+  ],
+  "source_commit": "378d09564e7b321b15b5bb35993b356dca031fab"
 }
