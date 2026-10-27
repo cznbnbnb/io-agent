@@ -74,7 +74,8 @@ final class TaskPresentation {
  }
  static String controlStatus(Map<String,Object> local){
   String kind=(String)TaskWire.control(TaskWire.body(event(local)).get("control")).get("kind"),prefix=kind.equals("stop")?"打断请求":kind.equals("end")?"结束任务":"继续指示";
-  return prefix+" · "+("server_stored".equals(local.get("state"))&&!Boolean.TRUE.equals(local.get("needs_lookup"))?"服务器已收到，等待电脑确认":queueStatus(local));
+  // Ending a proven stop takes effect once stored; there is no computer step to wait for.
+  return prefix+" · "+("server_stored".equals(local.get("state"))&&!Boolean.TRUE.equals(local.get("needs_lookup"))?(kind.equals("end")?"已生效":"服务器已收到，等待电脑确认"):queueStatus(local));
  }
  static String status(Row row){
   if(row.localOnly())return "server_stored".equals(row.local.get("state"))?"服务器已保存，等待电脑接收":queueStatus(row.local);

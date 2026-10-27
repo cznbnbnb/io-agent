@@ -1,3 +1,13 @@
+## [claude] 2026-10-27 dev127–128 + 服务器：已停止的任务可以在手机「结束任务」（服务器已发布，已装机，回退 dev118）
+
+用户在眼镜上答「把这个东西修好，按你的品味」。新增控制种类 `end`：只对已证明停止（state=stopped、phase=stopped）的任务，手机用新 control_id 直接发布 `state:cancelled`，execution 只把 phase 改为 cancelled，不带 text；回合已停，不需要电脑再确认，结束后不能继续。
+
+- 服务器 `store.mjs`：`stopped` 可转 `cancelled`；newControl 分支校验 end 只改 phase；文本只对 resume 校验。`docs/contracts/event-v1.schema.json` 的 taskControl.kind 加 `end`，`task-session-control-v1.md` 补说明。新增测试覆盖：运行中不可结束、不改 phase / 换 turn / 带 text / 用 stop 都拒绝、结束后不能再继续。material-server 130/132 通过（另 2 项是本机缺 DevEco SDK 和 phase1 种子文件，与本改动无关）；agent-bridge native 35/35。
+- **线上发布（2026-10-27 11:16 CST）**：先核对线上 store.mjs 与 schema 的哈希和提交前一致，备份到 `/opt/turboio/backup-claude-end-20261027111652/`（含 release-contracts.json），只替换 store.mjs、contracts/event-v1.schema.json，并更新 release-contracts.json 中该 schema 的哈希；重启 turboio-material 后 `/v1/identity` 未认证返回 401。回退方法：把这三份文件拷回原处，再重启服务。
+- 手机：`TaskWire/TaskMailbox/TaskControl` 接受 end（`TaskControl.target` 统一给出发布用的 execution）；任务停下后详情页在「追加指示并继续」下面加「结束任务」次按钮，点了先弹确认（「返回 / 结束任务」）；提交后底部提示「已提交结束任务」；状态显示「已结束」，回执显示「结束任务 · 已生效」。TaskControlTest 98 项、TaskPresentation 37 项通过。
+- 真机：两条合成任务都在手机上结束，服务器为 cancelled、control.kind=end。其中一条带着被拦下的继续草稿，结束不受影响。旧会话 5df4beaf 的「任务分配/打断/眼镜回复页 UI 重设计」问题早已回答，任务一直挂在「等待你的回复」，已用原绑定标记为 completed。Codex 的 caller606 停止任务没动，留给 Codex 或用户在手机上结束。
+- 电脑端 native runtime 没改：任务被结束后，bridge 把它当终态处理（RUNTIME_SOURCE_CLOSED）。原生控制器里已停止的命令仍保留着，但不会再收到 resume。
+
 ## [claude] 2026-10-27 dev125–126：连点两下打断真机验收通过；提示弹窗统一为 Agent 样式（已装机，回退 dev118）
 
 **打断验收（合成任务，用户眼镜回答「选一」）**：用本会话绑定凭据在同一路由另建任务 `claude-synth-stop-*`，以 Agent 身份发 agent_received→running（带 execution），不执行任何操作。手机任务详情显示红色描边「打断任务」；单击只变实心红「再点一次，确认打断」，服务器仍为 running，3 秒后复原；连点两下后服务器收到 stop_requested（revision 4）；手机显示「正在停止，等待电脑确认」，步骤条第 1 格亮；模拟电脑 stop_unconfirmed→stopped 后显示「已停止，可追加指示继续」，第 2 格亮，「追加指示并继续」为主按钮。继续指示在合成任务上被挡（「真实会话目录中找不到原目标」），因没有真实原生会话，属预期。
