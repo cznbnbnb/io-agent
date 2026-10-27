@@ -54,7 +54,7 @@
     "answer_id": "answer-android-760daf6e90f4be383e9f0157041a9346a46a59ef13cdd64c7052aa8f19b4f99a",
     "answer_text": "好，随便退出。",
     "answer_received_by_current_cli": true,
-    "lens_visibility_wearer_confirmation": "pending",
+    "lens_visibility_wearer_confirmation": "wearer_confirmed_normal",
     "original_nod_confirm_setting_restored": true,
     "other_preferences_changed": false
   },
@@ -67,7 +67,7 @@
   },
   "watch_while_waiting": "disabled",
   "formal_services_pairing_and_default": "preserved",
-  "status": "diagnostic_installed; both comparison runs accepted native cmd1 and returned exact speech to current CLI; lens visibility and deliberate confirmation remain unverified; original unsolicited close not reproduced or fixed",
+  "status": "wearer confirmed both comparison runs normal; native cmd1 and exact speech returned in both; original unsolicited close not reproduced; root cause remains open, no behavioral fix claimed",
   "head_on_trial": {
     "request_id": "req-3edff9f6dcac9146f21035e1ffd8a0d258281eea48402a21175be53bf4c027e4",
     "review_at": "2026-10-27T14:01:20.644Z",
@@ -81,6 +81,13 @@
     "answer_id": "answer-android-f5f8850b2a81d00d6d830f2927208d8c7ce2bc1a536e72d5d39c66ad3dc1f521",
     "answer_text": "静止五秒。",
     "answer_received_by_current_cli": true,
-    "lens_visibility_and_deliberate_confirmation": "pending wearer report; command does not identify physical source"
+    "lens_visibility_and_deliberate_confirmation": "wearer_confirmed_normal; nod versus button not separately specified"
+  },
+  "wearer_feedback": {
+    "date": "2026-10-27",
+    "quote": "是的，正常，刚刚你修了bug嘛",
+    "both_comparison_runs_normal": true,
+    "individual_physical_input_methods": "not separately specified",
+    "original_failure_explanation": "still unknown; diagnostic build did not change submit/cancel behavior"
   }
 }
