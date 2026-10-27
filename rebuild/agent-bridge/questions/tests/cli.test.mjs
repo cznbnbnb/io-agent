@@ -80,4 +80,8 @@ for(const runtime of Object.keys(hosts))test(runtime+': actual registered CLI pr
  const retryOffline=await run(caller,'ask',offlineArgs);assert.equal(retryOffline.value.request_id,offlineAsk.value.request_id);
  const offlineStatus=await run(caller,'status',{request_id:offlineAsk.value.request_id});assert.equal(offlineStatus.value.state,'pending');assert.equal(offlineStatus.value.network_checked,false);
  fs.writeFileSync(enrollment,JSON.stringify({bridge,project_id:'caller-project',operation_key:'another-task',python}));const rebind=await run(caller,'register',undefined,['--config',enrollment]);assert.equal(rebind.code,2);assert.equal(rebind.value.error,'CALLER_PENDING_REBIND_DENIED');
+ // Server back: the old task ended there, so its unanswerable local question no longer pins the binding.
+ fs.writeFileSync(credential,JSON.stringify(agent));server=await listen(store,Number(new URL(bridge.base_url).port));
+ const released=await run(caller,'register',undefined,['--config',enrollment]);assert.equal(released.code,0,JSON.stringify(released));assert.notEqual(released.value.task_id,registered.value.task_id);
+ const oldQuestion=spawnSync(python,['-c',"import sqlite3,sys;print(sqlite3.connect(sys.argv[1]).execute('SELECT state FROM questions WHERE request_id=?',(sys.argv[2],)).fetchone()[0])",journal,offlineAsk.value.request_id],{encoding:'utf8'});assert.equal(oldQuestion.stdout.trim(),'expired');
 });

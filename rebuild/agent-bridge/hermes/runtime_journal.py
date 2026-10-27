@@ -615,6 +615,10 @@ class RuntimeJournal:
         with self.lock:
             return self.db.execute("SELECT 1 FROM questions WHERE operation_id=? AND (state='pending' OR (state='answered' AND consumed=0)) LIMIT 1", (operation_id,)).fetchone() is not None
 
+    def unsettled_questions(self, operation_id):
+        with self.lock:
+            return [{'request_id': row['request_id'], 'state': row['state']} for row in self.db.execute("SELECT request_id,state FROM questions WHERE operation_id=? AND (state='pending' OR (state='answered' AND consumed=0)) ORDER BY request_id", (operation_id,))]
+
     def settle(self, operation_id, state, outcome, event):
         if state not in {'completed', 'failed', 'cancelled', 'unknown'}:
             raise RuntimeJournalError('RUNTIME_OUTCOME_INVALID')

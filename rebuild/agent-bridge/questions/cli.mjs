@@ -33,12 +33,29 @@ async function withBridge(directory,callback,deadline=Date.now()+30000){const {c
 // Optional conversation topic (2026-10-23, user): the wearer cannot see the asking chat, so the task
 // command carries a short one-line topic, shown in the phone task list and the prompter header.
 const topicValid=t=>typeof t==='string'&&t.length>=1&&t.length<=40&&t.trim()===t&&!/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(t);
+// Stale binding release (2026-10-27, user): an earlier binding whose open questions can no longer be answered
+// (its task is gone from the server or has ended, or each question was expired/withdrawn there) must not block
+// a new registration forever. Only server evidence releases: an answer not yet consumed, a question the server
+// still holds open or any failed read keeps the denial. Released questions are closed locally as reported.
+const TASK_ENDED=new Set(['cancelled','completed','failed','expired']);
+const journalTool=(config,directory,code,...args)=>python(config.python,['-c',"import os,sys,json;sys.path.insert(0,sys.argv[1]);from context import load_context;"+code,here,...args],{env:{...process.env,IO_AGENT_CONTEXT:path.join(directory,'context.json')}});
+async function releasePrevious(previous){
+ const {config,context}=binding(previous);
+ const {questions}=journalTool(config,previous,"c,j=load_context(os.environ['IO_AGENT_CONTEXT'],readonly=True);print(json.dumps({'questions':j.unsettled_questions(c['operation_id'])}));j.close()");
+ if(!questions.length)return;
+ const client=new BridgeClient(config.bridge),read=async(kind,id)=>{try{return await client.object(kind,id);}catch(e){if(e instanceof BridgeError&&e.status===404)return null;fail('CALLER_PENDING_REBIND_DENIED');}};
+ // An unconsumed answer still matters while its task can continue; once the task ended it can resume nothing.
+ const task=await read('task',context.task_id),ended=!task||TASK_ENDED.has(task.state),closes=[];
+ if(!ended&&questions.some(q=>q.state==='answered'))fail('CALLER_PREVIOUS_ANSWER_UNCONSUMED');
+ for(const {request_id} of questions.filter(q=>q.state==='pending')){if(ended){closes.push([request_id,'expired']);continue;}const request=await read('request',request_id);if(!request||!['withdrawn','expired'].includes(request.state))fail('CALLER_PENDING_REBIND_DENIED');closes.push([request_id,request.state]);}
+ journalTool(config,previous,"c,j=load_context(os.environ['IO_AGENT_CONTEXT']);[j.close_question(c['operation_id'],r,s) for r,s in json.loads(sys.argv[2])];j.close();print('{}')",JSON.stringify(closes));
+}
 async function register(file){const spec=readPrivateJson(file),base=location(),keys=['bridge','operation_key','project_id','python',...('topic' in spec?['topic']:[]),...('task_hours' in spec?['task_hours']:[])];if(Object.keys(spec).sort().join()!==keys.sort().join()||('topic' in spec&&!topicValid(spec.topic))||('task_hours' in spec&&!(Number.isInteger(spec.task_hours)&&spec.task_hours>=1&&spec.task_hours<=12))||!path.isAbsolute(spec.python)||!fs.existsSync(spec.python)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.project_id)||!/^[A-Za-z0-9_.-]{1,128}$/.test(spec.operation_key))fail('CALLER_ENROLLMENT_INVALID');
  const route={computer_id:spec.bridge.computer_id,agent_id:spec.bridge.agent_id,project_id:spec.project_id,session_id:session};for(const v of Object.values(route))if(typeof v!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(v))fail('CALLER_ENROLLMENT_INVALID');
  const taskId=runtime+'-task-'+hash(JSON.stringify([spec.bridge.owner_id,spec.bridge.server_id,route,spec.operation_key]));
  const profile=hash(JSON.stringify([spec.bridge.owner_id,spec.bridge.server_id,spec.bridge.producer_id,route,spec.operation_key])),directory=privatePath(privateRoot,path.join(base,'registrations',profile),{directory:true,allowMissing:true});
  if(!fs.existsSync(base)){fs.mkdirSync(base);const acl=spawnSync(spec.python,['-I','-S','-B','-c',"import sys;sys.path.insert(0,sys.argv[1]);from pathlib import Path;from enroll_home import protect_directory;protect_directory(Path(sys.argv[2]))",path.join(here,'../hermes'),base],{encoding:'utf8',timeout:15000,windowsHide:true});if(acl.status!==0)fail('CALLER_PRIVATE_DIRECTORY_FAILED');fs.mkdirSync(path.join(base,'registrations'));}
- if(fs.existsSync(path.join(base,'active.json'))&&activeDirectory()!==directory){const previous=activeDirectory(),{config}=binding(previous);const probe=python(config.python,['-c',"import os,sys,json;sys.path.insert(0,sys.argv[1]);from context import load_context;c,j=load_context(os.environ['IO_AGENT_CONTEXT'],readonly=True);print(json.dumps({'pending':j.has_unsettled_questions(c['operation_id'])}));j.close()",here],{env:{...process.env,IO_AGENT_CONTEXT:path.join(previous,'context.json')}});if(probe.pending)fail('CALLER_PENDING_REBIND_DENIED');}
+ if(fs.existsSync(path.join(base,'active.json'))&&activeDirectory()!==directory)await releasePrevious(activeDirectory());
  if(!fs.existsSync(directory)){fs.mkdirSync(directory);
   const context={schema:1,runtime,caller:{session_id:session,cwd:workspace},journal:path.join(directory,'journal.sqlite'),binding:Object.fromEntries(['server_id','owner_id','producer_id','computer_id','agent_id'].map(k=>[k,spec.bridge[k]])),route,task_id:taskId,operation_id:'op-'+hash(JSON.stringify(taskId)),...('topic' in spec?{command:spec.topic}:{})};
   const created=new Date(),event={schema_version:'1.0',event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),kind:'task',producer_id:spec.bridge.producer_id,created_at:created.toISOString(),expires_at:new Date(created.getTime()+(spec.task_hours??1)*3600000).toISOString(),body:{task_id:taskId,revision:1,route,command:spec.topic??taskCommand(runtime),state:'queued',allow_create_session:false}};
@@ -89,7 +106,9 @@ async function join(value){
  if(!fs.existsSync(specFile)){const fd=fs.openSync(specFile,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(spec,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}else if(!isDeepStrictEqual(readPrivateJson(specFile),spec))fail('CALLER_REGISTRATION_CONFLICT');
  // Persist the key before network I/O: a lost registration reply must resume the same task.
  if(!pendingLive){const temporary=pendingFile+'.'+process.pid+'.partial';const fd=fs.openSync(temporary,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify({schema:1,operation_key:key,topic,device_id:device.device_id,task_expires_at:expires}));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(temporary,pendingFile);}
- const registered=await register(specFile);
+ // A previous binding that cannot be released refuses before anything is published: drop this call's pending key
+ // so it does not pin the topic for the next attempt.
+ let registered;try{registered=await register(specFile);}catch(e){if(!pendingLive&&['CALLER_PENDING_REBIND_DENIED','CALLER_PREVIOUS_ANSWER_UNCONSUMED'].includes(e.code))fs.rmSync(pendingFile,{force:true});throw e;}
  if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
  fs.unlinkSync(pendingFile);
  return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false};

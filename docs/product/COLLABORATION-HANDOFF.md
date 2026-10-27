@@ -1,3 +1,11 @@
+## [claude] 2026-10-27 过期连接自动释放：旧问题不再永久挡住 join
+
+现象：Claude 会话 join 一直报 `CALLER_PENDING_REBIND_DENIED`。原因是旧绑定里有 3 道 10-24 的过期问题仍是本地 pending；服务器历史重置后，旧任务和这些问题都已 404（旧绑定还报 `CURSOR_RESET_REQUIRED`），永远对不上账，于是换绑被永久拒绝。
+
+修复（`questions/cli.mjs` `releasePrevious`，`runtime_journal.unsettled_questions`）：换绑前用旧绑定自己的凭据向服务器核对。只有服务器能证明的才释放：旧任务 404 或已是 cancelled/completed/failed/expired，或该问题在服务器上是 expired/withdrawn；释放的问题在旧 journal 里按服务器状态关闭。旧任务仍活着且有未取用答案时报新码 `CALLER_PREVIOUS_ANSWER_UNCONSUMED`；读不到服务器、问题仍开放或本地独有时照旧 `CALLER_PENDING_REBIND_DENIED`。join 若在发布前被拒，会删掉本次写下的 pending 键，不再把主题锁 12 小时。
+
+验证：`questions/tests/cli.test.mjs` 新增"服务器恢复、旧任务已结束 → 换绑成功、旧问题变 expired"，与 join 测试 4/4 通过；`test_questions` 11、`test_runtime_journal`+`test_runtime_scheduler` 33 通过。真机：本会话 join 成功，checkpoint 已存服务器（眼镜显示未确认）。眼镜进度推送按用户 10-27 要求重新打开。
+
 ## [codex] 2026-10-26 手机 Claude/Codex 办公、精确打断和继续已验收；现装 dev118
 
 本轮手机目标完成，开发者全链在 dev117/10539 通过：CLI 设 Codex 默认→手机正常办公→原会话实际写 brief.md→最终结果回手机；临时选 Claude 下发不改变默认；两边父/子 Python 并行时手机精确停止 Codex，目标两进程提前退出而 Claude 两进程继续；随后同 task 追加继续，原文件8000改9000、nonce不变，最终结果回原任务。Claude 同样通过父/子进程停止、同任务追加修改和手机结果。不是用文字回复或新建任务替代执行。Codex 本次指示只启动一次，预先排队的合成 peer 指令之后正常执行，队列最终为空；前后台返回不重复执行。[完整验收证据](../../rebuild/android-app/phone-session-acceptance-dev117-2026-10-26.json)。caller606 false stopped、caller608 原生队列未启动仍作为失败历史保留。
