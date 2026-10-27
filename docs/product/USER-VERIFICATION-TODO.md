@@ -1,5 +1,7 @@
 # 还需要你验证的事项
 
+A27-N01 短任务通知与口述返回：dev138 候选已构建，尚未装机，手机实际仍 dev137。用户报告 85ddd5 的短回复未上镜；CLI 确实提交了通知，但父任务约两秒后完成，旧代码会过滤完成任务的有效通知。已修复这条可复现路径，保留有效期、最新一条和防重复。口述页已接入共用手势返回，并修复停止/保存后仍卡在 exitPending、准备中退出后自动开录。原版退出问题已通过实际方法复现，修复后 SDK29/33/36 返回测试及卡片839断言通过。用户已拔手机；等待新无线地址，先由开发者差异安装、自测系统返回和短回复通知，再集中核对普通消息是否实际到镜片。没有新的真机结论，不重跑完整R3口述。[候选证据](../../rebuild/android-app/notice-voice-back-dev138-2026-10-27.json)。
+
 A27-S04 电脑一次配对与 Agent 主动眼镜问答（2026-10-27 真机双向已通过）：dev137，电脑配对复用及新会话自动 join 已完成，CLI/ACP 新轮次自动绑定原 task。用户本次在眼镜口述“选一，双向链路一打通。”并确认，option_id=one、input_source=voice，同一手机 task 在真实 Codex 原 native session 继续并完成；服务器已有 glasses_displayed 与 answer agent_received 回执。手机“已完成”、任务结果及“问答·已回答”已实际读屏核对，不将另一个受管会话称为当前 Desktop 聊天。Claude 路径的 CLI Bash 权限须正常按次批准，本轮两次自动自检请求未获批准而超时，不记通过。当前 Desktop 默认设置返回 DEFAULT_SESSION_UNAVAILABLE，A27-S01 仍未完成；未恢复启动覆盖。旧测试目录已移除23条（含本批不用的临时项），实际文件/聊天保留。电脑配对确认页改动保持原 AgentUI；Windows/WorkBuddy 实机、首次电脑授权确认及系统重启另待验证。[证据](../../rebuild/agent-bridge/hosts/automatic-glasses-cli-proof-2026-10-27.json)。
 
 A27-S03 正式常驻可用（开发者已自测）：本Mac现保留“Codex · 手机工作区”（默认）、“Claude Code · 手机工作区”，手机选择器均显示在线可接收；实际手机下发、任务完成及结果回显通过。两条服务重启后恢复原生session/上下文通过。服务会保留，不再随QA收尾撤销；用户无需重复验收。系统注销/重启未实测，已配置登录自启；睡眠/断网仍会离线。原Desktop聊天仍属A27-S01未完成范围。[证据](../../rebuild/agent-bridge/hosts/formal-resident-proof-2026-10-27.json)。

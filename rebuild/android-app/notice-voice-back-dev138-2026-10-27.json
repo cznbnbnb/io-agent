@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-27T12:40:51.711359+00:00",
+  "candidate": {
+    "version": "0.5.3-dev138",
+    "version_code": 10560,
+    "sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "installed": false
+  },
+  "actual_phone_version_last_verified": "0.5.3-dev137",
+  "phone_connection": "disconnected_by_user_pending_new_wireless_address",
+  "notification_sample": {
+    "task_id": "task-android-3883ef45899696c5d903311a2594c57d1daba3c6593b9a8cf0024b91a839d83b",
+    "message_id": "notice-2c97765f8cc1177471ab419ad57497f825db148af3cf0ceac7605dfc1765a8a5",
+    "message_stored_at": "2026-10-27T12:27:33.259Z",
+    "task_completed_at": "2026-10-27T12:27:35.397Z",
+    "cli_really_called": true,
+    "server_stored": true,
+    "phone_notification_posted_confirmed": false,
+    "lens_display_confirmed": false,
+    "deterministic_drop_path": "TaskNotice rejected an unexpired notice once its parent completed; delayed polling or cooldown makes short replies undeliverable"
+  },
+  "changes": [
+    "Allow explicit unexpired notices on completed parents; preserve routing, newest-per-task, expiry, repeat suppression and reject cancelled/failed/expired parents",
+    "Legacy EditorialUI uses the shared AgentDialog back dispatcher; voice page no longer disables default return",
+    "Voice exit completion finishes after stop or draft persistence; exiting during prepare disables auto-start; no new confirm card while exiting; stop errors remain visible"
+  ],
+  "checks": {
+    "agent_card_jvm_assertions": 839,
+    "wire_hot_path_assertions": 50,
+    "wire_concurrent_cases": 8000,
+    "actual_original_voice_exit_bug_reproduced": true,
+    "sdk_back_dispatch_tested": [
+      29,
+      33,
+      36
+    ],
+    "page_exit_cases": [
+      "stop_then_exit",
+      "prepare_then_exit_no_auto_start",
+      "save_edit_then_exit",
+      "failed_stop_stays_open",
+      "stop_in_progress_stays_open",
+      "foreign_owner_not_stopped"
+    ],
+    "java_d8_apk_signing_and_audits": true,
+    "deferred_sources_restored_identically": true,
+    "phone_tested": false,
+    "lens_tested": false
+  },
+  "delta": {
+    "baseline_sha256": "9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4",
+    "candidate_sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
+    "apk_bytes": 430207336,
+    "delta_bytes": 1919784,
+    "commands": 8091,
+    "delta_sha256": "6c5653f11133cacd6a6537582d0fa5970dcb563c78528d10fcbbd1eadd59fce4",
+    "reconstruction_hash_verified": true
+  },
+  "formal_services_and_credentials": "preserved",
+  "watch_while_waiting_for_phone": "disabled"
+}

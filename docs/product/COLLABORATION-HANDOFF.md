@@ -1,3 +1,14 @@
+## [codex] 2026-10-27 dev138候选已构建：短任务通知与口述返回修复，等待无线地址装机
+
+代码已提交推送 `560362d`，本条补齐候选证据与验收交接。用户已拔USB并表示稍后给无线地址；实际手机仍dev137，未声称候选已在手机修复。两条正式常驻服务、配对及默认保留，等待设备期间的进度watch已核对disabled。
+
+- **通知**：真实task `task-android-3883ef45899696c5d903311a2594c57d1daba3c6593b9a8cf0024b91a839d83b` 的CLI确实提交了“测试对话，收到。”：通知12:27:33.259Z存储，父task在12:27:35.397Z完成。TaskNotice旧逻辑只接受活动父任务，稍晚追赶或等待静默时间时会永久过滤仍有效的显式通知。现在完成任务的有效notice继续按期限投送；最新一条、防重复、静默与取消/失败/过期保护不变。手机post和原厂镜片转发还待真机核对，不将server_stored冒充镜片已显示。
+- **返回**：旧口述页使用普通Dialog并禁止默认返回，只监听传统KeyEvent，漏了Android13+手势；Editorial Screen现复用既有AgentDialog，口述页使用同一backHandler，顶部/系统返回走相同路径。实际Page.completed还存在owned且不再需要停止时始终不退出的问题，原版方法已在JVM复现。修复后停止完成、准备结束、编辑保存后真正退出；准备中返回不再自动录音，退出时不发新确认卡；停止失败仍留页面核对，不停其他owner。颜色、字号与布局不改。
+- **验证**：卡片/队列839断言、热路径50断言＋8000并发；SDK29/33/36共用返回、选择层级与回调清理，及实际语音Page方法的停止、草稿、错误、owner变化回归通过。256源文件Java/D8/签名和原厂dex审计通过。voice7未跟踪Java构建时暂移后逐字恢复，没有装包/提交，DS_Store未提交；Claude最新仍6abb2d9，未碰对方checkout。
+- **候选**：dev138 /10560 SHA `31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6`，未安装。基线dev137 SHA `9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4`；1,919,784字节差异已生成，安装helper `/tmp/io-acp-dev138-install.py <当前adb serial>` 先核对实际基线，再重建、安装和核对完整SHA。验证前暂保dev136/137/138，装138成功后按SHA清136，仅留138/137。[候选证据](../../rebuild/android-app/notice-voice-back-dev138-2026-10-27.json)。
+
+下一步：收到地址后核对实际版本，差异安装dev138，优先自测无采音的系统返回和短任务完成后通知，再集中确认必要的镜片普通消息。不重开已通过的完整R3；当前Desktop原对话远程唤起仍是独立未完成项。离线构建锁在提交收尾后释放。
+
 ## [codex] 2026-10-27 一次电脑配对便携包已按已推送源码核对
 
 本批代码已提交推送 `6787022`，随后重新打包同一便携ZIP（不额外保存副本），manifest精确指向该源码。ZIP 161,715字节，含manifest共43文件，SHA `e09627b50033d6c82f52f7bf7d5185c5d9f07f4ea8823b28535de75ce32abdda`。Node22独立解压核对42份文件SHA，首次电脑配对/二维码字符串→新session无扫码复用→首次notify自动join→同路问答收答通过，未用真实手机、外网或生产凭据；Windows/WorkBuddy执行仍未验。固定安装副本已记录本批源码commit及逐文件SHA；两个正式job保持运行。真机完整眼镜往返、dev137与当前Desktop默认设置拒绝的范围见下一条。[包证据](../../rebuild/agent-bridge/hosts/automatic-glasses-cli-package-2026-10-27.json)。

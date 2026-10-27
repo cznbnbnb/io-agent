@@ -1,5 +1,7 @@
 # 雷鸟 iO：按用户场景逐项完成的开发计划
 
+2026-10-27【dev138离线候选，未装机】修复已完成短任务的有效通知被过滤，以及口述页未接入全面屏返回、停止/保存后退出卡住。退出准备页不再自动开始录音，停止失败仍保留核对。卡片839断言、热路径50断言＋8000并发、实际原版退出失败复现和SDK29/33/36返回回归通过，Java/D8/签名审计完成。手机已由用户拔线，当前仍dev137；等待新无线地址后差异安装并真机核对。当前Desktop原对话远程唤起仍未完成，正式服务和默认不变。
+
 2026-10-27【电脑一次配对/主动 CLI】dev137 已差异安装，扫码/粘贴新增明确电脑授权范围；已配对电脑的新 profile 直接 run，普通 CLI 新 session 首次 ask/notify/checkpoint 自动 join。ACP 每轮自动带原 task/route/native turn 的 CLI，通过工作区邮箱交给常驻连接器联网，未更改沙箱/审批/模型/桌面启动。真实 Codex 已完成手机下发→Agent notify/ask→眼镜口述确认→同 task 继续→服务端完成；手机“已完成”、最终结果和已回答问答均已实际读屏核对。用户要求当前 Desktop 对话设默认，服务器以 DEFAULT_SESSION_UNAVAILABLE 拒绝；A27-S01 仍未完成，默认仍是可执行的 Codex 手机工作区。已移除旧测试会话目录23条，保留历史、实际工作区及两条正式服务。
 
 2026-10-27 启动故障纠正（覆盖下方待重启说明）：用户报告并恢复了真实 Desktop 启动失败。本机日志确认转接期间出现 `Desktop startup policy read failed ... phase=policy-read reason=protocol`；撤销启动覆盖后 App PID9364 使用自带 Codex，记录 `app_start outcome=success`，该次日志无 policy-read 失败。两项 launch 环境覆盖均已为空；本工具登记的 Desktop 集成已单独标记 disabled，未卸载 Claude 插件。安装器已移除 Desktop 全局注入实现，旧 `--codex` / `--desktop-proxy --apply` 明确拒绝；不能要求用户再次重启或把组件测试写成 Desktop 可用。A27-S01 当前为失败后停用、待隔离替代方案；普通原会话手机控制未完成。眼镜问答、已验 Claude 和显式共享终端路径保留，手机仍 dev134。本批不重装、不改模型/审批/账号凭据。[停用与恢复证据](../../rebuild/agent-bridge/hosts/desktop-relay-withdrawal-2026-10-27.json)。
