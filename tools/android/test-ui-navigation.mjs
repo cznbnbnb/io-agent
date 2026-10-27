@@ -5,7 +5,8 @@ const repo=process.cwd(),temp=fs.mkdtempSync(path.join(os.tmpdir(),'io-navigatio
 function put(name,text){const p=path.join(temp,name);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,text);}
 function run(cmd,args){const r=spawnSync(cmd,args,{encoding:'utf8',timeout:30000});if(r.status!==0)throw Error(r.stdout+r.stderr);if(r.stdout)process.stdout.write(r.stdout);}
 put('android/R.java','package android;public class R {public static class style {public static final int Theme_Material_NoActionBar=1;}}');
-put('android/app/Activity.java','package android.app;public class Activity {}');
+put('android/app/Activity.java','package android.app;public class Activity {public void runOnUiThread(Runnable r){r.run();}public boolean isDestroyed(){return false;}}');
+put('android/util/Log.java','package android.util;public class Log {public static int i(String tag,String message){return 0;}}');
 put('android/os/Build.java','package android.os;public class Build {public static class VERSION {public static int SDK_INT=36;}}');
 put('android/window/OnBackInvokedCallback.java','package android.window;public interface OnBackInvokedCallback {void onBackInvoked();}');
 put('android/window/OnBackInvokedDispatcher.java','package android.window;public class OnBackInvokedDispatcher {public static final int PRIORITY_DEFAULT=0;public OnBackInvokedCallback callback;public int adds,removes;public void registerOnBackInvokedCallback(int p,OnBackInvokedCallback c){callback=c;adds++;}public void unregisterOnBackInvokedCallback(OnBackInvokedCallback c){if(callback!=c)throw new AssertionError();callback=null;removes++;}}');
@@ -40,10 +41,45 @@ public class NavigationTest {
   System.out.println("UI navigation: deferred swipe, detached/cancelled/vertical gestures, 1:1 tracking; SDK29/33/36 sheet-selection-page back and callback cleanup passed");
  }
 }`);
+// Execute the actual voice page completion/exit methods against an asynchronous
+// runtime. No microphone, phone input or model reply is simulated as real evidence.
+function voiceSource(source){
+ function method(name){const start=source.indexOf('  void '+name+'(',source.indexOf('private static final class Page'));if(start<0)throw Error('Voice method missing');let braces=0,opened=false;for(let i=start;i<source.length;i++){if(source[i]==='{'){braces++;opened=true;}else if(source[i]==='}'&&--braces===0&&opened)return source.slice(start,i+1);}throw Error('Voice method incomplete');}
+ put('com/turboio/addon/VoiceAnswerRuntime.java',`package com.turboio.addon;class VoiceAnswerRuntime {
+  interface Result {void done(Snapshot value,String code);} static class Snapshot {String phase;boolean needsStop,canSave,canStart;Snapshot(String phase,boolean stop,boolean save){this.phase=phase;needsStop=stop;canSave=save;}}
+  Result pending;int stops,edits;String edited;void stop(boolean cancel,Result reply){stops++;pending=reply;}void edit(String text,Result reply){edits++;edited=text;pending=reply;}void finish(Snapshot value,String code){Result reply=pending;pending=null;if(reply==null)throw new AssertionError();reply.done(value,code);}
+ }`);
+ put('com/turboio/addon/VoicePageTest.java',`package com.turboio.addon;
+ import android.app.Activity;import android.os.Build;
+ public class VoicePageTest {
+  final Activity activity=new Activity();final VoiceAnswerRuntime runtime=new VoiceAnswerRuntime();VoiceAnswerRuntime.Snapshot latest;
+  boolean closed,busy,dirty,autoStart=true,fromGlasses,glassesSave,exitPending,exitStopRequested,owns=true;int leaves;
+  final Text text=new Text();static class Text {String value="edited answer";String getText(){return value;}}
+  boolean owned(){return owns&&latest!=null;}void begin(){busy=true;}void render(VoiceAnswerRuntime.Snapshot v,String code){latest=v;}void leave(){closed=true;leaves++;}
+  ${method('completed')}
+  ${method('exit')}
+  static void check(boolean b){if(!b)throw new AssertionError();}
+  static VoiceAnswerRuntime.Snapshot v(String phase,boolean stop,boolean save){return new VoiceAnswerRuntime.Snapshot(phase,stop,save);}
+  public static void main(String[] args){
+   VoicePageTest p=new VoicePageTest();p.latest=v("CAPTURING",true,false);p.exit();check(p.exitPending&&p.runtime.stops==1&&!p.closed);p.runtime.finish(v("CANCELLED",false,false),"");
+   if(args.length>0){check(!p.closed&&p.exitPending);System.out.println("Original voice exit: reproduced stopped capture trapped behind exitPending");return;}
+   check(p.closed&&p.leaves==1&&!p.autoStart);
+   p=new VoicePageTest();p.busy=true;p.exit();check(!p.autoStart&&p.exitPending);p.completed(v("PREPARED",false,false),"");check(p.closed&&p.runtime.stops==0);
+   p=new VoicePageTest();p.latest=v("REVIEW",false,true);p.dirty=true;p.exit();check(p.runtime.edits==1&&!p.closed);p.runtime.finish(v("REVIEW",false,true),"");check(p.closed&&!p.dirty&&p.runtime.edited.equals("edited answer"));
+   p=new VoicePageTest();p.latest=v("CAPTURING",true,false);p.exit();p.runtime.finish(v("RECOVERY",true,false),"VOICE_STOP_QUERY_FAILED");check(!p.closed&&!p.exitPending);
+   p=new VoicePageTest();p.latest=v("CAPTURING",true,false);p.exit();p.runtime.finish(v("STOPPING",true,false),"");check(!p.closed&&p.runtime.stops==1);
+   p=new VoicePageTest();p.latest=v("CAPTURING",true,false);p.exit();p.owns=false;p.runtime.finish(v("CAPTURING",true,false),"");check(p.closed&&p.runtime.stops==1);
+   for(int sdk:new int[]{29,33,36}){Build.VERSION.SDK_INT=sdk;final VoicePageTest page=new VoicePageTest();page.latest=v("REVIEW",false,true);AgentDialog dialog=new AgentDialog(page.activity);dialog.backHandler(()->{page.exit();return true;});dialog.show();if(sdk>=33)dialog.dispatcher.callback.onBackInvoked();else dialog.onBackPressed();check(page.closed&&page.leaves==1);dialog.dismiss();if(sdk>=33)check(dialog.dispatcher.removes==1);}
+   System.out.println("Voice back: SDK29/33/36 shared gesture dispatch, stop-before-exit, deferred prepare, draft preservation, stop failure and foreign owner passed");
+  }
+ }`);
+}
 function sources(){const out=[];function walk(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())walk(f);else if(f.endsWith('.java'))out.push(f);}}walk(temp);return out;}
 function swipeSource(source){const a=source.indexOf(' static final class SwipeRow'),b=source.indexOf(' static LinearLayout card',a);put('com/turboio/addon/MaterialReadingUI.java','package com.turboio.addon;import android.app.Activity;import android.view.*;import android.widget.*;class MaterialReadingUI {\n'+source.slice(a,b)+'\n}');}
 try{
  const old=spawnSync('git',['show','fa2968b:rebuild/android-app/src/com/turboio/addon/MaterialReadingUI.java'],{encoding:'utf8'});if(old.status!==0)throw Error('Missing regression baseline');
  swipeSource(old.stdout);run('javac',['-d',path.join(temp,'old'),...sources()]);run('java',['-cp',path.join(temp,'old'),'com.turboio.addon.NavigationTest','baseline']);
- swipeSource(fs.readFileSync('rebuild/android-app/src/com/turboio/addon/MaterialReadingUI.java','utf8'));run('javac',['-d',path.join(temp,'new'),...sources()]);run('java',['-cp',path.join(temp,'new'),'com.turboio.addon.NavigationTest']);
+ voiceSource(spawnSync('git',['show','ca48682:rebuild/android-app/src/com/turboio/addon/VoiceAnswerWorkspace.java'],{encoding:'utf8'}).stdout);run('javac',['-d',path.join(temp,'voice-old'),...sources()]);run('java',['-cp',path.join(temp,'voice-old'),'com.turboio.addon.VoicePageTest','baseline']);
+ voiceSource(fs.readFileSync('rebuild/android-app/src/com/turboio/addon/VoiceAnswerWorkspace.java','utf8'));
+ swipeSource(fs.readFileSync('rebuild/android-app/src/com/turboio/addon/MaterialReadingUI.java','utf8'));run('javac',['-d',path.join(temp,'new'),...sources()]);run('java',['-cp',path.join(temp,'new'),'com.turboio.addon.NavigationTest']);run('java',['-cp',path.join(temp,'new'),'com.turboio.addon.VoicePageTest']);
 }finally{fs.rmSync(temp,{recursive:true,force:true});}

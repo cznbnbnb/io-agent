@@ -23,9 +23,9 @@ final class EditorialUI {
         LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(dp(a,60),dp(a,48));p.leftMargin=dp(a,16);row.addView(s,p);parent.addView(row,new LinearLayout.LayoutParams(-1,-2));s.setOnCheckedChangeListener(listener);row.setOnClickListener(v->s.setChecked(!s.isChecked()));return s;
     }
     static final class Screen {
-        final Dialog dialog;final LinearLayout body,root;final Activity activity;
+        final AgentDialog dialog;final LinearLayout body,root;final Activity activity;
         Screen(Activity a,String title){
-            activity=a;dialog=new Dialog(a,android.R.style.Theme_Material_NoActionBar);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            activity=a;dialog=new AgentDialog(a);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             root=column(a);root.setBackground(new GradientDrawable(GradientDrawable.Orientation.TL_BR,new int[]{0xff31221e,BG,0xff211e18}));
             int side=dp(a,20);root.setPadding(side,0,side,0);
             LinearLayout header=new LinearLayout(a);header.setGravity(Gravity.CENTER_VERTICAL);
@@ -34,7 +34,7 @@ final class EditorialUI {
             TextView label=text(a,title,22,INK);label.setTypeface(null,Typeface.BOLD);label.setMaxLines(1);label.setEllipsize(android.text.TextUtils.TruncateAt.END);
             header.addView(label,new LinearLayout.LayoutParams(0,-2,1));root.addView(header);
             body=column(a);body.setPadding(0,dp(a,8),0,dp(a,28));ScrollView scroll=new ScrollView(a);scroll.setFillViewport(true);scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-            dialog.setContentView(root);back.setOnClickListener(v->dialog.dismiss());dialog.show();Window w=dialog.getWindow();w.setLayout(-1,-1);
+            dialog.setContentView(root);back.setOnClickListener(v->dialog.onBackPressed());dialog.show();Window w=dialog.getWindow();w.setLayout(-1,-1);
             w.setStatusBarColor(BG);w.setNavigationBarColor(BG);w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);w.getDecorView().setSystemUiVisibility(0);
             if(android.os.Build.VERSION.SDK_INT>=30){
                 w.setDecorFitsSystemWindows(false);

@@ -52,6 +52,17 @@ final class TaskNoticeQueueTest {
    yes(q.select(Arrays.asList(a,expired),Collections.singleton(expired.key),NOW)==null);
    yes(q.select(Arrays.asList(a),Collections.emptySet(),NOW)==null);
   }
+  // Reproduce the real seven-second reply: the task completes before the phone
+  // catches up or its previous notice cooldown ends. Explicit delivery survives.
+  File completedDir=new File(root,"notice-completed-reply");completedDir.mkdirs();
+  try(Disk disk=new Disk(completedDir)){
+   Map<String,Object> done=AgentCardTest.task(c);done.put("state","completed");TaskWire.body(done).put("state","completed");
+   TaskNotice reply=TaskNotice.read(c,message(c,20),done);TaskNoticeQueue q=new TaskNoticeQueue(disk);
+   q.closed(NOW);yes(q.select(Arrays.asList(reply),disk.offered,NOW+59000)==null);
+   yes(q.select(Arrays.asList(reply),disk.offered,NOW+60000)==reply);yes(q.claim(reply,NOW+60000));
+   q.closed(NOW+60000);yes(new TaskNoticeQueue(disk).select(Arrays.asList(reply),disk.offered,NOW+120000)==null);
+   yes(!reply.live(reply.expires));
+  }
   File failure=new File(root,"notice-failure");failure.mkdirs();
   try(Disk disk=new Disk(failure)){
    TaskNoticeQueue q=new TaskNoticeQueue(disk);disk.fail=true;yes(!q.claim(d,NOW));yes(!q.healthy());yes(q.select(backlog,Collections.emptySet(),NOW)==null);yes(disk.offered.isEmpty());

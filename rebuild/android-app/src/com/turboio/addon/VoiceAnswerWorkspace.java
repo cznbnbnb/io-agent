@@ -110,15 +110,24 @@ final class VoiceAnswerWorkspace {
     public void onActivityDestroyed(Activity a){if(a==activity){if(owned()&&(busy||latest.needsStop))runtime.stop(true,(value,code)->{});detach();}}
     public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivityStopped(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
    };
-   screen.dialog.setCanceledOnTouchOutside(false);screen.dialog.setCancelable(false);
-   screen.dialog.setOnKeyListener((dialog,key,event)->{if(key!=KeyEvent.KEYCODE_BACK)return false;if(event.getAction()==KeyEvent.ACTION_UP)exit();return true;});
-   ViewGroup header=(ViewGroup)screen.root.getChildAt(0);for(int i=0;i<header.getChildCount();i++){View child=header.getChildAt(i);if("返回".contentEquals(child.getContentDescription()==null?"":child.getContentDescription()))child.setOnClickListener(v->exit());}
+   screen.dialog.setCanceledOnTouchOutside(false);
+   screen.dialog.backHandler(()->{exit();return true;});
    screen.dialog.setOnDismissListener(dialog->{if(owned()&&(busy||latest.needsStop))runtime.stop(true,(value,code)->{});detach();});
   }
   void open(){if(fromGlasses){glassesPage=new java.lang.ref.WeakReference<>(this);AgentCardRuntime.enterPhone(binding,requestId);runtime.keepInBackground(this,true);}application.registerActivityLifecycleCallbacks(lifecycle);busy=true;runtime.observe(activity,observer);runtime.prepare(binding,requestId,revision,fingerprint,this::completed);}
   boolean owned(){return latest!=null&&binding.equals(latest.binding)&&requestId.equals(latest.requestId);}
   void detach(){if(closed)return;closed=true;if(fromGlasses){AgentCardRuntime.leavePhone(binding,requestId);runtime.keepInBackground(this,false);}runtime.unobserve(observer);application.unregisterActivityLifecycleCallbacks(lifecycle);}
-  void completed(VoiceAnswerRuntime.Snapshot value,String code){activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;busy=false;if(fromGlasses)android.util.Log.i("TurboIOVoice","page step done code="+code+" phase="+(value==null?null:value.phase)+" canStart="+(value!=null&&value.canStart)+" auto="+autoStart);if(code!=null&&!code.isEmpty()){exitPending=false;glassesSave=false;}render(value,code);if(glassesSave&&"SAVED".equals(value.phase)&&!closed){glassesSave=false;leave();return;}if(exitPending&&!closed){if(owned()&&value.needsStop&&!exitStopRequested){exitStopRequested=true;begin();runtime.stop(true,this::completed);}else if(!owned())leave();}});}
+  void completed(VoiceAnswerRuntime.Snapshot value,String code){activity.runOnUiThread(()->{
+   if(closed||activity.isDestroyed())return;busy=false;
+   if(fromGlasses)android.util.Log.i("TurboIOVoice","page step done code="+code+" phase="+(value==null?null:value.phase)+" canStart="+(value!=null&&value.canStart)+" auto="+autoStart);
+   if(code!=null&&!code.isEmpty()){exitPending=false;glassesSave=false;}
+   render(value,code);
+   if(glassesSave&&"SAVED".equals(value.phase)&&!closed){glassesSave=false;leave();return;}
+   if(!exitPending||closed)return;
+   if(!owned()){leave();return;}
+   if(value.needsStop){if(!exitStopRequested){exitStopRequested=true;begin();runtime.stop(true,this::completed);}return;}
+   exit();
+  });}
   void render(VoiceAnswerRuntime.Snapshot value,String code){
    if(closed||activity.isDestroyed()||value==null)return;latest=value;if(code!=null&&!code.isEmpty())error=code;
    boolean same=owned();if(!same){status.setText(error.isEmpty()?"正在核对原问题…":label(error));text.setEnabled(false);actions.removeAllViews();EditorialUI.button(activity,actions,"返回原问题",false,this::exit);return;}
@@ -140,7 +149,7 @@ final class VoiceAnswerWorkspace {
    if(value.needsStop){button("结束口述并检查全文",true,()->{begin();runtime.stop(false,this::completed);});button("停止本次口述并保留草稿",false,()->{begin();runtime.stop(true,this::completed);});if(!"CAPTURING".equals(value.phase))button("重试停止核对",false,()->{begin();runtime.retryCleanup(this::completed);});}
    // Glasses-started dictation: the finished, unedited draft is offered once per text for knob confirmation.
    // A refused offer (busy glasses, expired login) is retried every 3 s while this exact draft is on screen.
-   if(fromGlasses&&review&&value.canSave&&value.cleaned&&!value.needsStop&&!busy&&!dirty&&value.text!=null&&!value.text.equals(offeredText)&&SystemClock.elapsedRealtime()>=retryAt){
+   if(fromGlasses&&!exitPending&&review&&value.canSave&&value.cleaned&&!value.needsStop&&!busy&&!dirty&&value.text!=null&&!value.text.equals(offeredText)&&SystemClock.elapsedRealtime()>=retryAt){
     if(AgentCardRuntime.offerConfirm(activity,binding,requestId,revision,value.text)){offeredText=value.text;refused="";android.util.Log.i("TurboIOVoice","confirm offered");}
     else{refused=AgentCardRuntime.lastMessage();android.util.Log.i("TurboIOVoice","confirm refused: "+refused);retryAt=SystemClock.elapsedRealtime()+3000;text.postDelayed(()->{if(!closed&&latest!=null)render(latest,"");},3100);}
    }
@@ -185,7 +194,7 @@ final class VoiceAnswerWorkspace {
    glassesSave=true;save();return true;
   }
   void leave(){screen.dialog.dismiss();if(refresh!=null)refresh.run();}
-  void exit(){if(closed)return;if(busy){exitPending=true;return;}if(owned()&&latest.needsStop){exitPending=true;exitStopRequested=true;begin();runtime.stop(true,this::completed);return;}
+  void exit(){if(closed)return;autoStart=false;if(busy){exitPending=true;return;}if(owned()&&latest.needsStop){exitPending=true;exitStopRequested=true;begin();runtime.stop(true,this::completed);return;}
    if(owned()&&dirty&&latest.canSave&&"REVIEW".equals(latest.phase)){String complete=text.getText().toString();exitPending=true;begin();runtime.edit(complete,(value,code)->{if(code==null||code.isEmpty())dirty=false;completed(value,code);});return;}leave();}
  }
 }

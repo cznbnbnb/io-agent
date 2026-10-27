@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "at": "2026-10-26T09:05:19.683Z",
-  "assertions": 831,
+  "at": "2026-10-27T12:36:21.560Z",
+  "assertions": 839,
   "sources": [
     {
       "path": "src/com/turboio/addon/TaskNoticeQueue.java",
@@ -9,7 +9,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "b3ed7476fc4bef4f565a0bca58e3ff98569d67c7b7b7b7fdaa7384a25e7fe663"
+      "sha256": "96a8cb2fe68d16b14f02ffee1a9b0df171e4c826466db48d649cbe70558a5c77"
     },
     {
       "path": "src/com/turboio/addon/AgentCardRequest.java",
@@ -41,23 +41,23 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
+      "sha256": "c916d8debb6dc9c3be9361f090434c93362edb5339c83ff9e8c1d435e504fa82"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "cb4f0b521e3a43ff874074426a23bf8d5cb669972c36b9afd114a200094e626e"
+      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "8f0e60047e71b750cda4fbd71558eba550872e844d902f423eeaa364447da973"
+      "sha256": "52b43f32b4089981645fe7b7bfaab5d711b3178740169d8c91f283f8c42afdc8"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a675adfc53a8a5d0297a9908ffe8ecaf60dde3e2e28090b9306a4c944687dfa2"
+      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "b1485e4bb6c920dd592200625d3582e1915454c47fb3646822a1c66e943547a7"
+      "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -77,11 +77,11 @@
     },
     {
       "path": "../../tools/android/TaskNoticeQueueTest.java",
-      "sha256": "f9cfdfeed262294ccb986095ebdd6a977e51ee55bed20920007bcde8e46c5f2c"
+      "sha256": "c5a9f177ae5723a50b0159c191d857b5360d325b97b938cb44b2bd71cb868954"
     },
     {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "f7d40353bbd592f889dc13b99956e79740059bcd91a6a5be5827e55c3e5a9104"
+      "sha256": "3a1345d22fcfb718bdc89a8117b37e94e5e3c20818eba0f701ccf0893f192f24"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",

@@ -68,7 +68,8 @@ public final class AgentCardTest {
    TaskConnection repaired=TaskConnection.parse(WireJson.bytes(v),NOW);TaskNotice again=TaskNotice.prepare(repaired,notice,parent,NOW);yes(!repaired.binding().equals(c.binding())&&again.key.equals(prepared.key)&&!again.legacy.equals(prepared.legacy));}
   rejects(()->TaskNotice.prepare(connection("claude"),notice,parent,NOW));
   rejects(()->TaskNotice.prepare(c,notice,parent,NOW+3600000));
-  Map<String,Object> closed=WireJson.map(WireJson.copy(parent));closed.put("state","completed");TaskWire.body(closed).put("state","completed");rejects(()->TaskNotice.prepare(c,notice,closed,NOW));
+  Map<String,Object> closed=WireJson.map(WireJson.copy(parent));closed.put("state","completed");TaskWire.body(closed).put("state","completed");yes(TaskNotice.prepare(c,notice,closed,NOW).live(NOW));
+  for(String end:new String[]{"cancelled","failed","expired"}){Map<String,Object> rejected=WireJson.map(WireJson.copy(parent));rejected.put("state",end);TaskWire.body(rejected).put("state",end);rejects(()->TaskNotice.prepare(c,notice,rejected,NOW));}
   Map<String,Object> other=WireJson.map(WireJson.copy(notice));TaskWire.body(other).put("request_id","some-question");final Map<String,Object> question=other;rejects(()->TaskNotice.prepare(c,question,parent,NOW));
   other=WireJson.map(WireJson.copy(notice));TaskWire.body(other).put("channel","result");final Map<String,Object> result=other;rejects(()->TaskNotice.prepare(c,result,parent,NOW));
  }

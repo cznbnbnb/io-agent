@@ -86,7 +86,7 @@
     },
     {
       "path": "src/com/turboio/addon/EditorialUI.java",
-      "sha256": "6ce37ca65485acf7b7de9ad7dab4f339ca292bbb6ad56d74fd0c9e2bea1fbf2d"
+      "sha256": "48c640368f8e2b28fa21e089bde9145303e9e61da47bc1f0f0e7310590c880e4"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/EntryProbe.java",
@@ -914,7 +914,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "17e055df807fdcefe6fad8ba82cd2c6781bab11af6d01c3d374badf15cfe21b3"
+      "sha256": "96a8cb2fe68d16b14f02ffee1a9b0df171e4c826466db48d649cbe70558a5c77"
     },
     {
       "path": "src/com/turboio/addon/TaskNoticeQueue.java",
@@ -986,7 +986,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerWorkspace.java",
-      "sha256": "4330883085880309c6e2b90f25dc0985e499ebed26dc2b41f5f0c234b46905b6"
+      "sha256": "dec181b2fb6231ffb0f2cd006ab05e74ff46b14f9efcbe4a880f9211f6722ff8"
     },
     {
       "path": "src/com/turboio/addon/VoiceAudioArchive.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "44ba1b148ab634a5994ebc4aba64c351aee7f0ac7b5cfd7d5618bffcf6f52629"
+      "sha256": "230e43fe0ed8dc18810ceabe891e3b26000244f390b8b3874f03b528db9d2faa"
     }
   ],
-  "product_sha256": "4306f14b7d7a553f52adbcddc238842759ad2e04c1e7f296c8663537d0e8e658",
-  "addon_sha256": "ffe5320679fd833e61a9af18e357a188577b8a6287c9eea63066693bea6ffcf7",
+  "product_sha256": "714ea3275fb047ca5e94c3931a98a195686be63df991074e246ecac3cacaacc6",
+  "addon_sha256": "4aee99223d6146b4a5aeca8402de31c2ad315e5abf800c81863fb24db56c0779",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
