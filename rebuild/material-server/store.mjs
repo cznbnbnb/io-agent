@@ -32,7 +32,7 @@ const TASK_TRANSITIONS={
   execution_unknown:['agent_received','running','waiting_answer','completed','failed','cancelled'],
   stop_requested:['stop_unconfirmed','stopped','completed','failed','execution_unknown','running'],
   stop_unconfirmed:['stop_requested','stopped','completed','failed','execution_unknown'],
-  stopped:['resume_requested'],
+  stopped:['resume_requested','cancelled'],
   resume_requested:['agent_received','stopped','failed','expired','execution_unknown'],
   cancelled:[],completed:[],failed:[],expired:[]};
 const TASK_CONTROL_STATES=new Set(['stop_requested','stop_unconfirmed','stopped','resume_requested']);
@@ -349,14 +349,16 @@ export class MaterialStore {
     if(ex.turn_id!==null&&!ex.turn_id.trim())reject(409,'TASK_EXECUTION_INVALID');
     const newControl=!equalOptional(control,prior.control);
     if(newControl){
-      if(!control||!old||!equalOptional(ex,old))reject(409,'TASK_CONTROL_INVALID');
+      // "end" closes a proven-stopped turn: nothing runs, so only the phase moves to cancelled.
+      const end=control?.kind==='end';
+      if(!control||!old||!equalOptional(ex,end?{...old,phase:'cancelled'}:old))reject(409,'TASK_CONTROL_INVALID');
       if(control.expected_command_id!==old.command_id||control.expected_turn_id!==old.turn_id)reject(409,'TASK_CONTROL_STALE');
       const stop=control.kind==='stop';
       if(stop ? !(['running','waiting_answer'].includes(prior.state)&&old.phase==='running'&&b.state==='stop_requested') :
-        !(prior.state==='stopped'&&old.phase==='stopped'&&b.state==='resume_requested'))reject(409,'TASK_CONTROL_STALE');
+        !(prior.state==='stopped'&&old.phase==='stopped'&&b.state===(end?'cancelled':'resume_requested')))reject(409,'TASK_CONTROL_STALE');
       if(Date.parse(control.expires_at)<=now)reject(410,'CONTROL_EXPIRED');
       if(Date.parse(control.expires_at)>Date.parse(event.expires_at))reject(400,'TASK_CONTROL_DEADLINE_INVALID');
-      if(!stop&&(!control.text.trim()||Buffer.byteLength(control.text)>32768))reject(400,'TASK_CONTROL_TEXT_INVALID');
+      if(control.kind==='resume'&&(!control.text?.trim()||Buffer.byteLength(control.text)>32768))reject(400,'TASK_CONTROL_TEXT_INVALID');
       if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.control.control_id')=? LIMIT 1").get(owner,control.control_id))
         reject(409,'TASK_CONTROL_ID_CONFLICT');
       if(this.db.prepare("SELECT 1 FROM queue_revisions WHERE owner=? AND kind='task' AND json_extract(body,'$.execution.command_id')=? LIMIT 1").get(owner,control.control_id))

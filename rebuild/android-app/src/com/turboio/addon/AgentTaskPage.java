@@ -195,7 +195,7 @@ final class AgentTaskPage {
    return;
   }
   TaskHub.View source=snapshot==null?null:snapshot.context(row.binding);
-  if(source!=null&&TaskControl.pending(source.pending,row.item,kind)!=null)return;
+  if(source!=null&&(TaskControl.pending(source.pending,row.item,kind)!=null||kind.equals("resume")&&TaskControl.pending(source.pending,row.item,"end")!=null))return;
   boolean stop=kind.equals("stop");TextView[] ref={null};
   // Stopping needs two taps within STOP_CONFIRM_MS: the first only arms the red button.
   TextView button=ref[0]=AgentUI.button(activity,parent,stop?"打断任务":"追加指示并继续",!stop,()->{
@@ -206,6 +206,8 @@ final class AgentTaskPage {
   if(stop){stopStyle(button,row);TextView hint=AgentUI.text(activity,"连点两下打断 · 电脑停在当前一步，之后可追加指示再继续",12,AgentUI.MUTED);hint.setGravity(Gravity.CENTER);hint.setPadding(0,AgentUI.dp(activity,8),0,0);parent.addView(hint);}
   boolean available=source!=null&&source.sessionControl&&row.profile.enabled&&row.profile.connection.expiresAt>System.currentTimeMillis()&&!submittingControls.contains(row.key+"/"+kind);
   button.setEnabled(available);button.setAlpha(available?1f:.45f);
+  // A proven stop can also be closed for good; ending needs no computer confirmation.
+  if(!stop&&available)AgentUI.button(activity,parent,"结束任务",false,()->AgentUI.confirm(activity,"结束这个任务？","电脑已停在当前一步。结束后不能再追加指示继续，任务记录会保留。","结束任务",()->submitControl(row,"end","",null,null)));
   if(!available)parent.addView(AgentUI.text(activity,source!=null&&!source.sessionControl?"当前连接尚未确认支持此功能，刷新后再试。":!row.profile.enabled?"恢复原连接后可操作。":"原连接暂不可用，请查看连接。",12,AgentUI.MUTED));
  }
  private static final long STOP_CONFIRM_MS=3000;private String armedStop="";private long armedAt;
@@ -255,7 +257,7 @@ final class AgentTaskPage {
    TaskWire.require(instructions().edit().putString(key,new String(WireJson.bytes(draft),java.nio.charset.StandardCharsets.UTF_8)).commit(),"TASK_CONFIG_SAVE_FAILED");
    runtime.taskControl(row.binding,operation,row.id,expected,kind,text,expires,(updated,error)->{
     submittingControls.remove(flight);if(!alive())return;snapshot=updated;
-    if(error.isEmpty()){if(saved!=null)saved.run();AgentUI.toast(activity,kind.equals("stop")?"已发出打断，等待电脑确认停止":"已发出继续指示，等待电脑接收");}
+    if(error.isEmpty()){if(saved!=null)saved.run();AgentUI.toast(activity,kind.equals("stop")?"已发出打断，等待电脑确认停止":kind.equals("end")?"已提交结束任务":"已发出继续指示，等待电脑接收");}
     else{if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(error));}render();
    });
   }catch(Exception invalid){submittingControls.remove(flight);if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(TaskApi.safeError(invalid)));}

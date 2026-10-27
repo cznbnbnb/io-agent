@@ -73,12 +73,12 @@ final class TaskPresentation {
   }return null;
  }
  static String controlStatus(Map<String,Object> local){
-  String kind=(String)TaskWire.control(TaskWire.body(event(local)).get("control")).get("kind"),prefix=kind.equals("stop")?"打断请求":"继续指示";
+  String kind=(String)TaskWire.control(TaskWire.body(event(local)).get("control")).get("kind"),prefix=kind.equals("stop")?"打断请求":kind.equals("end")?"结束任务":"继续指示";
   return prefix+" · "+("server_stored".equals(local.get("state"))&&!Boolean.TRUE.equals(local.get("needs_lookup"))?"服务器已收到，等待电脑确认":queueStatus(local));
  }
  static String status(Row row){
   if(row.localOnly())return "server_stored".equals(row.local.get("state"))?"服务器已保存，等待电脑接收":queueStatus(row.local);
-  switch(row.state){case "queued":return "等待电脑接收";case "agent_received":return "电脑已接收";case "running":return "进行中";case "waiting_answer":return "等待你的回复";case "completed":return "已完成";case "cancel_requested":case "stop_requested":return "正在停止，等待电脑确认";case "stop_unconfirmed":return "停止尚未确认，暂不能继续";case "stopped":return "已停止，可追加指示继续";case "resume_requested":return "继续指示已收到，等待电脑执行";case "cancelled":return "已停止";case "failed":return "执行失败";case "expired":return "已过期";case "execution_unknown":return "执行结果待核对";default:return "等待更新";}
+  switch(row.state){case "queued":return "等待电脑接收";case "agent_received":return "电脑已接收";case "running":return "进行中";case "waiting_answer":return "等待你的回复";case "completed":return "已完成";case "cancel_requested":case "stop_requested":return "正在停止，等待电脑确认";case "stop_unconfirmed":return "停止尚未确认，暂不能继续";case "stopped":return "已停止，可追加指示继续";case "resume_requested":return "继续指示已收到，等待电脑执行";case "cancelled":return row.body.get("control") instanceof Map&&"end".equals(((Map<?,?>)row.body.get("control")).get("kind"))?"已结束":"已停止";case "failed":return "执行失败";case "expired":return "已过期";case "execution_unknown":return "执行结果待核对";default:return "等待更新";}
  }
  static String queueStatus(String phase){switch(phase){case "awaiting_refresh":return "答案已保存在本机，等待核对原问题";case "queued":return "已保存到本机，等待提交";case "awaiting_target":return "原会话暂不可执行，内容保留在本机";case "sending":return "正在提交";case "server_stored":return "服务器已保存";case "reconcile":case "retry_wait":return "提交结果待核对";case "blocked":return "提交需要处理";case "expired":return "已过期，未继续提交";case "withdrawn_local":return "本机提交已撤回";default:return "等待提交状态更新";}}
  static String queueStatus(Map<String,Object> row){return Boolean.TRUE.equals(row.get("needs_lookup"))?"提交结果待核对":queueStatus((String)row.get("state"));}

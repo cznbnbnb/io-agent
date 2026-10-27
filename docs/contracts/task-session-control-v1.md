@@ -39,10 +39,12 @@
 
 继续使用新的 `control_id`、`kind:resume`，增加非空 `text`，并指向已经停止的 command/turn。`text` 最多 32768 UTF-8 字节；Schema 另限 32768 字符。停止不得携带 `text`。控制 ID 不得复用历史 control 或 command UUID，所有示例 UUID 仅为合成数据。
 
+结束（2026-10-27 起）：已证明停止（state=stopped、phase=stopped）的任务可由手机用新的 `control_id`、`kind:end`（不带 `text`）直接发布 `state:cancelled`，`execution` 除 `phase:"cancelled"` 外逐字段保持。此时原生回合已停，不需要电脑再确认；任务进入终态，之后不能再继续。
+
 | 身份权限 | 允许的变化 |
 | --- | --- |
 | `tasks:write` | 新建无扩展字段的 queued 任务 |
-| `tasks:update` | 依照当前精确执行目标请求 stop/resume；原样保留 execution |
+| `tasks:update` | 依照当前精确执行目标请求 stop/resume/end；stop/resume 原样保留 execution，end 只把 phase 改为 cancelled |
 | `tasks:update` + `receipts:agent` | 在允许的状态链上发布 execution、停止证据及后续状态；原样保留当前 control |
 
 服务端由 Bearer 推导 owner 和 scope，不信任事件自称的身份。新增字段、已有字段被删除及新停止状态都会触发扩展约束，不能删掉字段降级绕过。旧任务从未使用扩展字段时，原 `tasks:update` 状态更新规则继续兼容；它们无法直接停止或继续，须先由有 `receipts:agent` 的电脑发布实际执行绑定。原指令和 route 不可变规则同时适用于旧任务。

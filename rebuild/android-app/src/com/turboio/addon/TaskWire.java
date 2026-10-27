@@ -75,7 +75,7 @@ final class TaskWire {
   require(valid,"TASK_EXECUTION_INVALID");if(set("running","result_pending","stop_requested","stop_unconfirmed","stopped","completed").contains(phase))require(e.get("turn_id") instanceof String,"TASK_EXECUTION_INVALID");
  }
  static Map<String,Object> control(Object value){
-  Map<String,Object> c=WireJson.map(value);String kind=id(c.get("kind"));require(set("stop","resume").contains(kind),"TASK_CONTROL_INVALID");
+  Map<String,Object> c=WireJson.map(value);String kind=id(c.get("kind"));require(set("stop","resume","end").contains(kind),"TASK_CONTROL_INVALID");
   if(kind.equals("resume"))BoundedJson.keys(c,"control_id","kind","expected_command_id","expected_turn_id","expires_at","text");
   else BoundedJson.keys(c,"control_id","kind","expected_command_id","expected_turn_id","expires_at");
   uuid(c.get("control_id"));uuid(c.get("expected_command_id"));text(c.get("expected_turn_id"),160,false);stamp(c.get("expires_at"));

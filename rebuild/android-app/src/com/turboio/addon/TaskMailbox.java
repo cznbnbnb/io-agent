@@ -75,7 +75,7 @@ final class TaskMailbox implements AutoCloseable {
   return enqueue(operation,"task",WireJson.object("task_id","task-android-"+TaskWire.hash((binding+"/"+operation).getBytes(StandardCharsets.UTF_8)),"revision",1,"route",connection.route(),"state","queued","command",command,"allow_create_session",false),now,expires,"queued");
  }
  synchronized Map<String,Object> control(String operation,String taskId,Map<String,Object> expected,String kind,String text,long now,long expires)throws IOException{
-  TaskWire.uuid(operation);TaskWire.id(taskId);TaskWire.execution(expected);TaskWire.require(TaskWire.set("stop","resume").contains(kind),"TASK_CONTROL_INVALID");
+  TaskWire.uuid(operation);TaskWire.id(taskId);TaskWire.execution(expected);TaskWire.require(TaskWire.set("stop","resume","end").contains(kind),"TASK_CONTROL_INVALID");
   // Reconcile an already durable control before consulting a newer task state.
   // Repeated callbacks retain the original bytes, expiry and expected turn.
   for(Object raw:rows(state,"outbox")){Map<String,Object> row=WireJson.map(raw);if(!operation.equals(row.get("operation_id")))continue;

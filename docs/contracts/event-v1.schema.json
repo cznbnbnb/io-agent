@@ -636,7 +636,8 @@
         "kind": {
           "enum": [
             "stop",
-            "resume"
+            "resume",
+            "end"
           ]
         },
         "expected_command_id": {

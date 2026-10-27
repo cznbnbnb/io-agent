@@ -37,7 +37,8 @@ final class AgentUI {
  static Switch toggle(Activity a,LinearLayout parent,String title,boolean checked,CompoundButton.OnCheckedChangeListener changed){LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(0,dp(a,10),0,dp(a,10));row.addView(text(a,title,15,INK),new LinearLayout.LayoutParams(0,-2,1));Switch toggle=new Switch(new ContextThemeWrapper(a,android.R.style.Theme_Material_NoActionBar));toggle.setContentDescription(title);toggle.setChecked(checked);toggle.setShowText(false);toggle.setTrackTintList(new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked},new int[]{}},new int[]{ACCENT,0xff58645c}));toggle.setThumbTintList(ColorStateList.valueOf(INK));row.addView(toggle,new LinearLayout.LayoutParams(dp(a,58),dp(a,48)));parent.addView(row);toggle.setOnCheckedChangeListener(changed);return toggle;}
  /** Acknowledgement in the Agent card style; no generic app-name title. */
  static void notice(Activity a,String message){sheet(a,null,message,null,"知道了",null);}
- static void confirm(Activity a,String title,String message,Runnable action){sheet(a,title,message,"返回","确认",action);}
+ static void confirm(Activity a,String title,String message,Runnable action){confirm(a,title,message,"确认",action);}
+ static void confirm(Activity a,String title,String message,String accept,Runnable action){sheet(a,title,message,"返回",accept,action);}
  private static void sheet(Activity a,String title,String message,String cancel,String accept,Runnable action){
   if(a.isFinishing()||a.isDestroyed())return;Dialog d=new Dialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
   LinearLayout card=column(a);card.setPadding(dp(a,22),dp(a,22),dp(a,22),dp(a,16));card.setBackground(shape(a,SURFACE,22));

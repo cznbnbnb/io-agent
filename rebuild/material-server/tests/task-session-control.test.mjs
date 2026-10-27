@@ -164,3 +164,16 @@ test('stop closes old unanswered question and cannot be bypassed by an answer; a
   const history=g.store.reconcileRequest(g.agent.token,r.request_id,{schema_version:'1.0',request_revision:1});
   assert.equal(history.changed,false);assert.equal(history.item.state,'answered');assert.equal(history.item.answer.body.text,answer.text);
 });
+
+test('phone may end only a proven-stopped turn; end is terminal and cannot carry text or move execution',t=>{
+  const f=setup(t);f.running();
+  const early=f.request('end');assert.throws(()=>f.publish({state:'cancelled',control:early,execution:{...f.get().body.execution,phase:'cancelled'}},f.phone),e=>/STATE_CONFLICT|TASK_CONTROL_STALE/.test(e.code));
+  const g=setup(t);g.stopped();const ex=g.get().body.execution;
+  assert.throws(()=>g.publish({state:'cancelled',control:g.request('end'),execution:ex},g.phone),e=>/TASK_EXECUTION_INVALID|TASK_CONTROL_INVALID/.test(e.code));
+  assert.throws(()=>g.publish({state:'cancelled',control:g.request('end'),execution:{...ex,turn_id:'other-turn',phase:'cancelled'}},g.phone),error('TASK_CONTROL_INVALID'));
+  assert.throws(()=>g.publish({state:'cancelled',control:{...g.request('end'),text:'no'},execution:{...ex,phase:'cancelled'}},g.phone),e=>e.status===400||/VALIDATION|SCHEMA|INVALID/.test(e.code));
+  assert.throws(()=>g.publish({state:'cancelled',control:g.request('stop'),execution:{...ex,phase:'cancelled'}},g.phone),error('TASK_CONTROL_INVALID'));
+  const end=g.request('end');g.publish({state:'cancelled',control:end,execution:{...ex,phase:'cancelled'}},g.phone);
+  g.restart();const final=g.get();assert.equal(final.state,'cancelled');assert.equal(final.body.execution.phase,'cancelled');assert.deepEqual(final.body.control,end);
+  assert.throws(()=>g.publish({state:'resume_requested',control:g.request('resume'),execution:ex},g.phone),e=>/STATE_CONFLICT|TASK_CONTROL/.test(e.code));
+});

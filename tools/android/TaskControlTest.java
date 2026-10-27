@@ -47,6 +47,12 @@ public final class TaskControlTest {
   String text="先修正范围，再继续。\n保留完整内容";Map<String,Object> resume=TaskControl.update(stopped,se,uuid(4),"resume",text,NOW,NOW+600000);
   yes(resume.get("state").equals("resume_requested"));yes(TaskWire.control(resume.get("control")).get("text").equals(text));yes(resume.get("command").equals(TaskWire.body(stopped).get("command")));
   no(()->TaskControl.update(stopped,se,uuid(4),"resume"," \n ",NOW,NOW+600000));
+  // Ending a proven stop publishes cancelled with only the phase moved; never from a running turn, never with text.
+  yes(TaskControl.eligible(stopped,"end"));yes(!TaskControl.eligible(running,"end"));
+  Map<String,Object> end=TaskControl.update(stopped,se,uuid(9),"end","",NOW,NOW+60000);yes(end.get("state").equals("cancelled"));
+  yes(TaskWire.execution(end.get("execution")).get("phase").equals("cancelled"));yes(TaskWire.execution(end.get("execution")).get("turn_id").equals(se.get("turn_id")));
+  yes(TaskWire.control(end.get("control")).get("kind").equals("end"));yes(TaskControl.current(end,stopped));yes(TaskControl.sameIntent(end,(String)end.get("task_id"),se,uuid(9),"end",""));
+  no(()->TaskControl.update(stopped,se,uuid(9),"end","hidden",NOW,NOW+60000));no(()->TaskControl.update(running,ex,uuid(9),"end","",NOW,NOW+60000));
   no(()->TaskControl.update(stopped,se,uuid(4),"resume",String.join("",Collections.nCopies(10923,"汉")),NOW,NOW+600000));
   yes(TaskControl.update(stopped,se,uuid(4),"resume",String.join("",Collections.nCopies(10922,"汉")),NOW,NOW+600000)!=null);
   for(String state:new String[]{"stop_requested","stop_unconfirmed","resume_requested"}){String phase=state.equals("stop_requested")?"stop_requested":state.equals("stop_unconfirmed")?"stop_unconfirmed":"stopped";Map<String,Object> v=task(c,state,phase,6);yes(!TaskControl.eligible(v,"resume"));yes(!TaskControl.eligible(v,"stop"));}
