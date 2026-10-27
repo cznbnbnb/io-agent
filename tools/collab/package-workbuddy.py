@@ -20,7 +20,7 @@ def files():
     for folder in [p.parent,BRIDGE/'questions',BRIDGE/'hermes']:
      dep=folder/(node.module.split('.')[0]+'.py')
      if dep.exists():py(dep);break
- for name in ['questions/cli.mjs','device.mjs']:js(BRIDGE/name)
+ for name in ['questions/cli.mjs','device.mjs','connector.mjs']:js(BRIDGE/name)
  for name in ['questions/tool.py','questions/adapter.py','hermes/enroll_home.py']:py(BRIDGE/name)
  return found
 if __name__=='__main__':

@@ -5,7 +5,7 @@ import {AgentBridge} from '../bridge.mjs';import {BridgeClient,BridgeError,readP
 import {isDeepStrictEqual} from 'node:util';
 import {sessionFile,sessionPair} from './session-pair-cli.mjs';
 import {privatePath} from './private-path.mjs';
-import {ensureResident,residentStatus,leaveResident} from '../hosts/resident-manager.mjs';
+import {ensureResident,residentStatus,leaveResident,privateRecord} from '../hosts/resident-manager.mjs';
 import {discoverCodexEndpoint} from '../hosts/codex-endpoint.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),workspace=path.resolve(here,'../../..');
 const privateRoot=path.join(workspace,'rebuild/agent-bridge/private');
@@ -17,7 +17,18 @@ const NATIVE={codex:['CODEX_THREAD_ID','Codex'],'claude-code':['CLAUDE_CODE_SESS
 export function caller(env=process.env){const found=Object.entries(NATIVE).filter(([,[name]])=>env[name]).map(([runtime,[name]])=>({runtime,session:env[name]}));
  if(env.IO_AGENT_CALLER_RUNTIME||env.IO_AGENT_CALLER_SESSION){const runtime=env.IO_AGENT_CALLER_RUNTIME??'';if(Object.hasOwn(NATIVE,runtime))return{error:'CALLER_RUNTIME_INVALID'};found.push({runtime,session:env.IO_AGENT_CALLER_SESSION??''});}
  if(found.length!==1)return{error:found.length?'CALLER_RUNTIME_AMBIGUOUS':'CALLER_SESSION_REQUIRED'};const [{runtime,session}]=found;
- return /^[a-z][a-z0-9-]{1,31}$/.test(runtime)&&/^[A-Za-z0-9_.-]{1,128}$/.test(session)?{runtime,session}:{error:'CALLER_SESSION_REQUIRED'};}
+ if(!/^[a-z][a-z0-9-]{1,31}$/.test(runtime)||!/^[A-Za-z0-9_.-]{1,128}$/.test(session))return{error:'CALLER_SESSION_REQUIRED'};
+ if(env.IO_AGENT_CONNECTOR_PROFILE){
+  try{
+   const file=env.IO_AGENT_CONNECTOR_PROFILE;if(!path.isAbsolute(file))return{error:'CALLER_MANAGED_MAPPING_INVALID'};
+   const profile=privateRecord(file),state=privateRecord(path.join(path.dirname(file),'acp.json'),64*1024*1024);
+   // The native tool's own identity must match this managed engine's journal.
+   // Never substitute an arbitrary Desktop ID or strip conflicting host IDs.
+   if(profile.managed!==true||profile.runtime!==runtime||state.session_id!==session||profile.workspace!==state.workspace||!/^([a-f0-9]{8}-)([a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(profile.route_session_id))return{error:'CALLER_MANAGED_MAPPING_INVALID'};
+   return{runtime,session:profile.route_session_id,managed:{workspace:profile.workspace,directory:path.dirname(file)}};
+  }catch{return{error:'CALLER_MANAGED_MAPPING_INVALID'};}
+ }
+ return{runtime,session};}
 export const taskCommand=runtime=>'Continue the already-running registered '+(NATIVE[runtime]?.[1]??runtime)+' task.';
 // Codex keeps its original directory so earlier registrations stay readable.
 export const callerBase=({runtime,session})=>path.join(workspace,'rebuild/agent-bridge/private',runtime==='codex'?'codex-'+hash(JSON.stringify([workspace.toLowerCase(),session])).slice(0,24):runtime+'-'+hash(JSON.stringify([workspace.toLowerCase(),runtime,session])).slice(0,24));
@@ -85,7 +96,7 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
 // One-time computer enrollment (2026-10-24, user): the computer holds one renewing device credential
 // (tools/collab/enroll-computer.mjs writes it), the phone pairs once, and each agent session only runs
 // `join` to put its own task on the phone. No connection file goes to the phone any more.
-export const deviceFile=(env=process.env)=>{const candidate=sessionFile(caller(env),workspace,env);return fs.existsSync(candidate)?candidate:env.IO_AGENT_DEVICE_FILE||path.join(os.homedir(),'.turboio','agent-device.json');};
+export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);return fs.existsSync(candidate)?candidate:env.IO_AGENT_DEVICE_FILE||path.join(os.homedir(),'.turboio','agent-device.json');};
 const JOIN_TASK_HOURS=12;
 async function join(value){
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python))))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
@@ -103,7 +114,7 @@ async function join(value){
  const key=pendingLive?pending.operation_key:reuse?previous.operation_key:'join-'+crypto.randomUUID();
  const expires=pendingLive?pending.task_expires_at:reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
  const spec={bridge:{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
-  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:device.session_pairing?.metadata.route.project_id??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
+  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:device.session_pairing?.metadata.route.project_id??(current.managed?'workspace-'+hash(current.managed.workspace).slice(0,24):null)??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
   operation_key:key,python,task_hours:JOIN_TASK_HOURS,...(topic===null?{}:{topic})};
  const specFile=path.join(joins,hash(JSON.stringify([base,key])).slice(0,32)+'.json');
  // The spec sits beside the device credential (outside the repository private root writeNew guards).
@@ -116,7 +127,7 @@ async function join(value){
  if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
  fs.unlinkSync(pendingFile);
  let resident;
- try{resident=await ensureResident(await residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
+ try{resident=current.managed?{managed_connector:true,reason:'CONTROLLED_BY_ACP_CONNECTOR'}:await ensureResident(await residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
  return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
 }
 async function residentOptions(){
@@ -172,9 +183,13 @@ async function configure(directory,value){
 }
 async function input(){let bytes=0,parts=[];for await(const part of process.stdin){bytes+=part.length;if(bytes>32768)fail('RUNTIME_CLI_FRAME_TOO_LARGE');parts.push(part);}try{return JSON.parse(Buffer.concat(parts).toString('utf8'));}catch{fail('RUNTIME_TOOL_ARGUMENT_INVALID');}}
 export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
-async function dispatch(action,args){if(['pair','pair-status'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');try{return await sessionPair(action,await input(),current,workspace);}catch(e){fail(e.code??'PAIRING_FAILED');}}if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
+async function dispatch(action,args){if(['pair','pair-status'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');try{return await sessionPair(action,await input(),current,current.managed?.workspace??workspace);}catch(e){fail(e.code??'PAIRING_FAILED');}}if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
  if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
- if(['session-status','leave'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');const value=await input();if(!value||Object.keys(value).length)fail('RUNTIME_TOOL_ARGUMENT_INVALID');const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
+ if(['session-status','leave'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');const value=await input();if(!value||Object.keys(value).length)fail('RUNTIME_TOOL_ARGUMENT_INVALID');if(current.managed){
+  if(action==='leave')fail('MANAGED_CONNECTOR_STOP_FROM_TERMINAL');
+  const {config,context}=binding(activeDirectory()),directory=await new BridgeClient(config.bridge).agentSessions(),entry=directory.sessions.find(e=>isDeepStrictEqual(e.route,context.route));
+  return{managed_connector:true,cloud_online:entry?.online===true,can_execute:entry?.online===true&&entry.capabilities.can_execute,session_id:session};
+ }const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
  if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (QR and copyable string for the current real session)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
  if(action==='checkpoint')return checkpoint(directory,value);

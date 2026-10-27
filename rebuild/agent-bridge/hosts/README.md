@@ -1,6 +1,6 @@
 # 现有 Agent 会话控制
 
-2026-10-27 更新：普通 join 自动常驻及原生本地任务投影已实现，dev134 已装。Claude 普通全局插件与 Codex 普通共享终端会话已走通手机打断/继续/结果；当前 Desktop 聊天还需一次正常重启。安装、代价和真实限制见[常驻接入说明](./resident-guide.md)和[本批证据](./session-resident-proof-2026-10-27.json)。下面保留早期适配器调查，历史“尚未安装/无全局插件”不代表最新接入状态。
+2026-10-27 更新：新增独立 stdio ACP 受管会话连接器，复用同一 CLI、配对、任务和结果链路；dev136 已装。Claude/Codex 的真实新建、同会话恢复、上下文和服务器结果已通过。用法及代价见 [ACP 接入说明](./acp-guide.md)。普通 Codex Desktop 原聊天接管仍未完成，造成启动协议故障的全局启动覆盖已停用；不再要求重启。既有 Claude 插件及显式 Codex 共享终端证据保留，见[常驻接入说明](./resident-guide.md)。
 
 本目录按已批准的[实施计划](../../../docs/product/DEFAULT-AGENT-CONTROL-PLAN.md)开发。新增官方 Codex 共享 app-server 适配器、[Claude 原会话 Mod](./claude-mod/README.md)与耐久控制器；已开始真实引擎隔离验证。已新增手机任务分派/打断的源码接线与本机 HTTP 联调；尚未部署、装机或接眼镜主动入口。旧私有 Desktop 适配器的输入仍禁用，不能把新共享服务器的成功称为任意现有 Desktop 聊天已可热接管。
 

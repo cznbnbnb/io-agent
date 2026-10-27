@@ -331,3 +331,10 @@ test('scoped directory binding survives renewal and restart; revocation immediat
   f.store.devices.revoke(renewed.device_id);error(await f.get(renewed),401,'UNAUTHENTICATED');
   const record=(await f.get(phone)).value.sessions.find(s=>s.route.session_id===scoped.route.session_id);assert.equal(record.online,false);assert.equal(record.reason,'device_revoked');
 });
+
+test('generic ACP session leases use the same paired route and default gates',async t=>{
+ const f=await setup(t),s=await f.start(acquire({host_kind:'acp',label:'WorkBuddy · 受管会话'}));
+ assert.equal(s.host_kind,'acp');assert.equal((await f.get()).value.sessions[0].host_kind,'acp');
+ assert.equal((await f.set(defaults(s.route))).status,200);
+ error(await f.post(acquire({host_kind:'unknown-agent'})),400,'INVALID_AGENT_SESSION');
+});

@@ -24,7 +24,7 @@ export function validateAgentDefault(value){
 }
 export function validateDirectoryEntry(value){
   need(object(value)&&directoryRoute(value.route)&&typeof value.producer_id==='string'&&/^agent-[a-f0-9]{8}$/.test(value.producer_id)&&
-    uuid(value.device_id)&&['codex','claude'].includes(value.host_kind)&&typeof value.workspace==='string'&&value.workspace&&Buffer.byteLength(value.workspace)<=2048&&
+    uuid(value.device_id)&&['codex','claude','acp'].includes(value.host_kind)&&typeof value.workspace==='string'&&value.workspace&&Buffer.byteLength(value.workspace)<=2048&&
     directoryLabel(value.label)&&Number.isSafeInteger(value.generation)&&value.generation>0&&
     uuid(value.instance_id)&&uuid(value.lease_id)&&stamp(value.lease_expires_at)&&typeof value.online==='boolean'&&
     (value.busy===null||typeof value.busy==='boolean')&&object(value.capabilities)&&Object.keys(value.capabilities).length===capabilities.length&&
@@ -87,7 +87,7 @@ export class SessionDirectoryPublisher{
       let key;try{
         need(object(s)&&directoryRoute(s.route));key=runtimeDigest(s.route);
         need(!seen.has(key));seen.add(key);
-        need(['codex','claude'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&
+        need(['codex','claude','acp'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&
           (s.label===undefined||directoryLabel(s.label)));
         sessions.set(key,s);
       }catch(e){

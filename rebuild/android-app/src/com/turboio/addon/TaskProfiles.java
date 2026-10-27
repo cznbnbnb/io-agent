@@ -44,10 +44,10 @@ final class TaskProfiles {
   for(Profile p:profiles){if(p.binding.equals(next.binding)){rows.add(next);replaced=true;}else rows.add(p);}if(!replaced)rows.add(next);return new TaskProfiles(makeDefault?next.binding:selected,rows);
  }
  TaskProfiles select(String binding){get(binding);return new TaskProfiles(binding,profiles);}
- /** Frees a slot held by an expired registration. The current default target is
+ /** Frees a slot explicitly removed from a paused or expired registration. The current default target is
   * never removed, and its mailbox files are left on disk for the same binding. */
  TaskProfiles remove(String binding,long now){
-  Profile prior=get(binding);TaskWire.require(!binding.equals(selected),"TASK_TARGET_SELECTED");TaskWire.require(prior.connection.expiresAt<=now,"TASK_PROFILE_ACTIVE");
+  Profile prior=get(binding);TaskWire.require(!binding.equals(selected),"TASK_TARGET_SELECTED");TaskWire.require(!prior.enabled||prior.connection.expiresAt<=now,"TASK_PROFILE_ACTIVE");
   List<Profile> rows=new ArrayList<>();for(Profile p:profiles)if(!p.binding.equals(binding))rows.add(p);return new TaskProfiles(selected,rows);
  }
  /** Frees a slot held by an idle session connection derived from the paired device (TaskDevice);

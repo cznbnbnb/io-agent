@@ -56,8 +56,8 @@ public final class TaskContextsTest {
   broken=WireJson.map(WireJson.read(persisted));List<Object> rows=WireJson.list(broken.get("profiles"));rows.add(WireJson.copy(rows.get(0)));final Map<String,Object> duplicate=broken;rejects(()->TaskProfiles.decode(WireJson.bytes(duplicate)));
   Map<String,Object> forged=WireJson.map(WireJson.read(persisted));WireJson.map(WireJson.list(forged.get("profiles")).get(0)).put("binding",b.binding());rejects(()->TaskProfiles.decode(WireJson.bytes(forged)));
   TaskProfiles capacity=TaskProfiles.empty();for(int i=0;i<TaskProfiles.MAX;i++)capacity=capacity.upsert(connection(a.base,"context-"+i),false,NOW);final TaskProfiles full=capacity;rejects(()->full.upsert(b,false,NOW));check(full.profiles.size()==TaskProfiles.MAX);
-  // Removing an expired, non-default registration frees a slot; active or default ones stay.
-  String oldest=full.profiles.get(0).binding,newest=full.selected;rejects(()->full.remove(oldest,NOW));rejects(()->full.remove(newest,NOW+172800000));rejects(()->full.remove("missing",NOW+172800000));
+  // Explicitly removing a paused/expired registration frees a slot; live/default ones stay.
+  String oldest=full.profiles.get(0).binding,newest=full.selected;check(full.remove(oldest,NOW).profiles.size()==TaskProfiles.MAX-1);rejects(()->full.enabled(oldest,true,NOW).remove(oldest,NOW));rejects(()->full.remove(newest,NOW+172800000));rejects(()->full.remove("missing",NOW+172800000));
   TaskProfiles freed=full.remove(oldest,NOW+172800000);check(freed.profiles.size()==TaskProfiles.MAX-1&&freed.selected.equals(newest));rejects(()->freed.get(oldest));
   TaskProfiles refilled=freed.upsert(b,false,NOW);check(refilled.profiles.size()==TaskProfiles.MAX&&TaskProfiles.decode(refilled.encode()).profiles.size()==TaskProfiles.MAX);
   TaskProfiles expired=TaskProfiles.decode(legacy);check(expired.profiles.size()==1);rejects(()->expired.enabled(a.binding(),true,NOW+172800000));check(!expired.enabled(a.binding(),false,NOW+172800000).selected().enabled);
@@ -78,6 +78,12 @@ public final class TaskContextsTest {
   try(TaskHub hub=new TaskHub(dir,rotated,factory)){
    check(hub.views().size()==3);check(originalPayload.equals(WireJson.map(hub.view(a.binding()).pending.get(0)).get("payload")));check(hub.view(b.binding()).pending.size()==1);check(hub.view(a.binding()).binding.equals(a.binding()));check(peers.get(a.binding()).connection.token().equals(fresh.token()));
   }
+  // Removing and re-registering only affects the registry; durable drafts and history survive.
+  TaskProfiles removed=rotated.enabled(b.binding(),false,NOW).remove(b.binding(),NOW);
+  Path retained=dir.toPath().resolve("task-mailbox").resolve(b.binding()).resolve("state.json");byte[] retainedBytes=Files.readAllBytes(retained);
+  try(TaskHub hub=new TaskHub(dir,removed,factory)){check(hub.views().size()==2&&Files.exists(retained));}
+  check(Arrays.equals(retainedBytes,Files.readAllBytes(retained)));
+  try(TaskHub hub=new TaskHub(dir,removed.upsert(b,true,NOW,false),factory)){check(hub.view(b.binding()).objects.size()==2&&hub.view(b.binding()).pending.size()==1);}
   Path corrupt=dir.toPath().resolve("task-mailbox").resolve(a.binding()).resolve("state.json");byte[] corruptBytes="{\"schema\":999}".getBytes(StandardCharsets.UTF_8);Files.write(corrupt,corruptBytes);
   try(TaskHub hub=new TaskHub(dir,rotated,factory)){hub.pump(NOW);check(hub.view(a.binding()).objects.isEmpty()&&!hub.view(a.binding()).note.equals("received"));check(hub.view(b.binding()).objects.size()==2&&hub.view(c.binding()).objects.size()==2);check(Arrays.equals(corruptBytes,Files.readAllBytes(corrupt)));}
   System.out.println("Task contexts: "+checks+" checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)");

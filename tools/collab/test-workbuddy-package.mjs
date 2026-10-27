@@ -2,13 +2,14 @@ import fs from 'node:fs';import os from 'node:os';import path from 'node:path';i
 import {MaterialStore} from '../../rebuild/material-server/store.mjs';import {listen} from '../../rebuild/material-server/http.mjs';
 const repo=process.cwd(),python=path.join(repo,'.runtime/hermes-agent/.venv/bin/python3'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'workbuddy-package-')),dir=path.join(temp,'io-agent-workbuddy');
 const unpack=spawnSync(python,['-I','-S','-B','-c','import zipfile,sys;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])',path.join(repo,'outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip'),temp]);assert.equal(unpack.status,0);
-const env={...process.env,CODEX_THREAD_ID:'',CLAUDE_CODE_SESSION_ID:'',IO_AGENT_CALLER_RUNTIME:'workbuddy',IO_AGENT_CALLER_SESSION:'synthetic-package-'+crypto.randomUUID(),IO_AGENT_PYTHON:python};
+const env={...process.env,CODEX_THREAD_ID:'',CLAUDE_CODE_SESSION_ID:'',IO_AGENT_CALLER_RUNTIME:'workbuddy',IO_AGENT_CALLER_SESSION:'synthetic-package-'+crypto.randomUUID(),IO_AGENT_PYTHON:python,IO_AGENT_PAIRING_HOME:path.join(temp,'pairings')};
 function run(script,args=[],input){return new Promise((resolve,reject)=>{const p=spawn(process.execPath,[path.join(dir,script),...args],{cwd:temp,env});let out='',err='';p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>err+=b);const timer=setTimeout(()=>{p.kill();reject(Error('PACKAGE_TIMEOUT'));},45000);p.on('exit',code=>{clearTimeout(timer);try{resolve({code,value:JSON.parse(out||err)});}catch{reject(Error('PACKAGE_NON_JSON '+(out||err).slice(0,1600)));}});p.stdin.end(input===undefined?'':JSON.stringify(input));});}
 const store=new MaterialStore(':memory:'),server=await listen(store);
 try{
  const manifest=JSON.parse(fs.readFileSync(path.join(dir,'MANIFEST.json')));
  for(const [file,digest] of Object.entries(manifest.files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(dir,file))).digest('hex'),digest);
  assert.equal((await run('io-agent.mjs',['help'])).code,0);
+ assert.equal((await run('io-agent.mjs',['connector','help'])).code,0);
  assert.equal((await run('setup.mjs',['doctor'])).code,0);
  assert.equal((await run('io-agent.mjs',['join'],{topic:'合成问答'})).value.error,'DEVICE_NOT_ENROLLED');
  // A test-only preload redirects the fixed HTTPS service to this isolated in-memory fixture.

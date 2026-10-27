@@ -31,7 +31,7 @@ const publicCommand=c=>structuredClone(Object.fromEntries(['command_id','task_id
 export class SessionControl {
   #state;#lease;#host;#clock;#busy=false;#closed=false;#poisoned=false;#binding;
   static open({stateFile,binding,host,clock=Date.now}){
-    need(object(binding)&&validRoute(binding.route)&&uuid(binding.route.session_id)&&['codex','claude'].includes(binding.host_kind)&&
+    need(object(binding)&&validRoute(binding.route)&&uuid(binding.route.session_id)&&['codex','claude','acp'].includes(binding.host_kind)&&
       typeof binding.server_id==='string'&&binding.server_id&&typeof binding.owner_id==='string'&&binding.owner_id&&
       typeof binding.workspace==='string'&&path.isAbsolute(binding.workspace),'SESSION_BINDING_INVALID');
     need(host?.conversationId===binding.route.session_id,'SESSION_HOST_MISMATCH');

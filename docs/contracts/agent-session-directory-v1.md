@@ -1,6 +1,6 @@
 # Agent session directory v1
 
-The directory lists explicitly connected, real Claude/Codex sessions. It does not
+The directory lists explicitly connected, real Claude/Codex sessions and explicitly managed ACP sessions. It does not
 discover, create, resume, or execute a session. Question-CLI `join` registrations
 are not directory entries. Existing task/question endpoints keep their previous
 authorization rules; the native connector checks its exact session and workspace
@@ -44,7 +44,7 @@ not credentials. The additional fields depend on the action:
 | `heartbeat` | `generation`, `lease_id`, `sequence`, `observation` |
 | `release` | `generation`, `lease_id`, `sequence` |
 
-`host_kind` is `claude` or `codex`. `expected_generation` is zero for the first
+`host_kind` is `claude`, `codex`, or `acp`. The `acp` kind uses an explicit managed route; its native session ID is held by the local connector. `expected_generation` is zero for the first
 publication, otherwise the generation seen in GET. Acquire requires a successful
 fresh native observation (`ready: true`). An existing lease must have expired or
 been released. Matching the generation alone never permits a live takeover.

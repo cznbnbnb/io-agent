@@ -15,8 +15,8 @@ export function privateDirectory(directory){
   fs.mkdirSync(directory,{recursive:true,mode:0o700});const s=fs.lstatSync(directory);
   need(s.isDirectory()&&!s.isSymbolicLink()&&s.uid===process.getuid?.()&&!(s.mode&0o077),'RESIDENT_DIRECTORY_UNTRUSTED');return directory;
 }
-export function privateRecord(file){
-  const s=fs.lstatSync(file);need(s.isFile()&&!s.isSymbolicLink()&&s.uid===process.getuid?.()&&!(s.mode&0o077)&&s.size<=65536,'RESIDENT_RECORD_UNTRUSTED');
+export function privateRecord(file,maxBytes=65536){
+  const s=fs.lstatSync(file);need(s.isFile()&&!s.isSymbolicLink()&&s.uid===process.getuid?.()&&!(s.mode&0o077)&&s.size<=maxBytes,'RESIDENT_RECORD_UNTRUSTED');
   return JSON.parse(fs.readFileSync(file,'utf8'));
 }
 // Birth identity fences PID reuse. No command arguments, tokens or user prompt

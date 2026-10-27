@@ -1,7 +1,7 @@
 # iO Agent · WorkBuddy 试用包
 
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
-需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴手机 UI 的完整验收尚待无线调试恢复，Windows 与 WorkBuddy 宿主仍需实际验证。
+需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴已接入同一确认流程，Windows 与 WorkBuddy 原会话仍需实际验证。
 
 ## 1. 在对应的真实会话中配对
 
@@ -69,3 +69,22 @@
 ## 验证包内容
 
 `MANIFEST.json` 列出源提交和每个文件的 SHA-256。本包不含 APK、历史对话、录音、数据库、用户资料或访问密钥。`rebuild/agent-bridge/hermes/` 内仅为 CLI 复用的 Python 辅助代码，不会启动 Hermes。
+
+
+## 可选：ACP 受管会话连接器
+
+本包现包含 `node io-agent.mjs connector help`，电脑需使用 Node.js 22.18+。它通过显式配置的 ACP 子进程管理自己的会话；与上面给 WorkBuddy 原会话使用的问答 CLI 分开。不会替换桌面启动器，不接管已经打开的 Desktop 聊天。Claude/Codex 适配器需另行安装并固定版本；包内没有模型引擎或账号密钥。
+
+初始化（JSON 从标准输入传入）：
+
+```sh
+node io-agent.mjs connector init --directory /absolute/private/connector
+```
+
+```json
+{"runtime":"codex","label":"我的受管任务","workspace":"/absolute/workspace","command":["/absolute/node","/absolute/codex-acp/dist/index.js"]}
+```
+
+随后用 `connector pair --directory ...` 生成二维码/字符串，手机确认后用 `connector pair-status --directory ...` 领取连接，再 `connector run --directory ...` 常驻。已有正式电脑配对也可显式使用 `run --device /absolute/private/device.json`。关闭该终端会退出连接器；后续 run 恢复已有受管上下文，不重发历史输入。初始化只保存配置；run 建立或恢复原生会话，首次提交任务才发起模型轮次。空会话可能不被原 Agent 持久保存。
+
+工具权限由手机/眼镜选择“仅允许本次”或“拒绝本次”，不自动选择永久授权。通用 ACP 取消尚不能证明所有后台工作已停止，因此保持“停止未确认”，不承诺通用继续。本机 WorkBuddy 5.8.3 的内置 CLI 未完成 ACP 握手；官方独立 CodeBuddy CLI 2.177.0 已握手，创建会话需要登录，尚未完成真实执行。WorkBuddy 官方云端 ACP 另需要第三方应用授权，不包含在本包已验的本地 stdio 路径中。ACP 连接器已在 macOS 验证；Windows/Linux 端执行仍需分别验收。

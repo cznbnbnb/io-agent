@@ -106,7 +106,7 @@ export class AgentSessionDirectory {
       if(!keys||!fields(input,keys)||!uuid(input.request_id)||!uuid(input.instance_id)||!routeValid(input.route))reject(400,'INVALID_AGENT_SESSION');
       if(p.sessionRoute&&canonical(input.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
       if(input.action==='acquire'){
-        if(!integer(input.expected_generation)||!['claude','codex'].includes(input.host_kind)||!workspaceValid(input.workspace)||!labelValid(input.label)||
+        if(!integer(input.expected_generation)||!['claude','codex','acp'].includes(input.host_kind)||!workspaceValid(input.workspace)||!labelValid(input.label)||
           !observationValid(input.observation)||!input.observation.ready)reject(400,'INVALID_AGENT_SESSION');
       }else if(!integer(input.generation,1)||!uuid(input.lease_id)||!integer(input.sequence,1)||
         input.action==='heartbeat'&&!observationValid(input.observation))reject(400,'INVALID_AGENT_SESSION');

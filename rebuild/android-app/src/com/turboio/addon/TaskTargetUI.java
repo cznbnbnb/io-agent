@@ -22,7 +22,7 @@ final class TaskTargetUI {
   static Target of(TaskSessionDirectory.Entry e,long elapsed){
    String gate=e.gate(elapsed);
    int tone=!gate.isEmpty()?MaterialReadingUI.DIM:Boolean.FALSE.equals(e.busy)?MaterialReadingUI.ACCENT_SOFT:MaterialReadingUI.AMBER;
-   return new Target("codex".equals(e.host)?"Codex":"Claude Code",computer(e),e.label.isEmpty()?shortPath(e.workspace):e.label,shortPath(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone);
+   return new Target("codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent",computer(e),e.label.isEmpty()?shortPath(e.workspace):e.label,shortPath(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone);
   }
   static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),shortPath(c.project),shortPath(c.project),c.session,"状态待更新",MaterialReadingUI.DIM);}
  }

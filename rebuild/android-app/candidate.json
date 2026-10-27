@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev134",
-  "version_code": 10556,
-  "revision": "io-agent-session-resident-navigation",
+  "version": "0.5.3-dev136",
+  "version_code": 10558,
+  "revision": "io-agent-acp-paused-registration",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-27T06:11:27.943Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev134.apk",
+  "signed": "2026-10-27T10:22:38.815Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev136.apk",
   "bytes": 430207336,
-  "sha256": "2e47c9700886a0185c56d0b807e07f10382724fbef65f7fbde2605486a51d0bd",
+  "sha256": "248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -37,7 +37,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": true
+    "device_installed": false
   },
   "dex_audit": {
     "schema": 1,

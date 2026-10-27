@@ -4,6 +4,7 @@ import {BridgeError,readPrivateJson} from '../client.mjs';
 import {runtimeDigest} from '../runtime-events.mjs';
 import {directoryRoute,directoryLabel} from '../session-directory.mjs';
 import {NativeRuntimeAdapter} from './native-runtime.mjs';
+import {AcpSession} from './acp-session.mjs';
 import {CodexAppServerSession} from './codex-app-server.mjs';
 import {createClaudeModBroker} from './claude-mod/broker.mjs';
 
@@ -17,7 +18,7 @@ const hostCapabilities=Object.freeze({atomic_idle_start:false,atomic_queue_appen
  * not retried behind the user's back: restart the bridge to reconnect. */
 export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now,
   connectCodex=(id,options)=>CodexAppServerSession.connect(id,options),
-  createClaudeBroker=createClaudeModBroker}={}){
+  createClaudeBroker=createClaudeModBroker,connectAcp=options=>AcpSession.connect(options)}={}){
   const native=config.native_runtime;
   need(path.isAbsolute(configDirectory??'')&&object(native)&&config.adapter_command===undefined);
   need(Object.keys(native).every(k=>['state_file','sessions'].includes(k))&&typeof native.state_file==='string'&&native.state_file&&
@@ -25,14 +26,22 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
   const resolve=v=>path.resolve(configDirectory,v);
   const stateFile=resolve(native.state_file),keys=new Set(),directories=new Set();
   const entries=native.sessions.map(s=>{
-    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','rpc_path','auth_file','broker_directory'].includes(k))&&
-      ['codex','claude'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&directoryRoute(s.route)&&
+    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','rpc_path','auth_file','broker_directory','acp'].includes(k))&&
+      ['codex','claude','acp'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&directoryRoute(s.route)&&
       s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id);
     const label=typeof s.label==='string'?s.label.trim():s.label;
     need(label===undefined||typeof s.label==='string'&&!/[\u0000-\u001f\u007f]/.test(s.label)&&directoryLabel(label));
     const key=runtimeDigest(s.route);need(!keys.has(key));keys.add(key);
     let workspace;try{workspace=fs.realpathSync(resolve(s.workspace));need(fs.statSync(workspace).isDirectory());}catch{need(false);}
     const binding={server_id:config.server_id,owner_id:config.owner_id,host_kind:s.host_kind,workspace,route:structuredClone(s.route)};
+    if(s.acp!==undefined){
+      need(object(s.acp)&&Object.keys(s.acp).sort().join()==='command,session_id,state_file'&&
+        Array.isArray(s.acp.command)&&s.acp.command.length>0&&s.acp.command.every(v=>typeof v==='string'&&!/[\0\r\n]/.test(v))&&path.isAbsolute(s.acp.command[0])&&
+        (s.acp.session_id===null||typeof s.acp.session_id==='string'&&s.acp.session_id&&s.acp.session_id.length<=256)&&typeof s.acp.state_file==='string'&&s.acp.state_file&&
+        ['endpoint','rpc_path','auth_file','broker_directory'].every(k=>s[k]===undefined));
+      return{binding,label,acp:{command:s.acp.command,sessionId:s.acp.session_id??undefined,stateFile:resolve(s.acp.state_file)}};
+    }
+    need(s.host_kind!=='acp');
     if(s.host_kind==='codex'){
       need(typeof s.endpoint==='string'&&s.endpoint&&s.broker_directory===undefined&&
         (s.auth_file===undefined||typeof s.auth_file==='string'&&s.auth_file));
@@ -59,7 +68,10 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
       try{
         for(const e of entries){
           let host;
-          if(e.binding.host_kind==='codex'){
+          if(e.acp){
+            host=await connectAcp({...e.acp,workspace:e.binding.workspace,conversationId:e.binding.route.session_id,permissionMode:'phone',...(fs.existsSync(path.join(configDirectory,'connector.json'))?{connectorDirectory:configDirectory}:{})});
+            closers.push(()=>host.close());
+          }else if(e.binding.host_kind==='codex'){
             let attempt=null,connectedHost=null;
             const get=()=>attempt??=(async()=>{
               let bearerToken;

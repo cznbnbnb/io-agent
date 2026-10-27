@@ -116,7 +116,7 @@ final class AgentConnectionsPage {
     }
     TextView edit=AgentUI.button(activity,screen.body,"更新登记文件",false,()->register(binding));edit.setEnabled(!busy);
    }
-   if(expired&&!binding.equals(snapshot.defaultBinding)&&!binding.equals(snapshot.binding))AgentUI.button(activity,screen.body,"移除已到期登记",false,()->AgentUI.confirm(activity,"移除这条登记？","只移除已到期连接，已有任务和回复记录继续保留。",()->{
+   if((expired||!view.profile.enabled)&&!binding.equals(snapshot.defaultBinding)&&!binding.equals(snapshot.binding))AgentUI.button(activity,screen.body,expired?"移除已到期登记":"移除已暂停登记",false,()->AgentUI.confirm(activity,"移除这条登记？","只移除这条手机登记，已有任务和回复记录继续保留。电脑任务和配对授权不受影响；重新登记同一会话可找回记录。",()->{
     busy=true;runtime.remove(binding,(state,error)->{if(error.isEmpty())screen.dialog.dismiss();else done(state,error,"");});
    }));
   }

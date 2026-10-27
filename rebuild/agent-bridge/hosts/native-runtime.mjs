@@ -67,7 +67,7 @@ export class NativeRuntimeAdapter{
     const keys=new Set(),sessions=new Set();
     this.#config=bindings.map(entry=>{
       const b=entry?.binding;
-      need(object(b)&&validRoute(b.route)&&['codex','claude'].includes(b.host_kind)&&typeof b.server_id==='string'&&b.server_id&&typeof b.owner_id==='string'&&b.owner_id&&typeof b.workspace==='string'&&path.isAbsolute(b.workspace),'NATIVE_RUNTIME_BINDING_INVALID');
+      need(object(b)&&validRoute(b.route)&&['codex','claude','acp'].includes(b.host_kind)&&typeof b.server_id==='string'&&b.server_id&&typeof b.owner_id==='string'&&b.owner_id&&typeof b.workspace==='string'&&path.isAbsolute(b.workspace),'NATIVE_RUNTIME_BINDING_INVALID');
       need(entry.label===undefined||directoryLabel(entry.label),'NATIVE_RUNTIME_BINDING_INVALID');
       need(entry.host?.conversationId===b.route.session_id&&['status','start','inspectOperation'].every(k=>typeof entry.host[k]==='function'),'NATIVE_RUNTIME_HOST_MISMATCH');
       const key=runtimeDigest(b.route),session=`${b.host_kind}:${b.route.session_id}`;
@@ -371,8 +371,8 @@ export class NativeRuntimeAdapter{
   }
   pollEvents(){return this.#exclusive(async()=>{
     await this.#discoverObserved();
-    for(const {key}of this.#config){
-      const controller=this.#controllers.get(key),ops=this.#journal.order.map(id=>this.#journal.operations[id]).filter(op=>op.admitted&&!op.admission_rejection&&op.binding_key===key);
+    for(const entry of this.#config){
+      const {key}=entry,controller=this.#controllers.get(key),ops=this.#journal.order.map(id=>this.#journal.operations[id]).filter(op=>op.admitted&&!op.admission_rejection&&op.binding_key===key);
       if(!ops.length)continue;
       try{
         for(const op of ops){
@@ -385,6 +385,13 @@ export class NativeRuntimeAdapter{
         for(const op of ops)this.#project(op,controller.list());
         await controller.tick();
         for(const op of ops)this.#project(op,controller.list());
+        const count=this.#journal.event_order.length;
+        for(const q of entry.host.pendingPermissions?.()??[]){
+          const current=controller.list().find(c=>c.turn_id===q.turnId&&c.phase==='running'),op=current&&ops.find(op=>op.source.body.task_id===current.task_id);
+          if(op)this.#emit(op,'permission-'+q.requestId,[{action:'request',request_id:q.requestId,runtime_request_id:q.requestId,mode:'choice',question:q.question,expires_at:q.expires_at,
+            options:[{option_id:'allow_once',label:'仅允许本次'},{option_id:'deny_once',label:'拒绝本次'}]}]);
+        }
+        if(count!==this.#journal.event_order.length)this.#save();
       }catch(error){
         // Host outages are per binding. Storage/ownership loss is not: do not
         // keep dispatching after any write-ahead journal becomes uncertain.
@@ -398,8 +405,19 @@ export class NativeRuntimeAdapter{
     need(Array.isArray(ids)&&ids.length<=20&&new Set(ids).size===ids.length&&ids.every(id=>typeof id==='string'&&own(this.#journal.events,id)),'NATIVE_RUNTIME_EVENT_ACK_INVALID');
     for(const id of ids)this.#journal.events[id].acked=true;this.#save();
   });}
-  onAnswer(){throw new NativeRuntimeError('NATIVE_RUNTIME_ANSWER_UNSUPPORTED');}
-  onRequestClosed(){return[];}
+  onAnswer({request,answer}){return this.#exclusive(async()=>{
+    const entry=this.#config.find(e=>equal(e.binding.route,request.body?.route));
+    need(entry&&typeof entry.host.replyPermission==='function','NATIVE_RUNTIME_ANSWER_UNSUPPORTED');
+    const pending=entry.host.pendingPermissions().find(q=>q.requestId===request.body.runtime_request_id);
+    if(!pending)return [];
+    need(this.#controllers.get(entry.key).list().some(c=>c.task_id===request.body.task_id&&c.turn_id===pending.turnId&&c.phase==='running'),'NATIVE_RUNTIME_PERMISSION_STALE');
+    const choice=answer.body?.option_id;need(['allow_once','deny_once'].includes(choice),'NATIVE_RUNTIME_PERMISSION_CHOICE_INVALID');
+    entry.host.replyPermission(pending.requestId,choice);return [];
+  });}
+  onRequestClosed({request}){
+    const entry=this.#config.find(e=>equal(e.binding.route,request.body?.route));
+    entry?.host.replyPermission?.(request.body.runtime_request_id,null);return[];
+  }
   async stop(){
     if(!this.#lease)return;this.#generation++;this.#stopping=true;
     try{await this.#operation?.catch(()=>{});for(const c of this.#controllers.values())await c.close();this.#controllers.clear();this.#lease.release();this.#lease=null;this.#state=null;this.#started=false;}

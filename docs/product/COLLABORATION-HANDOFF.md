@@ -1,3 +1,15 @@
+## [codex] 2026-10-27 CLI＋ACP 统一连接器已交付：dev136、Claude/Codex 手机全链通过
+
+用户确认拓扑并要求执行后，新增 `connector.mjs` 与独立 stdio ACP 宿主，复用既有配对、问答、服务器、耐久控制和手机任务页。受管路由与原生 session ID 分开保存；真实宿主 ID 校验后才允许 CLI 映射。初始化仅落配置，run 新建/恢复本地引擎，未知输入不重发，权限只提供手机“允许本次/拒绝本次”。当前 Desktop 原聊天仍不受控；全局启动覆盖继续禁用。Claude/Codex 原专用控制器保留，不将 ACP 新会话冒充接管原聊天。
+
+- **实测**：macOS 下 codex-acp 2.3.0、claude-agent-acp 0.97.0 均通过真实首轮→关闭→同 native session 恢复→读回合成上下文。生产服务器4次合成任务/结果回读通过；随后扫码/字符串同一确认流程绑定 caller790/791-20261027-codex，用各自会话局部凭据跑通手机选会话→实际提交→真实上下文测试码→“已完成”和完整结果可见。手机首次新连接回放旧 inbox 有延迟，未把服务器完成直接算手机已显示。[证据](../../rebuild/agent-bridge/hosts/acp-proof-2026-10-27.json) / [操作及代价](../../rebuild/agent-bridge/hosts/acp-guide.md)。
+- **手机**：dev136 /10558 已装，完整 SHA `248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7`，回退 dev135 SHA `8fc4fa1a08311792cbd32e04b4ced0a2e038b189ccb207ccfa29ee08bcc184af`。仅传1,919,784字节差异，基线/重建/现装完整SHA核对；原厂、登录、资料和邮箱数据保留。通用acp目录沿用原样式。实测发现16条长期续期登记占满；补“移除已暂停登记”供明确清理非当前/非默认项，保留邮箱与电脑配对，系统返回可取消确认。只移除自己旧测试登记8d32661c…、1c33fb3d…及本次两个QA登记，没有自动淘汰或提高容量。
+- **WorkBuddy**：用户新装5.8.3已只读检查，内置CLI报2.161.0：普通bundle缺失、lite帮助可读，但ACP握手前退出。隔离安装官方CodeBuddy CLI 2.177.0，initialize通过，session/new明确认证失败；需要正常CLI登录后再验模型/恢复/手机。没有读取或复用内部Gateway密钥，没有控制其已有Desktop聊天；官方云ACP OAuth未实现。便携ZIP含统一连接器，生成和独立解压核对在随后交付条目记录。
+- **检查**：初始受影响Node22 152项全过；最终变更ACP/真实进程fixture/native桥18项全过，涵盖空参数、上下文、未知不重发、权限问答、精确取消与退出状态。JVM目录124、控制98、contexts最终63、status35、presentation57；移除/重新登记保留历史及草稿实证、当前Java/D8/签名/原厂dex审计通过。原生后台工作停止仍无通用证明，ACP保持stop_unconfirmed，不放行通用继续；眼镜主动采音入口另项未完成。
+- **服务/收尾**：只部署agent-sessions.mjs接受acp，服务active，SHA `a94ffcd1b0aedb83e0ed87caf66defabfb98d7e97695b22016f120da51fe7851`；旧文件备份在/opt/turboio/backup-codex-acp-20261027，无DB迁移。QA桥/新引擎已退出、租约离线，两个临时会话设备已撤销且旧凭据拒绝；共享电脑/手机凭据不撤销。诊断驱动/XML/设备差异临时文件清理，只保留dev136与回退dev135包。独立voice7未跟踪候选逐字恢复、未装包/未提交。已包含Claude 6abb2d9，未碰对方工作区。设备锁在提交/推送收尾后释放。
+
+下一项建议：先完成WorkBuddy官方CLI的正常授权，再跑同一套受管上下文与手机验收；若优先优化体验，另批收口新绑定的历史收件箱追赶延迟。二者都不恢复Desktop全局启动覆盖。
+
 ## [codex] 2026-10-27 撤回 Desktop 转接：真实启动协议失败，已保留恢复环境并禁止重装
 
 覆盖下方两条“正常重启后待验”说明：本工具 `CODEX_CLI_PATH` 转接实际阻止了 Desktop 启动。用户侧撤销两个 launch 覆盖后恢复，本机确认 PID9364/自带原生子进程、`app_start outcome=success`，该次日志无 policy-read 失败；此前多次失败的 `reason=protocol` 保留。原生协议组件与已安装 shell 启动器的90项通过不构成真实 Desktop 启动兼容性验收。具体被拒协议方法尚未建立，不能把相似公开问题当作精确根因证明。

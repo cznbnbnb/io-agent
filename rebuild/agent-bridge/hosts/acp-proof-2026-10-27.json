@@ -1,0 +1,216 @@
+{
+  "schema": 1,
+  "date": "2026-10-27T10:38:24.470262+00:00",
+  "kind": "stdio ACP managed-session delivery; native models, production service, and actual phone UI verified separately",
+  "base_commit": "dc04d630e1ebcde8a87d8a8e2fc69a1af4cbe4f1",
+  "peer_commit_included": "6abb2d9",
+  "host_platform": "macOS",
+  "global_desktop_launcher_modified": false,
+  "native": [
+    {
+      "agent": "codex",
+      "adapter_version": "2.3.0",
+      "native_session_id": "01a17cc1-1595-75d1-8ff5-33e29ae5abfb",
+      "new_session": true,
+      "reload_same_session": true,
+      "context_retained": true,
+      "passed": true
+    },
+    {
+      "agent": "claude",
+      "adapter_version": "0.97.0",
+      "native_session_id": "489ce8d9-9fa5-4d16-a609-85585b9194cf",
+      "new_session": true,
+      "reload_same_session": true,
+      "context_retained": true,
+      "passed": true
+    }
+  ],
+  "production_roundtrips": [
+    {
+      "agent": "codex",
+      "directory_online": true,
+      "tasks": [
+        {
+          "task_id": "codex-acp-qa-codex-0435fff7-8f6",
+          "state": "completed",
+          "execution_phase": "completed",
+          "result_matches_context_nonce": true,
+          "result_readback_verified": true
+        },
+        {
+          "task_id": "codex-acp-qa-codex-368f5264-eed",
+          "state": "completed",
+          "execution_phase": "completed",
+          "result_matches_context_nonce": true,
+          "result_readback_verified": true
+        }
+      ],
+      "passed": true,
+      "actual_phone_ui_submission": false
+    },
+    {
+      "agent": "claude",
+      "directory_online": true,
+      "tasks": [
+        {
+          "task_id": "codex-acp-qa-claude-6d5321a2-f16",
+          "state": "completed",
+          "execution_phase": "completed",
+          "result_matches_context_nonce": true,
+          "result_readback_verified": true
+        },
+        {
+          "task_id": "codex-acp-qa-claude-c4ef3550-3c9",
+          "state": "completed",
+          "execution_phase": "completed",
+          "result_matches_context_nonce": true,
+          "result_readback_verified": true
+        }
+      ],
+      "passed": true,
+      "actual_phone_ui_submission": false
+    }
+  ],
+  "actual_phone_ui": {
+    "codex": {
+      "phone_submitted": true,
+      "phone_completed_visible": true,
+      "result_matches_native_context": true,
+      "task_id": "task-android-9d75e8bd64ad9e09f78d1dbfdf2713e75ad598bdfc0822c8707eea54d588e6da"
+    },
+    "claude": {
+      "phone_submitted": true,
+      "phone_completed_visible": true,
+      "result_matches_native_context": true,
+      "task_id": "task-android-9e72c1303aa2556921ed660223f567a779c2485a3eac07d29b2eba647a65626d"
+    }
+  },
+  "phone_tasks_server_readback": [
+    {
+      "agent": "codex",
+      "task_id": "task-android-9d75e8bd64ad9e09f78d1dbfdf2713e75ad598bdfc0822c8707eea54d588e6da",
+      "state": "completed",
+      "result_matches_context": true
+    },
+    {
+      "agent": "claude",
+      "task_id": "task-android-9e72c1303aa2556921ed660223f567a779c2485a3eac07d29b2eba647a65626d",
+      "state": "completed",
+      "result_matches_context": true
+    }
+  ],
+  "phone_delivery": {
+    "version": "0.5.3-dev136",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "8fc4fa1a08311792cbd32e04b4ced0a2e038b189ccb207ccfa29ee08bcc184af",
+      "candidate_sha256": "248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7",
+      "apk_bytes": 430207336,
+      "delta_bytes": 1919784,
+      "commands": 8091,
+      "delta_sha256": "75138f4aef17d920c95a6fbf7037066afdb05a6aed0e9601246f47a7996478d5",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "248b38db9fec2b5fffb8dcc5923fefe0774bc78db9a222198842b121f57c5da7",
+    "rollback": "0.5.3-dev135"
+  },
+  "tests": {
+    "initial_affected_node22": {
+      "pass": 152,
+      "fail": 0
+    },
+    "final_changed_acp_and_native_bridge": {
+      "pass": 18,
+      "fail": 0
+    },
+    "jvm": {
+      "directory": 124,
+      "controls": 98,
+      "contexts_final": 63,
+      "status": 35,
+      "presentation": 57
+    },
+    "production_java_d8_signature_and_installed_full_sha": true,
+    "empty_argument_and_final_stop_status_regression": true,
+    "removed_registration_mailbox_roundtrip": true
+  },
+  "workbuddy": {
+    "desktop_version": "5.8.3",
+    "bundled_cli_version": "2.161.0",
+    "bundled_cli_acp_handshake": false,
+    "official_cli_version": "2.177.0",
+    "isolated_official_acp_initialize": true,
+    "session_new_error": {
+      "code": -32000,
+      "class": "authentication"
+    },
+    "model_execution_tested": false,
+    "desktop_original_chat_controlled": false,
+    "internal_gateway_credentials_used": false
+  },
+  "server_deployment": {
+    "service": "turboio-material",
+    "active": true,
+    "agent_sessions_sha256": "a94ffcd1b0aedb83e0ed87caf66defabfb98d7e97695b22016f120da51fe7851",
+    "previous_sha256": "6869cf5965809658234f287104125d3007a0579739bc1df28203dcb1acb1f9b4",
+    "backup": "/opt/turboio/backup-codex-acp-20261027/agent-sessions.mjs",
+    "database_migration": false
+  },
+  "cleanup": {
+    "scoped_tests": [
+      {
+        "label": "codex",
+        "lease_offline": true,
+        "temporary_device_revoked": true,
+        "old_credential_rejected": true,
+        "phone_qa_registration_removed": true,
+        "history_mailbox_preserved": true
+      },
+      {
+        "label": "claude",
+        "lease_offline": true,
+        "temporary_device_revoked": true,
+        "old_credential_rejected": true,
+        "phone_qa_registration_removed": true,
+        "history_mailbox_preserved": true
+      }
+    ],
+    "diagnostic_uninstalled": true,
+    "temporary_device_xml_removed": true,
+    "only_test_registrations_removed": true,
+    "old_test_sessions_removed": [
+      "8d32661c-19fb-4947-9c3e-0ffa9207a7f0",
+      "1c33fb3d-6c3c-4fa4-9568-00f067376660"
+    ],
+    "default_target_changed": false,
+    "shared_computer_and_phone_credentials_revoked": false,
+    "retained_apks": [
+      "dev136",
+      "dev135"
+    ],
+    "deferred_voice_files_changed_or_packaged": false
+  },
+  "limits": [
+    "Existing Codex Desktop original chat remains uncontrolled; global launcher integration stays disabled.",
+    "ACP cancel does not prove background work stopped; generic continue remains unavailable.",
+    "WorkBuddy official CLI needs normal login before native model/restore/phone acceptance.",
+    "Windows/Linux ACP not verified.",
+    "Glasses double-tap capture entry is a separate unfinished feature.",
+    "Phone first bind replays existing inbox history; result UI may lag native completion."
+  ],
+  "source_sha256": {
+    "rebuild/agent-bridge/connector.mjs": "c01dff9de40c20fcb225b0362742eda73798d5fbff4f5b7a109e3a1a06572579",
+    "rebuild/agent-bridge/hosts/acp-session.mjs": "d4c9aec9256cf0b6785915d25b1ea709b8d74140cd95c0025111247ae5abddf7",
+    "rebuild/agent-bridge/hosts/native-config.mjs": "19e98e6249ce108dccffad6f5d255cb6e5fe127f3152062b0b3a70499d3e1616",
+    "rebuild/agent-bridge/hosts/native-runtime.mjs": "5d5412bfd6ea51fb9356dfca9efd4ea8ba35c8f010b686ab32efd57f6d8aafec",
+    "rebuild/agent-bridge/questions/cli.mjs": "a49b684995b72e9af11a30c5e2698788ed0a685b8e952265da95dc84a222fc74",
+    "rebuild/agent-bridge/session-directory.mjs": "7373ae41ac00f012727af405a9be6bb7a801c11b8e15017321e4686afb68956b",
+    "rebuild/material-server/agent-sessions.mjs": "a94ffcd1b0aedb83e0ed87caf66defabfb98d7e97695b22016f120da51fe7851",
+    "rebuild/android-app/src/com/turboio/addon/TaskSessionDirectory.java": "8dc57a7992a5350d7988e3c4ca8595f5864a4d6410171cb92445be4e174ea7e7",
+    "rebuild/android-app/src/com/turboio/addon/TaskTargetUI.java": "62700854104ca54893ba97abc5669ee66214f9db0746206d901f7400f252b09d",
+    "rebuild/android-app/src/com/turboio/addon/TaskProfiles.java": "c916d8debb6dc9c3be9361f090434c93362edb5339c83ff9e8c1d435e504fa82",
+    "rebuild/android-app/src/com/turboio/addon/AgentConnectionsPage.java": "884c6bb56748292e1dcd38c3e501fec4d1bb224c4d7bad2b8d50b8603c70cadc"
+  }
+}

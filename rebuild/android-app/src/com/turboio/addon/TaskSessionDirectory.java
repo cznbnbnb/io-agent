@@ -22,7 +22,7 @@ final class TaskSessionDirectory {
   Entry(Map<String,Object> value,long serverTime,long start,long end,boolean observed){
    BoundedJson.keys(value,"route","producer_id","device_id","host_kind","workspace","label","generation","instance_id","lease_id","lease_expires_at","online","busy","capabilities","reason");
    route=route(value.get("route"));key=routeKey(route);producer=TaskWire.text(value.get("producer_id"),128,false);TaskWire.require(producer.matches("[A-Za-z0-9_.:-]{1,128}"),"DIRECTORY_INVALID");
-   device=uuid(value.get("device_id"));host=TaskWire.text(value.get("host_kind"),6,false);TaskWire.require(TaskWire.set("claude","codex").contains(host),"DIRECTORY_INVALID");
+   device=uuid(value.get("device_id"));host=TaskWire.text(value.get("host_kind"),6,false);TaskWire.require(TaskWire.set("claude","codex","acp").contains(host),"DIRECTORY_INVALID");
    workspace=workspace(value.get("workspace"));
    label=TaskConnection.text(value.get("label"),256);TaskWire.require(label.equals(label.trim())&&label.length()<=64,"DIRECTORY_INVALID");
    generation=TaskWire.positive(value.get("generation"));instance=uuid(value.get("instance_id"));lease=uuid(value.get("lease_id"));

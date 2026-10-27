@@ -1,0 +1,89 @@
+# CLI 与 ACP 统一接入
+
+更新：2026-10-27。开发入口已实现；具体验证以 [本批证据](./acp-proof-2026-10-27.json) 为准。
+
+电脑连接器复用现有服务器、扫码/字符串配对、手机任务页及眼镜问答。不同 Agent 通过显式配置的 ACP 程序接入，手机不用分别实现每家的执行协议。
+
+```mermaid
+flowchart LR
+  A[手机 / 眼镜] <-->|任务、问题、答案、结果| S[现有 iO 服务器]
+  S <-->|HTTPS + 同一会话配对| C[电脑 connector.mjs]
+  C <-->|本机 stdio ACP| P[各 Agent 的 ACP 入口]
+  P --> N[独立受管 session]
+  N -->|需要提问时| Q[现有 questions/cli.mjs]
+  Q <-->|同一任务路由| S
+```
+
+## 程序位置与身份
+
+| 文件 | 职责 |
+| --- | --- |
+| `rebuild/agent-bridge/connector.mjs` | 初始化、配对、常驻收发和退出 |
+| `hosts/acp-session.mjs` | ACP v1 握手、新建/恢复、输入、结果、权限和取消 |
+| `hosts/native-runtime.mjs` | 复用耐久任务控制器，将权限请求接回原任务 |
+| `questions/cli.mjs` | 沿用 Agent 主动提问、进度、回答和真实宿主身份校验 |
+| 手机 `TaskSessionDirectory` / `TaskTargetUI` | 沿用现有任务页，识别通用 ACP 会话 |
+
+初始化生成明确标为 `managed:true` 的路由 UUID。原 Agent 返回的真实原生 session ID 单独保存在电脑私有账本；两者并非同一标识。原生日志和上下文仍由 Agent 持有。CLI 只有核对到真实宿主 ID 与账本匹配，才允许映射到这条受管路由。
+
+这条路径创建自己的受管会话，**当前 Codex Desktop 原聊天仍不能被远程接管**。它也不能仅凭安装 WorkBuddy 就控制 WorkBuddy 窗口里的任意已有对话。日常 Desktop 启动链保持原样；已停用的全局 `CODEX_CLI_PATH` 集成不可恢复。
+
+## 运行
+
+要求 Node.js 22.18+、能联网的现有手机账号及一个支持 ACP v1 `loadSession` 的本地程序。受管连接器自身不需要 Python；普通问答 CLI 的既有 Python 依赖仍保留。
+
+当前实际验证的 macOS 依赖版本：
+
+```sh
+npm install --prefix /absolute/local/adapters --ignore-scripts --no-audit --no-fund \
+  @agentclientprotocol/codex-acp@2.3.0 \
+  @agentclientprotocol/claude-agent-acp@0.97.0
+```
+
+沿用相应官方引擎的正常登录。先用其官方登录流程配置账号，连接器不会从另一个 App 抽取内部访问密钥。不要把凭据放进命令参数或分享包。
+
+从项目根目录初始化，JSON 通过标准输入传入（替换所有示例绝对路径）：
+
+```sh
+node rebuild/agent-bridge/connector.mjs init --directory /absolute/private/my-codex <<'JSON'
+{"runtime":"codex","label":"我的受管任务","workspace":"/absolute/workspace","command":["/absolute/node","/absolute/local/adapters/node_modules/@agentclientprotocol/codex-acp/dist/index.js"]}
+JSON
+node rebuild/agent-bridge/connector.mjs pair --directory /absolute/private/my-codex
+```
+
+Claude 用 `runtime:"claude-code"` 和 `@agentclientprotocol/claude-agent-acp/dist/index.js`。输出包含二维码 HTML 与一次性配对字符串。手机进入「电脑连接 → 添加 Agent 会话」，扫码或粘贴，核对 Agent、主题、工作区和会话后「保存并绑定」。然后运行：
+
+```sh
+node rebuild/agent-bridge/connector.mjs pair-status --directory /absolute/private/my-codex
+node rebuild/agent-bridge/connector.mjs run --directory /absolute/private/my-codex
+```
+
+终端保持运行时，手机可选择这条在线会话提交任务；结果回到原任务。Ctrl+C 退出连接器和自己启动的引擎；下次同一目录 `run` 恢复原生上下文。`status` 只读本地账本，不能把旧本地状态当作服务器仍在线的证明。
+
+`init` 只保存配置，不启动引擎。`run` 建立或恢复原生会话，但不会自行发送模型输入。有些 Agent 不持久保存零轮次空会话，因此在首次输入意图落盘时才保存原生 session ID。进行过任务后，保留整个私有目录；删除账本不能解决执行状态不明，也不要把它打包给另一台电脑。
+
+已有同一电脑配对可显式 `run --device /absolute/private/device.json`。正式使用优先用各会话的扫码/字符串配对；同一路由一旦被服务器绑定到某个设备身份，不能拿另一份配对凭据抢用。问答 CLI `join` 在受管会话里由连接器负责常驻，不再启动第二个监听器。
+
+## 权限、停止和恢复
+
+- 需要批准的原生工具操作通过同一任务的问答显示完整标题与输入，只提供「仅允许本次 / 拒绝本次」。超出可完整显示的范围、超时或不支持的权限类型取消请求，不自动批准长期权限。原引擎既有权限设置仍由原引擎管理。
+- 每条输入先保存耐久意图，再送到 ACP。未知执行、断线或丢失回执只对账，不重发模型输入；`session/load` 回放的旧内容不作为新任务结果。
+- 结果来自同一条 `session/prompt` 的终态及文字输出。拒绝、失败或权限取消不会显示任务完成。
+- 打断指向连接器当前唯一活动轮次，发 ACP `session/cancel`。**ACP 取消不能证明后台工具/远程工作全部停止**，本版保留「停止未确认」，不会放行“已证实停止后继续”。已有原生 Claude/Codex 专用控制器的停止证据机制保留。
+- macOS 连接器退出会清理自己新建的本地引擎进程组，不结束日常 Desktop 或其他会话。连接器恢复不会自动执行状态不明的旧输入。
+
+## WorkBuddy 目前的位置
+
+已检查本机 WorkBuddy **5.8.3**，内置 CLI 报 **2.161.0**。直接运行内置 CLI 帮助会缺少普通 bundle；指定它自己的 lite bundle 能读帮助，但 ACP 握手前退出。本次未修改 App 安装包或使用其内部 Gateway 凭据。
+
+官方独立 **CodeBuddy CLI 2.177.0** 在隔离配置中完成 `initialize`，`session/new` 返回需要认证。因此原生 ACP 入口成立，真实模型/恢复/手机控制尚待官方 CLI 登录后验证；它并不证明 WorkBuddy Desktop 原会话已可控制。独立 CLI 的官方安装与共存配置见[安装说明](https://www.workbuddy.ai/docs/zh/cli/installation)，ACP 用法见[官方文档](https://www.workbuddy.ai/docs/zh/cli/acp)。
+
+WorkBuddy 的[连接器](https://open.workbuddy.cn/docs/connector)用于让 WorkBuddy 调用外部工具（MCP＋Skill 或 CLI＋Skill）；[云端 ACP/Open API](https://open.workbuddy.cn/docs/openapi)则另需第三方应用授权。现有问答 ZIP 保留 CLI 工具接入方式；本批没有实现云端 OAuth 或读取本机内部令牌。
+
+## 使用代价与限制
+
+电脑须开机、联网并保持连接器进程运行；每个受管会话会启动相应引擎，增加内存和常驻连接。模型调用使用原 Agent 账号额度和收费方式，恢复长上下文也可能计费。本批不安装自动启动项。
+
+统一的是任务、问答和结果通道，各 Agent 的登录、工具权限和 ACP 差异仍需适配与固定版本。已验执行平台是 macOS；Windows/Linux 只完成源码打包兼容准备，尚未做 ACP 真机验收。眼镜双击主动采音入口另项仍未完成，不从手机通过推定眼镜入口已通过。
+
+dev136 手机登记上限仍为 16；可明确移除已暂停或到期的非当前/非默认登记，历史邮箱保留。以后同一会话重新登记可找回历史；这是本地登记管理，不撤销电脑授权，也不停止电脑任务。

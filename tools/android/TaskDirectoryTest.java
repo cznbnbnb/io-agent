@@ -18,6 +18,7 @@ public final class TaskDirectoryTest {
  static void parsing()throws Exception{
   TaskConnection c=connection(1);Map<String,Object> wire=directory(c);TaskSessionDirectory d=fresh(wire,c);
   yes(d.defaultRevision()==1&&TaskWire.same(d.defaultRoute(),c.route()));yes(d.gate(c.route(),60999).isEmpty());yes(d.gate(c.route(),61000).equals("DIRECTORY_TARGET_OFFLINE"));
+  Map<String,Object> generic=copy(wire);first(generic).put("host_kind","acp");yes(fresh(generic,c).sessions.get(0).host.equals("acp"));
   TaskSessionDirectory restart=TaskSessionDirectory.cached(d.encode(),c.server,c.owner);yes(TaskWire.same(restart.defaultRoute(),c.route()));yes(!restart.sessions.get(0).live(1200));yes(restart.gate(c.route(),1200).equals("DIRECTORY_REFRESH_REQUIRED"));
   // RTT consumes the whole lease. No local wall-clock timestamp participates in these checks.
   yes(!TaskSessionDirectory.fresh(d.encode(),c.server,c.owner,0,60000).sessions.get(0).live(60000));
