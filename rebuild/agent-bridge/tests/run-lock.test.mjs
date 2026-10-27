@@ -19,7 +19,7 @@ function setup(t){
   });
   return {dir,identity,stateFile,acquire:(options={})=>{const lease=BridgeRunLock.acquire({stateFile,identity,...options});leases.push(lease);return lease;},
     async child(options={}){
-      const child=fork(worker,[options.stateFile??stateFile,JSON.stringify(options.identity??identity)],{stdio:['ignore','ignore','ignore','ipc']});children.push(child);
+      const child=fork(worker,[options.stateFile??stateFile,JSON.stringify(options.identity??identity),...(options.scope?[options.scope]:[])],{stdio:['ignore','ignore','ignore','ipc']});children.push(child);
       const ready=await new Promise((resolve,reject)=>{
         const timer=setTimeout(()=>{child.kill('SIGKILL');reject(new Error('child readiness timeout'));},5000);
         child.once('message',value=>{clearTimeout(timer);resolve(value);});child.once('error',error=>{clearTimeout(timer);reject(error);});
@@ -57,4 +57,15 @@ test('path aliases normalize to one ledger lock and a foreign sidecar is preserv
 test('hard-linked state files are rejected instead of treating aliases as separate writable ledgers',t=>{
   const f=setup(t);fs.writeFileSync(f.stateFile,'{}');const alias=path.join(f.dir,'hardlink.json');fs.linkSync(f.stateFile,alias);
   assert.throws(()=>f.acquire(),e=>e.code==='STATE_PATH_UNSAFE');assert.equal(fs.readFileSync(f.stateFile,'utf8'),'{}');
+});
+test('narrow session consumers coexist across processes while the same scope and a broad consumer remain exclusive',async t=>{
+  const f=setup(t),scope='a'.repeat(64),first=f.acquire({scope});
+  const {child,ready}=await f.child({stateFile:path.join(f.dir,'second.json'),scope:'b'.repeat(64)});assert.equal(ready.ready,true);
+  assert.throws(()=>f.acquire({stateFile:path.join(f.dir,'same-scope.json'),scope}),{code:'BRIDGE_IN_USE'});
+  assert.throws(()=>f.acquire({stateFile:path.join(f.dir,'broad.json')}),{code:'BRIDGE_IN_USE'});
+  first.assertHeld();first.release();
+  assert.throws(()=>f.acquire({stateFile:path.join(f.dir,'still-broad.json')}),{code:'BRIDGE_IN_USE'});
+  const exit=new Promise(resolve=>child.once('exit',resolve));child.send({type:'release'});await exit;
+  const broad=f.acquire({stateFile:path.join(f.dir,'broad.json')});broad.assertHeld();
+  assert.throws(()=>f.acquire({stateFile:path.join(f.dir,'narrow.json'),scope}),{code:'BRIDGE_IN_USE'});
 });

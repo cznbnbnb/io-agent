@@ -29,11 +29,12 @@ export function canonicalStatePath(filename){
 // SQLite on close and by the OS on hard process death. No PID/age lease guessing.
 export class BridgeRunLock{
   #locks=[];#active=false;
-  static acquire({stateFile,identity}){
+  static acquire({stateFile,identity,scope=null}){
     const lease=new BridgeRunLock();
     try{
       lease.stateFile=canonicalStatePath(stateFile);
-      const files=[`${lease.stateFile}.run-lock.sqlite`];
+      if(scope!==null&&!(typeof scope==='string'&&/^[a-f0-9]{64}$/.test(scope)))fail('INVALID_LOCK_SCOPE');
+      const files=[{file:`${lease.stateFile}.run-lock.sqlite`,shared:false}];
       if(identity.computer_id&&identity.agent_id){
         const key=createHash('sha256').update(JSON.stringify([identity.server_id,identity.owner_id,identity.computer_id,identity.agent_id])).digest('hex');
         // OS account home, not cwd/state directory/TMP environment overrides:
@@ -42,16 +43,19 @@ export class BridgeRunLock{
         fs.mkdirSync(directory,{recursive:true,mode:0o700});
         const stat=fs.lstatSync(directory);
         if(!stat.isDirectory()||stat.isSymbolicLink()||typeof process.getuid==='function'&&stat.uid!==process.getuid())fail('LOCK_PATH_UNSAFE');
-        files.push(path.join(directory,`${key}.sqlite`));
+        // A broad legacy consumer remains exclusive. Narrow consumers share
+        // this gate, then exclusively own their own task/session scope.
+        files.push({file:path.join(directory,`${key}.sqlite`),shared:scope!==null});
+        if(scope!==null)files.push({file:path.join(directory,`${key}-${scope}.sqlite`),shared:false});
       }
-      for(const file of files)lease.#take(file);
+      for(const {file,shared} of files)lease.#take(file,shared);
       lease.#active=true;return lease;
     }catch(error){lease.release();if(error instanceof BridgeError)throw error;
       if(error.errcode===5||error.errcode===6||/database (?:is )?locked/i.test(error.message??''))fail('BRIDGE_IN_USE');
       fail('LOCK_UNAVAILABLE');
     }
   }
-  #take(file){
+  #take(file,shared){
     if(unsafe(file))fail('LOCK_PATH_UNSAFE');
     try{const fd=fs.openSync(file,'wx',0o600);fs.closeSync(fd);}catch(error){if(error.code!=='EEXIST')throw error;}
     // Keep SQLite loading out of CLI status (including its experimental warning).
@@ -62,7 +66,8 @@ export class BridgeRunLock{
     if(app!==APP_ID&&(app!==0||tables.length))fail('LOCK_FILE_INVALID');
     const mode=db.prepare('PRAGMA journal_mode').get().journal_mode;
     if(mode!=='delete')fail('LOCK_FILE_INVALID');
-    db.exec(`BEGIN EXCLUSIVE; PRAGMA application_id=${APP_ID}; CREATE TABLE IF NOT EXISTS bridge_run_lock (singleton INTEGER PRIMARY KEY CHECK(singleton=1)); COMMIT; BEGIN EXCLUSIVE;`);
+    if(app!==APP_ID)db.exec(`BEGIN EXCLUSIVE; PRAGMA application_id=${APP_ID}; CREATE TABLE IF NOT EXISTS bridge_run_lock (singleton INTEGER PRIMARY KEY CHECK(singleton=1)); COMMIT;`);
+    db.exec(shared?'BEGIN; SELECT name FROM sqlite_master;':'BEGIN EXCLUSIVE;');
   }
   assertHeld(){
     if(!this.#active)fail('LOCK_LOST');

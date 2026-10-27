@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev133",
-  "version_code": 10555,
-  "revision": "io-agent-android-107-task-flows-ui",
+  "version": "0.5.3-dev134",
+  "version_code": 10556,
+  "revision": "io-agent-session-resident-navigation",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-27T03:45:05.334Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev133.apk",
+  "signed": "2026-10-27T06:11:27.943Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev134.apk",
   "bytes": 430207336,
-  "sha256": "5ae056a14d9e6cea3f0a5515af21f155700dd0bf91125e659a4ed1b0b2ac30b7",
+  "sha256": "2e47c9700886a0185c56d0b807e07f10382724fbef65f7fbde2605486a51d0bd",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -37,7 +37,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": false
+    "device_installed": true
   },
   "dex_audit": {
     "schema": 1,
@@ -47,8 +47,8 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
-  "phone_disconnected_by_user": true,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false
 }

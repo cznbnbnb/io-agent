@@ -34,7 +34,7 @@ export class ProcessWitness {
   async bind(pid) {
     if (this.#root || !Number.isSafeInteger(pid) || pid <= 1) throw new Error('PROCESS_WITNESS_ROOT_INVALID');
     const rows = await this.#table(), root = rows.get(pid);
-    if (!root || root.uid !== process.getuid?.() || root.executable !== 'claude' || root.state.startsWith('Z'))
+    if (!root || root.uid !== process.getuid?.() || !['claude','claude.exe'].includes(root.executable) || root.state.startsWith('Z'))
       throw new Error('PROCESS_WITNESS_ROOT_UNTRUSTED');
     this.#root=root;
     await this.sample();

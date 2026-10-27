@@ -80,7 +80,8 @@ export class AgentBridge{
   async #start(){
     if(this.#state||this.#lease)throw new BridgeError('ALREADY_STARTED',{permanent:true});
     this.#state=null;
-    this.#lease=BridgeRunLock.acquire({stateFile:this.#stateFile,identity:this.#client.config});
+    const scope=this.#taskBinding?runtimeDigest(['question',this.#taskBinding]):this.#adapter.routeBindingDigest?runtimeDigest(['native',this.#adapter.routeBindingDigest]):null;
+    this.#lease=BridgeRunLock.acquire({stateFile:this.#stateFile,identity:this.#client.config,scope});
     this.#stateFile=this.#lease.stateFile;
     try{
       const identity=await this.#client.identity();

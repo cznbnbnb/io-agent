@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-27T07:11:18.431216+00:00",
+  "base_commit": "206db8b6fefbcd1538995cab9ee385a9645938db",
+  "peer_merged": "6abb2d9",
+  "installed": {
+    "schema": 1,
+    "product": "iO Agent Android",
+    "version": "0.5.3-dev134",
+    "version_code": 10556,
+    "revision": "io-agent-session-resident-navigation",
+    "host_version": "1.0.7",
+    "host_code": 230,
+    "signed": "2026-10-27T06:11:27.943Z",
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev134.apk",
+    "bytes": 430207336,
+    "sha256": "2e47c9700886a0185c56d0b807e07f10382724fbef65f7fbde2605486a51d0bd",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "native_library_zip_page_alignment": 16384,
+    "general_zip_alignment": 4,
+    "audit": {
+      "original_entries_preserved": 4004,
+      "replaced": [
+        "AndroidManifest.xml",
+        "classes2.dex",
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "added_dex": "classes5.dex",
+      "public_assets": 40,
+      "original_resources_and_native_libraries_preserved": false,
+      "original_resources_preserved": true,
+      "all_other_original_native_libraries_preserved": true,
+      "native_source_route": {
+        "member": "lib/arm64-v8a/libapp.so",
+        "input_sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c",
+        "output_sha256": "48ffd34352bf23eca928ad9c2f576347c4965a5af5ca05a35c1f1ed2ffc9fd50",
+        "bytes": 46465968,
+        "only_two_serialized_urls_changed": true,
+        "all_slots_in_readonly_nonexecuting_segments": true,
+        "instructions_changed": false
+      },
+      "source_dex_count": 4,
+      "device_installed": true
+    },
+    "dex_audit": {
+      "schema": 1,
+      "host_dex_integrity": "passed",
+      "host_classes_retained": 10944,
+      "original_members_retained": 97781,
+      "explicit_wrappers": 9,
+      "runtime_tested": false
+    },
+    "installed": true,
+    "phone_disconnected_by_user": false,
+    "one_minute_card_passed": false,
+    "release_gate_passed": false
+  },
+  "delta_bytes": 1919784,
+  "delta_sha256": "fcdd8ca02bfe3c8f4dc2dad841de899eadc0b2c685b6eba896e333fe45881bb9",
+  "rollback": {
+    "version": "dev133",
+    "version_code": 10555,
+    "sha256": "5ae056a14d9e6cea3f0a5515af21f155700dd0bf91125e659a4ed1b0b2ac30b7"
+  },
+  "claude": {
+    "session_id": "1c33fb3d-6c3c-4fa4-9568-00f067376660",
+    "task_id": "observed-3a11332411e9bdf49a9d81c9393cd2aaf77cbc43f1cc4ba17336e10da6c740e3",
+    "original_turn_id": "e5bd8cd4-3d8e-4c31-bf5a-25b51d303c56",
+    "continued_turn_id": "d2a18be0-28b9-43a6-92db-70c0f27c2484",
+    "original_command_id": "9315282a-d7ff-596d-a631-6b83efe42a85",
+    "continued_command_id": "eddb88c5-4159-43db-bc37-2aaa6f2de591",
+    "native_lifecycle_ended": true,
+    "normal_cli_join_no_temporary_plugin_dir_or_host_config": true,
+    "local_native_turn_not_replayed": true,
+    "phone_stop_parent_and_child_exited": true,
+    "independent_natural_deadline_not_reached": true,
+    "last_heartbeat": "35",
+    "budget_8000_to_9000": true,
+    "original_context_preserved": true,
+    "context_token_sha256": "15d3d6d8714f1492c1f0b83dcd9ae1f61e8d66c9c009d5999d9d5031e6320083",
+    "final_document_sha256": "550f3ade83c61839f0275516d118edb0528278de91565433b861ff792ef60c78",
+    "result_seen_in_phone_ui": true
+  },
+  "codex": {
+    "session_id": "01a17c06-9251-7c53-98a3-e62d2ca6d0e4",
+    "task_id": "observed-d970d5880d6272fb7518298c1e8f3b289c79d35b2392ce12dbad7d5c5384d84f",
+    "original_turn_id": "01a17c1e-49d6-7bd1-9bd2-0e7e8fc5ca68",
+    "continued_turn_id": "01a17c23-8d65-7013-ae11-65f2b176516a",
+    "original_command_id": "445cc94e-ff72-5551-aa4d-1535e292c75d",
+    "continued_command_id": "bb9f4f6e-0993-4ba2-b0a2-98bdc8ad9632",
+    "native_lifecycle_ended": true,
+    "normal_cli_join_no_temporary_plugin_dir_or_host_config": true,
+    "local_native_turn_not_replayed": true,
+    "phone_stop_parent_and_child_exited": true,
+    "independent_natural_deadline_not_reached": true,
+    "last_heartbeat": "46",
+    "budget_8000_to_9000": true,
+    "original_context_preserved": true,
+    "context_token_sha256": "a8fa4f1c385f36287d6ac94373e8e8f2ca72469879a487a3599f8dbabd934257",
+    "final_document_sha256": "2a6b1de3bf8f30e57b012ecc10887f04e5b4cb9cfa6446f3ff61a712c8f2baff",
+    "result_seen_in_phone_ui": true
+  },
+  "server_deployment": {
+    "deployed": true,
+    "already_current": false,
+    "commit": "206db8b",
+    "backup": "/opt/turboio/backup-codex-session-presence-206db8b",
+    "identity_unauthenticated_status": 401,
+    "files": [
+      {
+        "name": "http.mjs",
+        "before": "16156874663859f1314c498ffbaf608a8fcc10e598c48a8a6a970fb2e450ff4d",
+        "after": "c9ed757580dded86edeb984fc87751e0c27e392f63c7ad1545a9efa05108a8df"
+      },
+      {
+        "name": "agent-sessions.mjs",
+        "before": "b28c4ed186d1df82be0d6928c2c966f4ee6fa678d7c1bc42d8056a4b38582301",
+        "after": "6869cf5965809658234f287104125d3007a0579739bc1df28203dcb1acb1f9b4"
+      }
+    ]
+  },
+  "setup": {
+    "applied": true,
+    "claude_plugin": "io-agent-session-bridge@io-agent-local",
+    "plugin_version": "0.2.0",
+    "claude_native_version": "2.1.310",
+    "codex_native_version": "0.164.0-alpha.11.1",
+    "desktop_app": "/Applications/ChatGPT.app",
+    "desktop_opt_in": "CODEX_APP_SERVER_USE_LOCAL_DAEMON=1",
+    "current_desktop_restarted": false,
+    "approval_and_sandbox_settings_changed": false,
+    "remote_control_flag_enabled": false,
+    "second_apply_idempotence_passed": true
+  },
+  "tests": {
+    "combined_node_passed": 287,
+    "combined_node_failed": 0,
+    "availability_check_after_final_manager_edit_passed": 3,
+    "android_task_presentation_passed": 57,
+    "scoped_server_tests_passed": 24,
+    "claude_official_mod_validation_passed": true,
+    "workbuddy_standalone_pair_qr_string_join_ask_wait_passed": true,
+    "windows_native_resident_tested": false
+  },
+  "current_desktop": {
+    "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+    "can_execute": false,
+    "reason": "CODEX_SESSION_NOT_LOADED",
+    "normal_desktop_restart_required": true,
+    "stability_samples": 15,
+    "all_cloud_online": true,
+    "sample_rss_kib": 69760,
+    "sample_cpu_percent": 1.2
+  },
+  "cleanup": {
+    "installed_sha256": "2e47c9700886a0185c56d0b807e07f10382724fbef65f7fbde2605486a51d0bd",
+    "diagnostic_driver_removed": true,
+    "known_temporary_files_removed": true,
+    "qa_profiles_paused": 3,
+    "current": "dev134",
+    "rollback": "dev133",
+    "removed_verified_old_dev118": true,
+    "removed_owned_input_driver_build": true,
+    "vendor_host_sources_preserved": true,
+    "qa_tasks": [
+      {
+        "task_id": "claude-code-task-ba713cee1f9219d06d4c7678949356aa606e9506b7d9cb0b08a7dfe52625c597",
+        "session_id": "8d32661c-19fb-4947-9c3e-0ffa9207a7f0",
+        "state": "completed",
+        "original_failure_retained": false
+      },
+      {
+        "task_id": "claude-code-task-2acb33be867ec18121837dcbe8d4f211887c0bebd460ce86fbce1d71dd81a22e",
+        "session_id": "1c33fb3d-6c3c-4fa4-9568-00f067376660",
+        "state": "completed",
+        "original_failure_retained": false
+      },
+      {
+        "task_id": "codex-task-f0d336f3242a63b56dc0205826bfa1cd6408c8a97b4c2656d116fb6f7d563d1a",
+        "session_id": "01a17c06-9251-7c53-98a3-e62d2ca6d0e4",
+        "state": "completed",
+        "original_failure_retained": false
+      },
+      {
+        "task_id": "observed-7c6d8d2e48af794ed0a3b4b6e9669fabbcc684afb1ddf38bab58d43899564157",
+        "session_id": "01a17c06-9251-7c53-98a3-e62d2ca6d0e4",
+        "state": "failed",
+        "original_failure_retained": true
+      }
+    ],
+    "native_codex_qa_archived": true,
+    "shared_device_credentials_not_revoked": true,
+    "no_new_credential_minted": true,
+    "only_current_real_chat_resident_left_running": true,
+    "voice7_candidates_unmodified_unstaged_and_excluded_from_apk": true
+  },
+  "retained_failures": [
+    {
+      "case": "initial Claude fixture continuation",
+      "result": "native continuation and context/result delivery worked; edit refused because fixture standing instruction preserved budget8000; not counted as document-edit pass",
+      "replacement": "fresh ordinary globally installed plugin session above"
+    },
+    {
+      "case": "initial Codex sandbox join",
+      "result": "normal private paired-store access denied; first READY did not prove success",
+      "replacement": "one normal per-command approval, actual join result can_execute true; no global policy changed"
+    },
+    {
+      "case": "Codex long synchronous tool call",
+      "result": "native turn interrupted but no exposed managed background handle; child_stop_not_proven, no continuation allowed for this task; synthetic command reached independent 300-second deadline; final cloud task failed",
+      "replacement": "normal returned-handle background path above passed; no claim of arbitrary tool cancellation"
+    },
+    {
+      "case": "old unconfirmed local observation blocked a later independently stopped task continuation",
+      "result": "reproduced; fixed explicit same-task continuation admission; old task stays unconfirmed/failed in history"
+    },
+    {
+      "case": "second ordinary session join BRIDGE_IN_USE",
+      "result": "reproduced; narrow task/session consumers now share broad gate and own independent exclusive scope, broad consumers still exclude them"
+    }
+  ],
+  "not_verified": [
+    "current main Desktop original chat after normal restart",
+    "glasses proactive wake and new independent dictation path",
+    "arbitrary external/MCP work or synchronous commands with no native managed handle"
+  ],
+  "source_sha256": {
+    "rebuild/agent-bridge/bridge.mjs": "1ede56af924ab05f2e3112b50c55efd3c9fd2b32c89167172ba1b549ba15bca0",
+    "rebuild/agent-bridge/hosts/claude-mod/broker.mjs": "81796ad3a389ee09a7b00f4d10b240e1417b7d6723ddbdb56f4dd797ac1caa3e",
+    "rebuild/agent-bridge/hosts/claude-mod/plugin/.claude-plugin/plugin.json": "1e188be73a7f06d9ac939274dffe0777aa85dc429211c60abfc83344487e1b25",
+    "rebuild/agent-bridge/hosts/claude-mod/plugin/hooks/protocol.js": "59838c149b7231630dd978a1eb0679fe5aff5f2197bfb9ede68c1d6d4503e32f",
+    "rebuild/agent-bridge/hosts/claude-mod/plugin/hooks/register.js": "3c6be4e69172f274cdac2ef265dba0743fd7b3eedf61ae3cc5489bea3423d353",
+    "rebuild/agent-bridge/hosts/codex-app-server.mjs": "720586b3940d28973bb60842e5e8afb01c2b6593f69a4fb1bdf5cc1540d01f18",
+    "rebuild/agent-bridge/hosts/native-config.mjs": "7833905a7928f113c3cba13eef52cee8ae2be14dfad9e34e789c0143cc52a276",
+    "rebuild/agent-bridge/hosts/native-runtime.mjs": "47fd6245c2fa3b9070643446ae7a6638ff5d46f5324a923900dba943c9a52e27",
+    "rebuild/agent-bridge/hosts/process-witness.mjs": "4ddd93b3b2556c89d4e162a5a21cc53b68eb2c595794a565872ba23fa501ddfe",
+    "rebuild/agent-bridge/hosts/session-control.mjs": "3a40ebf339789e50521a20ade184c4e0f4059bb73dfeac96e2cf67d5612a065a",
+    "rebuild/agent-bridge/questions/cli.mjs": "6b357b1380634507cad2b87842c3407506e87414e3b19aa98146d3950132146f",
+    "rebuild/agent-bridge/run-lock.mjs": "4d910cc18892221825a4d9ce2ea303fe485bb98f90f3111a70d44a7bc123c593",
+    "rebuild/agent-bridge/tests/claude-mod.test.mjs": "190ca335aa0c13ca50673b07cb54b204f49a1553d0bc374cbf355952a713f764",
+    "rebuild/agent-bridge/tests/codex-app-server.test.mjs": "116d7bf63fdbe1a92333f7a089c00ce4db0da24192a7e1c384fd52570f4b4f15",
+    "rebuild/agent-bridge/tests/fixtures/lock-worker.mjs": "28bb941cc0851637a23d6d21a4d97b1e71bd0e5ae5d066c5f65a511117ffc7d8",
+    "rebuild/agent-bridge/tests/native-readiness.test.mjs": "3205d1ab6cb47b7e9607dec90c62710a75251c3755eff1aff442adc087c5d8c8",
+    "rebuild/agent-bridge/tests/native-runtime.test.mjs": "bc7094f7532ef4c5749271d590a983fb372bcc68c85acba8f7f6aab5fa77ce97",
+    "rebuild/agent-bridge/tests/run-lock.test.mjs": "e00722db23ec10b1949b003d6f0c7e09aadbcf77ca8c17cd3913ac6b15285219",
+    "rebuild/agent-bridge/tests/session-control.test.mjs": "0bdb9903b871af96fe64fbdf47efb60768ce1eea66ceb7c7cdef704adc612ff4",
+    "rebuild/android-app/product.json": "b6ef2bc625d50ba0fb64494897a9b03bc497bbaff50577f5cc5356b0e10bf04b",
+    "rebuild/android-app/src/com/turboio/addon/AgentTaskPage.java": "1814625248d4fef597c4b9b0dcb954468d298b00fd41c08be0d325c12d3823e7",
+    "rebuild/android-app/src/com/turboio/addon/TaskPresentation.java": "4674dbe408351fcc92f669e774d41170b69af54ac57be85b839c23df5a836ac7",
+    "tools/android/TaskPresentationTest.java": "3ef3461cf63429d1607c7adc193826bedd7176c69510c96951edcbf875cac0c5",
+    "rebuild/agent-bridge/hosts/resident-manager.mjs": "9691111bbf98afaf1962afaa21e6049c93ec64164d2aa67be8c02559592373de",
+    "rebuild/agent-bridge/hosts/session-resident.mjs": "8dbbc6fdc174b4fd728f4947f501eade49077f81f7345c76316c36ef22827c95",
+    "rebuild/agent-bridge/hosts/codex-endpoint.mjs": "d4548034d32e7d2029e4a97b74f5298764361bc990aa7c0496b103f2420ab32a",
+    "tools/collab/setup-session-control.mjs": "df7cc38ec86352ca4e6ad2476964efa05db172fdc0586908a654fe5c80187918"
+  }
+}

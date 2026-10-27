@@ -18,7 +18,7 @@ const validText=v=>typeof v==='string'&&v.trim()&&Buffer.byteLength(v)<=32768;
 const validTime=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))&&new Date(Date.parse(v)).toISOString()===v;
 const validRoute=v=>object(v)&&Object.keys(v).length===4&&routeKeys.every(k=>typeof v[k]==='string'&&v[k].length>0&&v[k].length<=256);
 const safeCode=e=>typeof e?.code==='string'&&/^[A-Z][A-Z0-9_]{0,100}$/.test(e.code)?e.code:'NATIVE_HOST_UNAVAILABLE';
-const publicCommand=c=>structuredClone(Object.fromEntries(['command_id','task_id','route','phase','reason','turn_id','native_status','created_at','updated_at','expires_at','resume_of','resumed_by','stop_control_id','result'].filter(k=>c[k]!==undefined).map(k=>[k,c[k]])));
+const publicCommand=c=>structuredClone(Object.fromEntries(['command_id','task_id','route','phase','reason','turn_id','native_status','created_at','updated_at','expires_at','resume_of','resumed_by','stop_control_id','result','origin','observed_operation_id'].filter(k=>c[k]!==undefined).map(k=>[k,c[k]])));
 
 /** Durable, single-owner queue for ONE explicitly bound original session.
  * Host implementations are injected; this module neither starts agents nor
@@ -63,22 +63,50 @@ export class SessionControl {
       if(c.stop_control_id)need(own(journal.controls,c.stop_control_id)?.command_id===id,'SESSION_STATE_CORRUPT');
       if(c.child_stop_phase!==undefined)need(c.stop_control_id&&['prepared','replied','outcome_unknown'].includes(c.child_stop_phase),'SESSION_STATE_CORRUPT');
       if(c.resume_queue_phase!==undefined)need(c.resume_of&&['prepared','replied','outcome_unknown'].includes(c.resume_queue_phase),'SESSION_STATE_CORRUPT');
+      if(c.origin!==undefined)need(c.origin==='observed'&&uuid(c.observed_operation_id)&&c.observed_operation_id===c.client_user_message_id&&
+        typeof c.observed_turn_id==='string'&&c.observed_turn_id&&c.observed_turn_id===c.turn_id&&validTime(c.observed_created_at)&&
+        c.created_at===c.observed_created_at&&!c.resume_of&&!['queued','sending','accepted'].includes(c.phase),'SESSION_STATE_CORRUPT');
     }
     need(Object.keys(journal.controls).length<=1000,'SESSION_STATE_LIMIT');
     for(const [id,control]of Object.entries(journal.controls))need(uuid(id)&&control.control_id===id&&own(journal.commands,control.command_id)?.stop_control_id===id&&
       typeof control.expected_turn_id==='string'&&control.expected_turn_id===journal.commands[control.command_id].turn_id,'SESSION_STATE_CORRUPT');
-    need(journal.order.filter(id=>!TERMINAL.has(journal.commands[id].phase)&&journal.commands[id].phase!=='queued').length<=1,'SESSION_STATE_CORRUPT');
+    // Already-running local turns are observations, not additional remote
+    // submissions. Keep remote input single-flight without hiding a current
+    // local turn merely because an earlier remote input is still queued.
+    need(journal.order.filter(id=>journal.commands[id].origin!=='observed'&&!TERMINAL.has(journal.commands[id].phase)&&journal.commands[id].phase!=='queued').length<=1,'SESSION_STATE_CORRUPT');
     this.#save();
   }
   get #journal(){return this.#state.value.native_control;}
   #now(){return new Date(this.#clock()).toISOString();}
   #check(){need(!this.#closed,'SESSION_CONTROL_CLOSED');need(!this.#poisoned,'SESSION_STORAGE_UNCERTAIN');this.#lease.assertHeld();}
   #save(){try{this.#state.save();}catch(error){this.#poisoned=true;throw error;}}
-  #inputOf(c){return{command_id:c.command_id,task_id:c.task_id,route:c.route,text:c.text,expires_at:c.expires_at,resume_of:c.resume_of??null};}
+  #inputOf(c){return{command_id:c.command_id,task_id:c.task_id,route:c.route,text:c.text,expires_at:c.expires_at,resume_of:c.resume_of??null,
+    ...(c.origin==='observed'?{origin:c.origin,observed_operation_id:c.observed_operation_id,observed_turn_id:c.observed_turn_id,observed_created_at:c.observed_created_at}:{})};}
   #change(c,phase,reason=null){c.phase=phase;c.reason=reason;c.updated_at=this.#now();this.#save();return publicCommand(c);}
   async #exclusive(callback){this.#check();need(!this.#busy,'SESSION_CONTROL_BUSY');this.#busy=true;try{return await callback();}finally{this.#busy=false;}}
   #command(id){need(uuid(id)&&own(this.#journal.commands,id),'SESSION_COMMAND_UNKNOWN');return this.#journal.commands[id];}
   list(){this.#check();return this.#journal.order.map(id=>publicCommand(this.#journal.commands[id]));}
+  nativeOperationKnown(id){this.#check();return uuid(id)&&this.#journal.order.some(key=>this.#journal.commands[key].client_user_message_id===id);}
+  adoptObserved(input){return this.#exclusive(async()=>{
+    need(object(input)&&Object.keys(input).every(k=>['command_id','task_id','route','text','expires_at','client_user_message_id','turn_id','created_at'].includes(k))&&
+      uuid(input.command_id)&&uuid(input.client_user_message_id)&&typeof input.task_id==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(input.task_id)&&
+      validText(input.text)&&validTime(input.expires_at)&&validTime(input.created_at)&&validRoute(input.route)&&runtimeDigest(input.route)===runtimeDigest(this.#binding.route)&&
+      typeof input.turn_id==='string'&&input.turn_id&&input.turn_id.length<=160,'SESSION_OBSERVED_INVALID');
+    const normalized={...this.#inputOf(input),origin:'observed',observed_operation_id:input.client_user_message_id,observed_turn_id:input.turn_id,observed_created_at:input.created_at},
+      digest=runtimeDigest(normalized),prior=own(this.#journal.commands,input.command_id);
+    if(prior){need(prior.origin==='observed'&&prior.digest===digest,'SESSION_COMMAND_CONFLICT');return publicCommand(prior);}
+    need(this.#journal.order.length<1000&&!this.nativeOperationKnown(input.client_user_message_id)&&
+      !this.#journal.order.some(id=>this.#journal.commands[id].turn_id===input.turn_id||this.#journal.commands[id].task_id===input.task_id),'SESSION_OBSERVED_CONFLICT');
+    await this.#hostStatus();const actual=await this.#host.inspectOperation(input.client_user_message_id);
+    need(actual?.found===true&&actual.turnId===input.turn_id&&['inProgress','completed','interrupted','failed'].includes(actual.status),'SESSION_OBSERVED_NOT_PROVEN');
+    const c={...normalized,digest,client_user_message_id:input.client_user_message_id,turn_id:input.turn_id,native_status:actual.status,
+      phase:'running',reason:null,created_at:input.created_at,updated_at:this.#now()};
+    this.#journal.commands[c.command_id]=c;this.#journal.order.push(c.command_id);this.#save();
+    // This path never calls start. Even a terminal first observation is
+    // projected by the ordinary exact-operation reconciler, not replayed.
+    await this.#reconcile(c,actual);
+    return publicCommand(c);
+  });}
   enqueue(input){this.#check();need(!this.#busy,'SESSION_CONTROL_BUSY');return this.#enqueue(input);}
   #enqueue(input){
     need(object(input)&&Object.keys(input).every(k=>['command_id','task_id','route','text','expires_at','resume_of'].includes(k))&&uuid(input.command_id)&&
@@ -108,9 +136,19 @@ export class SessionControl {
     // Expiry closes only commands proven not sent. Sent/ambiguous input still
     // needs reconciliation, even when its original delivery window has ended.
     for(const c of commands)if(c.phase==='queued'&&Date.parse(c.expires_at)<=this.#clock())this.#change(c,'expired','deadline_before_dispatch');
-    const active=commands.find(c=>!TERMINAL.has(c.phase)&&c.phase!=='queued');
+    const local=commands.filter(c=>c.origin==='observed'&&!TERMINAL.has(c.phase));
+    for(const c of local)try{await this.#reconcile(c);}catch(error){
+      if(this.#poisoned||['SESSION_STORAGE_UNCERTAIN','LOCK_LOST'].includes(error.code))throw error;
+      this.#change(c,'outcome_unknown',safeCode(error));
+    }
+    const active=commands.find(c=>c.origin!=='observed'&&!TERMINAL.has(c.phase)&&c.phase!=='queued');
     if(active){await this.#reconcile(active);return this.list();}
     const next=commands.find(c=>c.phase==='queued');if(!next)return this.list();
+    // Continue belongs to one proven stopped task. An older, independently
+    // interrupted local turn keeps its unconfirmed history, but cannot hold a
+    // later task's explicit continuation forever. Other live/unknown local
+    // turns and unrelated new commands still retain the admission fence.
+    if(local.some(c=>!TERMINAL.has(c.phase)&&!(next.resume_of&&c.native_status==='interrupted'))){this.#change(next,'queued','waiting_for_observed_turn');return this.list();}
     let status;
     try{status=await this.#hostStatus();}catch(error){this.#change(next,'queued',safeCode(error));return this.list();}
     const nativeQueue=this.#host.capabilities?.atomic_queue_append===true;
@@ -130,9 +168,8 @@ export class SessionControl {
     }
     return this.list();
   });}
-  async #reconcile(c){
-    let observed;
-    try{await this.#hostStatus();observed=await this.#host.inspectOperation(c.client_user_message_id);}
+  async #reconcile(c,observed){
+    try{if(observed===undefined){await this.#hostStatus();observed=await this.#host.inspectOperation(c.client_user_message_id);}}
     catch(error){this.#change(c,'outcome_unknown',safeCode(error));return;}
     if(observed?.found!==true){this.#change(c,'outcome_unknown','native_operation_not_proven');return;}
     if(observed.status==='queued'){
@@ -177,7 +214,7 @@ export class SessionControl {
       // missing/false/null resultComplete never means an empty final result.
       // Do not publish partial text or release the queue while waiting. tick()
       // will re-read this same operation, with the existing exact-turn fence.
-      if(this.#host.capabilities?.final_result_evidence===true&&observed.resultComplete!==true){
+      if((this.#host.capabilities?.final_result_evidence===true||c.origin==='observed')&&observed.resultComplete!==true){
         this.#change(c,'result_pending','native_result_not_complete');return;
       }
       if(observed.result!==undefined){
@@ -189,6 +226,7 @@ export class SessionControl {
     }
     if(observed.status==='failed'){this.#change(c,'failed','native_turn_failed');return;}
     if(observed.status!=='interrupted'){this.#change(c,'outcome_unknown','native_status_unrecognized');return;}
+    if(c.origin==='observed'&&!c.stop_control_id){this.#change(c,'failed','native_turn_interrupted_without_phone_control');return;}
     if (c.stop_control_id && this.#host.capabilities?.exact_turn_child_stop===true && !c.child_stop_phase) {
       // Persist separately from the original turn interrupt. On restart or a
       // lost reply, only inspect native evidence; never repeat a child kill.

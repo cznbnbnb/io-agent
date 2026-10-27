@@ -7,6 +7,9 @@ import {createHash, randomBytes, randomUUID} from 'node:crypto';
 // Explicit event subscription joins an already-loaded thread with no settings
 // overrides. No desktop IPC, process launch, approval response, or reconnect.
 const MAX_FRAME=16*1024*1024,MAX_RESULT=1024*1024,MAX_LIVE_COMMAND_ITEMS=1000;
+// A wire peer cannot forge transport lifecycle by sending a JSON notification
+// named channel/closed. Only this module's actual channel uses this marker.
+const localChannelClosed=Symbol('codex-local-channel-closed');
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const id=v=>typeof v==='string'&&v.length>0&&v.length<=256;
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(v);
@@ -53,10 +56,15 @@ function endpointOptions(endpoint,bearerToken) {
  * native Node WebSocket API cannot connect to Unix-domain sockets. */
 export class CodexAppServerChannel {
   #socket;#http;#pending=new Map();#listeners=new Set();#buffer=Buffer.alloc(0);#parts=[];#partBytes=0;#closed=false;#connected=false;#options;#diagnostic;
-  constructor(endpoint,{timeoutMs=5000,bearerToken,onDiagnostic}={}){
+  constructor(endpoint,{timeoutMs=5000,bearerToken,onDiagnostic,rpcPath}={}){
     need(Number.isSafeInteger(timeoutMs)&&timeoutMs>=50&&timeoutMs<=60000,'CODEX_APP_SERVER_TIMEOUT_INVALID');
     need(onDiagnostic===undefined||typeof onDiagnostic==='function','CODEX_APP_SERVER_DIAGNOSTIC_INVALID');
     this.endpoint=endpoint;this.timeoutMs=timeoutMs;this.#options=endpointOptions(endpoint,bearerToken);this.#diagnostic=onDiagnostic;
+    if(rpcPath!==undefined){
+      need(typeof rpcPath==='string'&&/^\/(?:[A-Za-z0-9._~-]+\/?)*$/.test(rpcPath)&&!rpcPath.split('/').some(s=>s==='.'||s==='..'),'CODEX_APP_SERVER_ENDPOINT_INVALID');
+      need(endpoint.startsWith('unix:')||this.#options.path===rpcPath,'CODEX_APP_SERVER_ENDPOINT_INVALID');
+      this.#options.path=rpcPath;
+    }
   }
   async connect(){
     need(!this.#http&&!this.#closed,'CODEX_APP_SERVER_ALREADY_CONNECTED');
@@ -163,7 +171,7 @@ export class CodexAppServerChannel {
   #fail(code){
     if(this.#closed)return;this.#closed=true;this.#connected=false;this.#socket?.destroy();this.#http?.destroy();
     for(const pending of this.#pending.values()){clearTimeout(pending.timer);pending.reject(new CodexAppServerError(code,{outcomeUnknown:pending.mutation&&pending.sent}));}
-    this.#pending.clear();this.#emit({method:'channel/closed',params:{code}});this.#listeners.clear();
+    this.#pending.clear();this.#emit({method:'channel/closed',params:{code},[localChannelClosed]:true});this.#listeners.clear();
   }
   close(){this.#fail('CODEX_APP_SERVER_DISCONNECTED');}
 }
@@ -178,6 +186,8 @@ function turn(value){need(object(value)&&id(value.id)&&turnStates.has(value.stat
  * callers must retain that journal across process restarts. This adapter has
  * no retry/reconnect loop, and an ambiguous write is never resent here. */
 export class CodexAppServerSession {
+  #externalOperations=new Map();
+  #sessionCloseReason=null;#transportClosed=false;
   #stopObservations=new Map();
   #observedTurnStarts=new Set();
   #observedTurnEnds=new Set();#observedKinds=new Map();#unknownToolTurns=new Set();
@@ -191,13 +201,32 @@ export class CodexAppServerSession {
     if(typeof channel.listen==='function')this.#unlisten=channel.listen(message=>this.#observeNativeItem(message));
   }
   get capabilities(){return capabilities;}
-  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages,metadataOnly=false,subscribeEvents=false,onDiagnostic}={}){
+  static async connect(conversationId,{endpoint,workspace,timeoutMs=5000,bearerToken,maxPages,metadataOnly=false,subscribeEvents=false,onDiagnostic,rpcPath}={}){
     need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
-    const channel=await new CodexAppServerChannel(endpoint,{timeoutMs,bearerToken,onDiagnostic}).connect();
+    const channel=await new CodexAppServerChannel(endpoint,{timeoutMs,bearerToken,onDiagnostic,rpcPath}).connect();
     try{return await new CodexAppServerSession(channel,conversationId,{workspace,maxPages,subscribeEvents}).attach({metadataOnly});}catch(error){channel.close();throw error;}
   }
-  #check(){need(!this.#closed,'CODEX_APP_SERVER_CLOSED');}
+  lifecycle(){
+    if(this.#sessionCloseReason)return{closed:true,reason:this.#sessionCloseReason};
+    return this.#transportClosed||this.#closed?{closed:false,reason:'transport_closed'}:{closed:false};
+  }
+  #unavailable(){
+    const life=this.lifecycle();if(!life.closed&&life.reason!=='transport_closed')return null;
+    return{conversationId:this.conversationId,workspace:this.#workspace,busy:true,activeTurnId:null,canExecute:false,
+      nativeStatus:life.closed?'closed':'transport_closed',reason:life.closed?'CODEX_APP_SERVER_SESSION_CLOSED':'CODEX_APP_SERVER_DISCONNECTED'};
+  }
+  #check(){
+    need(!this.#closed,'CODEX_APP_SERVER_CLOSED');
+    need(!this.#sessionCloseReason,'CODEX_APP_SERVER_SESSION_CLOSED');
+    need(!this.#transportClosed,'CODEX_APP_SERVER_DISCONNECTED');
+  }
   #observeNativeItem(message){
+    if(message?.[localChannelClosed]===true){this.#transportClosed=true;return;}
+    if(this.#closed||this.#sessionCloseReason)return;
+    if(object(message)&&!Object.hasOwn(message,'id')&&['thread/closed','thread/archived'].includes(message.method)&&
+        object(message.params)&&message.params.threadId===this.conversationId){
+      this.#sessionCloseReason=message.method==='thread/archived'?'session_archived':'session_closed';return;
+    }
     if(!this.#closed && !Object.hasOwn(message??{},'id') && message?.method==='turn/started' &&
         message.params?.threadId===this.conversationId && id(message.params?.turn?.id)) {
       if(this.#observedTurnStarts.size>=1000)this.#liveItemsOverflow=true;
@@ -239,9 +268,11 @@ export class CodexAppServerSession {
         {status:item.status,exitCode:item.exitCode} : {})});
   }
   async #pages(method,params,visit){
+    this.#check();
     let cursor;const seen=new Set();
     for(let page=0;page<this.#maxPages;page++){
       const reply=await this.#channel.request(method,{...params,limit:100,...(cursor?{cursor}:{})});
+      this.#check();
       need(object(reply)&&Array.isArray(reply.data)&&(reply.nextCursor==null||id(reply.nextCursor)),'CODEX_APP_SERVER_HISTORY_INVALID');
       if(await visit(reply.data))return true;
       if(!reply.nextCursor)return false;
@@ -250,14 +281,18 @@ export class CodexAppServerSession {
     throw new CodexAppServerError('CODEX_APP_SERVER_HISTORY_LIMIT');
   }
   async attach({metadataOnly=false}={}){
+    this.#check();
     need(typeof metadataOnly==='boolean','CODEX_APP_SERVER_BINDING_INVALID');
     if(metadataOnly)await this.readiness();else await this.status();
+    this.#check();
     if(this.#subscribeEvents&&!this.#joined){
       const before=await this.#metadata();
+      this.#check();
       // The official protocol uses resume to JOIN a thread already owned by
       // this shared server. No history/path/settings overrides, new server,
       // session discovery or implicit reconnect. A closing thread rejects it.
       const reply=await this.#channel.request('thread/resume',{threadId:this.conversationId,excludeTurns:true},{mutation:true});
+      this.#check();
       need(reply?.thread?.id===this.conversationId&&normalizedWorkspace(reply.thread.cwd)===this.#workspace&&
         reply.thread.canAcceptDirectInput===true&&!reply.thread.parentThreadId&&!reply.thread.ephemeral&&
         (before.createdAt===undefined||before.createdAt===reply.thread.createdAt),'CODEX_APP_SERVER_JOIN_INVALID',{outcomeUnknown:true});
@@ -270,6 +305,7 @@ export class CodexAppServerSession {
     const loaded=await this.#pages('thread/loaded/list',{},values=>{need(values.every(id),'CODEX_APP_SERVER_HISTORY_INVALID');return values.includes(this.conversationId);});
     need(loaded,'CODEX_APP_SERVER_THREAD_NOT_LOADED');
     const reply=await this.#channel.request('thread/read',{threadId:this.conversationId,includeTurns:false}),thread=reply?.thread;
+    this.#check();
     need(object(thread)&&thread.id===this.conversationId,'CODEX_APP_SERVER_THREAD_MISMATCH');
     need(normalizedWorkspace(thread.cwd)===this.#workspace,'CODEX_APP_SERVER_WORKSPACE_MISMATCH');
     need(['idle','active','systemError'].includes(thread.status?.type),'CODEX_APP_SERVER_THREAD_NOT_LOADED');
@@ -313,18 +349,22 @@ export class CodexAppServerSession {
     return thread.status.type==='idle'&&thread.preview===''&&Array.isArray(thread.turns)&&thread.turns.length===0;
   }
   async status(){
+    const unavailable=this.#unavailable();if(unavailable)return unavailable;
     const thread=await this.#metadata();
     // Read every bounded metadata page so an older active turn is not silently
     // replaced by a newer terminal record. Failure stays non-actionable.
     const turns=await this.#turns(),active=turns.filter(t=>t.status==='inProgress');
+    this.#check();
     need(active.length<=1,'CODEX_APP_SERVER_ACTIVE_TURN_AMBIGUOUS');
     return{conversationId:this.conversationId,workspace:this.#workspace,busy:thread.status.type!=='idle'||active.length>0,activeTurnId:active[0]?.id??null,nativeStatus:thread.status.type};
   }
   async readiness(){
+    const unavailable=this.#unavailable();if(unavailable)return{...unavailable,busy:null};
     // Directory probes must not enter turns/items pagination or its full
     // history fallback. Native metadata may include a preview; neither retain
     // it nor return it. Execution still uses status()'s stronger turn fence.
     const thread=await this.#metadata(),nativeStatus=thread.status.type;
+    this.#check();
     return{conversationId:this.conversationId,workspace:this.#workspace,
       busy:nativeStatus==='systemError'?null:nativeStatus==='active',
       canExecute:nativeStatus!=='systemError',nativeStatus,
@@ -343,6 +383,8 @@ export class CodexAppServerSession {
   async #queue(){const rows=[];await this.#pages('thread/queue/list',{threadId:this.conversationId},values=>{rows.push(...values.map(submission));return false;});return rows;}
   async inspectOperation(clientUserMessageId){
     need(uuid(clientUserMessageId),'CODEX_APP_SERVER_INPUT_INVALID');await this.#metadata();
+    const external=this.#externalOperations.get(clientUserMessageId);
+    if(external)return this.#inspectExternal(external);
     const known=this.#turnIds.get(clientUserMessageId),items=await this.#items(known);
     const matches=items.filter(e=>e.item.type==='userMessage'&&e.item.clientId===clientUserMessageId),matchedTurns=new Set(matches.map(e=>e.turnId));
     need(matchedTurns.size<=1,'CODEX_APP_SERVER_OPERATION_AMBIGUOUS');
@@ -374,6 +416,36 @@ export class CodexAppServerSession {
     // rejection evidence. The durable caller must keep the intent unknown.
     return{found:false,outcomeUnknown:true};
   }
+  async #inspectExternal(entry){
+    const turns=await this.#turns(),current=turns.find(t=>t.id===entry.turnId);
+    need(current,'CODEX_APP_SERVER_TURN_NOT_PROVEN');
+    const items=await this.#items(entry.turnId);
+    need(items.some(e=>e.item.type==='userMessage'),'CODEX_APP_SERVER_OPERATION_NOT_PROVEN');
+    const result={found:true,clientUserMessageId:entry.operationId,turnId:entry.turnId,status:current.status};
+    if(current.status==='completed'){
+      const final=items.filter(e=>e.item.type==='agentMessage'&&e.item.phase==='final_answer'&&typeof e.item.text==='string');
+      const text=final.map(e=>e.item.text).join('\n\n');result.resultComplete=final.length>0&&Buffer.byteLength(text)<=MAX_RESULT;
+      if(result.resultComplete&&text)result.result={type:'text',text};
+    }
+    return result;
+  }
+  async activitySnapshot(){
+    await this.#metadata();const turns=await this.#turns(),rows=[];
+    for(const t of turns){
+      if(t.status!=='inProgress'&&!this.#observedTurnStarts.has(t.id))continue;
+      const items=await this.#items(t.id),users=items.filter(e=>e.item.type==='userMessage');
+      if(!users.length||users.some(e=>this.#attempts.has(e.item.clientId)))continue;
+      // Observe native input; this ID never becomes a submitted user message.
+      const h=digest('observed-native-turn/1:'+this.conversationId+':'+t.id);
+      const operationId=`${h.slice(0,8)}-${h.slice(8,12)}-5${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
+      let entry=this.#externalOperations.get(operationId);
+      if(!entry){need(this.#externalOperations.size<1000,'CODEX_APP_SERVER_OPERATION_LIMIT');entry={operationId,turnId:t.id,createdAt:new Date().toISOString()};this.#externalOperations.set(operationId,entry);}
+      const observation=await this.#inspectExternal(entry);
+      rows.push({...entry,status:observation.status,coverage:this.#observedTurnStarts.has(t.id)?1:0,
+        ...(observation.resultComplete===undefined?{}:{resultComplete:observation.resultComplete}),...(observation.result?{result:observation.result}:{})});
+    }
+    return rows;
+  }
   async start(input={}){
     need(uuid(input.clientUserMessageId),'CODEX_APP_SERVER_INPUT_INVALID');
     need(!this.#inFlight.has(input.clientUserMessageId),'CODEX_APP_SERVER_INPUT_IN_FLIGHT',{outcomeUnknown:true});
@@ -396,6 +468,7 @@ export class CodexAppServerSession {
     need(this.#attempts.size<1000,'CODEX_APP_SERVER_OPERATION_LIMIT');
     const attempt={digest:hash};this.#attempts.set(clientUserMessageId,attempt);
     try{
+      this.#check();
       const reply=await this.#channel.request('thread/queue/add',{threadId:this.conversationId,input:[{type:'text',text,text_elements:[]}],clientUserMessageId},{mutation:true});
       const queued=submission(reply?.queuedSubmission);
       need(queued.clientUserMessageId===clientUserMessageId&&inputText(queued.input)===text,'CODEX_APP_SERVER_QUEUE_RECEIPT_INVALID',{outcomeUnknown:true});
@@ -417,6 +490,7 @@ export class CodexAppServerSession {
     // Reserve before awaiting status so simultaneous callers cannot both send.
     this.#interrupts.set(expectedTurnId,null);
     const status=await this.status();if(status.activeTurnId!==expectedTurnId)return{requested:false,expectedTurnId,reason:'turn_no_longer_active'};
+    this.#check();
     const reply=await this.#channel.request('turn/interrupt',{threadId:this.conversationId,turnId:expectedTurnId},{mutation:true});
     need(object(reply)&&Object.keys(reply).length===0,'CODEX_APP_SERVER_INTERRUPT_RECEIPT_INVALID',{outcomeUnknown:true});
     const receipt={requested:true,expectedTurnId,confirmedStopped:false};this.#interrupts.set(expectedTurnId,receipt);return{...receipt};
@@ -460,6 +534,7 @@ export class CodexAppServerSession {
       // The phone explicitly describes this restoration of session execution.
       // Busy rejection avoids turn/start's steer race; it is not an isolated
       // single-operation continuation or permission to rewrite other entries.
+      this.#check();
       const reply=await this.#channel.request('thread/queue/start',{threadId:this.conversationId,queuedSubmissionId:attempt.queueId},{mutation:true});
       const started=turn(reply?.turn);
       attempt.receipt={requested:true,clientUserMessageId,queueId:attempt.queueId,turnId:started.id,confirmedStarted:false};
@@ -527,6 +602,7 @@ export class CodexAppServerSession {
           need(!cached||!cached.conflicted&&cached.turnId===turnId&&cached.processId===target.processId,'CODEX_APP_SERVER_TERMINAL_AMBIGUOUS');
           if(!sameItem||!sameTerminal){target.reason='target_no_longer_matches';target.outcomeUnknown=true;continue;}
           target.requested=true;target.outcomeUnknown=true;
+          this.#check();
           const reply=await this.#channel.request('thread/backgroundTerminals/terminate',{threadId:this.conversationId,processId:target.processId},{mutation:true});
           need(object(reply)&&typeof reply.terminated==='boolean','CODEX_APP_SERVER_TERMINATE_RECEIPT_INVALID',{outcomeUnknown:true});
           target.terminated=reply.terminated;target.outcomeUnknown=false;

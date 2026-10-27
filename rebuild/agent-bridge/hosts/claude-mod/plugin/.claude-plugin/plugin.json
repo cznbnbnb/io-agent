@@ -1,1 +1,8 @@
-{"name":"io-agent-session-bridge","version":"0.1.0","description":"Explicitly paired local session control candidate","author":{"name":"iO Agent project"}}
+{
+  "name": "io-agent-session-bridge",
+  "version": "0.2.0",
+  "description": "Paired original-session control; inactive until this session joins",
+  "author": {
+    "name": "iO Agent project"
+  }
+}

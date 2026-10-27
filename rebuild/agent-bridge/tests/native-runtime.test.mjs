@@ -270,3 +270,77 @@ test('existing admitted journals without the optional rejection field still resu
   a=await f.open();assert.equal((await a.inspectAdmission({delivery_id:delivery(item),source:runtimeSource(item)})).status,'admitted');
   await drain(a);await drain(a);assert.equal(f.starts().length,1);
 });
+
+
+function localActivity(f,{index=0,status='inProgress',coverage=1,...patch}={}){
+  const row={operationId:randomUUID(),turnId:'observed-local-'+randomUUID(),status,createdAt:new Date(f.clock()).toISOString(),coverage,...patch},entry=f.bindings[index];
+  const actual={found:true,turnId:row.turnId,status:row.status,...(row.resultComplete===undefined?{}:{resultComplete:row.resultComplete}),...(row.result===undefined?{}:{result:row.result})};
+  entry.turns.set(row.operationId,actual);return{row,actual};
+}
+function observedItem(publication){
+  return{kind:'task',object_id:publication.body.task_id,revision:1,event_id:publication.event_id,state:'queued',expires_at:publication.expires_at,
+    command_expires_at:publication.expires_at,body:clone(publication.body)};
+}
+async function acceptLocal(a){const intents=await a.pendingObservedTasks();assert.equal(intents.length,1);const item=observedItem(intents[0]);await accept(a,item);return item;}
+
+test('observed publication intent is durable, private-topic-only, and executes no input before or after server intake',async t=>{
+  const f=fixture(t);let a=await f.open();const {row}=localActivity(f);f.bindings[0].host.activitySnapshot=async()=>[clone(row)];
+  const first=await a.pendingObservedTasks();assert.equal(first.length,1);assert.equal(first[0].body.command,'会话执行 · 原会话任务');
+  assert.equal(first[0].event_id,first[0].idempotency_key.slice(5));assert.equal(first[0].body.execution,undefined);assert.equal(f.starts().length,0);
+  assert.deepEqual(await a.pollEvents(),[]);assert.equal(f.starts().length,0);await a.stop();a=await f.open();
+  assert.deepEqual(await a.pendingObservedTasks(),first);const item=observedItem(first[0]);
+  await assert.rejects(accept(a,{...item,body:{...item.body,command:'Injected different prompt'}}),{code:'NATIVE_RUNTIME_OBSERVED_CONFLICT'});
+  await accept(a,item);assert.deepEqual(await a.pendingObservedTasks(),[]);let events=await drain(a);
+  assert.equal(states(events)[0].state,'agent_received');assert.equal(lastState(events).state,'running');assert.equal(lastState(events).execution.turn_id,row.turnId);assert.equal(f.starts().length,0);
+  await a.stop();a=await f.open();events=await drain(a);assert.deepEqual(events,[]);assert.equal(f.starts().length,0);assert.equal(f.journal().order.length,1);
+});
+test('phone stop of observed turn bypasses pending ordinary remote input; uncertain stop does not open continuation',async t=>{
+  const f=fixture(t),a=await f.open(),entry=f.bindings[0],local=localActivity(f);entry.host.activitySnapshot=async()=>[clone(local.row)];entry.host.busy=true;
+  const queued=f.item();await accept(a,queued);const item=await acceptLocal(a),events=await drain(a),x=states(events).find(s=>s.execution?.turn_id===local.row.turnId).execution;
+  assert.equal(f.starts().length,0);const request=f.control(item,x);await accept(a,request);await drain(a);assert.equal(f.interrupts().length,1);
+  local.actual.status='interrupted';local.row.status='interrupted';let stopped=await drain(a);
+  assert.equal(states(stopped).find(s=>s.execution?.turn_id===local.row.turnId).state,'stop_unconfirmed');assert.equal(f.starts().length,0);
+  const state=JSON.parse(fs.readFileSync(entry.controlStateFile,'utf8')).native_control;assert.equal(state.commands[state.order[0]].phase,'queued');
+});
+test('observed phone stop and same-task resume preserve exact original turn and never replay local work',async t=>{
+  const f=fixture(t);let a=await f.open();const entry=f.bindings[0],local=localActivity(f);entry.host.activitySnapshot=async()=>[clone(local.row)];
+  const item=await acceptLocal(a),runningEvents=await drain(a),x=lastState(runningEvents).execution;assert.equal(f.starts().length,0);
+  await accept(a,f.control(item,x));await drain(a);local.actual.status='interrupted';local.row.status='interrupted';
+  entry.host.proof={conversationId:entry.host.conversationId,turnId:local.row.turnId,terminal:true,descendantsStopped:true};
+  const stoppedEvents=await drain(a),stop=lastState(stoppedEvents);assert.equal(stop.state,'stopped');
+  const continuation=f.control(item,stop.execution,{kind:'resume',revision:4,text:'Explicit continuation after local turn stopped'});await accept(a,continuation);
+  const events=await drain(a);assert.equal(f.starts().length,1);assert.equal(f.starts()[0].text,continuation.body.control.text);
+  assert.equal(states(events)[0].execution.command_id,continuation.body.control.control_id);assert(events.every(e=>e.delivery_id===delivery(item)));
+  const next=f.turn();next.status='completed';next.resultComplete=true;next.result={type:'text',text:'Result from the explicit continuation'};const done=await drain(a);
+  assert.equal(lastState(done).state,'completed');assert.equal(f.journal().order.length,1);assert.equal(f.starts().length,1);
+  await a.stop();a=await f.open();assert.deepEqual(await drain(a),[]);assert.equal(f.starts().length,1);
+});
+test('already terminal observations mirror only completed history; new local turn gets a distinct task without reviving old work',async t=>{
+  const f=fixture(t);let a=await f.open();const entry=f.bindings[0],old=localActivity(f,{status:'completed',resultComplete:true,result:{type:'text',text:'Historical final'}});let snapshot=[clone(old.row)];entry.host.activitySnapshot=async()=>clone(snapshot);
+  const first=await acceptLocal(a),events=await drain(a);assert.equal(lastState(events).state,'completed');assert(!states(events).some(s=>s.state==='running'));assert.equal(f.starts().length,0);
+  await a.stop();a=await f.open();assert.deepEqual(await drain(a),[]);
+  const newer=localActivity(f);old.actual.status='inProgress';snapshot=[{...old.row,status:'inProgress'},clone(newer.row)];
+  const second=await acceptLocal(a);assert.notEqual(second.object_id,first.object_id);const update=await drain(a);assert.equal(lastState(update).execution.turn_id,newer.row.turnId);
+  assert(!update.some(e=>e.delivery_id===delivery(first)));assert.equal(f.starts().length,0);assert.equal(f.journal().order.length,2);
+});
+test('unknown origins or unproved operation/turn mappings do not become actionable observed commands',async t=>{
+  const f=fixture(t),a=await f.open(),entry=f.bindings[0],local=localActivity(f);entry.host.activitySnapshot=async()=>[{...local.row,prompt:'Do not upload me',origin:'unknown'}];
+  assert.deepEqual(await a.pendingObservedTasks(),[]);assert.equal(f.journal().order.length,0);
+  entry.host.activitySnapshot=async()=>[clone(local.row)];const item=await acceptLocal(a);entry.turns.get(local.row.operationId).turnId='different-native-turn';
+  const events=await drain(a);assert.equal(lastState(events).state,'agent_received');assert.equal(lastState(events).execution.turn_id,null);assert.equal(f.starts().length,0);
+  const journal=JSON.parse(fs.readFileSync(entry.controlStateFile,'utf8')).native_control;assert.equal(journal.order.length,0);
+});
+
+
+test('reconnected observation timestamp changes keep the durable task identity, original time and immutable publication',async t=>{
+  const f=fixture(t);let a=await f.open();const entry=f.bindings[0],local=localActivity(f);let snapshot=clone(local.row);entry.host.activitySnapshot=async()=>[clone(snapshot)];
+  const first=await a.pendingObservedTasks();assert.equal(first.length,1);const original=clone(f.journal().operations[f.journal().order[0]]);
+  f.advance(1000);snapshot.createdAt=new Date(f.clock()).toISOString();assert.deepEqual(await a.pendingObservedTasks(),first);
+  assert.equal(f.journal().operations[f.journal().order[0]].observed_created_at,original.observed_created_at);
+  await accept(a,observedItem(first[0]));await drain(a);await a.stop();a=await f.open();
+  f.advance(1000);snapshot.createdAt=new Date(f.clock()).toISOString();assert.deepEqual(await a.pendingObservedTasks(),[]);assert.deepEqual(await drain(a),[]);
+  assert.equal(f.journal().order.length,1);assert.equal(f.starts().length,0);assert.deepEqual(f.journal().operations[f.journal().order[0]].publication,first[0]);
+  // Timestamp tolerance does not permit operation/turn remapping.
+  snapshot.operationId=randomUUID();assert.deepEqual(await a.pendingObservedTasks(),[]);assert.equal(f.journal().order.length,1);
+  assert.equal(f.journal().operations[f.journal().order[0]].last_error,'NATIVE_RUNTIME_OBSERVED_CONFLICT');
+});

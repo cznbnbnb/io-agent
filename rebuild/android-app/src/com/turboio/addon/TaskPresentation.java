@@ -36,7 +36,9 @@ final class TaskPresentation {
  }
  final List<Row> rows;
  final List<Question> questions;
+ private final long observedAt;
  TaskPresentation(List<Source> sources,long now){
+  observedAt=now;
   List<Row> rows=new ArrayList<>();List<Question> questions=new ArrayList<>();
   for(Source source:sources){
    Map<String,Map<String,Object>> tasks=new LinkedHashMap<>(),queuedTasks=new LinkedHashMap<>(),answers=new HashMap<>();
@@ -59,6 +61,26 @@ final class TaskPresentation {
  }
  List<Row> filter(String filter){List<Row> out=new ArrayList<>();for(Row row:rows)if("all".equals(filter)||("completed".equals(filter)?row.completed():row.active()))out.add(row);return out;}
  Row find(String key){for(Row row:rows)if(row.key.equals(key))return row;return null;}
+ /** Navigation only: an old question record may point to one independently
+  * observed execution in its exact profile/account/session. Ambiguity and
+  * stale or invalid facts must never choose an arbitrary task to control. */
+ Row currentExecution(Row original){return currentExecution(original,observedAt);}
+ Row currentExecution(Row original,long now){
+  if(original==null||original.localOnly()||original.body.containsKey("execution")||!TaskWire.set("running","waiting_answer").contains(original.state))return null;
+  if(!TaskWire.same(original.body.get("route"),original.profile.connection.route()))return null;
+  Row selected=null;
+  for(Row candidate:rows){
+   if(candidate.key.equals(original.key)||candidate.localOnly()||!candidate.binding.equals(original.binding)||
+     !candidate.profile.connection.owner.equals(original.profile.connection.owner)||!candidate.profile.enabled||candidate.profile.connection.expiresAt<=now||
+     !TaskWire.same(candidate.body.get("route"),original.body.get("route"))||!TaskWire.same(candidate.body.get("route"),candidate.profile.connection.route())||
+     !"running".equals(candidate.state)||stamp(candidate.item.get("expires_at"))<=now)continue;
+   try{Map<String,Object> execution=TaskWire.execution(candidate.body.get("execution"));
+    if(!"running".equals(execution.get("phase"))||!(execution.get("turn_id") instanceof String)||((String)execution.get("turn_id")).trim().isEmpty())continue;
+   }catch(RuntimeException invalid){continue;}
+   if(selected!=null)return null;selected=candidate;
+  }
+  return selected;
+ }
  static String firstLine(String text){String trimmed=text==null?"":text.trim();if(trimmed.isEmpty())return "未命名任务";return trimmed.split("\\R",2)[0];}
  static String source(TaskProfiles.Profile p){return agentName(p.connection.agent)+" · "+computerName(p.connection.computer);}
  /** Wire ids read as product names: io-claude-code → Claude Code, generated computer ids shortened. */

@@ -1,5 +1,7 @@
 # 雷鸟 iO：按用户场景逐项完成的开发计划
 
+2026-10-27 常驻接入升级：已合入 Claude dev133，现装 dev134 /10556、回退 dev133。普通 join 自动启监听；会话局部目录权限已发布；普通 Claude/Codex 会话的本地任务投影、手机打断及追加修改原文档、结果回手机通过。当前主 Desktop 的 stdio owner 需正常重启后验收；Codex 无原生后台句柄的长同步工具调用仍保持停止未确认；眼镜主动入口没有因此完成。见[说明与代价](../../rebuild/agent-bridge/hosts/resident-guide.md)及[交付证据](../../rebuild/agent-bridge/hosts/session-resident-proof-2026-10-27.json)。
+
 2026-10-26 交付补充：现装 dev118/10540，回退 dev117。dev118 仅统一“继续也会处理已有队列，具体顺序由原 Agent 管理”的共用提示，复用 AgentUI 字号/间距；手机全链实测在 dev117 完成。新包的编译、签名、差异传输/现装完整 SHA、启动与已有结果保留已核对，控制与登录源码指纹不变；未重复运行同一全链。见[当前交付证据](../../rebuild/android-app/phone-session-delivery-dev118-2026-10-26.json)。
 
 2026-10-26【最新验收 dev117】手机端已接入的 Claude/Codex 原 session 办公→精确打断→同 task 追加继续→原文件8000改9000→结果回手机已通过；临时选会话不改变默认、并行会话隔离和前后台结果保留均通过。Codex 修复第二连接事件缺失导致的停止误判及队列继续不启动；Claude 工具账本与按轮次进程证明接入生产。继续恢复原会话队列的语义已在手机说明。已安装 dev117/10539，回退 dev116。眼镜主动 wake/独立口述/确认仍是下一项，不计已完成；未知外部工作继续 fail closed。见[完整证据](../../rebuild/android-app/phone-session-acceptance-dev117-2026-10-26.json)。

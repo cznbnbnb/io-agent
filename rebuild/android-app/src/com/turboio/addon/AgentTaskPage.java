@@ -263,7 +263,20 @@ final class AgentTaskPage {
   String kind=TaskControl.eligible(row.item,"stop")?"stop":TaskControl.eligible(row.item,"resume")?"resume":"";
   if(kind.isEmpty()){
    if(TaskWire.set("stop_requested","stop_unconfirmed","resume_requested").contains(row.state))parent.addView(AgentUI.text(activity,row.state.equals("resume_requested")?"已保存继续指示，等待原电脑开始下一轮。":"等待原电脑确认，确认停止后才可追加指示继续。",12,AgentUI.MUTED));
-   else if(TaskWire.set("running","waiting_answer").contains(row.state)&&!row.body.containsKey("execution")){TextView unavailable=AgentUI.button(activity,parent,"打断任务",false,()->{});stopStyle(unavailable,row);unavailable.setEnabled(false);unavailable.setAlpha(.45f);parent.addView(AgentUI.text(activity,"此任务尚未提供原会话执行信息，暂不能在手机打断。",12,AgentUI.MUTED));}
+   else if(TaskWire.set("running","waiting_answer").contains(row.state)&&!row.body.containsKey("execution")){
+    TaskPresentation.Row executing=presentation==null?null:presentation.currentExecution(row,System.currentTimeMillis());
+    if(executing!=null&&TaskControl.eligible(executing.item,"stop")){
+     parent.addView(AgentUI.text(activity,"这是会话问答记录，当前执行在另一条任务中。",12,AgentUI.MUTED));
+     AgentUI.button(activity,parent,"查看当前执行任务",false,()->{
+      TaskPresentation.Row original=presentation==null?null:presentation.find(row.key),current=presentation==null?null:presentation.currentExecution(original,System.currentTimeMillis());
+      if(current!=null&&TaskControl.eligible(current.item,"stop"))openDetails(current);
+      else AgentUI.toast(activity,"当前执行任务已变化，请刷新后查看。");
+     });
+    }else{
+     TextView unavailable=AgentUI.button(activity,parent,"打断任务",false,()->{});stopStyle(unavailable,row);unavailable.setEnabled(false);unavailable.setAlpha(.45f);
+     parent.addView(AgentUI.text(activity,"暂时无法确认当前执行的任务。等待电脑接入会话控制并同步后，才能在手机打断。",12,AgentUI.MUTED));
+    }
+   }
    return;
   }
   TaskHub.View source=snapshot==null?null:snapshot.context(row.binding);

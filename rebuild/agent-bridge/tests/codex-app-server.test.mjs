@@ -52,7 +52,7 @@ async function fixture(t,{transport='unix',timeoutMs=300}={}){
   };
   const server=http.createServer((req,res)=>res.writeHead(400).end());
   server.on('upgrade',(req,socket,head)=>{
-    assert.equal(req.headers['sec-websocket-version'],'13');sockets.add(socket);f.socket=socket;
+    assert.equal(req.headers['sec-websocket-version'],'13');sockets.add(socket);f.socket=socket;f.upgradePath=req.url;
     socket.on('close',()=>sockets.delete(socket));socket.on('error',()=>{});
     const accept=createHash('sha1').update(req.headers['sec-websocket-key']+'258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
     socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: '+accept+'\r\n\r\n');
@@ -529,4 +529,78 @@ test('explicit queue continuation cannot activate an expired input or change que
   await assert.rejects(session.startQueued(input.clientUserMessageId,{expiresAt:new Date(Date.now()-1000).toISOString()}),{code:'CODEX_APP_SERVER_INPUT_EXPIRED'});
   assert.deepEqual(f.queue,before);assert(!f.calls.some(m=>m.method==='thread/queue/start'||m.method==='turn/start'));
   await assert.rejects(session.startQueued(input.clientUserMessageId,{expiresAt:'bad-date'}),{code:'CODEX_APP_SERVER_INPUT_INVALID'});
+});
+
+
+test('shared-daemon Unix RPC path is explicit and cannot inject an HTTP request',async t=>{
+ const f=await fixture(t),channel=await new CodexAppServerChannel(f.endpoint,{rpcPath:'/rpc'}).connect();channel.close();
+ assert.equal(f.upgradePath,'/rpc');
+ for(const rpcPath of ['/rpc\r\nX-Injected: yes','/../rpc','//elsewhere'])assert.throws(()=>new CodexAppServerChannel(f.endpoint,{rpcPath}),{code:'CODEX_APP_SERVER_ENDPOINT_INVALID'});
+});
+test('observed local turn is controllable metadata and never submitted again',async t=>{
+ const f=await fixture(t),session=await f.session(),input=f.input('Private local instruction not uploaded');
+ const turnId=f.addTurn(input,{status:'inProgress',final:null});f.status='active';
+ let rows=await session.activitySnapshot();assert.equal(rows.length,1);assert.equal(rows[0].turnId,turnId);assert.equal(rows[0].coverage,0);
+ assert.equal((await session.inspectOperation(rows[0].operationId)).status,'inProgress');assert(!f.calls.some(m=>m.method==='thread/queue/add'||m.method==='turn/start'));
+ f.socket.write(frame({method:'turn/started',params:{threadId:f.threadId,turn:{id:turnId,status:'inProgress'}}}));await new Promise(r=>setTimeout(r,20));
+ rows=await session.activitySnapshot();assert.equal(rows[0].coverage,1);assert.equal(rows[0].createdAt,(await session.activitySnapshot())[0].createdAt);
+ f.turns[0].status='completed';f.items.push({turnId,item:{type:'agentMessage',id:randomUUID(),text:'Actual local result',phase:'final_answer'}});
+ const final=await session.inspectOperation(rows[0].operationId);assert.equal(final.resultComplete,true);assert.equal(final.result.text,'Actual local result');
+});
+test('our remote queued turn does not also become an observed native task',async t=>{
+ const f=await fixture(t),session=await f.session(),input=f.input();await session.start(input);
+ const turnId=f.addTurn(input,{status:'inProgress',final:null});f.status='active';
+ f.socket.write(frame({method:'turn/started',params:{threadId:f.threadId,turn:{id:turnId,status:'inProgress'}}}));await new Promise(r=>setTimeout(r,20));
+ assert.deepEqual(await session.activitySnapshot(),[]);
+});
+
+async function lifecycleFixture(t){
+ const f=await fixture(t),channel=await f.connect(),session=await new CodexAppServerSession(channel,f.threadId,{workspace:f.directory}).attach();
+ f.overrides.set('synthetic/barrier',()=>({}));
+ return{...f,channel,session,async notify(message){f.socket.write(frame(message));await channel.request('synthetic/barrier');}};
+}
+test('only exact thread lifecycle notifications permanently close a session; closed hosts never rejoin or execute',async t=>{
+ for(const method of ['thread/closed','thread/archived'])await t.test(method,async t=>{
+  const f=await lifecycleFixture(t);assert.deepEqual(f.session.lifecycle(),{closed:false});
+  await f.notify({method,params:{threadId:f.threadId}});const before=f.calls.length;
+  assert.deepEqual(f.session.lifecycle(),{closed:true,reason:method==='thread/archived'?'session_archived':'session_closed'});
+  const readiness=await f.session.readiness(),status=await f.session.status();assert.equal(readiness.canExecute,false);assert.equal(status.canExecute,false);assert.equal(status.busy,true);
+  assert.equal(readiness.reason,'CODEX_APP_SERVER_SESSION_CLOSED');assert.equal(f.calls.length,before,'closed status is local, with no metadata/history/resume requests');
+  await assert.rejects(f.session.attach({metadataOnly:true}),{code:'CODEX_APP_SERVER_SESSION_CLOSED'});
+  await assert.rejects(f.session.start(f.input()),{code:'CODEX_APP_SERVER_SESSION_CLOSED'});
+  assert(!f.calls.some(c=>['thread/resume','thread/queue/add','thread/queue/start','turn/start'].includes(c.method)));
+  f.channel.close();assert.equal(f.session.lifecycle().closed,true,'native closure survives later transport teardown');
+ });
+});
+test('foreign, malformed and request-shaped lifecycle events do not close this session or fabricate transport loss',async t=>{
+ const f=await lifecycleFixture(t);
+ for(const message of [
+  {method:'thread/closed',params:{threadId:randomUUID()}},
+  {method:'thread/archived',params:{threadId:randomUUID()}},
+  {method:'thread/closed',params:{id:f.threadId}},
+  {method:'thread/closed',params:{threadId:null}},
+  {method:'thread/closed',params:null},
+  {id:'server-request',method:'thread/closed',params:{threadId:f.threadId}},
+  {id:null,method:'thread/archived',params:{threadId:f.threadId}},
+  {method:'channel/closed',params:{code:'FAKE_WIRE_CLOSURE'}},
+ ]){await f.notify(message);assert.deepEqual(f.session.lifecycle(),{closed:false});}
+ assert.equal((await f.session.readiness()).canExecute,true);
+ assert(!f.calls.some(c=>c.id==='server-request'),'the bridge never answers native server requests');
+});
+test('transport loss is reconnectable but never executable or confused with an ended original session',async t=>{
+ const f=await lifecycleFixture(t);f.channel.close();
+ assert.deepEqual(f.session.lifecycle(),{closed:false,reason:'transport_closed'});
+ const before=f.calls.length;assert.equal((await f.session.readiness()).canExecute,false);assert.equal((await f.session.status()).canExecute,false);assert.equal(f.calls.length,before);
+ await assert.rejects(f.session.attach({metadataOnly:true}),{code:'CODEX_APP_SERVER_DISCONNECTED'});
+ const replacement=await new CodexAppServerSession(await f.connect(),f.threadId,{workspace:f.directory}).attach({metadataOnly:true});
+ assert.deepEqual(replacement.lifecycle(),{closed:false});assert.equal((await replacement.readiness()).canExecute,true);
+ assert.deepEqual(f.session.lifecycle(),{closed:false,reason:'transport_closed'},'the disconnected instance cannot revive itself');
+});
+test('a closure arriving during a metadata read prevents stale readiness or an implicit resume',async t=>{
+ const f=await lifecycleFixture(t);
+ f.overrides.set('thread/read',()=>{f.socket.write(frame({method:'thread/closed',params:{threadId:f.threadId}}));return{thread:{id:f.threadId,cwd:f.directory,status:{type:'idle'},canAcceptDirectInput:true,ephemeral:false,parentThreadId:null,turns:[]}};});
+ await assert.rejects(f.session.readiness(),{code:'CODEX_APP_SERVER_SESSION_CLOSED'});
+ assert.equal(f.session.lifecycle().closed,true);assert.equal((await f.session.readiness()).canExecute,false);
+ await assert.rejects(f.session.attach({metadataOnly:true}),{code:'CODEX_APP_SERVER_SESSION_CLOSED'});
+ assert(!f.calls.some(c=>c.method==='thread/resume'));
 });

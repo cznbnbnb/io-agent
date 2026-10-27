@@ -22,6 +22,7 @@ const capabilities=Object.freeze({can_execute:true,async_events:true,admission_p
 const execution=c=>({command_id:c.command_id,turn_id:c.turn_id??null,phase:c.phase});
 const equal=(a,b)=>runtimeDigest(a)===runtimeDigest(b);
 const MAX_STATE=64*1024*1024,MAX_OPERATIONS=1000,MAX_EVENTS=10000;
+const OBSERVED_TASK_WINDOW_MS=24*3600000;
 export class NativeRuntimeError extends BridgeError{constructor(code){super(code,{permanent:true});}}
 const need=(v,c)=>{if(!v)throw new NativeRuntimeError(c);};
 function deadline(value){
@@ -170,6 +171,14 @@ export class NativeRuntimeAdapter{
       need(object(op)&&op.operation_id===id&&id===operationId(op.source?.body?.task_id)&&op.source_digest===runtimeDigest(op.source)&&this.acceptsRoute(op.source.body.route)&&op.binding_key===runtimeDigest(op.source.body.route)&&typeof op.admitted==='boolean'&&object(op.commands)&&Number.isSafeInteger(op.event_sequence)&&op.event_sequence>=0,'NATIVE_RUNTIME_STATE_CORRUPT');
       for(const [id,c]of Object.entries(op.commands))need(uuid(id)&&c.command_id===id&&c.task_id===op.source.body.task_id&&equal(c.route,op.source.body.route)&&typeof c.text==='string'&&c.text.trim()&&Buffer.byteLength(c.text)<=32768&&deadline(c.expires_at)===c.expires_at,'NATIVE_RUNTIME_STATE_CORRUPT');
       this.#source(op.source,op.delivery_id);
+      if(op.origin!==undefined){
+        const initial=own(op.commands,commandId(id)),publication=op.publication;
+        need(op.origin==='observed'&&uuid(op.observed_operation_id)&&typeof op.observed_turn_id==='string'&&op.observed_turn_id&&op.observed_turn_id.length<=160&&
+          deadline(op.observed_created_at)===op.observed_created_at&&object(publication)&&publication.kind==='task'&&publication.event_id===op.source.event_id&&
+          publication.idempotency_key==='idem-'+publication.event_id&&deadline(publication.created_at)===publication.created_at&&publication.expires_at===op.source.expires_at&&
+          equal(publication.body,op.source.body)&&initial&&!initial.resume_of&&initial.text===op.source.body.command&&initial.expires_at===op.source.expires_at&&
+          op.source.revision===1&&op.source.body.state==='queued'&&op.source.body.execution===undefined&&op.source.body.control===undefined&&op.admission_rejection===null,'NATIVE_RUNTIME_STATE_CORRUPT');
+      }
       if(op.admitted){
         need(op.source.revision===1&&op.source.body.state==='queued'&&op.source.body.execution===undefined&&op.source.body.control===undefined,'NATIVE_RUNTIME_STATE_CORRUPT');
         // Absence of the new field is the existing admitted-command format.
@@ -179,7 +188,7 @@ export class NativeRuntimeAdapter{
         if(rejected)need(Object.keys(op.commands).length===0,'NATIVE_RUNTIME_STATE_CORRUPT');
         else{const initial=own(op.commands,commandId(id));
           need(initial&&initial.text===op.source.body.command&&!initial.resume_of&&initial.expires_at===deadline(op.source.command_expires_at??op.source.expires_at),'NATIVE_RUNTIME_STATE_CORRUPT');}
-      }else need(Object.keys(op.commands).length===0&&op.admission_rejection==null,'NATIVE_RUNTIME_STATE_CORRUPT');
+      }else need((op.origin==='observed'?Object.keys(op.commands).length===1:Object.keys(op.commands).length===0)&&op.admission_rejection==null,'NATIVE_RUNTIME_STATE_CORRUPT');
       for(const [command,input]of Object.entries(op.commands))if(command!==commandId(id)){
         const control=own(j.controls,command);
         need(control?.operation_id===id&&control.control.kind==='resume'&&input.resume_of===control.control.expected_command_id&&input.text===control.control.text&&input.expires_at===deadline(control.control.expires_at),'NATIVE_RUNTIME_STATE_CORRUPT');
@@ -210,10 +219,63 @@ export class NativeRuntimeAdapter{
     need(typeof item.body.state==='string'&&(item.state===undefined||item.state===item.body.state),'NATIVE_RUNTIME_SOURCE_INVALID');
     deadline(item.command_expires_at??item.expires_at);return runtimeSource(item);
   }
+  async #discoverObserved(){
+    for(const entry of this.#config){
+      if(typeof entry.host.activitySnapshot!=='function')continue;
+      try{
+        const rows=await entry.host.activitySnapshot(),seenOperations=new Set(),seenTurns=new Set();
+        need(Array.isArray(rows)&&rows.length<=MAX_OPERATIONS,'NATIVE_RUNTIME_OBSERVED_INVALID');
+        // Validate the whole host snapshot before accepting any new fact. No
+        // raw local prompt is retained, used as input, or sent to the server.
+        for(const row of rows){
+          need(object(row)&&Object.keys(row).every(k=>['operationId','turnId','status','createdAt','resultComplete','result','coverage'].includes(k))&&
+            uuid(row.operationId)&&typeof row.turnId==='string'&&row.turnId&&row.turnId.length<=160&&['inProgress','completed','interrupted','failed'].includes(row.status)&&
+            [0,1].includes(row.coverage)&&!seenOperations.has(row.operationId)&&!seenTurns.has(row.turnId),'NATIVE_RUNTIME_OBSERVED_INVALID');
+          deadline(row.createdAt);seenOperations.add(row.operationId);seenTurns.add(row.turnId);
+        }
+        for(const row of rows){
+          const existing=this.#journal.order.map(id=>this.#journal.operations[id]).find(op=>op.binding_key===entry.key&&op.origin==='observed'&&
+            (op.observed_operation_id===row.operationId||op.observed_turn_id===row.turnId));
+          // Reconnected hosts may timestamp their first sight of this known
+          // turn again. Identity is operation+turn; retain our durable original
+          // time and publication bytes rather than creating a second task.
+          if(existing){need(existing.observed_operation_id===row.operationId&&existing.observed_turn_id===row.turnId,'NATIVE_RUNTIME_OBSERVED_CONFLICT');continue;}
+          const controller=this.#controllers.get(entry.key);if(controller.nativeOperationKnown(row.operationId))continue;
+          need(this.#journal.order.length<MAX_OPERATIONS,'NATIVE_RUNTIME_OPERATION_LIMIT');
+          const task_id='observed-'+runtimeDigest([entry.binding,row.operationId,row.turnId]),id=operationId(task_id),created_at=new Date(this.#clock()).toISOString(),
+            expires_at=new Date(this.#clock()+OBSERVED_TASK_WINDOW_MS).toISOString(),
+            body={task_id,revision:1,route:structuredClone(entry.binding.route),command:'会话执行 · '+(entry.label??'原会话任务'),state:'queued',allow_create_session:false},
+            publication={kind:'task',event_id:'observed-'+runtimeDigest([id,'publish']),idempotency_key:'idem-observed-'+runtimeDigest([id,'publish']),created_at,expires_at,body},
+            source=runtimeSource({kind:'task',object_id:task_id,revision:1,event_id:publication.event_id,state:'queued',expires_at,command_expires_at:expires_at,body}),
+            command={command_id:commandId(id),task_id,route:body.route,text:body.command,expires_at};
+          need(!own(this.#journal.operations,id),'NATIVE_RUNTIME_OBSERVED_CONFLICT');
+          this.#journal.operations[id]={operation_id:id,origin:'observed',observed_operation_id:row.operationId,observed_turn_id:row.turnId,observed_created_at:deadline(row.createdAt),
+            publication,delivery_id:`item:task:${task_id}:1`,source,source_digest:runtimeDigest(source),binding_key:entry.key,admitted:false,
+            admission_rejection:null,commands:{[command.command_id]:command},event_sequence:0,last_projection:null};
+          this.#journal.order.push(id);this.#save();
+        }
+      }catch(error){
+        if(this.#poisoned||['SESSION_STORAGE_UNCERTAIN','LOCK_LOST','NATIVE_RUNTIME_STATE_LIMIT'].includes(error.code))throw error;
+        for(const op of Object.values(this.#journal.operations))if(op.binding_key===entry.key)op.last_error=safeCode(error);
+        this.#save();
+      }
+    }
+  }
+  pendingObservedTasks(){return this.#exclusive(async()=>{
+    await this.#discoverObserved();
+    return this.#journal.order.map(id=>this.#journal.operations[id]).filter(op=>op.origin==='observed'&&!op.admitted).map(op=>structuredClone(op.publication));
+  });}
   onItem(item,{delivery_id}={}){return this.#exclusive(()=>this.#transaction(()=>{
     if(item?.kind==='message')return[]; // Status and result notifications are never prompts.
     const source=this.#source(item,delivery_id),id=operationId(source.body.task_id),prior=own(this.#journal.operations,id);
     if(prior){
+      if(prior.origin==='observed'&&!prior.admitted){
+        need(source.revision===1&&source.event_id===prior.publication.event_id&&equal(source.body,prior.publication.body)&&source.expires_at===prior.publication.expires_at&&
+          (source.command_expires_at??source.expires_at)===prior.publication.expires_at,'NATIVE_RUNTIME_OBSERVED_CONFLICT');
+        prior.source=source;prior.source_digest=runtimeDigest(source);prior.admitted=true;
+        const initial=own(prior.commands,commandId(id)),projection={state:'agent_received',execution:execution({...initial,phase:'queued'})};
+        prior.last_projection=runtimeDigest(projection);this.#emit(prior,'admitted',[{action:'task_state',...projection},receipt(prior,'agent_received')]);this.#save();return[];
+      }
       need(equal(prior.source.body.route,source.body.route)&&prior.source.body.command===source.body.command&&prior.source.body.allow_create_session===source.body.allow_create_session&&(prior.source.command_expires_at??prior.source.expires_at)===(source.command_expires_at??source.expires_at),'NATIVE_RUNTIME_OPERATION_CONFLICT');
       if(prior.delivery_id===delivery_id)need(prior.source_digest===runtimeDigest(source),'NATIVE_RUNTIME_SOURCE_CONFLICT');
       if(['stop_requested','resume_requested'].includes(source.body.state))this.#control(prior,source,delivery_id);
@@ -308,11 +370,16 @@ export class NativeRuntimeAdapter{
     this.#emit(op,tag??['status',++op.event_sequence,c.command_id,c.phase],actions);op.last_projection=hash;this.#save();
   }
   pollEvents(){return this.#exclusive(async()=>{
+    await this.#discoverObserved();
     for(const {key}of this.#config){
       const controller=this.#controllers.get(key),ops=this.#journal.order.map(id=>this.#journal.operations[id]).filter(op=>op.admitted&&!op.admission_rejection&&op.binding_key===key);
       if(!ops.length)continue;
       try{
-        for(const op of ops)controller.enqueue(op.commands[commandId(op.operation_id)]);
+        for(const op of ops){
+          const initial=op.commands[commandId(op.operation_id)];
+          if(op.origin==='observed')await controller.adoptObserved({...initial,client_user_message_id:op.observed_operation_id,turn_id:op.observed_turn_id,created_at:op.observed_created_at});
+          else controller.enqueue(initial);
+        }
         await this.#applyControls(key,controller);
         // Publish a resume's queued identity before advancing its new turn.
         for(const op of ops)this.#project(op,controller.list());

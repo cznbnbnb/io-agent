@@ -1,5 +1,7 @@
 # 还需要你验证的事项
 
+A27-S01 普通 Desktop 常驻控制（部分可测）：dev134 已装；普通 Claude 全局插件会话和 Codex 共享终端会话的文档→手机打断→原 task 追加改预算→结果回手机已由开发者完成，不重复催测。当前主 Codex Desktop 仍是旧 stdio owner，已准备共享 daemon 和仅后续进程生效的启动开关，尚未自动关闭 App。用户合适时正常退出并重开 Desktop，在原聊天重新 join；预期 session-status 的 can_execute=true，手机原会话可执行/打断。若需要继续已有 Claude 聊天，先正常 /reload-plugins。反馈是否成功及实际原因码。电脑须联网醒着；不改变原审批。眼镜双击仍另项，不算通过。[证据](../../rebuild/agent-bridge/hosts/session-resident-proof-2026-10-27.json)。
+
 2026-10-26 交付补充：现装 dev118/10540，回退 dev117。dev118 仅统一“继续也会处理已有队列，具体顺序由原 Agent 管理”的共用提示，复用 AgentUI 字号/间距；手机全链实测在 dev117 完成。新包的编译、签名、差异传输/现装完整 SHA、启动与已有结果保留已核对，控制与登录源码指纹不变；未重复运行同一全链。见[当前交付证据](../../rebuild/android-app/phone-session-delivery-dev118-2026-10-26.json)。
 
 A26-A01 主动默认任务与打断（手机可日常试用，开发者验收已通过；眼镜前置未完成）：dev117 已在真实隔离 Claude/Codex 原 session 跑通默认/临时指定办公、最终结果回显、父子进程精确停止、同任务追加修改文件并回显。手机“继续”会先执行本次指示，然后恢复原会话已有队列；前后台返回不重复执行。用户日常可观察输入、返回与结果阅读体验；此条不因此标“已人工确认”。眼镜 wake/独立口述/确认未接，目前不列可佩戴验收，不催用户测。见[开发者验收证据](../../rebuild/android-app/phone-session-acceptance-dev117-2026-10-26.json)。

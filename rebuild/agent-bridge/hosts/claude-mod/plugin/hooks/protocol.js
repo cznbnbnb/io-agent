@@ -17,7 +17,13 @@ export function validateConnection(value) {
   return object(value) && value.schema_version === 1 && uuid(value.session_id) &&
     typeof value.cwd === 'string' && value.cwd.startsWith('/') &&
     typeof value.token === 'string' && /^[a-f0-9]{64}$/.test(value.token) &&
+    (value.binding_id === undefined || typeof value.binding_id==='string' && /^[a-f0-9]{64}$/.test(value.binding_id)) &&
     typeof value.url === 'string' && /^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}$/.test(value.url);
+}
+export function validateRegistry(value){
+  return object(value)&&value.schema_version===1&&typeof value.root==='string'&&value.root.startsWith('/')&&
+    value.root.length>1&&value.root.length<=4096&&!value.root.split('/').some(part=>part==='.'||part==='..')&&
+    !/[\u0000-\u001f]/.test(value.root);
 }
 export function validateAction(action, connection) {
   if (!object(action) || !uuid(action.operation_id) || action.session_id !== connection.session_id || action.cwd !== connection.cwd) return false;

@@ -45,7 +45,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       journal.order.length === Object.keys(journal.operations).length, 'CLAUDE_MOD_STATE_CORRUPT');
     for (const id of journal.order) {
       const op = journal.operations[id];
-      need(uuid(id) && object(op) && op.operation_id === id && ['submit','abort'].includes(op.kind) && phases.has(op.phase) &&
+      need(uuid(id) && object(op) && op.operation_id === id && ['submit','abort','observe'].includes(op.kind) && phases.has(op.phase) &&
         op.session_id === binding.route.session_id && op.cwd === binding.workspace && typeof op.digest === 'string', 'CLAUDE_MOD_STATE_CORRUPT');
       const input = {kind:op.kind, operation_id:id};
       if (op.kind === 'submit') {
@@ -55,6 +55,11 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       } else {
         need(typeof op.turn_id === 'string' && op.turn_id.length > 0 && op.turn_id.length <= 160, 'CLAUDE_MOD_STATE_CORRUPT');
         input.turn_id = op.turn_id;
+        if(op.kind==='observe'){
+          need([0,1].includes(op.coverage)&&typeof op.observed_instance==='string'&&typeof op.created_at==='string'&&
+            Number.isFinite(Date.parse(op.created_at))&&new Date(Date.parse(op.created_at)).toISOString()===op.created_at,'CLAUDE_MOD_STATE_CORRUPT');
+          input.coverage=op.coverage;input.observed_instance=op.observed_instance;
+        }
       }
       Object.assign(input, {session_id:op.session_id, cwd:op.cwd});
       need(runtimeDigest(input) === op.digest, 'CLAUDE_MOD_STATE_CORRUPT');
@@ -67,7 +72,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
     save();
     const token = randomBytes(32).toString('hex');
     const witnessEpoch=randomUUID();
-    let instance = null, ended = false, heartbeat = 0, busy = true, activeTurn = null;
+    let instance = null, ended = false, heartbeat = 0, busy = true, activeTurn = null, enginePid = null;
     let publicUrl;
     const envelope = value => ({...value, session_id:binding.route.session_id, cwd:binding.workspace});
     const ready = () => { check(); need(instance && !ended && clock() - heartbeat < 5000, 'CLAUDE_MOD_NOT_CONNECTED'); };
@@ -125,6 +130,26 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         const {digest, phase, ...action} = op;
         return {ok:true, action};
       }
+      if(endpoint==='/v1/observe-start'){
+        need(typeof request.turn_id==='string'&&request.turn_id.length>0&&request.turn_id.length<=160&&[0,1].includes(request.coverage),'CLAUDE_MOD_OBSERVATION_INVALID');
+        const existing=journal.order.map(id=>journal.operations[id]).find(op=>op.kind==='observe'&&op.turn_id===request.turn_id);
+        if(existing){
+          need(existing.observed_instance===instance,'CLAUDE_MOD_OBSERVATION_STALE');
+          if(request.coverage===0&&existing.work_coverage===1){existing.work_coverage=0;delete existing.witness_epoch;save();}
+          return {ok:true,operation_id:existing.operation_id,coverage:existing.work_coverage??existing.coverage};
+        }
+        need(!journal.order.some(id=>journal.operations[id].kind==='submit'&&journal.operations[id].turn_id===request.turn_id),'CLAUDE_MOD_OBSERVATION_CONFLICT');
+        need(journal.order.length<1000,'CLAUDE_MOD_QUEUE_LIMIT');
+        const input=envelope({kind:'observe',operation_id:randomUUID(),turn_id:request.turn_id,coverage:request.coverage,observed_instance:instance});
+        const op={...input,digest:runtimeDigest(input),phase:'running',created_at:new Date(clock()).toISOString(),work_coverage:request.coverage};
+        // Only a turn.start callback awaiting this ACK can establish a pre-tool
+        // scope. Joining in the middle of a native turn never gains coverage.
+        if(request.coverage===1&&witness&&witnessInstance===instance){
+          try{await witness.begin(request.turn_id);op.witness_epoch=witnessEpoch;}catch{}
+        }
+        journal.operations[op.operation_id]=op;journal.order.push(op.operation_id);busy=true;activeTurn=request.turn_id;save();
+        return {ok:true,operation_id:op.operation_id,coverage:op.work_coverage};
+      }
       if (endpoint === '/v1/report') {
         const receipt = request.receipt, op = object(receipt) && journal.operations[receipt.operation_id];
         need(op && phases.has(receipt.phase) && !['queued','handoff'].includes(receipt.phase), 'CLAUDE_MOD_RECEIPT_INVALID');
@@ -162,7 +187,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       }
       if (endpoint === '/v1/child-report') {
         const r = request.receipt, op = object(r) && journal.operations[r.operation_id];
-        need(op?.kind === 'submit' && typeof op.turn_id === 'string' && op.turn_id === r.turn_id &&
+        need(['submit','observe'].includes(op?.kind) && typeof op.turn_id === 'string' && op.turn_id === r.turn_id &&
           typeof r.tool_use_id === 'string' && /^[a-zA-Z0-9_-]{1,256}$/.test(r.tool_use_id) &&
           typeof r.task_id === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(r.task_id) && childPhases.has(r.phase),
           'CLAUDE_MOD_CHILD_RECEIPT_INVALID');
@@ -190,7 +215,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       }
       if (endpoint === '/v1/work-report') {
         const r=request.receipt,op=object(r)&&journal.operations[r.operation_id];
-        need(op?.kind==='submit' && op.work_coverage===1 && op.turn_id===r.turn_id &&
+        need(['submit','observe'].includes(op?.kind) && op.work_coverage===1 && op.turn_id===r.turn_id &&
           Number.isSafeInteger(r.sequence) && r.sequence>0 && typeof r.sealed==='boolean' &&
           Array.isArray(r.tools) && r.tools.length<=1000 && new Set(r.tools.map(t=>t.tool_use_id)).size===r.tools.length &&
           r.tools.every(t=>object(t)&&typeof t.tool_use_id==='string'&&/^[a-zA-Z0-9_-]{1,256}$/.test(t.tool_use_id)&&
@@ -221,7 +246,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         const job=receiveTail.then(async()=>{
           const result=await receive(req.url,request);
           if (req.url==='/v1/bind' && !witness && Number.isSafeInteger(request.engine_pid)) {
-            try { witness=createWitness();await witness.bind(request.engine_pid);witnessInstance=request.instance_id; }
+            try { witness=createWitness();await witness.bind(request.engine_pid);witnessInstance=request.instance_id;enginePid=request.engine_pid; }
             catch { witness?.close();witness=null; }
           }
           return result;
@@ -237,7 +262,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
     const pluginDirectory = path.join(directory, 'plugin');
     fs.cpSync(fileURLToPath(new URL('./plugin', import.meta.url)), pluginDirectory, {recursive:true});
     const configFile = path.join(pluginDirectory,'.claude-plugin','connection.json');
-    const descriptor = envelope({schema_version:1, token, url:publicUrl});
+    const descriptor = envelope({schema_version:1, token, url:publicUrl,binding_id:runtimeDigest(binding)});
     fs.writeFileSync(configFile, JSON.stringify(descriptor), {mode:0o600}); fs.chmodSync(configFile,0o600);
     const host = {
       conversationId:binding.route.session_id,
@@ -251,7 +276,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       },
       async inspectOperation(id) {
         check(); const op = journal.operations[id];
-        if (!op || op.kind !== 'submit') return {found:false, outcomeUnknown:true, resultComplete:false};
+        if (!op || !['submit','observe'].includes(op.kind)) return {found:false, outcomeUnknown:true, resultComplete:false};
         if (op.phase === 'outcome_unknown' && !op.turn_id) return {found:false, outcomeUnknown:true, resultComplete:false};
         const status = {running:'inProgress', completed:'completed', interrupted:'interrupted', dropped:'failed', expired:'failed'}[op.phase] ??
           (['queued','handoff','queued_native'].includes(op.phase) ? 'queued' : 'unknown');
@@ -260,6 +285,18 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
           phase:op.phase, reason:op.reason ?? (op.phase === 'expired' ? 'task_expired_before_admission' : undefined),
           resultComplete:op.phase === 'completed' && typeof op.answer === 'string',
           result:typeof op.answer === 'string' ? {type:'text', text:op.answer} : undefined};
+      },
+      async activitySnapshot(){
+        check();
+        const rows=[];
+        for(const id of journal.order){
+          const op=journal.operations[id];if(op.kind!=='observe')continue;
+          const observed=await this.inspectOperation(id);
+          if(!['inProgress','completed','interrupted','failed'].includes(observed.status))continue;
+          rows.push({operationId:id,turnId:op.turn_id,status:observed.status,createdAt:op.created_at,coverage:op.work_coverage??op.coverage,
+            resultComplete:observed.resultComplete,...(observed.result?{result:observed.result}:{})});
+        }
+        return rows;
       },
       async interrupt(turnId) {
         ready(); need(typeof turnId === 'string' && turnId.length > 0 && turnId.length <= 160, 'CLAUDE_MOD_STOP_INVALID');
@@ -271,7 +308,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
         return {requested:true, expectedTurnId:turnId, confirmedStopped:false};
       },
       async inspectStop(turnId) {
-        check(); const op = Object.values(journal.operations).find(op => op.kind === 'submit' && op.turn_id === turnId);
+        check(); const op = Object.values(journal.operations).find(op => ['submit','observe'].includes(op.kind) && op.turn_id === turnId);
         const processes=witness && witnessInstance===instance && op?.witness_epoch===witnessEpoch ?
           await witness.inspect(turnId) : {observed:false,quiescent:false};
         const tools=op?.work?.tools;
@@ -286,6 +323,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       }
     };
     return {host, pluginDirectory, configFile, snapshot:() => journal.order.map(id => clean(journal.operations[id])),
+      lifecycle:()=>({bound:instance!==null,ended,connected:Boolean(instance&&!ended&&clock()-heartbeat<5000),lastHeartbeatAt:heartbeat,enginePid}),
       async close() { if (closed) return; closed = true; witness?.close();await new Promise(resolve => server.close(resolve)); lock.release(); } };
   } catch (error) { witness?.close();server?.close(); lock.release(); throw error; }
 }

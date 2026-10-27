@@ -5,6 +5,7 @@ import {AgentBridge} from '../bridge.mjs';import {BridgeClient,BridgeError,readP
 import {isDeepStrictEqual} from 'node:util';
 import {sessionFile,sessionPair} from './session-pair-cli.mjs';
 import {privatePath} from './private-path.mjs';
+import {ensureResident,residentStatus,leaveResident} from '../hosts/resident-manager.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),workspace=path.resolve(here,'../../..');
 const privateRoot=path.join(workspace,'rebuild/agent-bridge/private');
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
@@ -113,7 +114,15 @@ async function join(value){
  let registered;try{registered=await register(specFile);}catch(e){if(!pendingLive&&['CALLER_PENDING_REBIND_DENIED','CALLER_PREVIOUS_ANSWER_UNCONSUMED'].includes(e.code))fs.rmSync(pendingFile,{force:true});throw e;}
  if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
  fs.unlinkSync(pendingFile);
- return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false};
+ let resident;
+ try{resident=await ensureResident(residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
+ return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
+}
+function residentOptions(){
+ const {config,context}=binding(activeDirectory());
+ return{runtime,agent:{...config.bridge,credential_file:path.resolve(config.bridge.credential_file)},
+  binding:{server_id:config.bridge.server_id,owner_id:config.bridge.owner_id,host_kind:runtime==='codex'?'codex':'claude',workspace:fs.realpathSync(workspace),route:context.route},
+  label:config.topic??'当前会话',legacyTaskId:context.task_id};
 }
 // Glasses progress contract (2026-10-23, user: any agent handed this CLI must report every next step on the
 // glasses, and the agent itself can switch that off). `checkpoint` = what was just done + what comes next; it
@@ -162,7 +171,8 @@ async function input(){let bytes=0,parts=[];for await(const part of process.stdi
 export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
 async function dispatch(action,args){if(['pair','pair-status'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');try{return await sessionPair(action,await input(),current,workspace);}catch(e){fail(e.code??'PAIRING_FAILED');}}if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
  if(action==='register'){if(args.length!==2||args[0]!=='--config')fail('CALLER_ENROLLMENT_REQUIRED');const r=await register(path.resolve(args[1]));return{...r,contract:CONTRACT};}
- if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (QR and copyable string for the current real session)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python?  (once per session; needs this computer enrolled)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+ if(['session-status','leave'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');const value=await input();if(!value||Object.keys(value).length)fail('RUNTIME_TOOL_ARGUMENT_INVALID');const options=residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
+ if(action==='help'&&!args.length)return{commands:{pair:'topic, workspace? (QR and copyable string for the current real session)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');const directory=activeDirectory(),value=await input();
  if(action==='checkpoint')return checkpoint(directory,value);
  if(action==='config')return configure(directory,value);
@@ -186,4 +196,7 @@ async function dispatch(action,args){if(['pair','pair-status'].includes(action))
  try{return await withBridge(directory,async bridge=>{let status;do{await bridge.pollOnce();status=local(directory,'status',{request_id:value.request_id});if(status.state!=='pending'||status.deadline_elapsed||Date.now()>=until)break;await new Promise(r=>setTimeout(r,Math.min((value.wait_seconds??30)>30?3000:1000,Math.max(0,until-Date.now()))));}while(true);if(status.state==='answered'){const closed=await activeTask(bridge,directory);if(closed)return{...status,state:'operation_closed',server_task_state:closed,network_checked:true,caller_verified:true};status=local(directory,'wait',{request_id:value.request_id,wait_seconds:0});await bridge.pollOnce();await bridge.flush();delivery(directory,status,true);}return{...status,network_checked:true,caller_verified:true};},until+10000);}
  catch(error){const retained=local(directory,'status',{request_id:value.request_id});return{...retained,state:retained.state==='answered'?'awaiting_parent_check':retained.state,error:error instanceof BridgeError?error.code:'CALLER_SYNC_FAILED',network_checked:true,caller_verified:true,sync_pending:true};}
 }
-if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))try{const [action,...args]=process.argv.slice(2),result=await run(action,args);process.stdout.write(JSON.stringify(result)+'\n');if(result.error)process.exitCode=2;}catch(error){process.stdout.write(JSON.stringify({error:error instanceof BridgeError?error.code:'CALLER_FAILED'})+'\n');process.exitCode=2;}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))try{const [action,...args]=process.argv.slice(2),result=await run(action,args);process.stdout.write(JSON.stringify(result)+'\n');if(result.error)process.exitCode=2;}catch(error){
+ const denied=['EACCES','EPERM','EROFS'].includes(error.code);
+ process.stdout.write(JSON.stringify(denied?{error:'CALLER_LOCAL_ACCESS_DENIED',hint:'Allow this CLI command to access its private paired state and network using the host’s normal per-command approval.'}:{error:/^[A-Z][A-Z0-9_]{2,100}$/.test(error.code??'')?error.code:'CALLER_FAILED'})+'\n');process.exitCode=2;
+}

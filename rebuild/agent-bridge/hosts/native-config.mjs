@@ -25,7 +25,7 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
   const resolve=v=>path.resolve(configDirectory,v);
   const stateFile=resolve(native.state_file),keys=new Set(),directories=new Set();
   const entries=native.sessions.map(s=>{
-    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','auth_file','broker_directory'].includes(k))&&
+    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','rpc_path','auth_file','broker_directory'].includes(k))&&
       ['codex','claude'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&directoryRoute(s.route)&&
       s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id);
     const label=typeof s.label==='string'?s.label.trim():s.label;
@@ -41,7 +41,8 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
       need(!url.username&&!url.password&&!url.hash&&!url.search&&
         (url.protocol==='unix:'&&!url.hostname&&path.isAbsolute(url.pathname)&&url.pathname!=='/'&&s.auth_file===undefined||
          url.protocol==='ws:'&&['127.0.0.1','[::1]'].includes(url.hostname)&&url.port));
-      return{binding,label,endpoint:s.endpoint,authFile:s.auth_file?resolve(s.auth_file):null};
+      need(s.rpc_path===undefined||typeof s.rpc_path==='string'&&/^\/(?:[A-Za-z0-9._~-]+\/?)*$/.test(s.rpc_path),'INVALID_NATIVE_CONFIG');
+      return{binding,label,endpoint:s.endpoint,rpcPath:s.rpc_path,authFile:s.auth_file?resolve(s.auth_file):null};
     }
     need(typeof s.broker_directory==='string'&&s.broker_directory&&s.endpoint===undefined&&s.auth_file===undefined);
     const directory=resolve(s.broker_directory);need(!directories.has(directory));directories.add(directory);
@@ -59,14 +60,16 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
         for(const e of entries){
           let host;
           if(e.binding.host_kind==='codex'){
-            let attempt=null;
+            let attempt=null,connectedHost=null;
             const get=()=>attempt??=(async()=>{
               let bearerToken;
               if(e.authFile){const auth=readPrivateJson(e.authFile);need(object(auth)&&Object.keys(auth).length===1&&typeof auth.token==='string'&&auth.token,'INVALID_NATIVE_AUTH');bearerToken=auth.token;}
-              return connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,metadataOnly:true,subscribeEvents:true,...(bearerToken?{bearerToken}:{})});
+              connectedHost=await connectCodex(e.binding.route.session_id,{endpoint:e.endpoint,workspace:e.binding.workspace,metadataOnly:true,subscribeEvents:true,...(e.rpcPath?{rpcPath:e.rpcPath}:{}),...(bearerToken?{bearerToken}:{})});
+              return connectedHost;
             })();
             host={conversationId:e.binding.route.session_id,capabilities:hostCapabilities};
-            for(const method of ['status','start','startQueued','inspectOperation','interrupt','stopChildren','inspectStop','readiness'])host[method]=async(...args)=>{
+            host.lifecycle=()=>connectedHost?.lifecycle?.()??{closed:false};
+            for(const method of ['status','start','startQueued','inspectOperation','interrupt','stopChildren','inspectStop','readiness','activitySnapshot'])host[method]=async(...args)=>{
               const connected=await get();need(typeof connected[method]==='function','NATIVE_RUNTIME_READINESS_UNSUPPORTED');return connected[method](...args);
             };
             closers.push(async()=>{if(attempt)try{await (await attempt).close();}catch{}});
@@ -90,13 +93,14 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
         runtime=new NativeRuntimeAdapter({stateFile,bindings,clock});await runtime.start();return adapter.capabilities;
       }catch(error){await adapter.stop();throw error;}
     },
+    lifecycle(){return bindings.map(({host})=>host.lifecycle?.()).find(s=>s?.closed||s?.reason==='transport_closed')??{closed:false};},
     async stop(){
       let failure;try{await runtime?.stop();}catch(error){failure=error;}
       for(const close of closers.reverse())try{await close();}catch(error){failure??=error;}
       runtime=null;closers=[];bindings=[];if(failure)throw failure;
     }
   };
-  for(const method of ['onItem','onAnswer','onRequestClosed','inspectAdmission','inspectControlIntake','pollEvents','acknowledgeEvents','readinessSnapshot'])
+  for(const method of ['onItem','onAnswer','onRequestClosed','inspectAdmission','inspectControlIntake','pollEvents','acknowledgeEvents','readinessSnapshot','pendingObservedTasks'])
     adapter[method]=(...args)=>{need(runtime,'NATIVE_CONFIG_NOT_STARTED');return runtime[method](...args);};
   return adapter;
 }

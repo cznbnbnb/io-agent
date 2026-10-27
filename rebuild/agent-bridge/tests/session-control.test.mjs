@@ -281,3 +281,66 @@ test('normal new input appends without resuming an interrupted native queue',asy
   f.turns.set(message,{found:true,status:'queued',turnId:null});await q.tick();await q.tick();
   assert.equal(q.list()[0].reason,'waiting_in_native_queue');assert.equal(f.calls.length,1);
 });
+
+
+function observedInput(f,patch={}){
+  return {...f.command({text:'Approved topic only'}),client_user_message_id:randomUUID(),turn_id:'local-turn-'+randomUUID(),created_at:new Date(f.deadline()-60000).toISOString(),...patch};
+}
+test('observed current native turn is adopted read-only, restartable and exact-operation fenced',async t=>{
+  const f=fixture(t);let q=f.open();const input=observedInput(f);
+  f.turns.set(input.client_user_message_id,{found:true,turnId:input.turn_id,status:'inProgress'});
+  assert.equal((await q.adoptObserved(input)).phase,'running');assert.equal(f.calls.length,0);
+  assert.equal(q.nativeOperationKnown(input.client_user_message_id),true);
+  await q.close();q=f.open();assert.equal((await q.adoptObserved(input)).origin,'observed');await q.tick();assert.equal(f.calls.length,0);
+  await assert.rejects(q.adoptObserved({...input,turn_id:'replacement-turn'}),{code:'SESSION_COMMAND_CONFLICT'});
+  const unknown=observedInput(f);await assert.rejects(q.adoptObserved(unknown),{code:'SESSION_OBSERVED_NOT_PROVEN'});assert.equal(q.list().length,1);
+  const wrong=observedInput(f);f.turns.set(wrong.client_user_message_id,{found:true,turnId:'not-the-observed-turn',status:'inProgress'});
+  await assert.rejects(q.adoptObserved(wrong),{code:'SESSION_OBSERVED_NOT_PROVEN'});assert.equal(q.list().length,1);
+});
+test('observed turn can be stopped despite an already-sent queued remote input; unknown proof never permits resume',async t=>{
+  const f=fixture(t);let q=f.open();f.host.capabilities.atomic_queue_append=true;
+  q.enqueue(f.command());await q.tick();const remoteMessage=f.calls[0].clientUserMessageId;
+  f.turns.set(remoteMessage,{found:true,status:'queued',turnId:null});
+  const input=observedInput(f),turn={found:true,turnId:input.turn_id,status:'inProgress'};f.turns.set(input.client_user_message_id,turn);
+  await q.adoptObserved(input);await q.close();q=f.open();
+  await q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:input.turn_id});turn.status='interrupted';await q.tick();
+  assert.equal(q.list()[0].phase,'accepted');assert.equal(q.list()[1].phase,'stop_unconfirmed');assert.equal(f.calls.filter(c=>c.interrupt).length,1);
+  assert.throws(()=>q.enqueue(f.command({task_id:input.task_id,resume_of:input.command_id})),{code:'SESSION_RESUME_NOT_READY'});
+  f.host.proof={conversationId:f.host.conversationId,turnId:input.turn_id,terminal:true,descendantsStopped:true};await q.tick();assert.equal(q.list()[1].phase,'stopped');
+  assert.equal(f.calls.filter(c=>c.text).length,1);
+});
+test('same-task continuation of a proven observed stop is the only native input; first terminal facts are never replayed',async t=>{
+  const f=fixture(t),q=f.open(),input=observedInput(f),turn={found:true,turnId:input.turn_id,status:'inProgress'};
+  f.turns.set(input.client_user_message_id,turn);await q.adoptObserved(input);
+  await q.requestStop({control_id:randomUUID(),command_id:input.command_id,expected_turn_id:input.turn_id});turn.status='interrupted';
+  f.host.proof={conversationId:f.host.conversationId,turnId:input.turn_id,terminal:true,descendantsStopped:true};await q.tick();
+  const resume=f.command({task_id:input.task_id,resume_of:input.command_id,text:'User explicitly continues the same task'});q.enqueue(resume);await q.tick();await q.tick();
+  assert.equal(f.calls.filter(c=>c.text).length,1);assert.equal(q.list()[1].task_id,input.task_id);assert.equal(q.list()[1].resume_of,input.command_id);
+  const history=observedInput(f);f.turns.set(history.client_user_message_id,{found:true,turnId:history.turn_id,status:'completed',resultComplete:true,result:{type:'text',text:'Known completed result'}});
+  assert.equal((await q.adoptObserved(history)).phase,'completed');assert.equal(f.calls.filter(c=>c.text).length,1);
+  // A stale later snapshot cannot revive the historical task.
+  f.turns.get(history.client_user_message_id).status='inProgress';await q.adoptObserved(history);await q.tick();assert.equal(q.list().at(-1).phase,'completed');
+});
+test('natural observed turnover does not block exact control of the current local turn or expose unproved final text',async t=>{
+  const f=fixture(t),q=f.open(),old=observedInput(f),next=observedInput(f);
+  f.turns.set(old.client_user_message_id,{found:true,turnId:old.turn_id,status:'completed',resultComplete:false,result:{type:'text',text:'Incomplete'}});
+  await q.adoptObserved(old);assert.equal(q.list()[0].phase,'result_pending');assert.equal(q.list()[0].result,undefined);
+  f.turns.set(next.client_user_message_id,{found:true,turnId:next.turn_id,status:'inProgress'});await q.adoptObserved(next);
+  await q.requestStop({control_id:randomUUID(),command_id:next.command_id,expected_turn_id:next.turn_id});assert.equal(f.calls.filter(c=>c.interrupt).length,1);
+  const localCancelled=observedInput(f);f.turns.set(localCancelled.client_user_message_id,{found:true,turnId:localCancelled.turn_id,status:'interrupted'});
+  assert.equal((await q.adoptObserved(localCancelled)).phase,'failed');assert.equal(f.calls.filter(c=>c.text).length,0);
+});
+test('an older interrupted observation stays unconfirmed without blocking a different proven stopped task continuation',async t=>{
+  const f=fixture(t),q=f.open(),old=observedInput(f),current=observedInput(f);
+  const oldTurn={found:true,turnId:old.turn_id,status:'inProgress'},currentTurn={found:true,turnId:current.turn_id,status:'inProgress'};
+  f.turns.set(old.client_user_message_id,oldTurn);await q.adoptObserved(old);
+  await q.requestStop({control_id:randomUUID(),command_id:old.command_id,expected_turn_id:old.turn_id});oldTurn.status='interrupted';await q.tick();
+  assert.equal(q.list()[0].phase,'stop_unconfirmed');
+  f.turns.set(current.client_user_message_id,currentTurn);await q.adoptObserved(current);
+  await q.requestStop({control_id:randomUUID(),command_id:current.command_id,expected_turn_id:current.turn_id});currentTurn.status='interrupted';
+  f.host.proof={conversationId:f.host.conversationId,turnId:current.turn_id,terminal:true,descendantsStopped:true};await q.tick();
+  assert.equal(q.list()[1].phase,'stopped');
+  assert.throws(()=>q.enqueue(f.command({task_id:old.task_id,resume_of:old.command_id})),{code:'SESSION_RESUME_NOT_READY'});
+  q.enqueue(f.command({task_id:current.task_id,resume_of:current.command_id}));await q.tick();await q.tick();
+  assert.equal(q.list()[0].phase,'stop_unconfirmed');assert.equal(q.list()[2].phase,'running');assert.equal(f.calls.filter(c=>c.text).length,1);
+});

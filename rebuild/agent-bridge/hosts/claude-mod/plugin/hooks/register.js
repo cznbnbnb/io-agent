@@ -1,4 +1,4 @@
-import {validateConnection, validateAction, stamp, matchesBoundTurn, reservedBridgeText, object} from './protocol.js';
+import {validateConnection, validateRegistry, validateAction, stamp, matchesBoundTurn, reservedBridgeText, object, uuid} from './protocol.js';
 
 // This is a Claude Mod, not Node.js. All I/O goes through documented $ calls.
 // Keep $ calls in full and pass $ only to top-level functions for static validation.
@@ -7,6 +7,9 @@ let instance = null;
 let enabled = false;
 let pumping = false;
 let timer = null;
+let discoveryTimer=null, registryRoot=null, discoverySession=null;
+let globalMode=false, discovering=false, observing=false;
+let recentCompletions={};
 let activeTurn = null;
 let busy = true; // Loading into a busy conversation must not manufacture idle.
 let journal = {operations:{}, tools:{}, outbox:[]};
@@ -15,7 +18,7 @@ let writeTail = Promise.resolve();
 let storageFailed = false;
 const synchronousTools = new Set(['Read','Write','Edit','MultiEdit','Glob','Grep','LS','NotebookEdit','TodoWrite','TaskCreate','TaskGet','TaskList','TaskUpdate','TaskStop','AskUserQuestion']);
 
-function storeKey() { return `io-session-v1:${connection.session_id}`; }
+function storeKey() { return `io-session-v1:${connection.session_id}:${connection.binding_id || connection.cwd}`; }
 function identity() { return {session_id:connection.session_id, cwd:connection.cwd, instance_id:instance}; }
 async function persist($) {
   // Event callbacks and the background pump can overlap. Snapshot in call
@@ -116,7 +119,7 @@ async function stopChildren($) {
 }
 async function trackTool($, e, next) {
   const turn = activeTurn;
-  const operation = Object.keys(journal.operations).find(id => journal.operations[id].kind === 'submit' &&
+  const operation = Object.keys(journal.operations).find(id => ['submit','observe'].includes(journal.operations[id].kind) &&
     journal.operations[id].turn_id === turn);
   if (!enabled || e.agentId !== undefined || !operation || !(await exact($))) return next(e);
   if (typeof e.tool_use_id !== 'string' || !/^[a-zA-Z0-9_-]{1,256}$/.test(e.tool_use_id)) {
@@ -228,6 +231,8 @@ async function pump($) {
   pumping = true;
   try {
     if (!(await exact($))) { await end($); return; }
+    if(activeTurn&&!Object.values(journal.operations).some(op=>op.turn_id===activeTurn&&['submit','observe'].includes(op.kind)))
+      await observe($,activeTurn,0);
     for (let n=0;n<8 && journal.outbox.length;n++) await flush($);
     const response = await post($, '/v1/poll', {busy, turn_id:activeTurn});
     if (response.action) await perform($, response.action);
@@ -237,10 +242,10 @@ async function pump($) {
     // themselves are never retried; their write-ahead records fence replay.
   } finally { pumping = false; }
 }
-async function start($) {
+async function connect($,descriptor) {
   if (timer) timer.cancel();
   enabled = false;
-  connection = JSON.parse(await $.fs.read($.plugin.root + '/.claude-plugin/connection.json'));
+  connection = descriptor;
   if (!validateConnection(connection)) throw new Error('CLAUDE_MOD_CONNECTION_INVALID');
   const session = await $.session.id();
   const cwd = await $.session.cwd();
@@ -264,24 +269,83 @@ async function start($) {
   }
   timer = $.clock.every(250, async () => { await pump($); });
 }
-async function end($) {
+async function discover($){
+  if(!globalMode||!registryRoot||discovering||pumping||observing)return;
+  discovering=true;
+  try{
+    const session=await $.session.id(),cwd=await $.session.cwd();
+    if(discoverySession!==session){discoverySession=session;activeTurn=null;busy=true;recentCompletions={};}
+    const rootStat=await $.fs.stat(registryRoot,{resolve:true});
+    if(rootStat.kind!=='dir'||rootStat.isLink||rootStat.realPath!==registryRoot){if(enabled)await end($,false);return;}
+    const entries=(await $.fs.list(registryRoot)).filter(entry=>entry.kind==='dir'&&!entry.isLink);
+    if(entries.length>64){if(enabled)await end($,false);return;}
+    const matches=[];
+    for(const entry of entries){
+      if(entry.kind!=='dir'||entry.isLink||!/^[a-zA-Z0-9._-]{1,128}$/.test(entry.name))continue;
+      const file=registryRoot+'/'+entry.name+'/binding.json';
+      try{
+        const stat=await $.fs.stat(file,{resolve:true});
+        if(stat.isLink||stat.kind!=='file'||stat.realPath!==file)continue;
+        const candidate=JSON.parse(await $.fs.read(file));
+        if(validateConnection(candidate)&&candidate.session_id===session&&candidate.cwd===cwd)matches.push(candidate);
+      }catch{}
+    }
+    if(matches.length!==1){if(enabled)await end($,false);return;}
+    const descriptor=matches[0];
+    if(enabled&&connection.session_id===descriptor.session_id&&connection.cwd===descriptor.cwd&&connection.token===descriptor.token&&connection.url===descriptor.url&&connection.binding_id===descriptor.binding_id)return;
+    const turn=activeTurn,wasBusy=busy;
+    if(enabled)await end($);
+    activeTurn=turn;busy=wasBusy;pending={};storageFailed=false;
+    await connect($,descriptor);
+    if(activeTurn)await observe($,activeTurn,0);
+  }catch{if(enabled)await end($,false);/* No usable descriptor means no network dispatch. */}
+  finally{discovering=false;}
+}
+async function start($){
+  if(discoveryTimer)discoveryTimer.cancel();
+  let raw;
+  try{raw=await $.fs.read($.plugin.root+'/.claude-plugin/registry.json');}catch{}
+  if(raw===undefined){await connect($,JSON.parse(await $.fs.read($.plugin.root+'/.claude-plugin/connection.json')));return;}
+  globalMode=true;
+  let registry;try{registry=JSON.parse(raw);}catch{return;}
+  if(!validateRegistry(registry))return;
+  registryRoot=registry.root;discoverySession=await $.session.id();
+  await discover($);
+  discoveryTimer=$.clock.every(2000,async()=>{await discover($);});
+}
+async function end($,notify=true) {
   if (!enabled) return;
   enabled = false;
   if (timer) timer.cancel();
   activeTurn = null; pending = {};
   // session.end covers /clear, /resume and /branch. Do not rebind a new ID.
-  try { await post($, '/v1/end', {}); } catch (error) { /* heartbeat expires */ }
+  if(notify)try { await post($, '/v1/end', {}); } catch (error) { /* heartbeat expires */ }
+}
+async function observe($,turnId,coverage){
+  if(!enabled||observing||!(await exact($)))return;
+  if(Object.values(journal.operations).some(op=>op.turn_id===turnId&&['submit','observe'].includes(op.kind)))return;
+  observing=true;
+  try{
+    const value=await post($,'/v1/observe-start',{turn_id:turnId,coverage});
+    if(!uuid(value.operation_id)||![0,1].includes(value.coverage))throw new Error('CLAUDE_MOD_OBSERVATION_INVALID');
+    const id=value.operation_id;
+    journal.operations[id]={kind:'observe',phase:'running',turn_id:turnId,coverage:value.coverage};
+    await persist($);await workReceipt($,id);
+    while(journal.outbox.length)await flush($);
+    if(recentCompletions[turnId])await completeEntry($,id,recentCompletions[turnId]);
+  }finally{observing=false;}
 }
 async function admit($, e, next) {
   // This callback sees other origins, not this Mod's own native submission.
   // A pasted operation marker or attribution wrapper must not impersonate our
   // pending turn, even when the text and claimed plugin name match exactly.
-  if (reservedBridgeText(e.text)) return {drop:'This text uses a reserved bridge operation marker.'};
+  if ((!globalMode||enabled)&&reservedBridgeText(e.text)) return {drop:'This text uses a reserved bridge operation marker.'};
   return next(e);
 }
 async function started($, e) {
-  if (!enabled || e.agentId !== undefined) return;
+  if (e.agentId !== undefined) return;
   activeTurn = e.turnId; busy = true;
+  if(!enabled)return;
   // The actual SDK turn text is wrapped, and self-dispatch does not invoke our
   // prompt.submit hook. Match the complete authenticated, already-dispatched
   // input; never search inside arbitrary user messages for an operation ID.
@@ -295,13 +359,9 @@ async function started($, e) {
     // process baseline here prevents a later poll mistaking our own child
     // process for a pre-existing service. Failure never grants stop proof.
     while (journal.outbox.length) await flush($);
-  }
+  }else await observe($,e.turnId,1);
 }
-async function completed($, e) {
-  if (!enabled || e.agentId !== undefined) return;
-  if (activeTurn === e.turnId || activeTurn === null) { activeTurn = null; busy = false; }
-  const id = Object.keys(journal.operations).find(key => journal.operations[key].kind === 'submit' && journal.operations[key].turn_id === e.turnId);
-  if (!id) return;
+async function completeEntry($,id,e){
   journal.operations[id].sealed=true;
   await workReceipt($,id);
   const hasAnswer = typeof e.answer === 'string' && e.answer.length <= 32768;
@@ -309,14 +369,34 @@ async function completed($, e) {
     ...(hasAnswer ? {answer:e.answer} : {reason:typeof e.answer === 'string' ? 'final_result_too_large' : 'final_result_missing'})});
   delete pending[id];
 }
+async function completed($, e) {
+  if (e.agentId !== undefined) return;
+  if (activeTurn === e.turnId || activeTurn === null) { activeTurn = null; busy = false; }
+  if(observing){
+    recentCompletions[e.turnId]={turnId:e.turnId,isAborted:e.isAborted,...(typeof e.answer==='string'&&e.answer.length<=32768?{answer:e.answer}:{})};
+    const retained=Object.keys(recentCompletions);if(retained.length>16)delete recentCompletions[retained[0]];
+  }
+  if(!enabled)return;
+  const id = Object.keys(journal.operations).find(key => ['submit','observe'].includes(journal.operations[key].kind) && journal.operations[key].turn_id === e.turnId);
+  if(id)await completeEntry($,id,e);
+}
+async function sessionEnded($,e){
+  await end($);
+  recentCompletions={};activeTurn=null;busy=true;
+  if(globalMode&&['clear','resume'].includes(e.reason))return;
+  if(discoveryTimer)discoveryTimer.cancel();
+}
 export function register(on) {
   on('session.start', async ($, e, next) => { await start($); return next(e); });
-  on('session.end', async ($, e, next) => { await end($); return next(e); });
+  on('session.end', async ($, e, next) => { await sessionEnded($,e); return next(e); });
   on('prompt.submit', async ($, e, next) => admit($, e, next)).catch(async ($, e, next) => {
     if (next.called || !reservedBridgeText(e.text)) return next(e);
     return {drop:'The bridge admission check failed. This task was not started.'};
   });
-  on('turn.start', async ($, e, next) => { await started($, e); return next(e); });
+  on('turn.start', async ($, e, next) => {
+    try{await started($,e);}catch{/* Lost observation never blocks ordinary local work or manufactures coverage. */}
+    return next(e);
+  });
   on('turn.complete', async ($, e, next) => { await completed($, e); return next(e); });
   on('tool.call', async ($, e, next) => trackTool($, e, next)).catch(async ($, e, next) => {
     if (next.called) return next(e);

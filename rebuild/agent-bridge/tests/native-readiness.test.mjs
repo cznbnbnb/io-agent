@@ -57,6 +57,16 @@ test('configured display labels are trimmed and can change without changing rout
   assert.deepEqual((await b.readinessSnapshot()).sessions[0].route,f.bindings[0].binding.route);
 });
 
+test('configured native lifecycle follows the connected owner without starting it during discovery',async t=>{
+  const f=fixture(t);let opened=0,life={closed:false};
+  f.bindings[0].host.lifecycle=()=>life;
+  const a=await f.config({connectCodex:async()=>{opened++;return f.bindings[0].host;}});
+  assert.deepEqual(a.lifecycle(),{closed:false});assert.equal(opened,0);
+  await a.readinessSnapshot();assert.equal(opened,1);
+  life={closed:false,reason:'transport_closed'};assert.deepEqual(a.lifecycle(),life);
+  life={closed:true,reason:'session_closed'};assert.deepEqual(a.lifecycle(),life);
+});
+
 test('display labels use the server UTF-16 limit and forbid blank or control-character names',async t=>{
   const f=fixture(t),options={connectCodex:async()=>f.bindings[0].host};
   for(const label of ['   ','x'.repeat(65),'🙂'.repeat(33),'name\nmore','\nname',null,7])

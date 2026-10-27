@@ -34,21 +34,24 @@ async function fixture(t,{witness}={}) {
     }};
   return f;
 }
-async function simulator(t, f, initialStore) {
+async function simulator(t, f, initialStore, {registryRoot}={}) {
   const callbacks = new Map(), catches = new Map(), store = initialStore ?? new Map();
   const state = {sessionId:f.binding.route.session_id,cwd:f.binding.workspace,timer:null,submissions:[],aborts:[],storeFailure:false,
-    lostResponse:null,dropNative:null,toolCalls:[],toolResult:null};
+    lostResponse:null,dropNative:null,toolCalls:[],toolResult:null,timers:[],network:[]};
+  if(registryRoot)fs.writeFileSync(path.join(f.broker.pluginDirectory,'.claude-plugin','registry.json'),JSON.stringify({schema_version:1,root:registryRoot}));
   const $ = {
     plugin:{root:f.broker.pluginDirectory},
-    fs:{read:async file=>fs.readFileSync(file,'utf8')},
+    fs:{read:async file=>fs.readFileSync(file,'utf8'),
+      stat:async file=>{const link=fs.lstatSync(file),stat=fs.statSync(file);return {kind:stat.isDirectory()?'dir':stat.isFile()?'file':'other',isLink:link.isSymbolicLink(),realPath:fs.realpathSync(file)};},
+      list:async directory=>fs.readdirSync(directory,{withFileTypes:true}).map(e=>({name:e.name,kind:e.isDirectory()?'dir':e.isFile()?'file':'other',isLink:e.isSymbolicLink()}))},
     process:{run:async()=>({exitCode:0,stdout:'12345',stderr:''})},
     session:{id:async()=>state.sessionId,cwd:async()=>state.cwd},
     store:{get:async key=>structuredClone(store.get(key)),set:async(key,value)=>{
       if(state.storeFailure) throw new Error('synthetic durable write failure'); store.set(key,structuredClone(value));
     }},
-    clock:{now:async()=>f.now(),every:(_interval,callback)=>{const timer={callback,cancelled:false,cancel(){this.cancelled=true;}};state.timer=timer;return timer;}},
+    clock:{now:async()=>f.now(),every:(interval,callback)=>{const timer={interval,callback,cancelled:false,cancel(){this.cancelled=true;}};state.timer=timer;state.timers.push(timer);return timer;}},
     http:{fetch:async(url,options)=>{
-      const response=await fetch(url,options), text=await response.text();
+      state.network.push(new URL(url).pathname);const response=await fetch(url,options), text=await response.text();
       if(state.lostResponse && url.endsWith(state.lostResponse)){state.lostResponse=null;throw new Error('synthetic reply lost');}
       return {ok:response.ok,status:response.status,text};
     }},
@@ -73,7 +76,8 @@ async function simulator(t, f, initialStore) {
       const next=value=>{if(!next.called){next.called=true;result=Promise.resolve().then(()=>implementation(value));}return result;};next.called=false;
       try {return await callbacks.get(name)($,event,next);}catch(error){if(!catches.has(name))throw error;return catches.get(name)($,event,next);}
     },
-    async tick(count=1){for(let n=0;n<count;n++){if(state.timer&&!state.timer.cancelled)await state.timer.callback();await new Promise(resolve=>setImmediate(resolve));}},
+    async tick(count=1){for(let n=0;n<count;n++){for(const timer of state.timers.filter(x=>x.interval===250&&!x.cancelled))await timer.callback();await new Promise(resolve=>setImmediate(resolve));}},
+    async discover(){for(const timer of state.timers.filter(x=>x.interval===2000&&!x.cancelled))await timer.callback();},
     async admit(index=0,turnId=`turn-${index}`, turnText) {
       const item=state.submissions[index];
       // Observed real Mod semantics: a Mod's own $.prompt.submit skips its own
@@ -482,4 +486,98 @@ test('native turn.start cannot release tools before the broker acknowledges its 
   const f=await fixture(t,{witness}),s=await simulator(t,f);await f.enqueue();await s.tick(2);
   let admitted=false;const admission=s.admit(0,'pre-tool').then(()=>admitted=true);
   await began;assert.equal(admitted,false);release();await admission;assert.equal(admitted,true);
+});
+
+function registry(f){
+  const requested=path.join(f.directory,'private-registry');fs.mkdirSync(requested,{mode:0o700});const root=fs.realpathSync(requested);
+  return {root,write(descriptor=f.descriptor(),name='a'.repeat(64)){
+    const folder=path.join(root,name);fs.mkdirSync(folder,{recursive:true,mode:0o700});fs.writeFileSync(path.join(folder,'binding.json'),JSON.stringify(descriptor),{mode:0o600});
+  }};
+}
+test('global Mod stays inert until an exact session and cwd registry descriptor exists',async t=>{
+  const f=await fixture(t),r=registry(f),s=await simulator(t,f,undefined,{registryRoot:r.root});
+  await s.discover();assert.deepEqual(s.state.network,[]);assert.equal(s.state.submissions.length,0);
+  const plain=await s.fire('prompt.submit',{text:stamp(randomUUID())+'ordinary text'});assert(plain.event);
+  r.write({...f.descriptor(),cwd:f.directory+'/foreign'});await s.discover();assert.deepEqual(s.state.network,[]);
+  r.write({...f.descriptor(),session_id:randomUUID()});await s.discover();assert.deepEqual(s.state.network,[]);
+  r.write();await s.discover();assert.equal(f.broker.lifecycle().connected,true);
+  assert.equal(s.state.submissions.length,0);assert.equal((await f.broker.host.status()).busy,true);
+});
+test('joining an already-running local turn exposes identity and interrupt but never invents pre-tool coverage',async t=>{
+  const witness={async bind(){},async begin(){assert.fail('late join cannot start a pre-tool scope');},async inspect(){return {observed:true,quiescent:true};},close(){}};
+  const f=await fixture(t,{witness}),r=registry(f),s=await simulator(t,f,undefined,{registryRoot:r.root});
+  await s.fire('turn.start',{turnId:'native-already-working',text:'Private native text is not sent to the broker'});
+  r.write();await s.discover();await s.tick();
+  const rows=await f.broker.host.activitySnapshot();assert.equal(rows.length,1);assert.equal(rows[0].turnId,'native-already-working');assert.equal(rows[0].coverage,0);assert.equal(rows[0].status,'inProgress');
+  assert(!JSON.stringify(f.broker.snapshot()).includes('Private native text'));
+  await f.broker.host.interrupt('native-already-working');await s.tick(2);assert.deepEqual(s.state.aborts,[{turnId:'native-already-working'}]);
+  await s.fire('turn.complete',{turnId:'native-already-working',isAborted:true,answer:'Partial original result'});await s.tick(3);
+  assert.equal((await f.broker.host.inspectStop('native-already-working')).descendantsStopped,false);
+  assert.equal((await f.broker.host.inspectOperation(rows[0].operationId)).status,'interrupted');assert.equal(s.state.submissions.length,0);
+});
+test('local native turn coverage awaits broker baseline and tracks its complete exact tool ledger',async t=>{
+  let began=0;
+  const witness={async bind(){},async begin(id){assert.equal(id,'native-covered');began++;},async inspect(){return {observed:true,quiescent:true};},close(){}};
+  const f=await fixture(t,{witness}),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root});
+  await s.fire('turn.start',{turnId:'native-covered',text:'Local work'});assert.equal(began,1);
+  const [row]=await f.broker.host.activitySnapshot();assert.equal(row.coverage,1);assert.equal(row.status,'inProgress');
+  await s.fire('tool.call',{turnId:'native-covered',tool:'Read',tool_use_id:'local_read_1'},async()=>({result:{content:'Synthetic'}}));
+  await f.broker.host.interrupt('native-covered');await s.tick(2);
+  await s.fire('turn.complete',{turnId:'native-covered',isAborted:true,answer:'Actual partial'});await s.tick(4);
+  const proof=await f.broker.host.inspectStop('native-covered');assert.equal(proof.descendantsStopped,true);assert.equal(proof.workStop.coverage,1);assert.equal(began,1);
+  const result=await f.broker.host.inspectOperation(row.operationId);assert.equal(result.turnId,'native-covered');assert.equal(result.status,'interrupted');
+});
+test('observe-start is authenticated and idempotent by native turn; a later call cannot upgrade partial coverage',async t=>{
+  const f=await fixture(t);await f.request('/v1/bind');
+  const body={turn_id:'native-original',coverage:0};const first=await f.request('/v1/observe-start',body),again=await f.request('/v1/observe-start',{...body,coverage:1});
+  assert.equal(first.operation_id,again.operation_id);assert.equal(again.coverage,0);assert.equal(f.broker.snapshot().length,1);
+  assert.equal((await f.request('/v1/observe-start',{...body,session_id:randomUUID()})).error,'CLAUDE_MOD_ROUTE_MISMATCH');
+  assert.equal((await f.request('/v1/observe-start',{...body,instance_id:'different-instance'})).error,'CLAUDE_MOD_INSTANCE_STALE');
+  assert.equal((await f.request('/v1/observe-start',{turn_id:'other',coverage:2})).error,'CLAUDE_MOD_OBSERVATION_INVALID');
+  await f.restart();assert.equal((await f.broker.host.activitySnapshot()).length,0);assert.equal((await f.broker.host.inspectOperation(first.operation_id)).status,'unknown');
+});
+test('registry disappearance disables network and duplicate exact descriptors never select one arbitrarily',async t=>{
+  const f=await fixture(t),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root});
+  await s.tick();const before=s.state.network.length;
+  fs.unlinkSync(path.join(r.root,'a'.repeat(64),'binding.json'));await s.discover();await s.tick(3);assert.equal(s.state.network.length,before);
+  r.write();r.write(f.descriptor(),'b'.repeat(64));await s.discover();await s.tick(2);assert.equal(s.state.network.length,before);
+});
+test('global discovery survives clear and binds only a newly joined replacement session',async t=>{
+  const f=await fixture(t),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root});
+  await s.fire('session.end',{reason:'clear'});assert.equal(f.broker.lifecycle().ended,true);
+  const second=await fixture(t);s.state.sessionId=second.binding.route.session_id;s.state.cwd=second.binding.workspace;
+  await s.discover();assert.equal(second.broker.lifecycle().bound,false);
+  r.write(second.descriptor(),'b'.repeat(64));await s.discover();assert.equal(second.broker.lifecycle().connected,true);
+  await s.fire('turn.start',{turnId:'new-session-turn',text:'Local new session'});await s.fire('turn.complete',{turnId:'new-session-turn',answer:'Real final'});await s.tick(3);
+  assert.equal((await second.broker.host.activitySnapshot())[0].status,'completed');assert.equal((await f.broker.host.activitySnapshot()).length,0);
+  await s.fire('session.end',{reason:'prompt_input_exit'});assert(s.state.timers.every(t=>t.cancelled));
+});
+test('descriptor rotation reconnects the same binding without replaying a completed native submission',async t=>{
+  const f=await fixture(t),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root}),id=await f.enqueue();
+  await s.tick();await s.admit(0,'remote-once');await s.fire('turn.complete',{turnId:'remote-once',answer:'Completed once'});await s.tick(4);
+  assert.equal(s.state.submissions.length,1);const old=f.descriptor();await f.restart();assert.notEqual(f.descriptor().token,old.token);r.write();await s.discover();await s.tick(4);
+  assert.equal(f.broker.lifecycle().connected,true);assert.equal(s.state.submissions.length,1);assert.equal((await f.broker.host.inspectOperation(id)).status,'completed');
+});
+
+test('lost local observation reply degrades coverage rather than replaying input or blocking local tools',async t=>{
+  let began=0;const witness={async bind(){},async begin(){began++;},async inspect(){return {observed:true,quiescent:true};},close(){}};
+  const f=await fixture(t,{witness}),s=await simulator(t,f);s.state.lostResponse='/v1/observe-start';
+  await s.fire('turn.start',{turnId:'local-lost-ack',text:'Private local work'});await s.tick(2);
+  const [row]=await f.broker.host.activitySnapshot();assert.equal(row.coverage,0);assert.equal(began,1);assert.equal(s.state.submissions.length,0);
+  await s.fire('turn.complete',{turnId:'local-lost-ack',isAborted:true,answer:'Partial'});await s.tick(3);
+  assert.equal((await f.broker.host.inspectStop('local-lost-ack')).descendantsStopped,false);
+});
+test('a removed registry root disables a previously joined Mod without more network calls',async t=>{
+  const f=await fixture(t),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root});await s.tick();
+  const before=s.state.network.length;fs.renameSync(r.root,r.root+'-removed');await s.discover();await s.tick(2);assert.equal(s.state.network.length,before);
+});
+
+test('registry traversal refuses symlink descriptors and more than 64 session directories',async t=>{
+  const f=await fixture(t),r=registry(f),s=await simulator(t,f,undefined,{registryRoot:r.root});
+  const slot=path.join(r.root,'a'.repeat(64));fs.mkdirSync(slot);fs.symlinkSync(f.broker.configFile,path.join(slot,'binding.json'));await s.discover();assert.deepEqual(s.state.network,[]);
+  fs.unlinkSync(path.join(slot,'binding.json'));r.write();
+  for(let i=0;i<64;i++)fs.mkdirSync(path.join(r.root,'other-'+i));
+  await s.discover();assert.deepEqual(s.state.network,[]);assert.equal(f.broker.lifecycle().bound,false);
+  for(let i=0;i<64;i++)fs.rmdirSync(path.join(r.root,'other-'+i));
+  fs.writeFileSync(path.join(r.root,'.non-session-metadata'),'metadata');await s.discover();assert.equal(f.broker.lifecycle().connected,true);
 });
