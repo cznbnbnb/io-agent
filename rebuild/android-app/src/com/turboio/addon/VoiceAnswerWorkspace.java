@@ -85,21 +85,26 @@ final class VoiceAnswerWorkspace {
  }
  private static final class Page {
   final Activity activity;final String binding,requestId,fingerprint;final long revision;final Runnable refresh;
-  final VoiceAnswerRuntime runtime;final EditorialUI.Screen screen;final TextView status,explanation,localState;final EditText text;final LinearLayout actions;
+  final VoiceAnswerRuntime runtime;final EditorialUI.Screen screen;final TextView status,explanation,localState;final EditText text;final LinearLayout actions,editor;
   final VoiceAnswerRuntime.Observer observer;final Application application;final Application.ActivityLifecycleCallbacks lifecycle;
   final boolean fromGlasses;final long autoUntil;boolean autoStart,glassesSave,busyNoticed;String offeredText,refused="";long retryAt;
   VoiceAnswerRuntime.Snapshot latest;boolean closed,busy,dirty,programmatic,exitPending,exitStopRequested;String error="";
   Page(Activity activity,String binding,String requestId,long revision,String fingerprint,Runnable refresh,boolean fromGlasses){
    this.fromGlasses=autoStart=fromGlasses;autoUntil=SystemClock.elapsedRealtime()+20000;
    this.activity=activity;this.binding=binding;this.requestId=requestId;this.revision=revision;this.fingerprint=fingerprint;this.refresh=refresh;runtime=VoiceAnswerRuntime.get(activity);application=(Application)activity.getApplicationContext();
-   screen=new EditorialUI.Screen(activity,"原问题语音回答");status=EditorialUI.text(activity,"正在核对原问题…",20,EditorialUI.INK);screen.body.addView(status);
-   explanation=EditorialUI.text(activity,fromGlasses?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"口述答案始终返回刚才的问题及原任务。准备完成后仍需明确点击开始。",14,EditorialUI.MUTED);screen.body.addView(explanation);
-   localState=EditorialUI.text(activity,"完整答案先保存到本机；服务器接收、电脑继续执行的状态分别在电脑任务页显示。",14,EditorialUI.MUTED);screen.body.addView(localState);
-   text=new EditText(activity);text.setTextColor(EditorialUI.INK);text.setHintTextColor(EditorialUI.MUTED);text.setHint("完整口述及附加条件将显示在这里，结束后可检查和更正");text.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);text.setMinLines(7);text.setEnabled(false);screen.body.addView(text,new LinearLayout.LayoutParams(-1,-2));
+   screen=new EditorialUI.Screen(activity,"原问题语音回答");agentLook(activity,screen);status=MaterialReadingUI.bold(AgentUI.text(activity,"正在核对原问题…",20,AgentUI.INK));screen.body.addView(status);AgentUI.gap(activity,screen.body,8);
+   explanation=AgentUI.text(activity,fromGlasses?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"口述答案始终返回刚才的问题及原任务。准备完成后仍需明确点击开始。",14,AgentUI.MUTED);screen.body.addView(explanation);
+   // The transcript sits in the Agent workspace's dark card; amber marks stay legible on it.
+   editor=AgentUI.column(activity);editor.setPadding(AgentUI.dp(activity,16),AgentUI.dp(activity,14),AgentUI.dp(activity,16),AgentUI.dp(activity,12));editor.setBackground(frame(activity,false));
+   editor.addView(AgentUI.text(activity,"完整原话（可直接改字）",12,AgentUI.MUTED));
+   text=new EditText(new ContextThemeWrapper(activity,android.R.style.Theme_Material_NoActionBar));text.setBackground(null);text.setPadding(0,AgentUI.dp(activity,8),0,0);text.setTextSize(18);text.setLineSpacing(AgentUI.dp(activity,5),1);text.setGravity(Gravity.TOP|Gravity.START);
+   text.setTextColor(AgentUI.INK);text.setHintTextColor(AgentUI.MUTED);text.setHint("完整口述及附加条件将显示在这里，结束后可检查和更正");text.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);text.setMinLines(5);text.setEnabled(false);editor.addView(text,new LinearLayout.LayoutParams(-1,-2));
+   LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,-2);ep.topMargin=AgentUI.dp(activity,18);screen.body.addView(editor,ep);
+   localState=AgentUI.text(activity,"完整答案先保存到本机；服务器接收、电脑继续执行的状态分别在电脑任务页显示。",12,AgentUI.MUTED);localState.setPadding(0,AgentUI.dp(activity,10),0,AgentUI.dp(activity,4));screen.body.addView(localState);
    // Never silently truncate dictated/user-edited text. The durable layer validates
    // its length and keeps the full draft if it cannot be accepted.
    text.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){if(!programmatic){dirty=true;if(fromGlasses)AgentCardRuntime.enterPhone(binding,requestId);}}public void afterTextChanged(Editable e){markRisky(e);}});
-   actions=EditorialUI.column(activity);screen.body.addView(actions);
+   actions=AgentUI.column(activity);screen.body.addView(actions);
    observer=value->activity.runOnUiThread(()->render(value,""));
    lifecycle=new Application.ActivityLifecycleCallbacks(){
     public void onActivityDestroyed(Activity a){if(a==activity){if(owned()&&(busy||latest.needsStop))runtime.stop(true,(value,code)->{});detach();}}
@@ -121,10 +126,10 @@ final class VoiceAnswerWorkspace {
    if(fromGlasses&&!busyNoticed&&("VOICE_GLASSES_BUSY".equals(error)||"VOICE_GLASSES_BUSY".equals(value.note))){busyNoticed=true;AgentCardRuntime.glassesBusy();}
    // A note that only repeats the phase (e.g. "review") carries no extra information.
    boolean note=value.note!=null&&!value.note.isEmpty()&&!label(value.note).equals(label(value.phase));
-   status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"请逐句核对识别文字。标黄的是数字和“不/没/别”等否定词，识别错一个字可能让意思相反。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");
+   status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"标黄的是数字和“不/没/别”等否定词，识别错一个字意思可能相反，请再看一眼。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");
    localState.setText(exitPending?"退出前正在停止采音或保留编辑；确认结束后会返回，草稿保留。":"SAVED".equals(value.phase)?"完整答案已保存到本机。请在电脑任务页查看服务器保存和原任务继续的回执。":"完整答案先保存到本机；服务器接收和电脑执行状态另行核对。");
    if(!dirty&&!text.getText().toString().equals(value.text==null?"":value.text)){programmatic=true;text.setText(value.text==null?"":value.text);programmatic=false;}
-   text.setEnabled(!busy&&value.canSave&&"REVIEW".equals(value.phase));actions.removeAllViews();
+   boolean editable=!busy&&value.canSave&&"REVIEW".equals(value.phase);text.setEnabled(editable);editor.setBackground(frame(activity,editable));actions.removeAllViews();
    // Only a fresh PREPARED draft may auto-start; a retained review/saved draft, an error or a stale page never records.
    // 2026-10-23 R2: while this page's own prepare runs, the runtime may still show the same question's
    // interrupted attempt (CANCELLED after a restart recovery); that must not switch auto-start off.
@@ -141,12 +146,20 @@ final class VoiceAnswerWorkspace {
    }
    if(fromGlasses&&review&&!dirty&&value.text!=null&&value.text.equals(offeredText))localState.setText("识别文字已提交给眼镜确认卡：眼镜上出现后按＋提交；没出现或按删除，就在这里核对后保存。");
    else if(fromGlasses&&review&&!dirty&&!refused.isEmpty())localState.setText("确认卡暂未发到眼镜："+refused+"。稍后自动重试，也可以在这里核对后保存。");
-   if(value.canSave)button("保存完整口述答案",true,this::save);
-   if(review&&value.cleaned&&!value.needsStop)button("识别有误？重新口述",false,this::redo);
+   if(value.canSave)button("保存并回复电脑",true,this::save);
+   if(review&&value.cleaned&&!value.needsStop)button("识别有误，重新口述",false,this::redo);
    button("SAVED".equals(value.phase)?"返回查看提交状态":"返回原问题",false,this::exit);
    if(exitPending&&!busy&&!value.needsStop&&value.cleaned)leave();
   }
-  void button(String title,boolean primary,Runnable action){TextView button=EditorialUI.button(activity,actions,title,primary,action);button.setEnabled(!busy);}
+  void button(String title,boolean primary,Runnable action){TextView button=AgentUI.button(activity,actions,title,primary,action);button.setEnabled(!busy);if(busy)button.setAlpha(.45f);}
+  /** Same palette as the task pages: dark green ground, card surface, green outline while editable. */
+  static void agentLook(Activity a,EditorialUI.Screen s){
+   s.root.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,new int[]{0xff123529,AgentUI.BG,AgentUI.BG}));
+   Window w=s.dialog.getWindow();if(w!=null){w.setStatusBarColor(0xff123529);w.setNavigationBarColor(AgentUI.BG);}
+   ViewGroup header=(ViewGroup)s.root.getChildAt(0);for(int i=0;i<header.getChildCount();i++){View child=header.getChildAt(i);if(!(child instanceof TextView))continue;TextView t=(TextView)child;
+    if("返回".contentEquals(t.getContentDescription()==null?"":t.getContentDescription())){t.setTextColor(AgentUI.MUTED);t.setTextSize(28);}else{t.setTextSize(18);t.setTextColor(AgentUI.INK);}}
+  }
+  static android.graphics.drawable.GradientDrawable frame(Activity a,boolean editable){android.graphics.drawable.GradientDrawable d=MaterialReadingUI.fill(a,AgentUI.SURFACE,18);d.setStroke(AgentUI.dp(a,editable?2:1),editable?AgentUI.ACCENT:0xff34463b);return d;}
   void begin(){error="";busy=true;if(latest!=null)render(latest,"");}
   void save(){if(!owned()||!latest.canSave||busy)return;String complete=text.getText().toString();begin();
    if("REVIEW".equals(latest.phase))runtime.edit(complete,(value,code)->activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;if(code!=null&&!code.isEmpty()){completed(value,code);return;}dirty=false;runtime.save(this::completed);}));

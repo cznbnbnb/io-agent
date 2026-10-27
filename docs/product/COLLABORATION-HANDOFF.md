@@ -1,3 +1,7 @@
+## [claude] 2026-10-27 dev122–123：口述核对页统一为 Agent 深绿主题（已装机，回退 dev118）
+
+用户截图指出原问题语音回答页仍是旧 Turbo IO 紫底柠檬绿、系统白色输入框（浅字几乎看不见）。`VoiceAnswerWorkspace.Page` 保留 EditorialUI.Screen 的生命周期与返回逻辑，只换外观：深绿背景、AgentUI 文字与按钮，识别文字放进 SURFACE 深色卡（可编辑时绿色描边，标签「完整原话（可直接改字）」），主按钮「保存并回复电脑」，次按钮「识别有误，重新口述」。dev123 另把回答页顶部来源行改用 `TaskPresentation.source`（Claude Code · 电脑 1fafa8）。test-voice 1960、task-presentation 37、task-control 88 通过；真机截图核对 dev122 核对页（保留草稿，未保存、未开麦）。
+
 ## [claude] 2026-10-27 dev121：口述核对页把数字和否定词标黄（已装机，回退 dev118）
 
 按用户眼镜回答「选一」：`VoiceAnswerWorkspace` 的识别文字框在每次变化后，用琥珀色（MaterialReadingUI.AMBER_BG/AMBER_TEXT）标出阿拉伯数字、中文数字（零到亿、两、半）和否定词「不/没/别/无/未/勿/莫/否」。只加样式不改文字，草稿比对与眼镜确认卡逻辑不变；提示文案改为「标黄的是数字和否定词」。test-voice 1960 通过；dev121/10543 已 USB 安装。未验证：真机核对页实际显示（需下一次真实口述）。
