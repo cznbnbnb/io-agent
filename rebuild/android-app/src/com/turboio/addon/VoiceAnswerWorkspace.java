@@ -98,7 +98,7 @@ final class VoiceAnswerWorkspace {
    text=new EditText(activity);text.setTextColor(EditorialUI.INK);text.setHintTextColor(EditorialUI.MUTED);text.setHint("完整口述及附加条件将显示在这里，结束后可检查和更正");text.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_MULTI_LINE);text.setMinLines(7);text.setEnabled(false);screen.body.addView(text,new LinearLayout.LayoutParams(-1,-2));
    // Never silently truncate dictated/user-edited text. The durable layer validates
    // its length and keeps the full draft if it cannot be accepted.
-   text.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){if(!programmatic){dirty=true;if(fromGlasses)AgentCardRuntime.enterPhone(binding,requestId);}}public void afterTextChanged(Editable e){}});
+   text.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){if(!programmatic){dirty=true;if(fromGlasses)AgentCardRuntime.enterPhone(binding,requestId);}}public void afterTextChanged(Editable e){markRisky(e);}});
    actions=EditorialUI.column(activity);screen.body.addView(actions);
    observer=value->activity.runOnUiThread(()->render(value,""));
    lifecycle=new Application.ActivityLifecycleCallbacks(){
@@ -121,7 +121,7 @@ final class VoiceAnswerWorkspace {
    if(fromGlasses&&!busyNoticed&&("VOICE_GLASSES_BUSY".equals(error)||"VOICE_GLASSES_BUSY".equals(value.note))){busyNoticed=true;AgentCardRuntime.glassesBusy();}
    // A note that only repeats the phase (e.g. "review") carries no extra information.
    boolean note=value.note!=null&&!value.note.isEmpty()&&!label(value.note).equals(label(value.phase));
-   status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"请逐句核对识别文字，尤其是“不/没/别”等否定词、数字和日期，识别错一个字可能让意思相反。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");
+   status.setText(error.isEmpty()?label(value.phase):label(error));explanation.setText(autoStart&&!"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?"已在眼镜上选择口述回答。眼镜就绪后自动开始采音，说完点“结束口述并检查全文”。":"VOICE_SOURCE_VERIFICATION_REQUIRED".equals(value.note)?label(value.note):note?label(value.note):review?"请逐句核对识别文字。标黄的是数字和“不/没/别”等否定词，识别错一个字可能让意思相反。有误可直接改字，或重新口述。":"停止采音只结束本次口述，不会取消电脑任务。完整附加条件会随答案保留。");
    localState.setText(exitPending?"退出前正在停止采音或保留编辑；确认结束后会返回，草稿保留。":"SAVED".equals(value.phase)?"完整答案已保存到本机。请在电脑任务页查看服务器保存和原任务继续的回执。":"完整答案先保存到本机；服务器接收和电脑执行状态另行核对。");
    if(!dirty&&!text.getText().toString().equals(value.text==null?"":value.text)){programmatic=true;text.setText(value.text==null?"":value.text);programmatic=false;}
    text.setEnabled(!busy&&value.canSave&&"REVIEW".equals(value.phase));actions.removeAllViews();
@@ -152,6 +152,14 @@ final class VoiceAnswerWorkspace {
    if("REVIEW".equals(latest.phase))runtime.edit(complete,(value,code)->activity.runOnUiThread(()->{if(closed||activity.isDestroyed())return;if(code!=null&&!code.isEmpty()){completed(value,code);return;}dirty=false;runtime.save(this::completed);}));
    else runtime.save(this::completed); // Frozen SUBMITTING/SAVED operations cannot be edited.
   }
+  /** Marks digits, Chinese numerals and negations in amber: one misheard character there flips the meaning.
+   * Style only; the text itself (and so every draft comparison) is unchanged. */
+  static void markRisky(Editable e){
+   for(Risky old:e.getSpans(0,e.length(),Risky.class))e.removeSpan(old);
+   java.util.regex.Matcher m=RISKY.matcher(e);while(m.find())e.setSpan(new Risky(),m.start(),m.end(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+  }
+  static final java.util.regex.Pattern RISKY=java.util.regex.Pattern.compile("[0-9０-９]+(?:[.:：．][0-9０-９]+)*|[零〇一二两三四五六七八九十百千万亿半]+|[不没别无未勿莫否]");
+  static final class Risky extends android.text.style.CharacterStyle implements android.text.style.UpdateAppearance{@Override public void updateDrawState(TextPaint paint){paint.bgColor=MaterialReadingUI.AMBER_BG;paint.setColor(MaterialReadingUI.AMBER_TEXT);}}
   /** The current text, including manual edits, is retired with the draft; it stays in the local record only. */
   void redo(){if(!owned()||busy||!"REVIEW".equals(latest.phase))return;
    new AlertDialog.Builder(activity).setTitle("重新口述？").setMessage("当前识别文字和改动将不会作为答案，只保留在本机记录中。之后需要重新点击开始口述。").setNegativeButton("取消",null)

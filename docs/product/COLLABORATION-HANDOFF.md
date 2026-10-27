@@ -1,3 +1,7 @@
+## [claude] 2026-10-27 dev121：口述核对页把数字和否定词标黄（已装机，回退 dev118）
+
+按用户眼镜回答「选一」：`VoiceAnswerWorkspace` 的识别文字框在每次变化后，用琥珀色（MaterialReadingUI.AMBER_BG/AMBER_TEXT）标出阿拉伯数字、中文数字（零到亿、两、半）和否定词「不/没/别/无/未/勿/莫/否」。只加样式不改文字，草稿比对与眼镜确认卡逻辑不变；提示文案改为「标黄的是数字和否定词」。test-voice 1960 通过；dev121/10543 已 USB 安装。未验证：真机核对页实际显示（需下一次真实口述）。
+
 ## [claude] 2026-10-27 dev120：任务分配、打断、眼镜回复三处 UI 改版（已装机，回退 dev118）
 
 按用户眼镜回答「三个流程一起改」，对照设计稿 https://claude.ai/artifact/PTEn7dwytAxRcYeZ4uFSWS 改手机端，沿用 AgentUI / MaterialReadingUI 现有配色与组件：
