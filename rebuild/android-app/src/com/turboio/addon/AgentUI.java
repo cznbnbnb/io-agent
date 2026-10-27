@@ -35,8 +35,30 @@ final class AgentUI {
   LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(0,dp(a,14),0,dp(a,14));row.setMinimumHeight(dp(a,56));LinearLayout labels=column(a);labels.addView(text(a,title,16,INK));if(detail!=null&&!detail.isEmpty()){gap(a,labels,6);labels.addView(text(a,detail,12,MUTED));}row.addView(labels,new LinearLayout.LayoutParams(0,-2,1));if(value!=null&&!value.isEmpty()){TextView v=text(a,value,12,MUTED);v.setPadding(dp(a,10),0,dp(a,8),0);row.addView(v);}if(action!=null){row.addView(text(a,"›",25,MUTED));row.setOnClickListener(v->action.run());row.setFocusable(true);row.setContentDescription(title+(detail==null?"":"，"+detail)+(value==null?"":"，"+value));row.setBackground(new RippleDrawable(ColorStateList.valueOf(0x2636c49b),null,null));}parent.addView(row,new LinearLayout.LayoutParams(-1,-2));return row;
  }
  static Switch toggle(Activity a,LinearLayout parent,String title,boolean checked,CompoundButton.OnCheckedChangeListener changed){LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(0,dp(a,10),0,dp(a,10));row.addView(text(a,title,15,INK),new LinearLayout.LayoutParams(0,-2,1));Switch toggle=new Switch(new ContextThemeWrapper(a,android.R.style.Theme_Material_NoActionBar));toggle.setContentDescription(title);toggle.setChecked(checked);toggle.setShowText(false);toggle.setTrackTintList(new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked},new int[]{}},new int[]{ACCENT,0xff58645c}));toggle.setThumbTintList(ColorStateList.valueOf(INK));row.addView(toggle,new LinearLayout.LayoutParams(dp(a,58),dp(a,48)));parent.addView(row);toggle.setOnCheckedChangeListener(changed);return toggle;}
- static void notice(Activity a,String message){if(!a.isFinishing())new AlertDialog.Builder(new ContextThemeWrapper(a,android.R.style.Theme_Material_Dialog_Alert)).setTitle("iO Agent").setMessage(message).setPositiveButton("知道了",null).show();}
- static void confirm(Activity a,String title,String message,Runnable action){if(!a.isFinishing())new AlertDialog.Builder(new ContextThemeWrapper(a,android.R.style.Theme_Material_Dialog_Alert)).setTitle(title).setMessage(message).setNegativeButton("返回",null).setPositiveButton("确认",(d,w)->action.run()).show();}
+ /** Acknowledgement in the Agent card style; no generic app-name title. */
+ static void notice(Activity a,String message){sheet(a,null,message,null,"知道了",null);}
+ static void confirm(Activity a,String title,String message,Runnable action){sheet(a,title,message,"返回","确认",action);}
+ private static void sheet(Activity a,String title,String message,String cancel,String accept,Runnable action){
+  if(a.isFinishing()||a.isDestroyed())return;Dialog d=new Dialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+  LinearLayout card=column(a);card.setPadding(dp(a,22),dp(a,22),dp(a,22),dp(a,16));card.setBackground(shape(a,SURFACE,22));
+  if(title!=null&&!title.isEmpty()){TextView t=text(a,title,18,INK);t.setTypeface(null,Typeface.BOLD);card.addView(t);gap(a,card,10);}
+  card.addView(text(a,message,16,title==null||title.isEmpty()?INK:MUTED));gap(a,card,10);
+  LinearLayout actions=new LinearLayout(a);
+  if(cancel!=null){LinearLayout slot=column(a);button(a,slot,cancel,false,d::dismiss);actions.addView(slot,new LinearLayout.LayoutParams(0,-2,1));View space=new View(a);actions.addView(space,new LinearLayout.LayoutParams(dp(a,10),1));}
+  LinearLayout slot=column(a);button(a,slot,accept,true,()->{d.dismiss();if(action!=null)action.run();});actions.addView(slot,new LinearLayout.LayoutParams(0,-2,1));
+  card.addView(actions);d.setContentView(card);d.setCanceledOnTouchOutside(true);
+  Window w=d.getWindow();w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));WindowManager.LayoutParams p=w.getAttributes();
+  p.width=a.getResources().getDisplayMetrics().widthPixels-dp(a,48);p.dimAmount=.6f;w.setAttributes(p);w.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);d.show();
+ }
+ /** Non-blocking confirmation for state the page already shows; never takes focus or touches. */
+ static void toast(Activity a,String message){
+  if(a.isFinishing()||a.isDestroyed())return;Dialog d=new Dialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+  TextView t=text(a,message,14,INK);t.setPadding(dp(a,18),dp(a,13),dp(a,18),dp(a,13));GradientDrawable bg=shape(a,0xf2243429,24);bg.setStroke(dp(a,1),0xff3f5446);t.setBackground(bg);d.setContentView(t);
+  Window w=d.getWindow();w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));w.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+  w.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+  WindowManager.LayoutParams p=w.getAttributes();p.width=WindowManager.LayoutParams.WRAP_CONTENT;p.gravity=Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;p.y=dp(a,96);w.setAttributes(p);
+  d.show();t.postDelayed(()->{try{if(d.isShowing())d.dismiss();}catch(RuntimeException gone){}},2600);
+ }
  static void minimize(Activity a){for(WeakReference<Screen> reference:new ArrayList<>(screens)){Screen screen=reference.get();if(screen!=null&&screen.activity==a&&screen.dialog.isShowing())screen.dialog.dismiss();}screens.removeIf(r->r.get()==null||!r.get().dialog.isShowing());}
  static final class Screen {
   final Activity activity;final AgentDialog dialog;final LinearLayout root,header,body,dock;final ScrollView scroll;

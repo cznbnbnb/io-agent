@@ -330,11 +330,11 @@
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
-      "sha256": "a82ddcdd8ca51635bb3d3ca278a8f3b3f859e04a0061ed8d3461d4f5acca9438"
+      "sha256": "cbe0b36af8f2fba7fafc476449aa013bac100840acadfe9966300a41f2059af3"
     },
     {
       "path": "src/com/turboio/addon/AgentUI.java",
-      "sha256": "e235190b6c8575bc7e4dd6014d4f8ae11f88c7b3d450d08a2cbf6e6dc4321fa0"
+      "sha256": "af69996afd239d2bb8fe3c1ead8525d82f6287455b71b88fcaee83747a31619e"
     },
     {
       "path": "src/com/turboio/addon/AgentWorkspace.java",
@@ -962,7 +962,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWorkspace.java",
-      "sha256": "fb656b6816187be94e8aa4e1070cd94e623fe744ec72a53aa2bc85dcb8715729"
+      "sha256": "954c132895dec67cbad87d0e6f72ba35de9a4bf1385447b1ae0f891a6dad9ea0"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerCoordinator.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "36b0175dff128729c1ae74a44ba7f233c6f9f9e254035642cf90f1cb6880e779"
+      "sha256": "f41ca831a3480113829d0b61badec6974f76f0d214059f292a1c28b5a5747950"
     }
   ],
-  "product_sha256": "3d3ec15564363990325237b42b4587d2883084977813ff1f00c739a29ce005bf",
-  "addon_sha256": "b48236b7f79a135f1de03d11f3ea0261c7d0260add0ae95d82b0d7edddeecd5e",
+  "product_sha256": "f544f4beb1103aa6cffb656bda02460a4e96c972c02992453367d9fdced9b975",
+  "addon_sha256": "a77b9d6e3bbc7d4f749edf67d75920bbaf7d16b53130404935c0f7ad241c504a",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

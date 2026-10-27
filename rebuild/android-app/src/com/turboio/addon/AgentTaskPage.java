@@ -226,6 +226,7 @@ final class AgentTaskPage {
   boolean[] sent={false};edit.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){}public void afterTextChanged(android.text.Editable text){if(!sent[0])instructions().edit().putString(instructionKey(row),text.toString()).apply();}});
   AgentUI.gap(activity,form.body,14);form.body.addView(AgentUI.text(activity,"草稿自动保存在本机。提交后若断网，会核对原任务再发送；不会转交其他会话。",13,AgentUI.MUTED));
   TextView[] submit={null};submit[0]=AgentUI.button(activity,form.body,"按此继续",true,()->{
+   if(edit.getText().toString().trim().isEmpty()){AgentUI.notice(activity,"先写下要追加的指示，再继续。");return;}
    edit.setEnabled(false);submit[0].setEnabled(false);
    submitControl(row,"resume",edit.getText().toString(),()->{sent[0]=true;instructions().edit().remove(instructionKey(row)).commit();form.dialog.dismiss();},()->{edit.setEnabled(true);submit[0].setEnabled(true);});
   });
@@ -254,7 +255,7 @@ final class AgentTaskPage {
    TaskWire.require(instructions().edit().putString(key,new String(WireJson.bytes(draft),java.nio.charset.StandardCharsets.UTF_8)).commit(),"TASK_CONFIG_SAVE_FAILED");
    runtime.taskControl(row.binding,operation,row.id,expected,kind,text,expires,(updated,error)->{
     submittingControls.remove(flight);if(!alive())return;snapshot=updated;
-    if(error.isEmpty()){if(saved!=null)saved.run();AgentUI.notice(activity,kind.equals("stop")?"打断请求已保存在本机，等待电脑确认停止。":"继续指示已保存在本机，等待原电脑接收。");}
+    if(error.isEmpty()){if(saved!=null)saved.run();AgentUI.toast(activity,kind.equals("stop")?"已发出打断，等待电脑确认停止":"已发出继续指示，等待电脑接收");}
     else{if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(error));}render();
    });
   }catch(Exception invalid){submittingControls.remove(flight);if(failed!=null)failed.run();AgentUI.notice(activity,TaskWorkspace.label(TaskApi.safeError(invalid)));}

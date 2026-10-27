@@ -268,5 +268,5 @@ final class TaskWorkspace {
  private static String uiDraftKey(String binding,String subject){return TaskWire.hash((binding+"/"+subject).getBytes(java.nio.charset.StandardCharsets.UTF_8));}
  private static Map<String,Object> readUiDraft(String value){try{return value.isEmpty()?Collections.emptyMap():WireJson.map(WireJson.read(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));}catch(RuntimeException invalid){return Collections.emptyMap();}}
  private static void saveUiDraft(Activity a,String key,String operation,String text,Object option){android.content.SharedPreferences.Editor editor=uiDrafts(a).edit();if(text.isEmpty()&&option==null)editor.remove(key);else editor.putString(key,new String(WireJson.bytes(WireJson.object("operation",operation,"text",text,"option",option)),java.nio.charset.StandardCharsets.UTF_8));editor.apply();}
- static void notice(Activity a,String text){if(!a.isFinishing())AgentUI.alert(a).setMessage(text).setPositiveButton("知道了",null).show();}
+ static void notice(Activity a,String text){AgentUI.notice(a,text);}
 }

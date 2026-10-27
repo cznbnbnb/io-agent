@@ -1,3 +1,11 @@
+## [claude] 2026-10-27 dev125–126：连点两下打断真机验收通过；提示弹窗统一为 Agent 样式（已装机，回退 dev118）
+
+**打断验收（合成任务，用户眼镜回答「选一」）**：用本会话绑定凭据在同一路由另建任务 `claude-synth-stop-*`，以 Agent 身份发 agent_received→running（带 execution），不执行任何操作。手机任务详情显示红色描边「打断任务」；单击只变实心红「再点一次，确认打断」，服务器仍为 running，3 秒后复原；连点两下后服务器收到 stop_requested（revision 4）；手机显示「正在停止，等待电脑确认」，步骤条第 1 格亮；模拟电脑 stop_unconfirmed→stopped 后显示「已停止，可追加指示继续」，第 2 格亮，「追加指示并继续」为主按钮。继续指示在合成任务上被挡（「真实会话目录中找不到原目标」），因没有真实原生会话，属预期。
+
+**遗留问题**：服务器 `stopped` 只能转 `resume_requested`，生命周期只回收问题、不回收任务，所以已停止又不想继续的任务永远留在列表。两条合成任务（claude-synth-stop-3d73da1b0d3b84b9、claude-synth-stop-6614443601d0a6c7）和 Codex 01:32 那条都卡在这里。需要给 stopped 加「结束任务」出口（服务器转 cancelled，手机加按钮）。
+
+**弹窗**（用户指出系统灰色方块弹窗未优化）：`AgentUI.notice/confirm` 改为自绘卡片（SURFACE 圆角 22、无「iO Agent」标题、主按钮 ACCENT 通栏，确认类为「返回/确认」双按钮），`TaskWorkspace.notice` 委托过去。提交打断/继续成功不再弹模态框，改为 `AgentUI.toast` 底部胶囊（不抢焦点、不拦触摸、2.6 秒消失），页面状态已有回执。继续页空内容提示改为「先写下要追加的指示，再继续。」。`AgentUI.alert(...)` 构造的其它对话框（配对码、资料月份选择等）仍是 Material 暗色，未改。
+
 ## [claude] 2026-10-27 dev124：进度/阻塞通知改走手机普通通知，不再占用提词器（已装机，回退 dev118）
 
 用户要求普通通知不走提词器（要长按才能退出）。`AgentCardRuntime.maybeNotice` 改为发系统通知（渠道 turboio_agent_notice，无声无振动，标题「Claude进度/提醒」等短词、正文原文，同一连接只保留最新一条，按通知期限撤下），由原厂 App 转到眼镜后自动消失；发出后立即 `noticeQueue.closed`。CLI 合同、`AGENT-CONTRACT.md` 与 turboio-ask-user 技能写明：checkpoint/notify 走普通通知、写短句（各约 40 字），只有 ask 走提词器。真机：10:51 真实 checkpoint 生成本 App 通知，用户确认眼镜弹出「Claude进度」并自动消失。测试：CLI/join 4、task-prompter 150、agent-card、task-presentation 通过。未改：录音忙碌提示 BUSY_NOTICE 仍走提词器。
