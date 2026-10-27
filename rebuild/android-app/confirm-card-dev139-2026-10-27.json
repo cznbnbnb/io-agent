@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "purpose": "Diagnose an unseen dictation confirm card; do not equate SDK submission with lens display or native cmd 2 with deliberate wearer cancellation",
+  "original_trial": {
+    "version": "0.5.3-dev138",
+    "task_id": "task-android-071fd7b09d2b7180ac65b9f587099228cddb9c8acbf09ba8f3fc7fa8abc7d997",
+    "request_id": "req-b5667253763e61a346237fc7935aaadfa40e8c3cf30aaf3c548879ba94945c44",
+    "review_at": "2026-10-27T13:28:58.336Z",
+    "card_active_at": "2026-10-27T13:29:00.432Z",
+    "ack_pending_at": "2026-10-27T13:29:04.197Z",
+    "card_retired_at": "2026-10-27T13:29:06.716Z",
+    "phone_manual_save_at": "2026-10-27T13:29:33.048Z",
+    "deliberate_nod_shake_or_button": false,
+    "lens_confirm_card_visible": false,
+    "accepted_command_logged": false,
+    "glasses_confirmation_passed": false
+  },
+  "diagnostic_change": {
+    "session_receive_returns_accepted_command": true,
+    "ignored_malformed_foreign_duplicate_input_returns_zero": true,
+    "log_fields": [
+      "command",
+      "confirm",
+      "head_gestures",
+      "phase"
+    ],
+    "logs_question_or_answer_content": false,
+    "changes_cancel_or_submit_semantics": false,
+    "physical_input_source_in_native_protocol": false
+  },
+  "candidate": {
+    "version": "0.5.3-dev139",
+    "version_code": 10561,
+    "sha256": "0807de3700be18b2a7184d0ec42e5be6f7b47ca03e73e4f4524decee84bf1b8c",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "installed": true,
+    "delta_bytes": 1919784,
+    "baseline_and_reconstructed_and_installed_sha_verified": true,
+    "data_cleared": false,
+    "rollback": "0.5.3-dev138"
+  },
+  "head_off_trial": {
+    "request_id": "req-4332d1258543ec288de9c68adb015c2c15f81523dd19d9acbe511d531c118054",
+    "only_nod_confirm_preference_temporarily_disabled": true,
+    "review_at": "2026-10-27T13:56:38.408Z",
+    "card_active_at": "2026-10-27T13:56:41.826Z",
+    "native_confirm_at": "2026-10-27T13:56:53.144Z",
+    "accepted_command": 1,
+    "head_gestures": false,
+    "confirm_voice_called_at": "2026-10-27T13:56:57.775Z",
+    "saved_at": "2026-10-27T13:56:59.698Z",
+    "server_answer_at": "2026-10-27T13:57:01.088Z",
+    "answer_id": "answer-android-760daf6e90f4be383e9f0157041a9346a46a59ef13cdd64c7052aa8f19b4f99a",
+    "answer_text": "好，随便退出。",
+    "answer_received_by_current_cli": true,
+    "lens_visibility_wearer_confirmation": "pending",
+    "original_nod_confirm_setting_restored": true,
+    "other_preferences_changed": false
+  },
+  "checks": {
+    "agent_card_assertions": 843,
+    "wire_hot_path_assertions": 50,
+    "wire_concurrent_cases": 8000,
+    "java_d8_sign_and_stock_dex_audit": true,
+    "deferred_voice7_sources_restored_identically_and_excluded": true
+  },
+  "watch_while_waiting": "disabled",
+  "formal_services_pairing_and_default": "preserved",
+  "status": "diagnostic_installed; both comparison runs accepted native cmd1 and returned exact speech to current CLI; lens visibility and deliberate confirmation remain unverified; original unsolicited close not reproduced or fixed",
+  "head_on_trial": {
+    "request_id": "req-3edff9f6dcac9146f21035e1ffd8a0d258281eea48402a21175be53bf4c027e4",
+    "review_at": "2026-10-27T14:01:20.644Z",
+    "card_active_at": "2026-10-27T14:01:21.961Z",
+    "native_confirm_at": "2026-10-27T14:01:25.355Z",
+    "accepted_command": 1,
+    "head_gestures": true,
+    "confirm_voice_called_at": "2026-10-27T14:01:28.284Z",
+    "saved_at": "2026-10-27T14:01:29.127Z",
+    "server_answer_at": "2026-10-27T14:01:34.361Z",
+    "answer_id": "answer-android-f5f8850b2a81d00d6d830f2927208d8c7ce2bc1a536e72d5d39c66ad3dc1f521",
+    "answer_text": "静止五秒。",
+    "answer_received_by_current_cli": true,
+    "lens_visibility_and_deliberate_confirmation": "pending wearer report; command does not identify physical source"
+  }
+}

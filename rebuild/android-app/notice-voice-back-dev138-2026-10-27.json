@@ -1,14 +1,14 @@
 {
-  "at": "2026-10-27T12:40:51.711359+00:00",
+  "at": "2026-10-27T14:00:31.385Z",
   "candidate": {
     "version": "0.5.3-dev138",
     "version_code": 10560,
     "sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
     "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
-    "installed": false
+    "installed": true
   },
-  "actual_phone_version_last_verified": "0.5.3-dev137",
-  "phone_connection": "disconnected_by_user_pending_new_wireless_address",
+  "actual_phone_version_last_verified": "0.5.3-dev138",
+  "phone_connection": "100.86.133.91:40309",
   "notification_sample": {
     "task_id": "task-android-3883ef45899696c5d903311a2594c57d1daba3c6593b9a8cf0024b91a839d83b",
     "message_id": "notice-2c97765f8cc1177471ab419ad57497f825db148af3cf0ceac7605dfc1765a8a5",
@@ -45,8 +45,9 @@
     ],
     "java_d8_apk_signing_and_audits": true,
     "deferred_sources_restored_identically": true,
-    "phone_tested": false,
-    "lens_tested": false
+    "phone_tested": true,
+    "lens_tested": true,
+    "phone_and_lens_scope": "Basic hosted Agent path only; dictation manually confirmed on phone; glasses confirm open"
   },
   "delta": {
     "baseline_sha256": "9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4",
@@ -58,5 +59,89 @@
     "reconstruction_hash_verified": true
   },
   "formal_services_and_credentials": "preserved",
-  "watch_while_waiting_for_phone": "disabled"
+  "watch_while_waiting_for_phone": "disabled",
+  "installation": {
+    "version": "0.5.3-dev138",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "9d7f820f32dfbe6dadd3a0a23db5ed095603d898cb22c2228ca37403de7147f4",
+      "candidate_sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
+      "apk_bytes": 430207336,
+      "delta_bytes": 1919784,
+      "commands": 8091,
+      "delta_sha256": "6c5653f11133cacd6a6537582d0fa5970dcb563c78528d10fcbbd1eadd59fce4",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
+    "rollback": "0.5.3-dev137"
+  },
+  "cli_lesson": {
+    "task_id": "codex-cli-lesson-c7520d11-4db",
+    "state": "completed",
+    "same_native_session": true,
+    "native_session_id": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+    "reply": "CLI用法已了解，等待手机任务。",
+    "tools_observed": false
+  },
+  "lens_trial": {
+    "task_id": "task-android-071fd7b09d2b7180ac65b9f587099228cddb9c8acbf09ba8f3fc7fa8abc7d997",
+    "native_session_id": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+    "state": "completed",
+    "request": {
+      "id": "req-b5667253763e61a346237fc7935aaadfa40e8c3cf30aaf3c548879ba94945c44",
+      "state": "answered",
+      "answer": {
+        "kind": "answer",
+        "object_id": "answer-android-c52f118805cd266991a8dfd4a3db644a64d86e2c6452ff560c689eb7036653f5",
+        "revision": 1,
+        "schema_version": "1.0",
+        "body": {
+          "answer_id": "answer-android-c52f118805cd266991a8dfd4a3db644a64d86e2c6452ff560c689eb7036653f5",
+          "input_source": "voice",
+          "option_id": "one",
+          "raw_action": null,
+          "request_id": "req-b5667253763e61a346237fc7935aaadfa40e8c3cf30aaf3c548879ba94945c44",
+          "request_revision": 1,
+          "route": {
+            "agent_id": "io-current-codex",
+            "computer_id": "io-mac-computer",
+            "project_id": "workspace-2215dbd52a60e11930077982",
+            "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+          },
+          "task_id": "task-android-071fd7b09d2b7180ac65b9f587099228cddb9c8acbf09ba8f3fc7fa8abc7d997",
+          "text": "选一。\n收到了。\n显示正常。"
+        },
+        "state": "recorded",
+        "commit_seq": 862,
+        "stored_at": "2026-10-27T13:29:35.259Z",
+        "event_id": "evt-android-c52f118805cd266991a8dfd4a3db644a64d86e2c6452ff560c689eb7036653f5",
+        "expires_at": "2026-10-27T13:38:33.876Z",
+        "receipts": [
+          {
+            "actor_id": "agent-1fa50a71",
+            "error": null,
+            "receipt_id": "rc-9d0a8788b6a9a93de965f151596e405e0f525a02c8afba47e476d48c314bc1eb",
+            "related_event_id": "evt-android-c52f118805cd266991a8dfd4a3db644a64d86e2c6452ff560c689eb7036653f5",
+            "stage": "agent_received",
+            "subject_id": "answer-android-c52f118805cd266991a8dfd4a3db644a64d86e2c6452ff560c689eb7036653f5",
+            "subject_kind": "answer",
+            "subject_revision": 1
+          }
+        ]
+      }
+    },
+    "notice_ids": [
+      "notice-2e0e6246feaf50d8cc71e425e8880ff5e3bed776dfc6c7b4f5c59732578f5eaa",
+      "notice-61b083fb0bd5ccefffd5e9a2b7d2460bd3509551babc3c5e4cce1497dfd8a27a"
+    ],
+    "phone_claim_at": [
+      "2026-10-27T13:28:28.229Z",
+      "2026-10-27T13:29:48.886Z"
+    ],
+    "wearer_report": "Basic path works; glasses confirm card did not appear; manually confirmed on phone; no deliberate nod/shake/button during waiting",
+    "glasses_confirmation_passed": false,
+    "follow_up": "A27-N02; dev139 accepted native command diagnostics"
+  },
+  "phone_gesture_verification": "pending; automated SDK/back and voice-exit regression passed, no actual phone gesture claim"
 }

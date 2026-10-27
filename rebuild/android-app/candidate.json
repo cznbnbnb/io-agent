@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev138",
-  "version_code": 10560,
-  "revision": "io-agent-notice-and-voice-back",
+  "version": "0.5.3-dev139",
+  "version_code": 10561,
+  "revision": "io-agent-confirm-card-action-diagnostics",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-27T12:39:25.559Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev138.apk",
+  "signed": "2026-10-27T13:52:25.750Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev139.apk",
   "bytes": 430207336,
-  "sha256": "31391fcc8bbcaa71acc3d9b5429404cf4920bf348af16a403dfa9cd83f2a85c6",
+  "sha256": "0807de3700be18b2a7184d0ec42e5be6f7b47ca03e73e4f4524decee84bf1b8c",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -47,8 +47,8 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
-  "phone_disconnected_by_user": true,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false
 }

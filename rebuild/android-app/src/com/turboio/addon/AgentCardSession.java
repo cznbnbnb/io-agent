@@ -85,17 +85,20 @@ final class AgentCardSession {
    default:suspend("未知原生卡提交阶段");
   }
  }
- synchronized void receive(String target,long gen,byte[] bytes,long now,long wallNow,boolean headReady){
-  if(!healthy||!pending||inputRetired||!showSubmitted||!same(target,gen)||!headReady||choiceSeen||!TaskWire.set("SHOWING","ACTIVE").contains(phase)||now>=deadline||wallNow>=request.expiresAt)return;
-  try{OtaFrame f=OtaFrame.decode(bytes);if(f.type!=34||f.binary.length!=0)return;Map<String,Object> j=BoundedJson.map(f.json);BoundedJson.keys(j,"suggestUID","suggestType","cmd");
-   if(!uid.equals(j.get("suggestUID"))||BoundedJson.number(j.get("suggestType"),2,2)!=2)return;int command=BoundedJson.number(j.get("cmd"),1,2);
+ /** Returns the accepted native command, or zero for ignored input. The protocol does not identify its physical source. */
+ synchronized int receive(String target,long gen,byte[] bytes,long now,long wallNow,boolean headReady){
+  if(!healthy||!pending||inputRetired||!showSubmitted||!same(target,gen)||!headReady||choiceSeen||!TaskWire.set("SHOWING","ACTIVE").contains(phase)||now>=deadline||wallNow>=request.expiresAt)return 0;
+  try{OtaFrame f=OtaFrame.decode(bytes);if(f.type!=34||f.binary.length!=0)return 0;Map<String,Object> j=BoundedJson.map(f.json);BoundedJson.keys(j,"suggestUID","suggestType","cmd");
+   if(!uid.equals(j.get("suggestUID"))||BoundedJson.number(j.get("suggestType"),2,2)!=2)return 0;int command=BoundedJson.number(j.get("cmd"),1,2);
    // A received action may beat the show SDK callback. It invalidates that callback and freezes
    // the UID before any IO owner can persist/send an answer or acknowledge this operation.
    queued=flight=null;choiceSeen=true;
    if(command==1&&request.handoff){voiceOwner=request.owner;voiceUntil=now+VOICE_HANDOFF_MS;phase="STEP_SAVED";note=request.confirm!=null?"已在眼镜确认口述内容；交由手机保存原文":"已在眼镜选择口述回答；不生成答案";if(save())queueAck();}
    else if(command==1){selected=index;answerAt=wallNow;phase="SAVING_ANSWER";note="语义选择已保存，等待原问题答案队列";save();}
    else{phase="STEP_SAVED";note="仅保存下一项/留手机的操作";if(save())queueAck();}
+   return command;
   }catch(RuntimeException malformed){/* Wrong UID, late/duplicate and malformed input are never an answer. */}
+  return 0;
  }
  /** Once the card has fully retired, hands the accepted free-text question (or confirmed draft) to the phone exactly once. */
  synchronized AgentCardRequest takeVoiceHandoff(long now){

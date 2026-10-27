@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "at": "2026-10-27T12:36:21.560Z",
-  "assertions": 839,
+  "at": "2026-10-27T13:51:05.135Z",
+  "assertions": 843,
   "sources": [
     {
       "path": "src/com/turboio/addon/TaskNoticeQueue.java",
@@ -17,7 +17,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
-      "sha256": "651a29059fa22cdfb366ba56df29018927f328aecec2d6c90d6d53cf7ce42579"
+      "sha256": "f2c091729d7f098858b0a028d6801e174adf75c0892ad7a20e10bd9627fbeaa3"
     },
     {
       "path": "src/com/turboio/addon/HeadGestureSession.java",
@@ -81,7 +81,7 @@
     },
     {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "3a1345d22fcfb718bdc89a8117b37e94e5e3c20818eba0f701ccf0893f192f24"
+      "sha256": "346bb9810dbf3869bc2d44bbd688c6b03f3a8821aa51d9c8c944604f933bc1b7"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",

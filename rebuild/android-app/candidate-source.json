@@ -298,11 +298,11 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "1e26091a20b82555691d4e6e5e658ce7ab1c389e96dfc6e38551fd8649f3ff28"
+      "sha256": "7a486c39175bc41efef872e509d9a7f9e65d540f949e251a061444bb26ec72df"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
-      "sha256": "651a29059fa22cdfb366ba56df29018927f328aecec2d6c90d6d53cf7ce42579"
+      "sha256": "f2c091729d7f098858b0a028d6801e174adf75c0892ad7a20e10bd9627fbeaa3"
     },
     {
       "path": "src/com/turboio/addon/AgentConnectionsPage.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "230e43fe0ed8dc18810ceabe891e3b26000244f390b8b3874f03b528db9d2faa"
+      "sha256": "de8984abc66b9dee22888e31e8cde3392595e537b43483c991560878466e837a"
     }
   ],
-  "product_sha256": "714ea3275fb047ca5e94c3931a98a195686be63df991074e246ecac3cacaacc6",
-  "addon_sha256": "4aee99223d6146b4a5aeca8402de31c2ad315e5abf800c81863fb24db56c0779",
+  "product_sha256": "e41ced9362cf2e7837d8df7fae1280d5f4d18ff70a064ea1effd623cdab576db",
+  "addon_sha256": "ebc85fb59a636334487b9b74c5f12684d208d25a904df222620b25985dcd0bd7",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

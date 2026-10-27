@@ -342,7 +342,7 @@ final class AgentCardRuntime {
   if(!(target instanceof String)||((String)target).isEmpty()||((String)target).length()>256)return ours;
   if(r.queued.incrementAndGet()>16){r.queued.decrementAndGet();r.main.post(()->r.withdraw("设备事件过多，已暂停眼镜回答"));return ours;}
   String peer=(String)target;long gen=r.observedGeneration;boolean taskEvent=ours;
-  r.main.post(()->{try{Fixed60Session.Link fresh=Host107Ota.link();if(taskEvent)r.session.receive(peer,gen,bytes,now(),System.currentTimeMillis(),r.usable()&&r.current()&&HeadGestureRuntime.permission(r.session.owner(),peer,gen));else if(r.preflight!=null)r.preflight.receive(peer,gen,9,bytes,now());r.pump();}finally{r.queued.decrementAndGet();}});return ours;
+  r.main.post(()->{try{if(taskEvent){int command=r.session.receive(peer,gen,bytes,now(),System.currentTimeMillis(),r.usable()&&r.current()&&HeadGestureRuntime.permission(r.session.owner(),peer,gen));if(command!=0)android.util.Log.i("TurboIOCard","card action command="+command+" confirm="+(r.session.request().confirm!=null)+" head_gestures="+HeadGestureRuntime.keepsGestures()+" phase="+r.session.phase());}else if(r.preflight!=null)r.preflight.receive(peer,gen,9,bytes,now());r.pump();}finally{r.queued.decrementAndGet();}});return ours;
  }
  private String text(){return message+"\n"+(HeadGestureRuntime.pending()?"待办交互设置正在保护或恢复":"待办交互设置没有待恢复记录")+(session.cardMayExist()?"\n镜片实际退场尚未另行核对":"")+(!session.answerFailure().isEmpty()?"\n"+TaskWorkspace.label(session.answerFailure()):"");}
  private void refresh(){// Only a live card counts: cardMayExist() stays true after retirement until a lens exit is proven.

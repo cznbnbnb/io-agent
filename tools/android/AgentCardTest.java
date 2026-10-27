@@ -162,7 +162,7 @@ public final class AgentCardTest {
   AgentCardRequest back=AgentCardRequest.restore(cf.json());yes(cf.confirm.equals(back.confirm)&&back.owner.equals(cf.owner)&&AgentCardRequest.restore(v.json()).confirm==null);
   rejects(()->v.confirming(" "));rejects(()->cf.confirming("再确认"));{String said=String.join("",Collections.nCopies(60,"字"));AgentCardRequest longSaid=v.confirming(said);String shown=longSaid.copy(0).content;yes(shown.length()<=48&&shown.endsWith("…（共60字）")&&shown.startsWith("字字字")&&longSaid.confirm.equals(said));}yes(v.confirming(String.join("",Collections.nCopies(48,"字"))).copy(0).content.length()==48);
   m=new Memory();s=active(m,cf);s.receive(PEER,1,action(s.uid(),1),clock,NOW,true);yes(s.pendingAnswer()==null&&!s.hasSelection());ackAndRemove(s);cleanup(s,1);AgentCardRequest confirmed=s.takeVoiceHandoff(clock);yes(confirmed!=null&&confirmed.confirm.equals(cf.confirm)&&s.takeVoiceHandoff(clock)==null);
-  s=active(new Memory(),cf);s.receive(PEER,1,action(s.uid(),2),clock,NOW,true);ackAndRemove(s);cleanup(s,1);yes(s.takeVoiceHandoff(clock)==null&&s.pendingAnswer()==null);
+  s=active(new Memory(),cf);yes(s.receive(OTHER,1,action(s.uid(),2),clock,NOW,true)==0);yes(s.receive(PEER,1,action(s.uid(),3),clock,NOW,true)==0);yes(s.receive(PEER,1,action(s.uid(),2),clock,NOW,true)==2);yes(s.receive(PEER,1,action(s.uid(),2),clock,NOW,true)==0);ackAndRemove(s);cleanup(s,1);yes(s.takeVoiceHandoff(clock)==null&&s.pendingAnswer()==null);
   // A handoff never carries over to the next prepared question.
   s=active(new Memory(),v);s.receive(PEER,1,action(s.uid(),1),clock,NOW,true);ackAndRemove(s);cleanup(s,1);yes(s.prepare(frozen(c,4),PEER,1)&&s.takeVoiceHandoff(clock)==null);
   routes(c,textRequest);
