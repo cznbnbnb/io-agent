@@ -8,3 +8,4 @@
 4. 依次 ask、wait，收到答案后继续本会话。一次只问一个问题；pending 继续等原 request_id，不重复建题。看完整原话，不只看选项 ID。
 5. 不冒充手机已展示，不把问答成功当作支持远程启动或打断 WorkBuddy。问答凭据过期/会话 ID 缺失等错误如实报告。
 6. 不把当前运行产生的凭据、SQLite 日志、连接文件回传到聊天或打进分发 ZIP。
+7. 查询日常智记时使用 `node io-agent.mjs daily`，stdin 为 `{"date":"YYYY-MM-DD"}` 或 `{"from":"YYYY-MM-DD","to":"YYYY-MM-DD","keyword":"关键词"}`。只读查询已配对电脑的每日 AI 总结，不需要真实 session ID、join 或 Python；这项例外不改变问答的会话身份规则。按 has_more/next_cursor 取全页，保留过滤条件。空结果只代表服务端暂无匹配总结，不能说用户没有活动；不请求原音、转写或手机调试接口。完整说明见 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md`。

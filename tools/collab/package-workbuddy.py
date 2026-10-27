@@ -8,7 +8,7 @@ def files():
   p=p.resolve();p.relative_to(BRIDGE)
   if p in found:return
   found.add(p)
-  for rel in re.findall(r"from\s*['\"]([^'\"]+)['\"]",p.read_text()):
+  for rel in re.findall(r"(?:^|;)\s*import\s+(?:[^;]*?\s+from\s*)?['\"]([^'\"]+)['\"]",p.read_text(),re.MULTILINE):
    if rel.startswith('.'):js(p.parent/rel)
    elif not rel.startswith('node:'):raise ValueError('EXTERNAL_DEPENDENCY: '+rel)
  def py(p):
@@ -22,6 +22,7 @@ def files():
      if dep.exists():py(dep);break
  for name in ['questions/cli.mjs','device.mjs','connector.mjs']:js(BRIDGE/name)
  for name in ['questions/tool.py','questions/adapter.py','hermes/enroll_home.py']:py(BRIDGE/name)
+ found.add(BRIDGE/'questions/DAILY-SUMMARIES.md')
  return found
 if __name__=='__main__':
  output=ROOT/'outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip';output.parent.mkdir(exist_ok=True)

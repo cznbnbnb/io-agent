@@ -6,8 +6,8 @@ try{
   const result=spawnSync(process.execPath,[path.join(root,'rebuild/agent-bridge/connector.mjs'),...args],{cwd:root,env:process.env,stdio:'inherit'});
   if(result.error)throw Error('CLI_START_FAILED');process.exit(result.status??1);
  }
- if(!['help','pair','pair-status','join','config','ask','wait','status','notify','checkpoint'].includes(command)||args.length)throw Error('COMMAND_INVALID');
- const py=command==='help'?null:prepare();
+ if(!['help','pair','pair-status','join','config','ask','wait','status','notify','checkpoint','daily'].includes(command)||args.length)throw Error('COMMAND_INVALID');
+ const py=['help','daily'].includes(command)?null:prepare();
  // Preserve host-provided runtime/session. Never invent a conversation ID or strip conflicting IDs.
  const result=spawnSync(process.execPath,[path.join(root,'rebuild/agent-bridge/questions/cli.mjs'),command],{cwd:root,env:{...process.env,IO_AGENT_DEVICE_FILE:device,...(py?{IO_AGENT_PYTHON:py}:{})},stdio:'inherit'});
  if(result.error)throw Error('CLI_START_FAILED');process.exitCode=result.status??1;

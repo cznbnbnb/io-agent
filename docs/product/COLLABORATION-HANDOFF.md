@@ -1,3 +1,14 @@
+## [codex] 2026-10-27 每日智记总结 CLI 已上线：手机Codex原会话实际查询通过
+
+用户发现手机那条Codex只能问答、不能查日常。它此前的回复准确：通用资料查询工具虽存在，却没有进每轮的CLI命令和指令，电脑凭据也没有资料读取权限。本批把 `daily` 接入普通CLI、受管CLI与便携包；自动注入用法，复用当前电脑配对。只读新窄权限 `daily-summaries:read`，独立服务端投影屏蔽旧转写/音频，旧单会话授权维持原限制；当前账号一个有效电脑token按用户明确要求增补此权限，不改其他账号。
+
+- **实测**：公网真实读到10-23至10-27共5天AI总结。正式85ddd5下发 `codex-daily-query-4212a9a2-855`，同native `01a17d09-d939-78b1-ac2e-d601a8f7a544` 实际help和两次daily，10-26为revision2、范围返回5个日期、coverage正确，task completed且sawTools=true；未复述正文到交接、未发眼镜题、未改手机文件。[证据](../../rebuild/agent-bridge/hosts/daily-summary-cli-2026-10-27.json)。
+- **实现与检查**：日期/范围/关键词/分页及来源修订，独立CLI不需要session、join或Python；受管CLI经现有邮箱联网，响应上限随API1MiB，实测9万字节结果不再被旧64KiB文件读取上限拒绝。6项新SQLite/HTTP/真实CLI/邮箱检查通过，旧42项通过；1项ArkTS历史导出测试缺既有wire39 seed，不伪造或改旧测试。便携ZIP解压后的无session/Python daily和原问答通过，Windows/WorkBuddy本体与Claude工具审批仍未新验。修复打包器把参数名from误当静态import的实际失败，没有引入新依赖。
+- **上线**：仅store/http/devices三文件，精确旧SHA、SQLite快照及生产Node22.23.2检查；备份 `/var/lib/turboio-material/daily-reader-release-1793118830568388602`。两个正式连接器在确认空闲后更新固定安装副本并重连，保持原native，当前PID79890/79896、配对与默认不变。没有改Desktop启动器/全局变量/沙箱，也没装APK，手机仍dev139。
+- **范围**：只覆盖服务器已同步的总结，手机尚未上传或原厂尚未生成不能查到；空结果不代表没有活动。定时任务可使用daily，但本次没有创建/修改用户的任何定时任务。普通CLI文档见[DAILY-SUMMARIES.md](../../rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+
+后续：提交源码后按该commit重新打包原ZIP并核对manifest；更新固定副本的源码记录。推荐下一项把用户现有每日总结任务的资料步骤接到daily，先明确那条任务及其日期基准；不擅自创建重复定时任务。Claude最新仍6abb2d9已包含；voice7旧未跟踪文件及DS_Store未改/未提交。
+
 ## [codex] 2026-10-27 用户确认dev139两轮正常：镜片观察已通过，原异常根因仍开放
 
 用户回复“是的，正常，刚刚你修了bug嘛”，确认刚才关闭/恢复头势的两轮正常。已补进A27-N02及证据，未逐轮臆测是点头还是按键，不再重复索要同一观察。dev139只有已接受操作的诊断日志，没有修改确认/取消逻辑；测试中曾临时关闭再恢复头势，但不能据此认定是切换设置治好了根因。当前功能恢复可用，原首次自动关闭未复现，保留开放问题和失败历史。

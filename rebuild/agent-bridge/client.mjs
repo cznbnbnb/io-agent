@@ -107,6 +107,18 @@ export class BridgeClient{
     fail(code??'HTTP_ERROR',{status:response.status,permanent:true});
   }
   async identity(){return (await this.#send('GET','identity')).body;}
+  /** Read the account's synced daily AI summaries. This boundary owns CLI query validation;
+   * it cannot select another owner, fetch transcripts/audio, or write materials. */
+  async dailySummaries(input={}){
+    if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['date','from','to','keyword','limit','cursor'].includes(k))||input.date!==undefined&&(input.from!==undefined||input.to!==undefined))fail('INVALID_QUERY',{permanent:true});
+    const filters={...input};if(filters.date!==undefined){filters.from=filters.to=filters.date;delete filters.date;}
+    for(const day of [filters.from,filters.to].filter(v=>v!==undefined))if(typeof day!=='string'||!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)fail('INVALID_QUERY',{permanent:true});
+    if(filters.from&&filters.to&&filters.to<filters.from||filters.limit!==undefined&&(!Number.isInteger(filters.limit)||filters.limit<1||filters.limit>50)||filters.keyword!==undefined&&(typeof filters.keyword!=='string'||!filters.keyword||filters.keyword.length>512)||filters.cursor!==undefined&&(typeof filters.cursor!=='string'||!filters.cursor||filters.cursor.length>4096))fail('INVALID_QUERY',{permanent:true});
+    const query=new URLSearchParams(Object.entries(filters).map(([k,v])=>[k,String(v)])),page=(await this.#send('GET','daily-summaries?'+query)).body;
+    if(!page||!Array.isArray(page.items)||page.items.length>(filters.limit??20)||typeof page.has_more!=='boolean'||typeof page.next_cursor!=='string'||!page.next_cursor||page.next_cursor.length>4096||!stamp(page.server_time)||!stamp(page.fresh_until)||page.coverage?.scope!=='server_stored_daily_ai_summaries'||page.coverage.phone_sync_status!=='unknown'||page.has_more&&page.items.length===0)fail('INVALID_RESPONSE',{permanent:true});
+    for(const item of page.items)if(!item||typeof item.material_id!=='string'||!item.material_id.startsWith('daily-')||!integer(item.revision)||typeof item.date!=='string'||!/^\d{4}-\d\d-\d\d$/.test(item.date)||typeof item.text!=='string'||!item.text.startsWith('# '+item.date+' 每日 AI 总结')||!stamp(item.started_at)||!stamp(item.ended_at)||!stamp(item.stored_at)||item.source_ref?.server_id!==this.config.server_id||item.source_ref.material_id!==item.material_id||item.source_ref.revision!==item.revision||item.content_role!=='source_data')fail('INVALID_RESPONSE',{permanent:true});
+    return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page};
+  }
   async inbox(cursor=null,limit=20){
     const query=new URLSearchParams({limit:String(limit)});
     if(cursor)query.set('cursor',cursor);

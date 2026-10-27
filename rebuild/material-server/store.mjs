@@ -11,7 +11,7 @@ import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
 
-const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','tasks:write','tasks:read','tasks:update',
+const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
 const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
@@ -145,7 +145,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -574,8 +574,8 @@ export class MaterialStore {
     }catch{reject(410,'CURSOR_RESET_REQUIRED');}
   }
   page(token,kind,query={}){
-    const p=this.auth(token,kind==='changes'?'changes:read':'materials:read');
-    const allowed=kind==='changes'?['cursor','limit','content']:['cursor','limit','from','to','keyword','speaker','content'];
+    const summaries=kind==='daily-summaries',p=this.auth(token,summaries?'daily-summaries:read':kind==='changes'?'changes:read':'materials:read');
+    const allowed=summaries?['cursor','limit','from','to','keyword']:kind==='changes'?['cursor','limit','content']:['cursor','limit','from','to','keyword','speaker','content'];
     if(query.content!==undefined&&query.content!=='reference')reject(400,'INVALID_QUERY');
     if(Object.keys(query).some(k=>!allowed.includes(k)))reject(400,'INVALID_QUERY');
     const limit=query.limit===undefined?20:Number(query.limit);
@@ -583,7 +583,10 @@ export class MaterialStore {
     const filters=query.content?{content:query.content}:{};for(const k of ['from','to','keyword','speaker'])if(query[k]!==undefined){
       if(typeof query[k]!=='string'||!query[k]||query[k].length>512)reject(400,'INVALID_QUERY');filters[k]=query[k];
     }
-    if((filters.from&&!timestamp(filters.from))||(filters.to&&!timestamp(filters.to))||
+    if(summaries){
+      for(const day of [filters.from,filters.to].filter(Boolean))if(!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)reject(400,'INVALID_QUERY');
+      if(filters.from&&filters.to&&filters.to<filters.from)reject(400,'INVALID_QUERY');
+    }else if((filters.from&&!timestamp(filters.from))||(filters.to&&!timestamp(filters.to))||
       (filters.from&&filters.to&&Date.parse(filters.to)<Date.parse(filters.from)))reject(400,'INVALID_QUERY');
     const hash=sha(canonical(filters)),state=this.cursor(query.cursor,p.owner,kind,hash),args=[p.owner,state.ceiling];
     let sql;
@@ -594,19 +597,30 @@ export class MaterialStore {
       JOIN materials m ON m.owner=r.owner AND m.id=r.id WHERE r.owner=? AND r.deleted=0 AND m.deleted=0`;
     if(kind!=='changes')args.push(p.owner);
     sql+=' AND r.seq>?';args.push(state.last);
-    if(filters.from){sql+=' AND r.ended>=?';args.push(Date.parse(filters.from));}
-    if(filters.to){sql+=' AND r.started<=?';args.push(Date.parse(filters.to));}
+    // DailySummary.java owns this source projection. Never expose historical transcripts or audio
+    // through a paired Agent's narrower daily-summary permission.
+    if(summaries){
+      sql+=" AND r.id LIKE 'daily-%' AND json_extract(r.body,'$.source')='agent_analysis' AND json_array_length(r.body,'$.utterances')=0 AND json_extract(r.body,'$.audio.state')='not_retained' AND json_extract(r.body,'$.full_text.format')='markdown' AND json_extract(r.body,'$.full_text.text') GLOB '# ????-??-?? 每日 AI 总结*'";
+      if(filters.from){sql+=" AND substr(json_extract(r.body,'$.full_text.text'),3,10)>=?";args.push(filters.from);}
+      if(filters.to){sql+=" AND substr(json_extract(r.body,'$.full_text.text'),3,10)<=?";args.push(filters.to);}
+    }else{
+      if(filters.from){sql+=' AND r.ended>=?';args.push(Date.parse(filters.from));}
+      if(filters.to){sql+=' AND r.started<=?';args.push(Date.parse(filters.to));}
+    }
     if(filters.keyword){sql+=' AND instr(r.search_text,?)>0';args.push(filters.keyword.toLowerCase());}
     if(filters.speaker){sql+=" AND EXISTS(SELECT 1 FROM json_each(r.body,'$.utterances') u WHERE json_extract(u.value,'$.speaker_id')=?)";args.push(filters.speaker);}
     sql+=' ORDER BY r.seq LIMIT ?';args.push(limit+1);
     const rows=this.db.prepare(sql).all(...args),items=[];let bytes=8192,last=state.last;
-    for(const row of rows.slice(0,limit)){const item=materialWire(this.item(row),query.content),size=Buffer.byteLength(JSON.stringify(item));if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;}
+    for(const row of rows.slice(0,limit)){
+      const material=this.item(row),body=material.body,item=summaries?{material_id:body.material_id,revision:body.revision,date:body.full_text.text.slice(2,12),text:body.full_text.text,started_at:body.started_at,ended_at:body.ended_at,stored_at:material.stored_at,source_ref:{server_id:this.devices.serverId(),material_id:body.material_id,revision:body.revision},content_role:'source_data'}:materialWire(material,query.content),size=Buffer.byteLength(JSON.stringify(item));
+      if(bytes+size>MAX_PAGE)break;items.push(item);bytes+=size;last=row.seq;
+    }
     const hasMore=rows.length>items.length;
     // Empty/final pages advance through nonmatching gaps. Changes release the
     // snapshot ceiling for the next poll; snapshot cursors keep their ceiling.
     if(!hasMore)last=state.ceiling;
     const now=this.clock();return {items,has_more:hasMore,next_cursor:this.signCursor({v:1,owner:p.owner,kind,filter:hash,last,
-      ceiling:kind==='changes'&&!hasMore?null:state.ceiling,expires:now+86400000}),server_time:iso(now),fresh_until:iso(now)};
+      ceiling:kind==='changes'&&!hasMore?null:state.ceiling,expires:now+86400000}),server_time:iso(now),fresh_until:iso(now),...(summaries?{coverage:{scope:'server_stored_daily_ai_summaries',phone_sync_status:'unknown'}}:{})};
   }
 }
 

@@ -68,3 +68,6 @@ JSON参数走stdin，UTF-8 JSON结果走stdout。配套说明已安装为`turboi
 - **后台续期**：设备凭据 24 小时，过了 `refresh_after`（一半时间）后 `BridgeClient` 在下次请求前调用 `POST /v1/credentials/refresh` 原地换新；旧凭据保留 5 分钟宽限，同一凭据只能续一次（并发时另一进程重读文件）。
 - **管理**：`device.mjs devices` 列出、`device.mjs unpair <device_id>` 吊销（吊销设备即作废它的所有凭据）；手机可自己解除配对。服务器管理员也可 `cli.mjs devices / unpair`。
 - 旧的 `register --config` + 手机导入连接文件只留给自动化测试。
+## 每日总结查询（2026-10-27）
+
+手机受管 Agent 和普通 CLI 均已新增 `daily` 只读命令。定时任务不需要先 join；共用电脑配对，按日期或关键词读取服务器已同步的每日 AI 总结。它与旧通用资料查询权限分开，不开放历史转写或音频。用法、分页、覆盖范围及错误见 [DAILY-SUMMARIES.md](./DAILY-SUMMARIES.md)。

@@ -21,6 +21,12 @@ try{
  const [prefix,id,code]=pair.value.pairing_string.split(':');assert.equal(prefix,'io-agent-pair/1');
  const preview=store.sessionPairings.preview(phone.token,{id,code});assert.equal(preview.metadata.route.session_id,env.IO_AGENT_CALLER_SESSION);assert.equal(preview.metadata.mode,'computer');store.sessionPairings.approve(phone.token,{id,code});
  assert.equal((await run('io-agent.mjs',['pair-status'],{})).value.paired,true);
+ const daily=JSON.parse(fs.readFileSync(new URL('../../docs/contracts/material-v1.1.json',import.meta.url))).events[2];
+ Object.assign(daily,{event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),producer_id:phone.producer_id,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+600000).toISOString()});
+ Object.assign(daily.body,{material_id:'daily-package-fixture',revision:1,base_revision:0,text_revision:1,source:'agent_analysis',started_at:'2026-10-26T00:00:00Z',ended_at:'2026-10-27T00:00:00Z',utterances:[],audio:{state:'not_retained',sha256:null,object_id:null},full_text:{format:'markdown',text:'# 2026-10-26 每日 AI 总结\n\nPortable daily fixture',origin:'legacy'}});store.submit(phone.token,daily);
+ const readerEnv={runtime:env.IO_AGENT_CALLER_RUNTIME,session:env.IO_AGENT_CALLER_SESSION,python:env.IO_AGENT_PYTHON};delete env.IO_AGENT_CALLER_RUNTIME;delete env.IO_AGENT_CALLER_SESSION;env.IO_AGENT_PYTHON='/not-installed/python';
+ const read=await run('io-agent.mjs',['daily'],{date:'2026-10-26'});assert.equal(read.code,0,JSON.stringify(read.value));assert.equal(read.value.items[0].text,daily.body.full_text.text);assert.equal(read.value.coverage.scope,'server_stored_daily_ai_summaries');
+ env.IO_AGENT_CALLER_RUNTIME=readerEnv.runtime;env.IO_AGENT_CALLER_SESSION=readerEnv.session;env.IO_AGENT_PYTHON=readerEnv.python;
  const joined=await run('io-agent.mjs',['join'],{topic:'合成问答'});assert.equal(joined.code,0,JSON.stringify(joined.value));assert.equal(joined.value.joined,true);
  assert.equal((await run('io-agent.mjs',['config'],{glasses_progress:false})).code,0);
  const ask=await run('io-agent.mjs',['ask'],{question_key:'workbuddy-package-first',question:'Synthetic choice',mode:'choice',options:[{option_id:'yes',label:'Yes'},{option_id:'no',label:'No'}],expires_at:new Date(Date.now()+300000).toISOString()});assert.equal(ask.code,0,JSON.stringify(ask.value));
@@ -30,5 +36,5 @@ try{
  env.IO_AGENT_CALLER_SESSION='synthetic-new-'+crypto.randomUUID();
  const reused=await run('io-agent.mjs',['pair'],{});assert.equal(reused.value.paired,true);assert.equal(reused.value.scope,'computer');
  const second=await run('io-agent.mjs',['notify'],{notification_key:'new-session-auto-join',text:'Synthetic auto-join notice',expires_at:new Date(Date.now()+300000).toISOString()});assert.equal(second.code,0,JSON.stringify(second.value));assert.equal(second.value.server_stored,true);
- console.log(JSON.stringify({computer_pair_once_new_session_reuses:true,passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
+ console.log(JSON.stringify({computer_pair_once_new_session_reuses:true,passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,daily_read_without_session_or_python:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
 }finally{await new Promise(r=>server.close(r));store.close();fs.rmSync(temp,{recursive:true,force:true});}

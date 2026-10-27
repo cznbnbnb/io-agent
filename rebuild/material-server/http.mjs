@@ -92,6 +92,9 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       if(req.method==='GET'&&url.pathname==='/v1/identity'){
         if(url.search)reject(400,'INVALID_QUERY');send(200,store.identity(token));return;
       }
+      if(req.method==='GET'&&url.pathname==='/v1/daily-summaries'){
+        observation.route='materials';send(200,store.page(token,'daily-summaries',query));return;
+      }
       if(req.method==='POST'&&url.pathname==='/v1/pairings'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.createPairing(token,await smallJson(req,observation)));return;}
       if(req.method==='POST'&&url.pathname==='/v1/credentials/refresh'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.refresh(token));return;}
       if(req.method==='GET'&&url.pathname==='/v1/devices'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.list(token));return;}

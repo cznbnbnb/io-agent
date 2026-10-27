@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "problem": {
+    "phone_task": "task-android-05f7c9e6c7a04b0541b8357d32927b4143c5e8bec11fb80ad01cf7ab68afd672",
+    "previous_managed_commands": [
+      "notify",
+      "ask",
+      "wait",
+      "status"
+    ],
+    "existing_generic_query_not_injected": true,
+    "paired_computer_lacked_summary_read_permission": true
+  },
+  "change": {
+    "commands": "daily in direct, managed, portable CLI",
+    "permission": "daily-summaries:read",
+    "account": "paired-computer credential owner",
+    "legacy_single_session_unchanged": true,
+    "no_transcript_audio_phone_files_or_new_capture": true,
+    "standalone_read_requires_no_join_native_session_or_python": true
+  },
+  "production_release": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/daily-reader-release-1793118830568388602",
+    "node": "v22.23.2",
+    "source_sha256": {
+      "store.mjs": "fde8edc7fed8eec4ec3d5c0fc16e538abb8a3fb8a8017da375e1c6ac112b1362",
+      "http.mjs": "5543c977e0936df9d8304e74aec3510fcda112d5a77571e7c9a789a9de99fe1a",
+      "devices.mjs": "bd8eaea1327f40b01c184d6d934c92440400a46475baaab96f851b9a12cb9caa"
+    },
+    "paired_computer_tokens_granted": 1,
+    "owner": "turboio-user",
+    "single_session_grants_unchanged": true,
+    "sqlite_snapshot_checked": true,
+    "production_runtime_smoke_passed": true
+  },
+  "actual_query": {
+    "dates": [
+      {
+        "date": "2026-10-23",
+        "revision": 1,
+        "characters": 932,
+        "text_sha256": "ea1a095b49a6780df04b17ac830a1b151bfda103398754560357e4aa08d1b694"
+      },
+      {
+        "date": "2026-10-24",
+        "revision": 1,
+        "characters": 839,
+        "text_sha256": "29beb4bc6ee56b08baaa4d2e8243be7c1cd470c77b0ffea1319b3bae38b94c84"
+      },
+      {
+        "date": "2026-10-25",
+        "revision": 1,
+        "characters": 995,
+        "text_sha256": "45cbf5e97bbb6468d0a4043dc447901413f93353023ab1cc984782f53d0cd2b2"
+      },
+      {
+        "date": "2026-10-26",
+        "revision": 2,
+        "characters": 1691,
+        "text_sha256": "ea27c20d4d2e98c399b266fd4c94f11e03ccc77c404b52b5982e1a67ace6bb1b"
+      },
+      {
+        "date": "2026-10-27",
+        "revision": 1,
+        "characters": 1176,
+        "text_sha256": "c7a9733404d350fdd793af5de41bcdbb88029aaa32296ee07f5bd1da5a32ba12"
+      }
+    ],
+    "has_more": false,
+    "coverage": {
+      "scope": "server_stored_daily_ai_summaries",
+      "phone_sync_status": "unknown"
+    },
+    "private_summary_text_committed": false
+  },
+  "actual_managed_codex": {
+    "task_id": "codex-daily-query-4212a9a2-855",
+    "state": "completed",
+    "native_session_id": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+    "same_native_session": true,
+    "tools_observed": true,
+    "reply": "我会按顺序调用 help 和两次 daily，最终只返回验证结果 JSON。{\"daily_supported\":true,\"single_day\":{\"date\":\"2026-10-26\",\"revision\":2},\"dates\":[\"2026-10-23\",\"2026-10-24\",\"2026-10-25\",\"2026-10-26\",\"2026-10-27\"],\"coverage\":\"server_stored_daily_ai_summaries\"}",
+    "phone_ui_observed": false,
+    "reply_verified_against_independent_public_query": true
+  },
+  "tests": {
+    "new_real_sqlite_http_cli_mailbox": 6,
+    "existing_regressions_passed": 42,
+    "existing_unavailable": 1,
+    "unavailable_reason": "service.test.mjs archival ArkTS wire39 fixture rebuild/phase1/device-p21-wire39-seed.json is absent; no replacement fabricated",
+    "portable_daily_read_without_session_or_python": true,
+    "local_node": "v24.14.0",
+    "production_node": "v22.23.2"
+  },
+  "runtime": {
+    "installed": true,
+    "same_native_sessions": true,
+    "credentials_and_default_preserved": true,
+    "formal_services_running": true,
+    "phone_app_changed": false,
+    "installed_app": "0.5.3-dev139"
+  },
+  "package": {
+    "final_repack_after_source_commit": "pending"
+  },
+  "limits": [
+    "Only already-synced daily AI summaries; empty result does not prove no activity",
+    "No new daily automation created",
+    "Windows/WorkBuddy application and Claude native tool approval not newly tested"
+  ]
+}

@@ -9,7 +9,7 @@ export const DEVICE_TTL_MS=86400000;
 const PAIR_CODE_MS=600000,REFRESH_GRACE_MS=300000,FAILURE_WINDOW_MS=600000,FAILURE_LIMIT=30;
 const ROLE_SCOPES={
   phone:['materials:write','materials:read','tasks:write','tasks:read','tasks:update','requests:read','answers:write','messages:receive','receipts:phone'],
-  agent:['tasks:write','tasks:read','tasks:update','requests:write','messages:receive','messages:write','receipts:agent','devices:pair']};
+  agent:['tasks:write','tasks:read','tasks:update','requests:write','messages:receive','messages:write','receipts:agent','devices:pair','daily-summaries:read']};
 // Crockford-style alphabet without 0/O/1/I/L/U: 10 characters ≈ 50 bits, shown as XXXXX-XXXXX.
 const ALPHABET='23456789ABCDEFGHJKMNPQRSTVWXYZ';
 const label=s=>typeof s==='string'&&s.length>=1&&s.length<=64&&!/[\u0000-\u001f\u007f]/.test(s)&&s.trim()===s;
