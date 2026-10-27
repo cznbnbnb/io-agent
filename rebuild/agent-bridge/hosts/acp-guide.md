@@ -82,8 +82,35 @@ WorkBuddy 的[连接器](https://open.workbuddy.cn/docs/connector)用于让 Work
 
 ## 使用代价与限制
 
-电脑须开机、联网并保持连接器进程运行；每个受管会话会启动相应引擎，增加内存和常驻连接。模型调用使用原 Agent 账号额度和收费方式，恢复长上下文也可能计费。本批不安装自动启动项。
+电脑须开机、联网并保持连接器进程运行；每个受管会话会启动相应引擎，增加内存和常驻连接。模型调用使用原 Agent 账号额度和收费方式，恢复长上下文也可能计费。最初交付只提供前台运行；用户随后要求手机在线可用后，已补装下面的两条正式用户级自启服务。
 
 统一的是任务、问答和结果通道，各 Agent 的登录、工具权限和 ACP 差异仍需适配与固定版本。已验执行平台是 macOS；Windows/Linux 只完成源码打包兼容准备，尚未做 ACP 真机验收。眼镜双击主动采音入口另项仍未完成，不从手机通过推定眼镜入口已通过。
 
 dev136 手机登记上限仍为 16；可明确移除已暂停或到期的非当前/非默认登记，历史邮箱保留。以后同一会话重新登记可找回历史；这是本地登记管理，不撤销电脑授权，也不停止电脑任务。
+
+## 已安装的正式常驻服务
+
+用户要求手机可用后，已将正式连接与临时QA分开。当前Mac保留：
+
+| 手机目标 | 本机工作区 | 用途 |
+| --- | --- | --- |
+| Codex · 手机工作区（默认） | `~/Documents/iO Agent/Codex` | 独立长期受管会话 |
+| Claude Code · 手机工作区 | `~/Documents/iO Agent/Claude` | 独立长期受管会话 |
+
+核心程序安装在 `~/.turboio/connector-runtime`，固定版本适配器在 `~/.turboio/acp-runtime`，不会依赖临时目录、当前工具调用或开发工作树继续存在。配置/账本位于 `~/.turboio/connectors/codex-phone` 和 `claude-code-phone`；不要删除这些目录来恢复连接。复用已有电脑与手机长期配对，不需每天重新绑定。服务器默认从原来的空目标设为正式Codex；手机临时选择Claude不改默认。
+
+macOS用户级LaunchAgent以独立进程保持连接，登录自动启动、退出后由系统重启；电脑关机、睡眠或断网时仍会离线。已实测停止/启动两条服务后恢复同一个原生session并读回原上下文；没有重启电脑或重新登录实测。此机制不影响ChatGPT/Claude Desktop自身启动，也不会接管当前Desktop原聊天。
+
+显式管理入口（通过稳定安装副本运行；将Codex路径换成Claude路径可管理另一条）：
+
+```sh
+node "$HOME/.turboio/connector-runtime/tools/collab/connector-service.mjs" status --directory "$HOME/.turboio/connectors/codex-phone"
+node "$HOME/.turboio/connector-runtime/tools/collab/connector-service.mjs" start --directory "$HOME/.turboio/connectors/codex-phone"
+node "$HOME/.turboio/connector-runtime/tools/collab/connector-service.mjs" stop --directory "$HOME/.turboio/connectors/codex-phone"
+```
+
+实际已装服务使用稳定安装副本 `~/.turboio/connector-runtime/tools/collab/connector-service.mjs` 管理；`start`重复调用不会重启已运行的任务，配置位置改变需先明确停旧服务再更新。`stop`移除该服务的登录自启并结束自有引擎，正在执行的任务可能变成待核对；账本与历史保留，原生状态不明的任务不自动重发。进程存活不等于可执行，手机仍以真实宿主和服务器租约为准。
+
+Claude的现有供应商认证来自原终端环境，后台服务不会自动继承。只保存白名单中的现有Claude配置到该配置目录的私有`service-env.json`（0600），worker读取后交给同一官方引擎；不写进plist、仓库、分享包或全局环境。更新这些配置后，正常停止/启动服务即可重新取当前终端配置。首次遗漏环境导致的401自检保留为失败记录，原未知输入不重放；修正后使用新的正式会话通过了真实执行与恢复。
+
+本次正式服务在交付后继续运行，不纳入QA撤销。WorkBuddy仍需独立官方CLI的正常认证验收。

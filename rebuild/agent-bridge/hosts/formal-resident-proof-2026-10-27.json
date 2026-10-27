@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "date": "2026-10-27T11:25:59.230Z",
+  "reason": "User found all existing targets offline after QA cleanup; install formal persistent services.",
+  "host_platform": "macOS",
+  "phone_version": "dev136",
+  "apk_changed": false,
+  "formal_services": [
+    {
+      "runtime": "codex",
+      "route": {
+        "agent_id": "io-current-codex",
+        "computer_id": "io-mac-computer",
+        "project_id": "workspace-2215dbd52a60e11930077982",
+        "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+      },
+      "label": "Codex · 手机工作区",
+      "workspace": "/Users/cznbnb/Documents/iO Agent/Codex",
+      "online": true,
+      "can_execute": true,
+      "pid": 27672,
+      "automatic_start": true,
+      "credentials_file_contents_included": false
+    },
+    {
+      "runtime": "claude-code",
+      "route": {
+        "agent_id": "io-claude-code",
+        "computer_id": "io-mac-computer",
+        "project_id": "workspace-ababcdd44378b8cb5e1c7f46",
+        "session_id": "45943428-a960-45f3-8c6c-c1fd7a5e8e60"
+      },
+      "label": "Claude Code · 手机工作区",
+      "workspace": "/Users/cznbnb/Documents/iO Agent/Claude",
+      "online": true,
+      "can_execute": true,
+      "pid": 27744,
+      "automatic_start": true,
+      "credentials_file_contents_included": false
+    }
+  ],
+  "default": {
+    "revision": 18,
+    "route": {
+      "agent_id": "io-current-codex",
+      "computer_id": "io-mac-computer",
+      "project_id": "workspace-2215dbd52a60e11930077982",
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+    },
+    "updated_at": "2026-10-27T11:17:12.376Z"
+  },
+  "native_selftests": [
+    {
+      "runtime": "codex",
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30",
+      "task_id": "codex-formal-selftest-02cddb7a-72e",
+      "state": "completed",
+      "result_matches": true
+    },
+    {
+      "runtime": "claude-code",
+      "session_id": "45943428-a960-45f3-8c6c-c1fd7a5e8e60",
+      "task_id": "codex-formal-selftest-97d9f8b7-664",
+      "state": "completed",
+      "result_matches": true
+    }
+  ],
+  "restart_tests": [
+    {
+      "runtime": "codex",
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30",
+      "native_session_id": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+      "restored_same_native": true,
+      "state": "completed",
+      "context_matches": true
+    },
+    {
+      "runtime": "claude-code",
+      "session_id": "45943428-a960-45f3-8c6c-c1fd7a5e8e60",
+      "native_session_id": "fa422302-52d0-4e5a-bd56-71dc12009923",
+      "restored_same_native": true,
+      "state": "completed",
+      "context_matches": true
+    }
+  ],
+  "actual_phone": {
+    "task_id": "task-android-f3575b570b6771c7f01369ded1541ffd795098d0cf81ac9d976f1a6495e0fbce",
+    "state": "completed",
+    "phone_completed_visible": true,
+    "phone_result_visible": true,
+    "online_picker_two_targets_visible": true,
+    "phone_default_codex_visible": true,
+    "verified_at": "2026-10-27T11:23:49.283127+00:00"
+  },
+  "unit_tests": {
+    "pass": 6,
+    "fail": 0
+  },
+  "initial_failure": {
+    "session_id": "9d6cb37c-08c6-4839-a6d7-e4d174bf6be1",
+    "cause": "launchd did not inherit existing Claude provider authentication; stale OAuth returned 401",
+    "native_unknown_ledger_retained": true,
+    "server_selftest_marked_failed": true,
+    "old_service_stopped": true,
+    "unknown_prompt_replayed": false
+  },
+  "background_owner": "user launchd, independent of this chat",
+  "stable_bundle": "/Users/cznbnb/.turboio/connector-runtime",
+  "runtime_dependencies": "/Users/cznbnb/.turboio/acp-runtime",
+  "desktop_launcher_overrides_changed": false,
+  "shared_pairing_revoked": false,
+  "qa_cleanup_stops_formal_services": false,
+  "limits": [
+    "Mac must be awake and online; automatic start occurs at user login.",
+    "Actual system logout/reboot was not performed; job stop/start and context restore were verified.",
+    "Current original Desktop chat remains uncontrolled.",
+    "WorkBuddy still requires its own official CLI authentication.",
+    "Generic ACP cancel still cannot certify all background work stopped."
+  ],
+  "source_sha256": {
+    "tools/collab/connector-service.mjs": "03e836beb475eb6009964ebc35d0ca313efa87c0358f13e623c6e390908fb815",
+    "tools/collab/connector-service-worker.mjs": "fee2140aaa34a2dfa81beb0ed6b9d1b5746d54f61d95744cc4a696bfbee89bfb",
+    "tools/collab/connector-service.test.mjs": "663d502c21ec2c3f494c3de61da9d43b18d7a29807349d49cf0b88bdaaa9ba23"
+  },
+  "cleanup": {
+    "diagnostic_uninstalled": true,
+    "device_xml_removed": true,
+    "formal_services_retained": true,
+    "default_preserved": true
+  },
+  "mac_idle_sleep_minutes": 0,
+  "power_settings_changed": false
+}

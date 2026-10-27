@@ -1,5 +1,7 @@
 # 默认 Agent、指定会话下发与打断：实施计划
 
+2026-10-27 正式在线补交付：用户发现全是离线记录。此前QA已关闭，不能算日常可用；现已在Mac安装独立用户级Codex/Claude正式常驻服务，稳定程序/适配器脱离临时目录与开发工作树，登录自启、异常重启，复用长期电脑配对。两条真实命令与服务停止/启动后原上下文恢复通过；手机已看到两条在线、Codex默认，实际手机提交并显示“手机下发正常”。当前手机仍dev136，无APK改动。当前Desktop原聊天未接管，WorkBuddy认证仍待完成。[正式服务证据](../../rebuild/agent-bridge/hosts/formal-resident-proof-2026-10-27.json)。
+
 2026-10-27 用户确认拓扑后新增通用 stdio ACP 受管会话入口：现有 CLI/服务器/手机复用；Claude、Codex 真实新建、恢复原上下文和生产服务器任务结果通过。dev136 的 Claude/Codex 手机选会话→提交→真实上下文→结果回显也已通过。受管会话与日常 Desktop 原聊天明确分开，全局启动覆盖继续禁用。WorkBuddy 5.8.3 已检查；其内置 CLI 未完成 ACP 握手，独立官方 CodeBuddy CLI 2.177.0 已握手但 session/new 需登录，仍待真实执行。通用 ACP 取消仍缺后台工作停止证明，不放行通用继续；眼镜双击另项不计完成。手机自测发现16条长期登记占满，补显式移除已暂停非当前/非默认登记，保留邮箱与配对。最终装机和自测见[ACP说明](../../rebuild/agent-bridge/hosts/acp-guide.md)与[证据](../../rebuild/agent-bridge/hosts/acp-proof-2026-10-27.json)。
 
 2026-10-27 启动故障纠正（覆盖下方待重启说明）：用户报告并恢复了真实 Desktop 启动失败。本机日志确认转接期间出现 `Desktop startup policy read failed ... phase=policy-read reason=protocol`；撤销启动覆盖后 App PID9364 使用自带 Codex，记录 `app_start outcome=success`，该次日志无 policy-read 失败。两项 launch 环境覆盖均已为空；本工具登记的 Desktop 集成已单独标记 disabled，未卸载 Claude 插件。安装器已移除 Desktop 全局注入实现，旧 `--codex` / `--desktop-proxy --apply` 明确拒绝；不能要求用户再次重启或把组件测试写成 Desktop 可用。A27-S01 当前为失败后停用、待隔离替代方案；普通原会话手机控制未完成。眼镜问答、已验 Claude 和显式共享终端路径保留，手机仍 dev134。本批不重装、不改模型/审批/账号凭据。[停用与恢复证据](../../rebuild/agent-bridge/hosts/desktop-relay-withdrawal-2026-10-27.json)。

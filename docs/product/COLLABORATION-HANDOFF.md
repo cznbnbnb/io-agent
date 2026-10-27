@@ -1,3 +1,14 @@
+## [codex] 2026-10-27 正式常驻已上线：手机可派发，默认Codex；正式服务必须保留
+
+用户报告全是离线记录，确实是上批只完成临时QA后关闭，没有留下日常服务。本批补交付两条正式托管会话，不能在收尾撤销：**Codex · 手机工作区** route session `85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30`；**Claude Code · 手机工作区** `45943428-a960-45f3-8c6c-c1fd7a5e8e60`。工作区分别`~/Documents/iO Agent/Codex`、`Claude`；原空默认已CAS设为Codex（revision18），手机真实显示默认和两条在线可接收。不是恢复旧QA、不是当前Desktop聊天接管。
+
+- 新增`tools/collab/connector-service.mjs`和worker：自有macOS用户级LaunchAgent、登录自动启动/KeepAlive、可查/启/停、重复启动不打断任务、停止保留账本。进程由launchd持有（PPID1）；正式核心程序在`~/.turboio/connector-runtime`、固定适配器由原/tmp验证目录移至`~/.turboio/acp-runtime`（没有重复复制大依赖）。配置`~/.turboio/connectors/codex-phone`、`claude-code-phone`。实际管理请调用稳定安装副本的service脚本；状态只是进程信息，执行以服务器目录和原生结果为准。未动Desktop启动链、全局环境、App包/前端或对方工作目录，手机仍dev136。
+- 两条正式真实命令通过；各自正常停止/启动服务后保持同原生session并正确读回上下文。手机从默认Codex实际提交，任务`task-android-f3575b570b6771c7f01369ded1541ffd795098d0cf81ac9d976f1a6495e0fbce` completed，详情可见“手机下发正常”。6项服务定向测试通过，含未知plist拒绝、幂等、私有配置、失败重试和实际发现的launchd退出延迟；未重复未变更的底层全量/手机包测试。[正式交付证据](../../rebuild/agent-bridge/hosts/formal-resident-proof-2026-10-27.json) / [管理说明](../../rebuild/agent-bridge/hosts/acp-guide.md)。
+- 保留失败：初次Claude后台没继承现有终端供应商环境，误走失效OAuth并401；原native未知账本完整保留于`claude-code-phone-first-auth-failure`，自检在服务器标failed，旧job停用，未知输入未重发。新正式会话只将已有Claude白名单配置放入0600私有service-env.json，worker继承同一原供应商；不写plist、代码、分享包或全局环境。实际launchctl bootout返回后job仍短暂存在，已修为等待真实移除后再丢所有权记录，再启/恢复实测通过。
+- 收尾仅卸载UI诊断/清XML、关闭本批进度看守并释放设备锁；**两个正式job继续运行，共享长期电脑/手机配对不撤销，默认不恢复空值**。AGENTS已补“正式交付不能只跑临时QA”和正式/QA收尾区分。Claude分支仍6abb2d9，无新合并；voice7未跟踪文件保持未动/未装包。
+
+限制：电脑必须醒着联网；系统注销/重启没有实际进行，仅配置和服务重启已验。普通原Desktop聊天、WorkBuddy独立CLI认证和通用ACP后台停止证明仍是单独未完成项。下一步推荐优化新手机连接的历史消息追赶延迟；不以此重新关闭已交付的正式服务。
+
 ## [codex] 2026-10-27 ACP 便携包核对完成（源码378b5a0）
 
 统一连接器、dev136与双Agent手机验收已提交378b5a0。重新生成原路径 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip`（156,154字节、42文件），SHA `5ac76104f37c86ad53856c7e4f5e242b079ea3c9afd8c025fba553282d6d8ccf`。Manifest固定上述源码提交，41份源文件逐项hash通过；独立解压的help/doctor、二维码及字符串配对、WorkBuddy通用问答/合成答案全过，测试只访问本机SQLite/HTTP且配对目录隔离于临时目录。此fixture不等于WorkBuddy真实引擎验收；Windows未实测。包不含APK、运行引擎、账号密钥、原生历史或资料。
