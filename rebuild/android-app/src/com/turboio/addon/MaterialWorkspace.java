@@ -32,7 +32,7 @@ final class MaterialWorkspace {
   case "LIFELOG_LIST_DELETION_UNSUPPORTED":return "当天有记录状态需要核对，本次未导入，已有资料保留";
   case "LIFELOG_DISCOVERY_BUDGET":case "LIFELOG_LIST_BUDGET":case "LIFELOG_LIST_SOURCE_BUDGET":return "当天资料超出本次读取范围，本次未导入，已有资料保留";
   case "LIFELOG_RESPONSE_REJECTED":return "官方暂未提供当天智记，请稍后重试";
-  case "OFFICIAL_LOGIN_REQUIRED":return "请先完成雷鸟账号登录";case "OFFICIAL_ACCOUNT_CHANGED":case "MATERIAL_ACCOUNT_REBIND_REFUSED":return "当前雷鸟账号与资料连接不一致，请核对账号和登记文件";
+  case "OFFICIAL_LOGIN_REQUIRED":return "请先完成原厂账号登录";case "OFFICIAL_ACCOUNT_CHANGED":case "MATERIAL_ACCOUNT_REBIND_REFUSED":return "当前原厂账号与资料连接不一致，请核对账号和登记文件";
   case "MATERIAL_LEGACY_CHANGED":case "MATERIAL_LEGACY_CONFIG_CHANGED":return "旧版本中的同步记录或连接有变化，资料已保留，请先核对后再继续同步";
   case "MATERIAL_LEGACY_UNCERTAIN":case "MATERIAL_MIGRATION_CONFLICT":case "MATERIAL_MIGRATION_UNOWNED":case "MATERIAL_MIGRATION_MISSING":return "资料升级尚未确认，原资料已保留，暂不上传";
   case "MATERIAL_IMPORT_EXPIRED":case "AUTH_REQUIRED":case "expired":return "资料凭据或待发事件已到期，请更新连接并核对队列";
@@ -40,7 +40,7 @@ final class MaterialWorkspace {
   case "MATERIAL_TEXT_REVISION_REPAIR_REQUIRED":return "旧修订版本需要核对，资料已保留；请联网后重试同步";
   case "LIFELOG_PENDING_REVISION_CHANGED":return "待同步正文已有新修改，旧版本暂不发送，需核对其入库结果";
   case "LIFELOG_SPEAKER_REVIEW_REQUIRED":case "LIFELOG_TEXT_REVIEW_REQUIRED":return "官方更新与已确认更正冲突，保留现有资料，等待核对";
-  case "OFFICIAL_AUTH_REQUIRED":return "雷鸟登录已失效，请重新登录后同步";
+  case "OFFICIAL_AUTH_REQUIRED":return "原厂登录已失效，请重新登录后同步";
   case "OFFICIAL_SOURCE_UNAVAILABLE":case "OFFICIAL_SOURCE_TIMEOUT":return "暂时无法读取官方最新正文，已保留本机队列，请稍后重试";
   case "LIFELOG_SOURCE_COVERAGE_CHANGED":return "\u672c\u6b21\u53ea\u8bfb\u5230\u90e8\u5206\u65f6\u95f4\u6bb5\uff0c\u5df2\u4fdd\u7559\u5b8c\u6574\u6b63\u6587\uff0c\u8bf7\u9009\u62e9\u5b8c\u6574\u65e5\u671f\u540e\u91cd\u8bd5";
   case "LIFELOG_FRESH_SOURCE_CONFLICT":case "LIFELOG_FRESH_SOURCE_UNOWNED":return "官方正文或记录归属正在变化，本次未发送，请稍后重试";
@@ -84,7 +84,7 @@ final class MaterialWorkspace {
   picker.setTitle("选择智记日期");picker.show();
  }
  private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] block=new byte[2048];int n;while((n=in.read(block))!=-1){if(bytes.size()+n>8192)throw new IOException("MATERIAL_IMPORT_BUDGET");bytes.write(block,0,n);}return bytes.toByteArray();}}
- static void configure(Activity activity,MaterialRuntime runtime,MaterialConfig saved,Runnable refresh){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料连接设置");TextView info=AgentUI.text(activity,"选择电脑生成的资料登记文件。保存前将核对服务器身份，并绑定当前雷鸟账号。",14,AgentUI.MUTED);screen.body.addView(info);final MaterialConnection[] candidate={null};final boolean[] closed={false};
+ static void configure(Activity activity,MaterialRuntime runtime,MaterialConfig saved,Runnable refresh){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料连接设置");TextView info=AgentUI.text(activity,"选择电脑生成的资料登记文件。保存前将核对服务器身份，并绑定当前原厂账号。",14,AgentUI.MUTED);screen.body.addView(info);final MaterialConnection[] candidate={null};final boolean[] closed={false};
   java.util.function.Consumer<byte[]> preview=raw->{try{candidate[0]=MaterialConnection.parse(raw,System.currentTimeMillis());info.setText(candidate[0].preview()+"\n尚未保存；服务器身份将在保存时核对。");}catch(Exception failed){candidate[0]=null;info.setText("登记文件无效或已到期，请重新提供。");}finally{Arrays.fill(raw,(byte)0);}};
   AgentUI.button(activity,screen.body,"选择资料登记文件",false,()->TaskFilePicker.pick(activity,uri->{if(closed[0])return;try{InputStream in=activity.getContentResolver().openInputStream(uri);if(in==null)throw new IOException();preview.accept(read(in));}catch(Exception failure){info.setText("无法读取登记文件，请重新选择。");}}));
   AgentUI.button(activity,screen.body,"读取电脑登记文件",false,()->{try{File internal=new File(activity.getFilesDir(),"connection-import/material-connection.json"),external=activity.getExternalFilesDir(null),file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/material-connection.json");if(file==null)throw new IOException();preview.accept(read(new FileInputStream(file)));}catch(Exception missing){info.setText(label("MATERIAL_IMPORT_UNAVAILABLE"));}});

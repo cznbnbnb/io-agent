@@ -1,0 +1,13 @@
+{
+  "name": "cz-iot-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Paired glasses CLI for Agent questions, daily summaries and confirmation-gated todos",
+  "type": "module",
+  "bin": {
+    "cz-iot-cli": "cz-iot-cli.mjs"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}

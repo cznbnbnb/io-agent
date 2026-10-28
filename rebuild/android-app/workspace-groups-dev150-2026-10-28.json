@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-28",
+  "version": "0.5.3-dev150",
+  "scope": [
+    "public CLI cz-iot-cli with legacy alias",
+    "iO Agent own UI neutral naming",
+    "workspace-grouped task library"
+  ],
+  "installed": {
+    "version": "0.5.3-dev150",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
+      "candidate_sha256": "ac1950fbcf9d897875ef55c3700cea3dcf38f01b0ee7477e75a916afd779dd0a",
+      "apk_bytes": 430227816,
+      "delta_bytes": 1940264,
+      "commands": 8091,
+      "delta_sha256": "6d78b4a2cc9662090cff6e8e43b5f16c8c7c62d393005b06af9407c427cc0d8b",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "ac1950fbcf9d897875ef55c3700cea3dcf38f01b0ee7477e75a916afd779dd0a",
+    "rollback": "0.5.3-dev149"
+  },
+  "group_identity": [
+    "base_url",
+    "server_id",
+    "owner_id",
+    "computer_id",
+    "workspace_path"
+  ],
+  "missing_directory": "Scoped project_id history group; no guessed path",
+  "ui_checks": {
+    "completed_records": 51,
+    "initially_collapsed": true,
+    "expand_and_collapse": true,
+    "select_all_collapsed_records": 51,
+    "group_selected_count_visible": true,
+    "edge_back_exits_selection": true,
+    "search_matches": 2,
+    "search_auto_expands": true,
+    "back_clears_query_and_restores_collapse": true,
+    "app_label": "iO Agent",
+    "real_task_mutations": false
+  },
+  "checks": {
+    "task_groups": 23,
+    "actual_group_ui_method": 13,
+    "task_library": 62,
+    "task_management_ui": 34,
+    "task_presentation": 80,
+    "todo_cli_and_shared_desktop_tests": 7,
+    "portable_package_integration": "passed; local npm bin install, pair reuse, new-session ask/answer/wait, daily, todo dedupe, legacy alias",
+    "java_d8_signature_and_original_dex_audit": "passed"
+  },
+  "unchanged": [
+    "original session routing",
+    "pairing credentials",
+    "defaults",
+    "third-party source attribution",
+    "original Flutter pages"
+  ],
+  "not_verified": [
+    "Windows / WorkBuddy real machine",
+    "user subjective layout preference"
+  ],
+  "cleanup": {
+    "qa_questions_or_todos_created": false,
+    "untracked_delegate_java_excluded_and_restored": true,
+    "retained_apks": [
+      "dev150",
+      "dev149"
+    ]
+  }
+}

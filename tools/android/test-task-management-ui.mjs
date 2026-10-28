@@ -55,7 +55,7 @@ public final class TaskManagementUITest {
  static int checks;static void check(boolean v,String why){checks++;if(!v)throw new AssertionError(why);}
  final Activity activity=new Activity();final TaskLibrary library=new TaskLibrary(Collections.emptySet(),Collections.emptySet());
  final LinearLayout tools=new LinearLayout(activity),footer=new LinearLayout(activity);final EditText search=new EditText();final TextView create=new TextView();
- TaskPresentation presentation;List<TaskPresentation.Row> visibleRows=Collections.emptyList();boolean selecting,deletedOnly,resetScroll;String query="",filter="all",detailKey="";static final int PAGE=30;int shown=PAGE,renders,saves;AgentUI.Screen detail;
+ TaskPresentation presentation;List<TaskPresentation.Row> visibleRows=Collections.emptyList();boolean selecting,deletedOnly,resetScroll;String query="",filter="all",detailKey="";int renders,saves;AgentUI.Screen detail;
  TaskManagementUITest(){search.changed=v->{query=v;library.clearSelection();render();};}
  void render(){renders++;renderTools();}void saveLibrary(){saves++;}void hideKeyboard(){search.clearFocus();}void enterSelection(){selecting=true;hideKeyboard();render();}
  ${method(' boolean back(')}
@@ -81,7 +81,7 @@ public final class TaskManagementUITest {
    back(AgentUI.confirmation,sdk);check(!AgentUI.confirmation.isShowing()&&page.isShowing()&&p.selecting&&p.saves==0&&p.library.deleted().isEmpty(),"first back cancels delete only");
    back(page,sdk);check(page.isShowing()&&!p.selecting&&p.library.selection().isEmpty(),"second back exits selection");
    back(page,sdk);check(page.isShowing()&&p.query.isEmpty()&&p.deletedOnly,"third back clears query only");
-   back(page,sdk);check(page.isShowing()&&!p.deletedOnly&&p.filter.equals("all")&&p.shown==PAGE&&p.resetScroll,"fourth back exits deleted view and resets list position");
+   back(page,sdk);check(page.isShowing()&&!p.deletedOnly&&p.filter.equals("all")&&p.resetScroll,"fourth back exits deleted view and resets list position");
    back(page,sdk);check(!page.isShowing(),"last back leaves task page");if(sdk>=33)check(page.dispatcher.adds==page.dispatcher.removes,"page callback cleanup");
   }
   p=new TaskManagementUITest();p.load(4,0);p.enterSelection();p.selectAll();Set<String> original=p.library.selection();p.confirmDelete(original);original.clear();check(AgentUI.confirmText.contains("电脑原会话")&&AgentUI.confirmText.contains("恢复"),"confirmation states local deletion and restore");

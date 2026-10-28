@@ -278,7 +278,7 @@
     },
     {
       "path": "src/com/turboio/addon/TurboAddon.java",
-      "sha256": "dfaf16800cd2b333801cc851c6757a0b0dd556543c507b42111cd16f7074a978"
+      "sha256": "77cd62348767203f612f1d8e9ff0958527d4efbbc1592ed3c9a22dda3ecb7a74"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/TurboStyle.java",
@@ -330,7 +330,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
-      "sha256": "682f90b620b72c937a911a2a8c67a91528dff4909b14de02c45abf2e7815666d"
+      "sha256": "cb8ab9f6b1286ba3d081d7f78b0f0c9764cfaa4b61df43bad313ac7f90bbe28f"
     },
     {
       "path": "src/com/turboio/addon/AgentUI.java",
@@ -338,7 +338,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentWorkspace.java",
-      "sha256": "924022b577452bf9eb39411baf7327ac87efe18bcd5ace7919544572909573b5"
+      "sha256": "49355fcc0b0cbb838a2d15fa97795c27f1a92c24b8c2f9aede4bef9596717050"
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
@@ -410,7 +410,7 @@
     },
     {
       "path": "src/com/turboio/addon/AudioWorkspace.java",
-      "sha256": "57c416241f5f05e9a007153f0d8ce1df70bc8c9ba2454efac5264b5285b75a77"
+      "sha256": "927eb2183733e5d784a0ef28020754f00e7d9b95272d4d3feb6a556f731370e9"
     },
     {
       "path": "src/com/turboio/addon/CaptureSession.java",
@@ -766,7 +766,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "659300459f566d2f4ad5e716b7d8662d978799a2a3fe5852f7d7bbdcfc24a6e0"
+      "sha256": "b9183139183e8c232dedf75896c5b405e8fb461af7ed3a9519daba1391bd0010"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -917,6 +917,10 @@
       "sha256": "af013d8f0b54523e20df14fbda2af6f02d4f311e5c063e1987658158461f2e1c"
     },
     {
+      "path": "src/com/turboio/addon/TaskGroups.java",
+      "sha256": "2170ca4a3cf74e3da7f9f5469f0a36beb36f353cef26eaca7c45b7fc84427fa4"
+    },
+    {
       "path": "src/com/turboio/addon/TaskHttp.java",
       "sha256": "8a0640acf462426c5a9fa0c8616eb670dfa5c950b7968ad638badf54358d469d"
     },
@@ -1050,11 +1054,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "bcb757602a1d621e5a2b080b3c875994f2383614292bb6937197e67732c412d6"
+      "sha256": "e8f4460408d23eeef6f9c2900a9fa204448ab86a21b91912a5a52340089512bb"
     }
   ],
-  "product_sha256": "712fd1538d4552fbe08b95a0b1748e55ad32bcf86b9b73e94f5c47e7e2ea3c63",
-  "addon_sha256": "a7cd57fc1a6a00b2b096085ff534ec00ba940d430385fd10fac7790bb5d4d2c8",
+  "product_sha256": "89afdfee7b7e0ea47418a4a6e04bb48b3e86d620e0c215597de6d47aa93c3d79",
+  "addon_sha256": "a0be42c99cafec1631ddaa49b450f7b1ca02402a8ad0625d8cee0aa40fde5103",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

@@ -423,7 +423,7 @@ public final class TurboAddon {
     }
     public static void showHome() {
         Activity current=host();if(current==null)return;
-        if(!Host107Login.loggedIn()){new AlertDialog.Builder(current).setTitle("请先登录").setMessage("请先完成雷鸟账号登录，再使用 iO Agent。").setPositiveButton("返回登录",null).show();return;}
+        if(!Host107Login.loggedIn()){new AlertDialog.Builder(current).setTitle("请先登录").setMessage("请先完成原厂账号登录，再使用 iO Agent。").setPositiveButton("返回登录",null).show();return;}
         AgentWorkspace.show(current);
     }
     private static void showLegacyHome() {

@@ -1,13 +1,13 @@
 # 原厂待办建议 CLI
 
-2026-10-27：Agent 可以在检查每日总结后提出待办建议。手机把建议显示到眼镜，用户点头确认后才创建原厂 RayNeo 待办；摇头忽略不创建。手势沿用原厂设置，CLI 不修改手势开关。
+2026-10-27：Agent 可以在检查每日总结后提出待办建议。手机把建议显示到眼镜，用户点头确认后才创建原厂待办；摇头忽略不创建。手势沿用原厂设置，CLI 不修改手势开关。
 
 这两个命令复用电脑长期配对，不需要当前 Agent session、`join` 或 Python，适合已有的定时 Agent 任务。电脑尚未配对时先完成一次配对；手机需要安装支持待办建议的版本，并保持可联网运行。本文不创建任何定时任务。
 
 普通/便携入口：
 
 ```sh
-node io-agent.mjs todo-add
+node cz-iot-cli.mjs todo-add
 ```
 
 通过标准输入传 JSON：
@@ -28,7 +28,7 @@ node io-agent.mjs todo-add
 查询原建议：
 
 ```sh
-node io-agent.mjs todo-status
+node cz-iot-cli.mjs todo-status
 ```
 
 ```json

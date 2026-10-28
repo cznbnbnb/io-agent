@@ -12,7 +12,7 @@ node rebuild/agent-bridge/questions/cli.mjs daily <<'JSON'
 JSON
 ```
 
-独立解压包使用 `node io-agent.mjs daily`，输入相同。只查询资料时不需要 Python、`join`、正在运行的 Agent session 或手机 task；需要这台电脑已有有效配对。凭据仍由既有机制自动续期，不放到命令行或定时任务文本中。
+独立解压包使用 `node cz-iot-cli.mjs daily`，输入相同。只查询资料时不需要 Python、`join`、正在运行的 Agent session 或手机 task；需要这台电脑已有有效配对。凭据仍由既有机制自动续期，不放到命令行或定时任务文本中。
 
 | JSON 输入 | 用途 |
 | --- | --- |

@@ -60,7 +60,7 @@ test('shared CLI reads only the paired account and does not treat posting as a n
 
 test('portable wrapper discovers todo commands and bypasses Python setup without a live session',async t=>{
   const f=await fixture(t),folder=path.join(f.dir,'portable');fs.mkdirSync(folder);
-  for(const file of ['io-agent.mjs','setup.mjs'])fs.copyFileSync(path.join(project,'tools/collab/workbuddy-package',file),path.join(folder,file));
+  for(const file of ['cz-iot-cli.mjs','io-agent.mjs','setup.mjs'])fs.copyFileSync(path.join(project,'tools/collab/workbuddy-package',file),path.join(folder,file));
   const source=path.join(project,'rebuild/agent-bridge');
   fs.cpSync(source,path.join(folder,'rebuild/agent-bridge'),{recursive:true,filter:file=>{
     if(path.relative(source,file).split(path.sep).some(part=>['private','tests','node_modules'].includes(part)))return false;

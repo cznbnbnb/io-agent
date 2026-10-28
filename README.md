@@ -1,18 +1,14 @@
-# 雷鸟 iO Agent
+# iO Agent · cz-iot-cli
 
 基于固定版本 Turbo-IO 与官方 Android App 宿主，开发眼镜、手机、服务器与电脑 Agent 的任务及资料闭环。当前采用 Android 优先路线，保留鸿蒙源码，待 Android 成熟后适配。
 
-## 当前进展
+## 产品与入口
 
-截至 2026-10-23，当前装机 **0.5.3-dev38 /10460**（回退 dev37）。当前 Codex 原对话已接入眼镜 CLI，新增无需回答的阻塞通知：整稿接收、3分钟退出ACK及去重已真机核对，镜片可读待本人确认。**本轮长按退出后没有起录，仍未修复**；眼镜在时间页仍返回OTA忙碌，正在核对录音专用状态。双摇头退出尚未实现，优先补齐，再按R2→R3→R4推进。此前 dev36 熄屏真人闭环成功证据保留，不用旧成功覆盖本轮失败。
+手机 App 名称为 **iO Agent**；电脑端 CLI 正式名称为 **cz-iot-cli**，支持 Claude、Codex 和其他能够执行命令的 Agent。配对一次后可投送眼镜消息、问答、读取已同步的每日 AI 总结，并建议待办（点头确认后添加）。
 
-| 阶段 | 进度 | 已核验 | 主要待办 |
-| --- | --- | --- | --- |
-| R2 眼镜任务卡与交互 | 85% | 一分钟静置及旋钮续时已人工确认；原任务绑定及部分交互保护已有实现；卡片正文实测约 56 字截断，上限定为 48 字；dev17 合成长问题经提词器完整显示，长按回时间页、未重启（单次） | 完整交接、异常恢复、锁屏后台与日常稳定 |
-| R3 Agent 语音及任务闭环 | 75% | 三路合成路由已回到服务器原问题；dev8 真人佩戴只取左声道，完整条件准确、本次未见旁人文字，全文服务器回读一致；重新口述和核对提示通过；当前真实 Codex 收到本人口述后实际生成记录及列目录，继续/完成各一次；dev10/11 起自由回答问题会显示到眼镜：按＋自动开始口述，结束后眼镜弹出识别文字确认卡，按＋提交；Hermes（开放文件和终端工具的工作区权限）连问两次，两次都用眼镜口述回答，随后按回答写入文件，任务完成 | 从眼镜结束口述、超过 48 字的识别文字在眼镜上确认（改走提词器）、前后台恢复、更多噪声和佩戴条件下的过滤稳定性、主动委托与中断恢复 |
-| R4 智记资料同步 | 55% | 真实智记正文及修订已同步并回读；月份选日同步及重复幂等真机通过（两天、无新增版本），取消提示已修 | 超 256KiB 正文已单条跳过不中止整批，上传仍需分块方案；自动增量、原音、权威删除及全天稳定 |
+便携包入口与跨电脑使用见 [cz-iot-cli 使用说明](tools/collab/workbuddy-package/README.md)。旧 `io-agent.mjs` 调用继续兼容，现有配对、会话和本机资料不因改名迁移。当前功能与装机版本以 [协作交接](docs/product/COLLABORATION-HANDOFF.md) 顶部为准，不在此重复维护旧进度百分比。
 
-已存三条资料、六个历史版本在本次覆盖升级前后保持；资料账本仍为 schema3。当前版本适合开发验证，8 小时日常验收尚未完成。此前合成路由测试没有启动真实电脑 Agent；本次已验证当前真实 Codex 对话的原任务口述继续，[本地记录](docs/product/眼镜语音验收记录-2026-10-22.md)与[证据](rebuild/android-app/current-codex-voice-2026-10-22.json)已留存。Hermes 原任务口述见[第一轮证据](rebuild/android-app/phone-hermes-original-task-2026-10-22.json)和[眼镜闭环证据](rebuild/android-app/phone-hermes-glasses-loop-2026-10-22.json)。测试凭据已撤销并核对失效。
+当前 Android 仍复用固定原厂宿主的登录、蓝牙、智记与待办能力；独立产品命名不等于这些依赖已经移除。Android 安装身份保留以支持原地更新，原厂内置页面与第三方来源说明按实际保留。
 
 先阅读 [协作交接](docs/product/COLLABORATION-HANDOFF.md)、[开发状态](docs/product/DEVELOPMENT-STATUS.md)、[开发计划](docs/product/DEVELOPMENT-PLAN.md) 和 [项目约定](AGENTS.md)。需求以 [PRD](docs/product/PRD.md) 为准，人工观察统一登记到 [验收清单](docs/product/USER-VERIFICATION-TODO.md)。
 
@@ -22,8 +18,8 @@
 | --- | --- |
 | `rebuild/android-app/src/com/turboio/addon/` | Android 业务、宿主适配、任务与资料运行时 |
 | `rebuild/android-app/upstream/` | 固定上游参考，保持只读；提交及文件摘要见同级来源锁 |
-| `tools/android/` | Windows 构建、签名、定向测试及受控设备诊断 |
-| `rebuild/agent-bridge/` | 电脑任务桥、问题 CLI、Hermes 适配与测试 |
+| `tools/android/` | Android 构建、签名、定向测试及受控设备诊断 |
+| `rebuild/agent-bridge/` | 电脑任务桥、cz-iot-cli、Agent 适配与测试 |
 | `rebuild/material-server/` | 资料及任务服务、查询接口、部署配置与测试 |
 | `docs/contracts/` | 共享协议与合成样例 |
 | `rebuild/harmony-sdk/` | 保留的鸿蒙工程与测试 |

@@ -9,7 +9,7 @@ final class AudioWorkspace {
   case "AUDIO_CREDENTIAL_EXPIRED":case "AUDIO_AUTH_REQUIRED":return "原音授权已到期或失效，请更新连接";case "AUDIO_SCOPE_REQUIRED":return "此连接未授权原音备份";
   case "AUDIO_MATERIAL_PAUSED":return "请先开启资料同步，再开启原音备份";case "AUDIO_SOURCE_TEXT_NOT_STORED":return "等待对应智记文字同步完成";
   case "AUDIO_SOURCE_TARGET_CHANGED":case "AUDIO_MATERIAL_CHANGED":return "原音与文字连接需要属于同一账号和资料空间，请核对设置";
-  case "OFFICIAL_ACCOUNT_CHANGED":case "AUDIO_ACCOUNT_REBIND_REFUSED":return "雷鸟账号已变化，请核对当前账号后重新登记";case "OFFICIAL_LOGIN_REQUIRED":case "OFFICIAL_LOGIN_UNAVAILABLE":return "请先完成雷鸟账号登录";
+  case "OFFICIAL_ACCOUNT_CHANGED":case "AUDIO_ACCOUNT_REBIND_REFUSED":return "原厂账号已变化，请核对当前账号后重新登记";case "OFFICIAL_LOGIN_REQUIRED":case "OFFICIAL_LOGIN_UNAVAILABLE":return "请先完成原厂账号登录";
   case "AUDIO_CONFIG_PENDING":case "AUDIO_CONFIG_CHANGED":case "AUDIO_CONFIG_SAVE_FAILED":return "连接保存尚未完成，备份已停止，请重新保存连接";
   case "AUDIO_CONNECTION_CHANGED":return "连接已更新，请刷新后再操作";
   case "AUDIO_KEY_UNAVAILABLE":case "AUDIO_CONFIG_INVALID":return "无法读取原音连接，请重新登记";
@@ -48,7 +48,7 @@ final class AudioWorkspace {
  private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[2048];int count;while((count=in.read(buffer))!=-1){if(out.size()+count>8192)throw new IOException("AUDIO_CONNECTION_INVALID");out.write(buffer,0,count);}return out.toByteArray();}}
  private static void configure(UiOwner parent){Activity activity=parent.activity;MaterialRuntime runtime=parent.runtime;UiOwner owner=new UiOwner(activity,"原音连接设置",parent.account,()->{if(parent.active())parent.refresh.run();},parent);AudioConnection[] candidate={null};android.net.Uri[] pending={null};
   owner.hide=()->{candidate[0]=null;};owner.clear=()->{candidate[0]=null;pending[0]=null;};
-  owner.refresh=()->owner.load(snapshot->{AgentUI.Screen screen=owner.screen;screen.body.removeAllViews();TextView info=AgentUI.text(activity,"选择单独授权的原音登记文件，使用与文字同步相同的资料空间。保存前会核对服务器原音权限并绑定当前雷鸟账号。",14,AgentUI.MUTED);screen.body.addView(info);long rendered=owner.epoch;
+  owner.refresh=()->owner.load(snapshot->{AgentUI.Screen screen=owner.screen;screen.body.removeAllViews();TextView info=AgentUI.text(activity,"选择单独授权的原音登记文件，使用与文字同步相同的资料空间。保存前会核对服务器原音权限并绑定当前原厂账号。",14,AgentUI.MUTED);screen.body.addView(info);long rendered=owner.epoch;
    java.util.function.Consumer<byte[]> preview=raw->{try{if(!owner.live(rendered)||!owner.verified)return;candidate[0]=AudioConnection.parse(raw,System.currentTimeMillis());info.setText(candidate[0].preview()+"\n授权至 "+time(candidate[0].expiresAt)+"\n尚未保存。");}catch(Exception invalid){candidate[0]=null;info.setText("原音登记文件无效或已到期，请重新提供。");}finally{Arrays.fill(raw,(byte)0);}};
    AgentUI.button(activity,screen.body,"选择原音登记文件",false,()->{if(!owner.active())return;TaskFilePicker.pick(activity,uri->{if(owner.closed)return;pending[0]=uri;if(!owner.suspended)owner.refresh.run();});});
    AgentUI.button(activity,screen.body,"读取电脑登记文件",false,()->{if(!owner.active())return;try{File internal=new File(activity.getFilesDir(),"connection-import/audio-connection.json"),external=activity.getExternalFilesDir(null),file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/audio-connection.json");if(file==null)throw new IOException();preview.accept(read(new FileInputStream(file)));}catch(Exception failure){candidate[0]=null;info.setText("未找到电脑提供的原音登记文件。");}});

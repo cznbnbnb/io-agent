@@ -16,6 +16,6 @@ function protect(dir,py){
 export function prepare(){const py=python();protect(path.dirname(device),py);protect(path.join(root,'.io-agent','sessions'),py);protect(path.join(root,'rebuild/agent-bridge/private'),py);return py;}
 async function main(){
  const [action,...args]=process.argv.slice(2);if(action!=='doctor'||args.length)throw Error('USAGE: node setup.mjs doctor');
- const py=prepare();console.log(JSON.stringify({node:process.version,recommended_node:'22.18+ (22.x)',python:py,next:'在真实 Agent 会话中执行 node io-agent.mjs pair，输入 topic 和 workspace。'},null,2));
+ const py=prepare();console.log(JSON.stringify({node:process.version,recommended_node:'22.18+ (22.x)',python:py,next:'在真实 Agent 会话中执行 node cz-iot-cli.mjs pair，输入 topic 和 workspace。'},null,2));
 }
 if(process.argv[1]&&fs.realpathSync(process.argv[1])===fileURLToPath(import.meta.url))main().catch(e=>{console.error(JSON.stringify({error:/^[A-Z0-9_ :<>|.a-z-]+$/.test(e.message??'')?e.message:'SETUP_FAILED'}));process.exitCode=1;});

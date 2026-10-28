@@ -1,9 +1,22 @@
-# iO Agent · WorkBuddy 试用包
+# cz-iot-cli
 
-每日智记 AI 总结已接入 `node io-agent.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。只读服务端已同步的每日总结，不读转写、音频或手机文件；空结果不代表当天没有活动。分页按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。只读服务端已同步的每日总结，不读转写、音频或手机文件；空结果不代表当天没有活动。分页按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
 需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴已接入同一确认流程，Windows 与 WorkBuddy 原会话仍需实际验证。
+
+## 正式命令名称
+
+解压后直接运行 `node cz-iot-cli.mjs help`，无需安装依赖。若想在任意目录直接使用 `cz-iot-cli`，可在解压目录执行一次：
+
+```sh
+npm install --global --offline --ignore-scripts .
+cz-iot-cli help
+```
+
+这只是从本地目录注册命令，不访问 npm 服务或安装第三方依赖。请保留解压目录。下文的 `node cz-iot-cli.mjs <命令>` 与安装后的 `cz-iot-cli <命令>` 用法相同。
+
+旧的 `node io-agent.mjs` 入口仍转到同一实现，已有 Agent 指令继续可用。改名沿用原来的电脑配对、会话路由和私有配置，不要求重扫二维码。`IO_AGENT_*` 环境变量、`io-agent-pair/1:` 配对格式和 `.turboio` 配置路径属于兼容接口，继续使用原值。
 
 ## 1. 电脑只配对一次
 
@@ -13,8 +26,8 @@
 
 | 命令 | JSON 输入 | 结果 |
 | --- | --- | --- |
-| `node io-agent.mjs pair` | `{"topic":"本次任务主题","workspace":"实际工作区路径或名称"}` | 返回二维码 HTML 路径、可复制配对字符串 |
-| `node io-agent.mjs pair-status` | `{}` | 手机确认后领取电脑授权；未确认则返回 waiting_for_phone |
+| `node cz-iot-cli.mjs pair` | `{"topic":"本次任务主题","workspace":"实际工作区路径或名称"}` | 返回二维码 HTML 路径、可复制配对字符串 |
+| `node cz-iot-cli.mjs pair-status` | `{}` | 手机确认后领取电脑授权；未确认则返回 waiting_for_phone |
 
 打开返回的 `qr_html` 文件。手机进入 **iO Agent → 设置 → 电脑连接 → 添加 Agent 会话**，任选一种方式：
 
@@ -23,7 +36,7 @@
 
 两种方式都先显示 Agent、工作区、主题、会话 ID。核对后点 **保存并绑定**，再让 WorkBuddy 执行 `pair-status` 和 `join`。配对信息 10 分钟内有效；配对成功后长期保留，访问凭据自动续期，不需要每天扫码。若生成后超时，重复 `pair` 生成新信息。
 
-二维码和字符串只用于批准这一次绑定。电脑持有的长期续期密钥不在其中；`.io-agent/` 和 `rebuild/agent-bridge/private/` 是私有状态，不再打包转发。服务器只授权当前会话的任务问答，不授予管理员权限。
+二维码和字符串只用于批准这一次绑定。电脑持有的长期续期密钥不在其中；`.io-agent/` 和 `rebuild/agent-bridge/private/` 是私有状态，不再打包转发。手机批准后，这台电脑的后续 CLI 会话可复用配对；每次问答仍绑定真实原会话，不授予管理员权限。
 
 ## 2. 交给 WorkBuddy
 
@@ -38,10 +51,10 @@
 
 | 命令 | 输入示例 |
 | --- | --- |
-| `node io-agent.mjs join` | `{"topic":"WorkBuddy 眼镜问答试用"}` |
-| `node io-agent.mjs config` | `{"glasses_progress":false}` |
-| `node io-agent.mjs ask` | 见下方 |
-| `node io-agent.mjs wait` | `{"request_id":"使用 ask 返回的 ID","wait_seconds":30}` |
+| `node cz-iot-cli.mjs join` | `{"topic":"WorkBuddy 眼镜问答试用"}` |
+| `node cz-iot-cli.mjs config` | `{"glasses_progress":false}` |
+| `node cz-iot-cli.mjs ask` | 见下方 |
+| `node cz-iot-cli.mjs wait` | `{"request_id":"使用 ask 返回的 ID","wait_seconds":30}` |
 
 电脑首次配对后运行 join。后续新会话复用同一电脑凭据，首次 ask / notify / checkpoint 会自动 join；也可先主动 join 设置主题。一次只发一道测试题。示例问答（`expires_at` 必须替换为实际未来 10 分钟内的 UTC 时间，最长一小时）：
 
@@ -62,9 +75,9 @@
 
 ## 原厂待办建议
 
-已配对电脑可使用 `node io-agent.mjs todo-add`，标准输入例如 `{"todo_key":"daily-2026-10-27-follow-up","content":"确认物料到货进度","source":"WorkBuddy"}`。它先向眼镜提出建议，用户确认后才由手机加入原厂待办。此命令及 `todo-status` 不需要当前聊天、`join` 或 Python，可用于已有的定时 Agent 任务。
+已配对电脑可使用 `node cz-iot-cli.mjs todo-add`，标准输入例如 `{"todo_key":"daily-2026-10-27-follow-up","content":"确认物料到货进度","source":"WorkBuddy"}`。它先向眼镜提出建议，用户确认后才由手机加入原厂待办。此命令及 `todo-status` 不需要当前聊天、`join` 或 Python，可用于已有的定时 Agent 任务。
 
-保存返回的 `proposal_id`，以 `node io-agent.mjs todo-status` 和 `{"proposal_id":"返回的标识"}` 查询。同一 `todo_key` 重试保持原内容；`pending_confirmation`、`shown`、`accepted`、`creating` 都不表示创建完成，仅 `native_created: true` 表示手机报告原厂创建成功。`unknown` 时先核对原厂待办，不自动重投。参数、状态及手机前置条件见 [原厂待办 CLI 说明](rebuild/agent-bridge/questions/NATIVE-TODOS.md)。
+保存返回的 `proposal_id`，以 `node cz-iot-cli.mjs todo-status` 和 `{"proposal_id":"返回的标识"}` 查询。同一 `todo_key` 重试保持原内容；`pending_confirmation`、`shown`、`accepted`、`creating` 都不表示创建完成，仅 `native_created: true` 表示手机报告原厂创建成功。`unknown` 时先核对原厂待办，不自动重投。参数、状态及手机前置条件见 [原厂待办 CLI 说明](rebuild/agent-bridge/questions/NATIVE-TODOS.md)。
 
 ## 当前边界
 
@@ -81,12 +94,12 @@
 
 ## 可选：ACP 受管会话连接器
 
-本包现包含 `node io-agent.mjs connector help`，电脑需使用 Node.js 22.18+。它通过显式配置的 ACP 子进程管理自己的会话；与上面给 WorkBuddy 原会话使用的问答 CLI 分开。不会替换桌面启动器，不接管已经打开的 Desktop 聊天。Claude/Codex 适配器需另行安装并固定版本；包内没有模型引擎或账号密钥。
+本包现包含 `node cz-iot-cli.mjs connector help`，电脑需使用 Node.js 22.18+。它通过显式配置的 ACP 子进程管理自己的会话；与上面给 WorkBuddy 原会话使用的问答 CLI 分开。不会替换桌面启动器，不接管已经打开的 Desktop 聊天。Claude/Codex 适配器需另行安装并固定版本；包内没有模型引擎或账号密钥。
 
 初始化（JSON 从标准输入传入）：
 
 ```sh
-node io-agent.mjs connector init --directory /absolute/private/connector
+node cz-iot-cli.mjs connector init --directory /absolute/private/connector
 ```
 
 ```json

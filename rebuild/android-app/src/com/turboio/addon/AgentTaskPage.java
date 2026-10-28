@@ -24,6 +24,8 @@ final class AgentTaskPage {
  private final EditText search;
  private final TaskLibrary library;
  private final SharedPreferences libraryPrefs;
+ private final Set<String> openGroups=new HashSet<>(),closedSearchGroups=new HashSet<>();
+ private final Map<String,Integer> groupLimits=new HashMap<>();
  private List<TaskPresentation.Row> visibleRows=Collections.emptyList();
  private boolean selecting,deletedOnly,resetScroll;
  private String query="",indexedFingerprint="";
@@ -44,9 +46,9 @@ final class AgentTaskPage {
   libraryPrefs=a.getSharedPreferences("io_agent_task_library_v1",Context.MODE_PRIVATE);
   library=new TaskLibrary(libraryPrefs.getStringSet("favorites",Collections.emptySet()),libraryPrefs.getStringSet("deleted",Collections.emptySet()));
   root=AgentUI.column(a);tools=AgentUI.column(a);tools.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,8),AgentUI.dp(a,16),0);root.addView(tools);
-  search=AgentUI.input(a);search.setSingleLine(true);search.setTextSize(14);search.setHint("搜索任务、回复或会话");search.setContentDescription("搜索任务、回复或会话");search.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,8),0);search.setInputType(InputType.TYPE_CLASS_TEXT);search.setGravity(Gravity.CENTER_VERTICAL|Gravity.START);search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+  search=AgentUI.input(a);search.setSingleLine(true);search.setTextSize(14);search.setHint("搜索任务、回复或工作区");search.setContentDescription("搜索任务、回复、会话或工作区");search.setPadding(AgentUI.dp(a,12),0,AgentUI.dp(a,8),0);search.setInputType(InputType.TYPE_CLASS_TEXT);search.setGravity(Gravity.CENTER_VERTICAL|Gravity.START);search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
   search.setOnEditorActionListener((v,action,event)->{if(action!=android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH)return false;hideKeyboard();return true;});
-  search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){query=s.toString();shown=PAGE;resetScroll=true;library.clearSelection();render();}public void afterTextChanged(Editable value){}});
+  search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){query=s.toString();closedSearchGroups.clear();groupLimits.clear();resetScroll=true;library.clearSelection();render();}public void afterTextChanged(Editable value){}});
   scroll=new ScrollView(a);scroll.setFillViewport(true);scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
   body=AgentUI.column(a);int side=AgentUI.dp(a,16);body.setPadding(side,AgentUI.dp(a,12),side,AgentUI.dp(a,20));scroll.addView(body);
   root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
@@ -64,7 +66,7 @@ final class AgentTaskPage {
  boolean back(){
   if(selecting){selecting=false;library.clearSelection();render();return true;}
   if(!query.isEmpty()){search.setText("");search.clearFocus();return true;}
-  if(deletedOnly){deletedOnly=false;filter="all";shown=PAGE;resetScroll=true;render();return true;}
+  if(deletedOnly){deletedOnly=false;filter="all";resetScroll=true;render();return true;}
   return false;
  }
  private void hideKeyboard(){((android.view.inputmethod.InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(),0);search.clearFocus();}
@@ -87,7 +89,7 @@ final class AgentTaskPage {
   if(tools.getChildCount()==0||selecting!=(tools.getTag()==Boolean.TRUE)){
    if(search.getParent()!=null)((android.view.ViewGroup)search.getParent()).removeView(search);tools.removeAllViews();tools.setTag(selecting?Boolean.TRUE:Boolean.FALSE);LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);tools.addView(row,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,48)));
    if(selecting){row.addView(MaterialReadingUI.bold(AgentUI.text(a,"",16,AgentUI.INK)),new LinearLayout.LayoutParams(0,-2,1));row.addView(tool("全选",this::selectAll));row.addView(tool("完成",()->{selecting=false;library.clearSelection();render();}));}
-   else{row.addView(search,new LinearLayout.LayoutParams(0,AgentUI.dp(a,44),1));row.addView(tool("选择",this::enterSelection));row.addView(tool("更多",()->AgentUI.alert(a).setTitle("任务管理").setItems(new String[]{deletedOnly?"返回任务列表":"已删除的任务"},(d,which)->{deletedOnly=!deletedOnly;filter="all";shown=PAGE;resetScroll=true;search.setText("");render();}).setNegativeButton("取消",null).show()));}
+   else{row.addView(search,new LinearLayout.LayoutParams(0,AgentUI.dp(a,44),1));row.addView(tool("选择",this::enterSelection));row.addView(tool("更多",()->AgentUI.alert(a).setTitle("任务管理").setItems(new String[]{deletedOnly?"返回任务列表":"已删除的任务"},(d,which)->{deletedOnly=!deletedOnly;filter="all";resetScroll=true;search.setText("");render();}).setNegativeButton("取消",null).show()));}
   }
   if(selecting){LinearLayout row=(LinearLayout)tools.getChildAt(0);((TextView)row.getChildAt(0)).setText("已选 "+library.selection().size()+" 条");TextView all=(TextView)row.getChildAt(1);all.setText(!visibleRows.isEmpty()&&library.selection().size()==visibleRows.size()?"取消全选":"全选");all.setContentDescription(all.getText());}
   footer.removeAllViews();
@@ -140,25 +142,43 @@ final class AgentTaskPage {
   if(presentation.questions.isEmpty()){LinearLayout empty=MaterialReadingUI.card(a,body,10);empty.setPadding(AgentUI.dp(a,16),AgentUI.dp(a,14),AgentUI.dp(a,16),AgentUI.dp(a,14));empty.addView(AgentUI.text(a,"暂无等待回复的问题",15,AgentUI.INK));AgentUI.gap(a,empty,4);empty.addView(AgentUI.text(a,snapshot.contexts.isEmpty()?"添加电脑连接后，Agent 的问题会出现在这里。":"Agent 提问时会出现在这里，也会推到眼镜上。",12,AgentUI.MUTED));}
   else{questionCard(body,presentation.questions.get(0));for(int i=1;i<presentation.questions.size();i++)questionLine(body,presentation.questions.get(i));}
   }
-  // Tasks: title, a separate scrollable filter row, then consistent list cards.
+  // Folder membership changes only presentation. Filtering and selection still cover every row.
+  List<TaskGroups.Group> groups=TaskGroups.collect(visibleRows,snapshot.directory);
+  // Tasks: title, a separate scrollable filter row, then collapsed workspace cards.
   LinearLayout bar=new LinearLayout(a);bar.setGravity(Gravity.CENTER_VERTICAL);bar.setPadding(0,AgentUI.dp(a,18),0,AgentUI.dp(a,8));bar.addView(MaterialReadingUI.bold(AgentUI.text(a,deletedOnly?"已删除":"任务记录",17,AgentUI.INK)),new LinearLayout.LayoutParams(0,-2,1));bar.addView(AgentUI.text(a,visibleRows.size()+" 条",12,AgentUI.MUTED));body.addView(bar);
   if(deletedOnly){TextView hint=AgentUI.text(a,"仅整理本机列表。选择记录后可恢复。",12,AgentUI.MUTED);hint.setPadding(0,0,0,AgentUI.dp(a,12));body.addView(hint);}
   else{HorizontalScrollView filters=new HorizontalScrollView(a);filters.setHorizontalScrollBarEnabled(false);LinearLayout pills=new LinearLayout(a);filters.addView(pills);
    String[] labels={"进行中","已完成","已过期","全部","收藏"},keys={"running","completed","expired","all","favorites"};
-   for(int i=0;i<keys.length;i++){final String selected=keys[i];boolean on=filter.equals(selected);TextView pill=tool(labels[i],()->{filter=selected;shown=PAGE;resetScroll=true;library.clearSelection();render();});pill.setTextSize(13);pill.setTextColor(on?MaterialReadingUI.ACCENT_SOFT:AgentUI.MUTED);if(on)MaterialReadingUI.bold(pill);pill.setBackground(MaterialReadingUI.pressable(a,on?MaterialReadingUI.fill(a,MaterialReadingUI.ACCENT_BG,12):null));pill.setSelected(on);pill.setContentDescription(labels[i]+(on?"，已选择":""));LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-2,AgentUI.dp(a,40));pp.rightMargin=AgentUI.dp(a,4);pills.addView(pill,pp);}
+   for(int i=0;i<keys.length;i++){final String selected=keys[i];boolean on=filter.equals(selected);TextView pill=tool(labels[i],()->{filter=selected;resetScroll=true;library.clearSelection();render();});pill.setTextSize(13);pill.setTextColor(on?MaterialReadingUI.ACCENT_SOFT:AgentUI.MUTED);if(on)MaterialReadingUI.bold(pill);pill.setBackground(MaterialReadingUI.pressable(a,on?MaterialReadingUI.fill(a,MaterialReadingUI.ACCENT_BG,12):null));pill.setSelected(on);pill.setContentDescription(labels[i]+(on?"，已选择":""));LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-2,AgentUI.dp(a,40));pp.rightMargin=AgentUI.dp(a,4);pills.addView(pill,pp);}
    body.addView(filters,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,48)));
   }
   List<TaskPresentation.Row> rows=visibleRows;
   if(rows.isEmpty()){TextView empty=AgentUI.text(a,deletedOnly?"没有已删除的任务":!query.trim().isEmpty()?"没有找到匹配的任务":"favorites".equals(filter)?"还没有收藏，打开任务即可收藏":"completed".equals(filter)?"还没有已完成的任务":"running".equals(filter)?"没有进行中的任务":"expired".equals(filter)?"没有已过期的任务":"暂无任务",14,AgentUI.MUTED);empty.setGravity(Gravity.CENTER);empty.setBackground(MaterialReadingUI.fill(a,MaterialReadingUI.CARD,16));body.addView(empty,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,96)));}
-  else{LinearLayout list=MaterialReadingUI.card(a,body,0);int limit=Math.min(rows.size(),shown);for(int i=0;i<limit;i++)taskRow(list,rows.get(i),i>0);
-   if(rows.size()>limit){TextView more=AgentUI.text(a,"再显示 "+Math.min(PAGE,rows.size()-limit)+" 个（共 "+rows.size()+" 个）",13,AgentUI.ACCENT);more.setGravity(Gravity.CENTER);more.setFocusable(true);more.setOnClickListener(v->{shown+=PAGE;render();});body.addView(more,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}}
-  if(!deletedOnly&&!selecting&&"running".equals(filter)){int done=library.filter("completed",query,false,false).size();if(done>0){TextView history=AgentUI.text(a,"已完成 "+done+" 个  ›",13,AgentUI.MUTED);history.setGravity(Gravity.CENTER);history.setFocusable(true);history.setOnClickListener(v->{filter="completed";shown=PAGE;resetScroll=true;render();});body.addView(history,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}}
+  else for(TaskGroups.Group group:groups)taskGroup(group);
+  if(!deletedOnly&&!selecting&&"running".equals(filter)){int done=library.filter("completed",query,false,false).size();if(done>0){TextView history=AgentUI.text(a,"已完成 "+done+" 个  ›",13,AgentUI.MUTED);history.setGravity(Gravity.CENTER);history.setFocusable(true);history.setOnClickListener(v->{filter="completed";resetScroll=true;render();});body.addView(history,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}}
   AgentUI.gap(a,body,10);TextView note=AgentUI.text(a,selecting?"全选包含当前筛选下的全部 "+visibleRows.size()+" 条任务。":"每个回复，都会回到发起它的原任务。",12,AgentUI.MUTED);note.setGravity(Gravity.CENTER);body.addView(note);
   create.setText("＋ 交给 Agent 一件事");
   scroll.post(()->{if(alive())scroll.scrollTo(0,position);});
   if(detail!=null&&detail.dialog.isShowing()){TaskPresentation.Row row=presentation.find(detailKey);if(row!=null)renderDetails(row);}
  }
- private static final int PAGE=30;private int shown=PAGE;
+ private static final int PAGE=30;
+ /** Collapsed by default; opening a folder allocates only its next page of task views. */
+ private void taskGroup(TaskGroups.Group group){Activity a=activity;
+  boolean searching=!query.trim().isEmpty(),open=searching?!closedSearchGroups.contains(group.key):openGroups.contains(group.key);
+  LinearLayout card=MaterialReadingUI.card(a,body,10),head=new LinearLayout(a);head.setGravity(Gravity.CENTER_VERTICAL);head.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,14),AgentUI.dp(a,12),AgentUI.dp(a,14));head.setBackground(MaterialReadingUI.pressable(a,null));
+  MaterialReadingUI.Glyph folder=MaterialReadingUI.glyph(a,head,"folder",MaterialReadingUI.ACCENT_SOFT,22);LinearLayout.LayoutParams fp=(LinearLayout.LayoutParams)folder.getLayoutParams();fp.rightMargin=AgentUI.dp(a,12);
+  LinearLayout text=AgentUI.column(a),top=new LinearLayout(a);top.setGravity(Gravity.CENTER_VERTICAL);top.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,group.title,16,AgentUI.INK,1)),new LinearLayout.LayoutParams(0,-2,1));TextView count=AgentUI.text(a,group.rows.size()+" 条",12,AgentUI.MUTED);count.setPadding(AgentUI.dp(a,8),0,AgentUI.dp(a,8),0);top.addView(count);text.addView(top);
+  String computer=group.entry==null?TaskPresentation.computerName(group.connection.computer):TaskTargetUI.computer(group.entry);
+  String location=group.workspace.isEmpty()?"目录未提供 · "+group.connection.project:group.workspace;
+  TextView where=MaterialReadingUI.line(a,computer+" · "+location,12,AgentUI.MUTED,1);where.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);where.setPadding(0,AgentUI.dp(a,5),0,0);text.addView(where);
+  int activeCount=0,selectedCount=0;for(TaskPresentation.Row row:group.rows){if(row.active()&&!presentation.expired(row))activeCount++;if(library.selected(row.key))selectedCount++;}
+  String summary=selecting?"已选 "+selectedCount+" / "+group.rows.size()+" 条":(activeCount>0?"进行中 "+activeCount+" 条 · ":"")+"最近活动 "+ago(group.latest);
+  TextView status=AgentUI.text(a,summary,12,selecting&&selectedCount>0?MaterialReadingUI.ACCENT_SOFT:AgentUI.MUTED);status.setPadding(0,AgentUI.dp(a,5),0,0);text.addView(status);head.addView(text,new LinearLayout.LayoutParams(0,-2,1));MaterialReadingUI.Glyph arrow=MaterialReadingUI.glyph(a,head,"down",AgentUI.MUTED,18);arrow.rotate(open?180:0);
+  head.setFocusable(true);head.setContentDescription(group.title+"，"+computer+"，"+location+"，"+group.rows.size()+" 条任务，"+summary+(open?"，收起工作区":"，展开工作区"));head.setOnClickListener(v->{if(searching){if(open)closedSearchGroups.add(group.key);else closedSearchGroups.remove(group.key);}else{if(open)openGroups.remove(group.key);else openGroups.add(group.key);}render();});card.addView(head);
+  if(!open)return;
+  int limit=Math.min(group.rows.size(),groupLimits.getOrDefault(group.key,PAGE));for(int i=0;i<limit;i++)taskRow(card,group.rows.get(i),true);
+  if(group.rows.size()>limit){TextView more=tool("再显示 "+Math.min(PAGE,group.rows.size()-limit)+" 条（共 "+group.rows.size()+" 条）",()->{groupLimits.put(group.key,limit+PAGE);render();});more.setTextColor(AgentUI.ACCENT);card.addView(more,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,44)));}
+ }
  private TextView link(String text,Runnable action){TextView view=AgentUI.text(activity,text,13,AgentUI.ACCENT);view.setPadding(0,AgentUI.dp(activity,10),0,AgentUI.dp(activity,10));view.setMinHeight(AgentUI.dp(activity,44));view.setGravity(Gravity.CENTER_VERTICAL);view.setFocusable(true);view.setOnClickListener(v->action.run());return view;}
  private static String ago(long time){if(time<=0)return "";long minutes=(System.currentTimeMillis()-time)/60000;if(minutes<1)return "刚刚";if(minutes<60)return minutes+" 分钟前";java.time.ZonedDateTime at=java.time.Instant.ofEpochMilli(time).atZone(java.time.ZoneId.systemDefault());if(at.toLocalDate().equals(java.time.LocalDate.now()))return String.format(Locale.ROOT,"%02d:%02d",at.getHour(),at.getMinute());return at.getMonthValue()+"月"+at.getDayOfMonth()+"日";}
  private static long stamp(Object value){try{return TaskWire.stamp(value);}catch(RuntimeException invalid){return 0;}}
