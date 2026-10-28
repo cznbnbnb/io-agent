@@ -190,7 +190,7 @@ final class AgentTaskPage {
   LinearLayout who=new LinearLayout(activity);who.setGravity(Gravity.CENTER_VERTICAL);MaterialReadingUI.chip(activity,who,agent,tint[0],tint[1]).setLayoutParams(new LinearLayout.LayoutParams(-2,AgentUI.dp(activity,22)));
   TextView machine=MaterialReadingUI.line(activity,(entry==null?TaskPresentation.computerName(link.computer):TaskTargetUI.computer(entry))+(entry==null?"":" · "+TaskTones.kind(entry.workspace,entry.label)),13,AgentUI.MUTED,1);machine.setPadding(AgentUI.dp(activity,8),0,0,0);who.addView(machine,new LinearLayout.LayoutParams(0,-2,1));content.addView(who);
   String session=link.session.length()>6?link.session.substring(0,6):link.session;
-  TextView where=MaterialReadingUI.line(activity,"会话 · "+(entry==null||entry.label.isEmpty()?session:entry.label+" · "+session),12,AgentUI.MUTED,1);where.setPadding(0,AgentUI.dp(activity,6),0,0);content.addView(where);
+  TextView where=MaterialReadingUI.line(activity,entry==null?"会话 · "+session:TaskPresentation.sessionName(entry.label,TaskPresentation.agentName(link.agent))+" · "+TaskPresentation.folder(entry.workspace),12,AgentUI.MUTED,1);where.setPadding(0,AgentUI.dp(activity,6),0,0);content.addView(where);
   AgentUI.gap(activity,content,14);full(content,row.command(),20);
   int stopStep=TaskWire.set("stop_requested","stop_unconfirmed").contains(row.state)?1:"stopped".equals(row.state)?2:"resume_requested".equals(row.state)?3:0;
   LinearLayout status=AgentUI.card(activity,content);TaskPresentation.Tone tone=presentation.tone(row);int[] color=TaskTones.status(tone);

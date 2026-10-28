@@ -22,9 +22,10 @@ final class TaskTargetUI {
   static Target of(TaskSessionDirectory.Entry e,long elapsed){
    String gate=e.gate(elapsed);
    int tone=!gate.isEmpty()?MaterialReadingUI.DIM:Boolean.FALSE.equals(e.busy)?MaterialReadingUI.ACCENT_SOFT:MaterialReadingUI.AMBER;
-   return new Target("codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent",computer(e),e.label.isEmpty()?shortPath(e.workspace):e.label,shortPath(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone,TaskTones.kind(e.workspace,e.label));
+   String agent="codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent";
+   return new Target(agent,computer(e),TaskPresentation.sessionName(e.label,agent),TaskPresentation.folder(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone,TaskTones.kind(e.workspace,e.label));
   }
-  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),shortPath(c.project),shortPath(c.project),c.session,"状态待更新",MaterialReadingUI.DIM,"");}
+  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),c.project,c.project,c.session,"状态待更新",MaterialReadingUI.DIM,"");}
  }
  /** The directory carries no machine name, only an opaque computer id; the workspace's home folder tells the
   * wearer which machine it is ("Mac · alice"). Falls back to a short id. */
@@ -60,16 +61,17 @@ final class TaskTargetUI {
   if(!t.kind.isEmpty()){LinearLayout.LayoutParams kp=new LinearLayout.LayoutParams(-2,dp(a,20));kp.leftMargin=dp(a,8);int[] tint=TaskTones.agent(t.agent);MaterialReadingUI.chip(a,top,t.kind,tint[0],tint[1]).setLayoutParams(kp);}
   if(isDefault){LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-2,dp(a,20));cp.leftMargin=dp(a,8);TextView chip=MaterialReadingUI.chip(a,top,"默认",MaterialReadingUI.ACCENT_SOFT,MaterialReadingUI.ACCENT_BG);chip.setLayoutParams(cp);}
   top.addView(new View(a),new LinearLayout.LayoutParams(0,1,1));
-  TextView status=MaterialReadingUI.line(a,t.status,12,t.tone==MaterialReadingUI.DIM?AgentUI.MUTED:t.tone,1);status.setPadding(dp(a,8),0,0,0);top.addView(status);
   if(selected){View gap=new View(a);top.addView(gap,new LinearLayout.LayoutParams(dp(a,6),1));MaterialReadingUI.glyph(a,top,"check",MaterialReadingUI.ACCENT_SOFT,18);}
   if(action!=null)actionLabel(a,top,action);
+  // The session's own name is what the wearer recognises; the folder and machine say where it runs. Opaque ids stay in details.
   int indent=dp(a,16);
-  if(showComputer){TextView machine=MaterialReadingUI.line(a,"电脑 · "+t.computer,13,MaterialReadingUI.SOFT,1);machine.setPadding(indent,dp(a,6),0,0);card.addView(machine);}
-  String shortSession=t.session.length()>6?t.session.substring(0,6):t.session;
-  TextView session=MaterialReadingUI.line(a,"会话 · "+t.title+" · "+shortSession,12,AgentUI.MUTED,1);session.setEllipsize(TextUtils.TruncateAt.MIDDLE);session.setPadding(indent,dp(a,showComputer?3:5),0,0);card.addView(session);
+  TextView name=MaterialReadingUI.line(a,t.title,15,AgentUI.INK,1);name.setPadding(indent,dp(a,7),0,0);card.addView(name);
+  LinearLayout where=row(a);where.setPadding(indent,dp(a,4),0,0);
+  where.addView(MaterialReadingUI.line(a,t.status,12,t.tone==MaterialReadingUI.DIM?AgentUI.MUTED:t.tone,1));
+  TextView place=MaterialReadingUI.line(a,"  ·  "+t.workspace+(showComputer?" · "+t.computer:""),12,AgentUI.MUTED,1);place.setEllipsize(TextUtils.TruncateAt.MIDDLE);where.addView(place,new LinearLayout.LayoutParams(0,-2,1));card.addView(where);
   if(topic!=null&&!topic.isEmpty()){TextView last=MaterialReadingUI.line(a,"最近："+topic,12,AgentUI.MUTED,1);last.setPadding(indent,dp(a,3),0,0);card.addView(last);}
   if(note!=null&&!note.isEmpty()){TextView n=MaterialReadingUI.line(a,note,12,MaterialReadingUI.AMBER,2);n.setPadding(indent,dp(a,6),0,0);card.addView(n);}
-  card.setContentDescription(t.agent+"，电脑 "+t.computer+"，会话 "+t.title+"，"+t.status+(isDefault?"，默认":"")+(selected?"，已选":""));
+  card.setContentDescription(t.agent+"，"+t.title+"，目录 "+t.workspace+"，电脑 "+t.computer+"，"+t.status+(isDefault?"，默认":"")+(selected?"，已选":""));
  }
 
  /** Bottom sheet listing every session. Choosing one dismisses the sheet and hands the entry back. */

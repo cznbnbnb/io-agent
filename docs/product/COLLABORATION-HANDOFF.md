@@ -1,3 +1,10 @@
+## [claude] 2026-10-28 会话卡片改成「名称 + 目录」，去掉十六进制短 ID（仅源码，未出包）
+
+- 用户反馈：选择器 / 连接页里的「会话 · Codex · 手机工作区 · 85ddd5」看不出谁是谁。
+- `TaskTargetUI.bind`：第一行 Agent + 类型色块 + 默认；第二行是会话名（join 时的 topic；只重复 Agent 与「手机工作区」的标签显示为「手机专用会话」）；第三行是状态 + 项目目录（`rayneo-io-agent` / `iO Agent/Claude`）。十六进制 ID 只留在连接详情页。
+- 任务详情头部的会话行同样改为「会话名 · 目录」。纯函数 `TaskPresentation.sessionName/folder` 有单测（presentation 77 通过），`build.mjs --compile-only` 通过。
+- Codex 持锁出 dev143 期间不出包、不改版本号；锁空后由 Claude 合并 dev143 再出 dev144。
+
 ## [claude] 2026-10-28 dev142：任务状态色块与「已过期」；连接页重排；Claude 会话不再因切目录掉线（已装机，回退 dev141）
 
 - 手机任务页：筛选改为 进行中 / 已完成 / 已过期 / 全部，状态与 Agent 都有色块（`TaskTones`）。原会话在目录里已离线、且 10 分钟没有更新的未完成任务，归为「已过期 · 原会话已离线」（`TaskPresentation.orphaned`）；越过自身 `expires_at` 的也算过期。

@@ -114,6 +114,13 @@ final class TaskPresentation {
  /** Wire ids read as product names: io-claude-code → Claude Code, generated computer ids shortened. */
  static String agentName(String id){String s=id.toLowerCase(Locale.ROOT);return s.contains("codex")?"Codex":s.contains("claude")?"Claude Code":id;}
  static String computerName(String id){return id.startsWith("computer-")?"电脑 "+shortComputer(id):id;}
+ /** What tells two sessions apart for a person: the name given at join, unless it only repeats the Agent and kind. */
+ static String sessionName(String label,String agent){String l=label==null?"":label.trim();return l.isEmpty()||l.equals(agent)||l.matches(".*·\\s*手机工作区")?"手机专用会话":l;}
+ /** The project folder, kept short: its own name, plus the parent only when that is a managed "iO Agent" folder. */
+ static String folder(String workspace){
+  List<String> parts=new ArrayList<>();for(String p:workspace.replace('\\','/').split("/"))if(!p.isEmpty())parts.add(p);
+  if(parts.isEmpty())return workspace;int n=parts.size();return n>1&&parts.get(n-2).equals("iO Agent")?"iO Agent/"+parts.get(n-1):parts.get(n-1);
+ }
  static String shortComputer(String id){String s=id.replaceFirst("^computer-","");return s.length()>6?s.substring(0,6):s;}
  private static Map<String,Object> latestControl(List<Object> pending,Map<String,Object> task){
   for(int i=pending.size()-1;i>=0;i--){Map<String,Object> local=WireJson.map(pending.get(i)),event=event(local),body=TaskWire.body(event);
