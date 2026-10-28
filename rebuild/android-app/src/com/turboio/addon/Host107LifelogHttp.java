@@ -3,7 +3,7 @@ import android.content.Context;import android.os.SystemClock;
 import java.io.*;import java.net.*;import java.lang.reflect.*;import java.nio.charset.StandardCharsets;import java.security.MessageDigest;import java.util.*;import java.util.zip.*;import javax.net.ssl.HttpsURLConnection;
 import java.util.concurrent.*;import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Fixed 1.0.7 host adapter. Only read day lists and account-owned full events.
+/** Fixed 1.0.7 host adapter for account-owned lifelog reads and typed task creation.
  * All vendor class names, signing-input offsets and account credentials stay here
  * or in Host107Login. Business code receives JSON bytes, never credentials. */
 final class Host107LifelogHttp implements OfficialLifelogRefresh.Transport,OfficialLifelogDiscovery.Transport,AutoCloseable {

@@ -1,3 +1,12 @@
+## [codex] 2026-10-27 dev145：点头线程错误已修，原厂创建/读回与手机预览通过
+
+已快进合Claude e0bf58b/dev144，保留会话名称/目录UI。真实dev144首轮点头显示操作失败，日志为OTA_THREAD：NativeTodoRuntime.observe在I/O线程调用只能主线程读取的Host107Ota.link，失败发生在记录接受和原厂创建之前；旧异常清理还取消了超时却留下SHOWN。现主线程取得连接快照后交I/O处理，异常通过failShown正常结束。dev145/10567已用1,932,072字节差异装机，基线/重建/现装完整SHA核对，回退144，仅保145/144。
+
+- **真实结果**：旧建议81a3…5e39在重启后failed/TODO_DISPLAY_INTERRUPTED，未写原厂。第二次建议6691…d8f5实际收到ACCEPTED，原厂返回ID `301446545736830977`，CLI状态created。用户确认镜片显示成功，但表示原厂清单未看到；不能把此反馈改写成整个清单验收通过。
+- **原厂回读**：自有小型只读驱动在手机内复用原厂登录，固定GET `/action/api/v2/tasks`、当前accountId与sources=rayneoTasks，实际读回相同ID/内容且仅一条，source正确、completed=false。只输出本次测试项/字段名，不导出凭据或其他待办内容。手机原厂“眼镜→看板→看板设置/看板预览”第一行已实际发现测试项。用户还需澄清刚才查看的是眼镜清单还是手机待办页，A27-T01仍开放；没有据日志宣称镜片待办可见。
+- **回归**：真实NativeTodoRuntime/Session/Create/Host107Ota主线程保护的131项定向断言通过；临时恢复旧I/O调用明确检出OTA_THREAD，恢复旧release清理明确检出SHOWN且无超时。27项会话检查及Java/D8/原厂dex/签名通过；未重复全量无关测试。子代理只做测试与本地静态调查，未碰设备。原厂pending和眼镜筛选不依赖dueDate/starred/sourceType/sourceId，不为显示改创建字段；原厂EventSink onMessage与microsoftTodo.refresh入口已静态核对。
+- **收尾**：只读驱动已卸载、设备报告/差异包/重建APK清理，保留这条测试待办供用户核对；正式配对、两条受管服务和默认不动，未改CLI/服务器或重新打包未变化的便携包。进度watch已关闭。旧未跟踪Delegate/DS_Store材料保留，3份Java构建暂移后逐字恢复，未纳包/提交。[本批证据](../../rebuild/android-app/native-todo-dev145-2026-10-27.json)。下一步先完成A27-T01眼镜清单核对，再接用户已有日常检查任务；不自动创建日程。
+
 ## [claude] 2026-10-28 dev144：会话卡片改成「名称 + 目录」，去掉十六进制短 ID（已装机，回退 dev143）
 
 - 用户反馈：选择器 / 连接页里的「会话 · Codex · 手机工作区 · 85ddd5」看不出谁是谁。

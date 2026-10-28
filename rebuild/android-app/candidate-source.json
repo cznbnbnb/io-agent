@@ -526,7 +526,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107LifelogHttp.java",
-      "sha256": "245fb921eb2baed66f10055cf09fff4b2799f279745ccbf788f466a0420ef306"
+      "sha256": "24bbfc1085b0ac3fdca5fbc4e541eb970fc0da8ddf45cce9fb7d9fb18591891c"
     },
     {
       "path": "src/com/turboio/addon/Host107Login.java",
@@ -778,7 +778,7 @@
     },
     {
       "path": "src/com/turboio/addon/NativeTodoRuntime.java",
-      "sha256": "e12fe3c58bf54f381e770174ce138e168a4b9db12400403e8a70569b277014c3"
+      "sha256": "8887780501ab4fe46c2261b94b9742355458f3ffffec8825be85119147d31cdc"
     },
     {
       "path": "src/com/turboio/addon/NativeTodoSession.java",
@@ -1042,11 +1042,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "15b3db55a1f96f43432f892b4128805978cb3d478446b881adf8e7c6731b5fd0"
+      "sha256": "4663e5d581cfc9e4b0ebf378b36687711a2945776afa9f24d60a68ab97498ee0"
     }
   ],
-  "product_sha256": "1bea49aabb6e275832d34e224fdd2d55cbbb2e466aad0fdf3dadba791794f052",
-  "addon_sha256": "8fb344ec634dc1d16d721c69ee59c4657dedc49dd4eb570214ca0448a1f85b42",
+  "product_sha256": "7d8e9054d52144762f5bb3940200268b9fc015f746ffbfe97556080560d2f18f",
+  "addon_sha256": "c1a7b717479ddcfd8d7bfe6da27b8fcea340403b480a2303fa4d1a235aea23f5",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

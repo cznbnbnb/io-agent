@@ -65,8 +65,8 @@ final class NativeTodoRuntime {
   boolean own=business==21&&NativeTodoSession.owns(bytes);NativeTodoRuntime r=instance;if(r==null||!own&&business!=9)return own;
   if(peer==null||peer.isEmpty())return own;
   if(business==9)r.main.post(()->{if(r.preflight!=null)r.preflight.receive(peer,r.link.generation,9,bytes,SystemClock.elapsedRealtime());});
-  else r.io.execute(()->{try{Fixed60Session.Link current=Host107Ota.link();if(r.session.operate(peer,current.generation,bytes,System.currentTimeMillis())){r.main.post(()->{r.main.removeCallbacks(r.timeout);TaskAttention.hold(r.lease,60000);});r.finishDecision();}}
-   catch(Exception failed){android.util.Log.w("TurboIOTodo","todo decision "+TaskApi.safeError(failed));r.main.post(r::release);}});
+  else r.main.post(()->{Fixed60Session.Link current=Host107Ota.link();r.io.execute(()->{try{if(r.session.operate(peer,current.generation,bytes,System.currentTimeMillis())){android.util.Log.i("TurboIOTodo","todo action "+r.session.phase());r.main.post(()->{r.main.removeCallbacks(r.timeout);TaskAttention.hold(r.lease,60000);});r.finishDecision();}}
+   catch(Exception failed){android.util.Log.w("TurboIOTodo","todo decision "+TaskApi.safeError(failed));r.main.post(()->r.failShown("TODO_ACTION_FAILED"));}});});
   return own;
  }
  private void finishDecision()throws Exception{

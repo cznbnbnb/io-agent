@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:50:18.927040+00:00",
+  "user_date": "2026-10-27",
+  "scope": "Fix actual main-thread failure on native todo acceptance; real original task created and read back, stock phone preview present; physical glasses-list display remains pending",
+  "merged_claude_commit": "e0bf58b",
+  "first_attempt": {
+    "proposal_id": "todo-81a3bba2ac18963799143a204806bd665791112b32926192d5ddbe0ef7965e39",
+    "installed_version": "dev144",
+    "user_report": "点头之后显示操作失败",
+    "native_log": "10-28 12:33:16.834 W TurboIOTodo: todo decision OTA_THREAD",
+    "state_before_upgrade": "shown",
+    "native_write_reached": false,
+    "final_status": {
+      "schema_version": "1.0",
+      "proposal_id": "todo-81a3bba2ac18963799143a204806bd665791112b32926192d5ddbe0ef7965e39",
+      "content": "测试待办：CLI 接入验证",
+      "source": "Codex",
+      "state": "failed",
+      "expires_at": "2026-10-28T04:47:58.136Z",
+      "native_id": null,
+      "error": "TODO_DISPLAY_INTERRUPTED",
+      "native_created": false,
+      "glasses_display_confirmed": false
+    }
+  },
+  "fix": {
+    "original_link_read_on_main": true,
+    "http_and_persistence_on_io": true,
+    "failed_shown_terminates_instead_of_cancelling_timeout_and_stranding_state": true
+  },
+  "installation": {
+    "version": "0.5.3-dev145",
+    "version_code": 10567,
+    "sha256": "de18b0dcdf621c3989fb49d200c8a5f4eb0ebc13b606b79f5f75001dd972dfc6",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "baseline_sha256": "0789138c6205b2b6b5950424b2052cbfe4a13dca0ec709c30d6c65fcd50a60af",
+    "delta_bytes": 1932072,
+    "delta_sha256": "3853965b32489ab021fbf780aa181cbe5f2c1d9c3a3ced811f0c43da4133f00b",
+    "baseline_reconstructed_installed_sha_verified": true,
+    "installed": true,
+    "data_cleared": false,
+    "rollback": "dev144"
+  },
+  "second_attempt": {
+    "proposal_id": "todo-66916f213671fee6bf2b0ab7579c678f05193c6e92dd29f9de3f4853bed1d8f5",
+    "native_log": "10-28 12:36:53.755 I TurboIOTodo: todo action ACCEPTED",
+    "status": {
+      "schema_version": "1.0",
+      "proposal_id": "todo-66916f213671fee6bf2b0ab7579c678f05193c6e92dd29f9de3f4853bed1d8f5",
+      "content": "测试待办：CLI 接入验证",
+      "source": "Codex",
+      "state": "created",
+      "expires_at": "2026-10-28T04:46:46.215Z",
+      "native_id": "301446545736830977",
+      "error": null,
+      "native_created": true,
+      "glasses_display_confirmed": false
+    },
+    "user_report": "显示成功，但却没在原厂的待办清单中看到",
+    "user_confirmed_suggestion_success": true,
+    "physical_glasses_list_confirmed": false
+  },
+  "official_list_readback": {
+    "schema": 1,
+    "probe_id": "e5a10d261081f58b77f9f62c8ac93fd0",
+    "read_only": true,
+    "network_requests": 1,
+    "native_id": "301446545736830977",
+    "unrelated_content_exported": false,
+    "reads": [
+      {
+        "path": "/action/api/v2/tasks",
+        "matching_id_count": 1,
+        "matching_test_content_count": 1,
+        "code": 0,
+        "data_kind": "object",
+        "data_field_names": [
+          "pending",
+          "completed",
+          "pendingCount",
+          "completedCount"
+        ],
+        "matching_field_names": [
+          "id",
+          "content",
+          "description",
+          "priority",
+          "starred",
+          "completed",
+          "sourceType",
+          "sourceId",
+          "createTime",
+          "updateTime",
+          "completedAt",
+          "clientUpdateTime",
+          "clientId",
+          "source",
+          "listId",
+          "dueDate",
+          "dueTimeZone",
+          "completedTask"
+        ],
+        "content_matches": true,
+        "source": "rayneoTasks",
+        "completed": false,
+        "due_date_set": false,
+        "read_complete": true
+      }
+    ]
+  },
+  "stock_phone_preview": {
+    "at": "2026-10-28T04:46:03.819519+00:00",
+    "screen": "原厂看板设置/看板预览",
+    "native_test_task_present": true,
+    "semantic_match_count": 1,
+    "original_app": true,
+    "other_task_content_exported": false
+  },
+  "tests": {
+    "native_session_checks": 27,
+    "actual_runtime_thread_checks": {
+      "schema": 1,
+      "at": "2026-10-28T04:37:23.499Z",
+      "scope": "Real NativeTodoRuntime observer/decision/report callbacks, durable session/create boundary and original Host107Ota thread guard; synthetic Android scheduling and account/native/HTTP boundaries",
+      "device": false,
+      "network": false,
+      "official_write_executed": false,
+      "passed": true,
+      "checks": 131,
+      "old_io_link_regression_detected": true,
+      "old_io_link_failure": "Exception in thread \"main\" java.lang.AssertionError: TODO_DECISION_MAIN_LINK: original Host107Ota.link was not acquired on main; [todo decision OTA_THREAD]",
+      "old_release_stranded_shown_detected": true,
+      "old_release_failure": "Exception in thread \"main\" java.lang.AssertionError: TODO_DECISION_TERMINAL: phase=SHOWN, timeout_pending=false",
+      "sources": [
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/NativeTodoRuntime.java",
+          "sha256": "8887780501ab4fe46c2261b94b9742355458f3ffffec8825be85119147d31cdc"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/NativeTodoSession.java",
+          "sha256": "fef1a3dd09522efd1d989b21f85e7c7b794dd08bbc91ccbcbcc7ba3d3c3c7240"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/Host107Ota.java",
+          "sha256": "263aaec31bb45b27d6837da8777fa2800c284eac5c373db90916577e640a31f6"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/OfficialTodoCreate.java",
+          "sha256": "b456ce1d973e05b1f524aca0f6948928a4bc5ed14b298bf7b56341afb6975c68"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/OfficialLifelogJson.java",
+          "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/AtomicDocument.java",
+          "sha256": "fc44f361dfe5bc26429f6d9786854e15a6e6360727596cfbbc2a78ef4e577ed0"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/WireJson.java",
+          "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/TaskWire.java",
+          "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
+        },
+        {
+          "path": "rebuild/android-app/src/com/turboio/addon/TaskConnection.java",
+          "sha256": "fd7c141cc893999ff771b16d3edd3a56fc9a7e9e4594094c12a718c5f15c0746"
+        },
+        {
+          "path": "rebuild/android-app/upstream/android-addon/src/com/turboio/addon/OtaFrame.java",
+          "sha256": "0c9ba87bfae10c6bd5cdbdebb05c698c0f9bb5b36dc45be96a88e4bca266f62c"
+        },
+        {
+          "path": "rebuild/android-app/upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+          "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+        },
+        {
+          "path": "tools/android/NativeTodoRuntimeTest.java",
+          "sha256": "0e05082437a3be92889d86f6d85f7b738fb4a8106886d49032e61dae8afcf29b"
+        },
+        {
+          "path": "tools/android/test-native-todo-runtime.mjs",
+          "sha256": "a785f81de1960f9b42948a80b009aa1684f7b3ddde7a9c875728e13e0bf3bbad"
+        }
+      ],
+      "temporary_fixture_removed": true
+    },
+    "compile_d8_stock_dex_signature_audit_passed": true
+  },
+  "cleanup": {
+    "only_installed_145_and_rollback_144_retained": true,
+    "known_old_143_sha_verified_before_removal": true,
+    "read_only_diagnostic_driver_uninstalled": true,
+    "device_probe_and_delta_files_removed": true,
+    "temporary_test_classes_removed": true,
+    "actual_test_todo_retained": true,
+    "formal_pairings_services_default_preserved": true,
+    "progress_watch_disabled": true
+  },
+  "remaining_manual_item": "A27-T01: user to clarify which stock list was missing, then confirm physical glasses-list visibility",
+  "native_source_sha256": {
+    "NativeTodoRuntime.java": "8887780501ab4fe46c2261b94b9742355458f3ffffec8825be85119147d31cdc",
+    "Host107LifelogHttp.java": "24bbfc1085b0ac3fdca5fbc4e541eb970fc0da8ddf45cce9fb7d9fb18591891c",
+    "Host107Todo.java": "c1c76bfde4212ffe6c613527583b7d8692be6f51309b947c16a9b0c216ee1355"
+  }
+}
