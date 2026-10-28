@@ -1,3 +1,9 @@
+## [codex] 2026-10-27 同会话入口交付副本核对完成（源码8054ec7）
+
+固定运行副本的8份功能源文件已按8054ec7逐文件核对，正式Codex连接器正常停止/启动后仍为同native会话，实际CLI help及IOSHARED-1027上下文自检再次完成。两条正式服务在线可执行，默认revision18保持。便携ZIP同路径已重打包：177,761字节、47文件，SHA `c1684d05ac0b99c215f4126595f6560f9e88d0a4744044a9379c159ecd8ca196`；manifest固定8054ec7，完整闭包包含Desktop profile JSON，逐项hash与独立解压help/connector help通过，不含凭据。
+
+本条只补交付来源与重启证据，并将重复轮询压缩为实际状态变化，功能源码未再改变。详见[交付证据](../../rebuild/agent-bridge/hosts/codex-desktop-shared-proof-2026-10-27.json)。进度checkpoint完成后关闭本批看守并释放锁；正式服务/配对/默认继续保留。下一项建议接入其他用户选定的日常Codex聊天，原生窗口日常体验由A27-S05/S06继续自然观察。
+
 ## [codex] 2026-10-27 原生Codex同会话入口已接通：排队、隐藏CLI上下文与语音回传
 
 用户明确保留原生会话框、忙时可以排队，不用网页聊天。正式85ddd5沿用原native `01a17d09-d939-78b1-ac2e-d601a8f7a544`（连接自检与回执），停止闲置Codex ACP进程后由原桌面持有者执行；连接器只做follower IPC与耐久队列。`connector.json`显式`control_mode:desktop`，原`acp.json`及配置备份保留，默认revision18不变，Claude正式服务继续运行。没有修改全局启动变量、App包或手机dev139；未提交voice7/DS_Store候选。

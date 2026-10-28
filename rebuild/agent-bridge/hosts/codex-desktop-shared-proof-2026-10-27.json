@@ -99,279 +99,6 @@
         ]
       },
       {
-        "at": "2026-10-28T01:44:30.686Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:31.758Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:32.865Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:33.928Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:34.981Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:36.039Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:37.094Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:38.209Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:39.927Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:41.002Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:42.050Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:43.122Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:44.212Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:45.292Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:46.348Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:47.422Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:48.539Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:49.653Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:50.787Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:51.886Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:52.945Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "agent_received"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
         "at": "2026-10-28T01:44:54.004Z",
         "states": [
           {
@@ -398,46 +125,7 @@
         ]
       },
       {
-        "at": "2026-10-28T01:44:56.113Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "completed"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "agent_received"
-          }
-        ]
-      },
-      {
         "at": "2026-10-28T01:44:57.218Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "completed"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "running"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:58.309Z",
-        "states": [
-          {
-            "id": "codex-shared-queue-1-8c9cd8fc",
-            "state": "completed"
-          },
-          {
-            "id": "codex-shared-queue-2-3596b2e1",
-            "state": "running"
-          }
-        ]
-      },
-      {
-        "at": "2026-10-28T01:44:59.422Z",
         "states": [
           {
             "id": "codex-shared-queue-1-8c9cd8fc",
@@ -693,5 +381,101 @@
       "passed": 5,
       "sha256": "d39c86425fed3a4f1973981e4824ace6070cbb5914ae9c2a59babbece64725e1"
     }
+  },
+  "deployment": {
+    "source_commit": "8054ec7c119bf259804cfef34114f1510362df60",
+    "files": {
+      "rebuild/agent-bridge/connector.mjs": "0ae8daa089413bc7d5ed6621a9f0da5e1bcd2cfb8889aa573cf8b48efdd6cb25",
+      "rebuild/agent-bridge/hosts/codex-desktop.mjs": "a8401c7e0d0a8b29d460c037f2d062eb68ac55c5b3b8a6cd6ad493d5b4383808",
+      "rebuild/agent-bridge/hosts/codex-desktop-shared.mjs": "6fc6eb01cf412f6dbb6183aa85483afc5e6eaf3f5b9612971d77d63fa4907f84",
+      "rebuild/agent-bridge/hosts/codex-desktop-profile.json": "4fa7de1447e3279a31180a1146922bb960f52590c16071c98297cfd5880a03c5",
+      "rebuild/agent-bridge/hosts/native-config.mjs": "ff305b1b80f5a906872de196c19f91f8eee5288aa097c2550d9bb2b523539edb",
+      "rebuild/agent-bridge/hosts/native-runtime.mjs": "0c202c3c5a1bf84be66f275f1a0fc117b55f376a503ef92bdf9989e84cf3592e",
+      "rebuild/agent-bridge/hosts/session-control.mjs": "6eac25e461e9b71bb2fd5d5bdcc2177f39f2703d3930da725ac6361f37c5e39d",
+      "rebuild/agent-bridge/questions/managed-cli.mjs": "53d8c486cbfcc10cb951c4fc08f663f7fd7e332d81738474165b9d16bb380908"
+    },
+    "stop": {
+      "stopped": true,
+      "automatic_start": false,
+      "profile_preserved": true,
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+    },
+    "start": {
+      "installed": true,
+      "loaded": true,
+      "running": false,
+      "pid": 79332,
+      "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30",
+      "label": "Codex · 手机工作区",
+      "automatic_start": true,
+      "note": "Service process state only; phone execution readiness comes from the server session directory."
+    }
+  },
+  "post_restart": {
+    "task_id": "codex-shared-restart-42a0987d-ed0",
+    "state": "completed",
+    "found": true,
+    "turnId": "01a1803c-54a0-7ea2-afc6-cf0909cc3eaa",
+    "status": "completed",
+    "resultComplete": true,
+    "result": {
+      "type": "text",
+      "text": "IOSHARED-1027 CLI重启后正常"
+    }
+  },
+  "package": {
+    "source_commit": "8054ec7c119bf259804cfef34114f1510362df60",
+    "bytes": 177761,
+    "files": 47,
+    "sha256": "c1684d05ac0b99c215f4126595f6560f9e88d0a4744044a9379c159ecd8ca196",
+    "manifest_verified": true,
+    "extracted_help_verified": true
+  },
+  "final_directory": {
+    "default": {
+      "revision": 18,
+      "route": {
+        "agent_id": "io-current-codex",
+        "computer_id": "io-mac-computer",
+        "project_id": "workspace-2215dbd52a60e11930077982",
+        "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+      },
+      "updated_at": "2026-10-27T11:17:12.376Z"
+    },
+    "sessions": [
+      {
+        "route": {
+          "agent_id": "io-claude-code",
+          "computer_id": "io-mac-computer",
+          "project_id": "workspace-ababcdd44378b8cb5e1c7f46",
+          "session_id": "45943428-a960-45f3-8c6c-c1fd7a5e8e60"
+        },
+        "online": true,
+        "can_execute": true,
+        "reason": null
+      },
+      {
+        "route": {
+          "agent_id": "io-current-codex",
+          "computer_id": "computer-f04986f7-67ba-49bb-b656-585095933cad",
+          "project_id": "workspace-6bfe9c02d837bf6a4104210e",
+          "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+        },
+        "online": true,
+        "can_execute": false,
+        "reason": "codex_session_not_loaded"
+      },
+      {
+        "route": {
+          "agent_id": "io-current-codex",
+          "computer_id": "io-mac-computer",
+          "project_id": "workspace-2215dbd52a60e11930077982",
+          "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+        },
+        "online": true,
+        "can_execute": true,
+        "reason": null
+      }
+    ]
   }
 }
