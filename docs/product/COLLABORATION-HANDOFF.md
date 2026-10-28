@@ -1,3 +1,13 @@
+## [codex] 2026-10-28 原厂更新前核对：Android 1.0.10（258），本副眼镜未获更高固件
+
+用户要求查官方最新App、眼镜固件及更新说明，再安排一次版本更新。官网支持页→venus下载页→官方gray/upgrade接口实查Android最新1.0.10（APK清单258，OTA编码100100258）；App Store参考亦1.0.10。当前仍dev150/宿主1.0.7（230）。更新重点为记忆检索、事件总结/待办及时性、离线翻译播报/音色、录音导入与登录/重连。iOS另列语言设置，不冒充Android能力。
+
+- 当前眼镜原厂关于页实读Strix OS1.0.5.5、盒子1.1.42。向原厂提交SN的灰度查询先被自动审批拒绝；用户随后明确“允许本次官方版本查询”，再执行成功，仅该次官方版本查询。当前本机SN+S3+1.0.5.5+App1.0.10条件返回success/data=null：未向此设备提供更高固件，不宣称所有灰度渠道全局无新版。公开记录无SN，没有触发固件写入或修改自动更新。
+- 官方1.0.10原APK已保存于共享私有hosts的新文件，413849360字节，官网MD5与完整SHA核对；v2有效、原厂签名证书与1.0.7一致。只读结构预检：关键8类中7类有变化/原名消失、主要SDK移至classes3.dex，Flutter库及两处升级路由位置变化。当前固定1.0.7构建器不能直接套用新包，需要独立迁移与回归。
+- 本批只有调查/证据，没有构建或安装新版本；现装dev150、回退149、正式服务/配对/默认均保留。Claude最新仍520ad23，未触碰对方checkout或未提交Delegate材料。下一项推荐移植iO Agent到1.0.10，再做差异安装、问答/智记/待办和基础页面回归；具体dev编号届时取下一号。
+
+[更新内容与迁移计划](official-update-review-2026-10-28.md)；[机器证据](../../rebuild/android-app/official-release-review-2026-10-28.json)。本轮收尾发一次checkpoint，关闭自己的进度watch并释放设备锁。
+
 ## [codex] 2026-10-28 cz-iot-cli 便携包与本机正式入口已交付
 
 源码/App提交4966c9b，dev150现装、回退149。提交后重建`outputs/cz-iot-cli.zip`（181679字节，50项，49份载荷SHA全核对，无凭据），SHA `fc0368546f49a00734590a532b84e27a0adeebd2f9d004f63f6f9a523809e65c`。本机稳定runtime已更新10份命名/入口/文档文件，`~/.local/bin/cz-iot-cli`已可执行，canonical与旧io-agent入口help均含daily/todo/ask。只重载两条空闲自有连接器，原native session不变；正式Codex、Claude Code服务与服务器目录均在线可执行，配对/默认与Desktop启动环境保留。[交付证据](../../rebuild/agent-bridge/hosts/cz-iot-cli-delivery-2026-10-28.json)。

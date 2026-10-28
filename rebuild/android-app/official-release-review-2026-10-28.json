@@ -1,0 +1,138 @@
+{
+  "checked_at_utc": "2026-10-28T08:27:10.138089+00:00",
+  "sources": {
+    "official_support": "https://rayneo.cn/support.html",
+    "official_download_page": "https://rayneo.cn/commonPage/venus/appDownload/index_m.html",
+    "official_release_endpoint": "https://xrlauncher-o.api.leiniao.com/xrlauncherapi/v1/signApi/gray/upgrade"
+  },
+  "current_app": {
+    "product": "iO Agent",
+    "version": "0.5.3-dev150",
+    "host_version": "1.0.7",
+    "host_code": 230
+  },
+  "official_android": {
+    "version": "1.0.10",
+    "apk_manifest_code": 258,
+    "ota_version_code": 100100258,
+    "task_name": "Android OTA3.5 1.0.10.258",
+    "release_notes": "【本次更新】\n1. 语音助手检索记忆相关的内容更快、更准；\n2. 全天智记的事件总结及待办推送的及时性提升；\n3. 实时字幕离线翻译升级，支持离线语音播报，支持男生、女生音色切换；\n4. 提升了录音文件导入手机端的可靠性；\n5. 优化登录、登出与自动回连，改善设备连接中断问题。\n6. 修复了一些已知问题。",
+    "download": {
+      "file": "rebuild/android-app/.private/hosts/RayNeo-1.0.10-258-original.apk",
+      "official_url": "https://file-tdp-ffalcon-o.api.leiniao.com/res/c04fdbae/thirdapk_7c698c44f1a676f330d9cacff4c131e9.apk",
+      "bytes": 413849360,
+      "md5": "7c698c44f1a676f330d9cacff4c131e9",
+      "sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",
+      "seconds": 170.4,
+      "installed": false
+    },
+    "signature_v2_verified": true,
+    "certificate_sha256": "a5bd909475e5c7441e0ef48ff7ee69efbc594808a60b470a4feb6d30b0340883",
+    "same_official_signer_as_107": true
+  },
+  "official_ios": {
+    "trackName": "雷鸟 AI 眼镜",
+    "version": "1.0.10",
+    "currentVersionReleaseDate": "2026-10-23T20:21:01Z",
+    "releaseNotes": "1.语音助手检索记忆相关的内容更快、更准；\n2.全天智记的事件总结及待办推送的及时性提升；\n3.实时字幕离线翻译升级，支持离线语音播报，支持男生、女生音色切换；\n4.新增应用内语言设置：升级后默认跟随系统，也可在 App 内单独选择语言。\n5.提升了录音文件导入手机端的可靠性；\n6.优化登录、登出与自动回连，改善设备连接中断问题。\n7.修复了一些已知问题。",
+    "trackViewUrl": "https://apps.apple.com/cn/app/%E9%9B%B7%E9%B8%9F-ai-%E7%9C%BC%E9%95%9C/id6757910500?uo=4",
+    "bundleId": "com.rayneo.venus.pub"
+  },
+  "glasses": {
+    "model": "RayNeo iO / S3",
+    "current_firmware": "Strix OS 1.0.5.5",
+    "current_case_firmware": "1.1.42",
+    "query_app_version": "01.00.10.0258",
+    "device_specific_gray_query": true,
+    "serial_disclosure_explicitly_authorized_by_user": true,
+    "serial_included_in_this_record": false,
+    "official_query_response": {
+      "error_code": 1000,
+      "error_msg": "OK",
+      "data": null
+    },
+    "conclusion": "No higher firmware offered to the queried device at this time; not a global all-device or all-channel latest-version claim.",
+    "release_notes_for_new_firmware": null
+  },
+  "compatibility_preflight": {
+    "old_host": "1.0.7 (230)",
+    "new_host": "1.0.10 (258)",
+    "old_apk_entries": 4007,
+    "new_apk_entries": 4032,
+    "old_dex_classes": 32087,
+    "new_dex_classes": 36053,
+    "critical_class_comparison": [
+      {
+        "class": "Lq8/c$c;",
+        "old_dex": "classes2.dex",
+        "new_dex": null,
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "Lcom/rayneo/venus/MainActivity;",
+        "old_dex": "classes2.dex",
+        "new_dex": "classes3.dex",
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "Lcom/rayneo/venus/VenusApplication;",
+        "old_dex": "classes2.dex",
+        "new_dex": "classes3.dex",
+        "same_exact_members_and_access": true
+      },
+      {
+        "class": "Lcom/rayneo/rayneo_venus_sdk_plugin/e;",
+        "old_dex": "classes2.dex",
+        "new_dex": "classes3.dex",
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "Lcom/rayneo/rayneo_venus_sdk_plugin/j;",
+        "old_dex": "classes2.dex",
+        "new_dex": "classes3.dex",
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "LY3/u;",
+        "old_dex": "classes2.dex",
+        "new_dex": null,
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "LY3/V;",
+        "old_dex": "classes2.dex",
+        "new_dex": null,
+        "same_exact_members_and_access": false
+      },
+      {
+        "class": "LY3/S;",
+        "old_dex": "classes2.dex",
+        "new_dex": null,
+        "same_exact_members_and_access": false
+      }
+    ],
+    "new_library_sha256": "363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c",
+    "new_library_bytes": 45089712,
+    "old_library_bytes": 46465968,
+    "library_identical": false,
+    "upgrade_route_locations": [
+      {
+        "route": "/xrlauncherapi/v1/signApi/gray/upgrade",
+        "old_offset": 8933678,
+        "new_offset": 8872178,
+        "new_occurrences": 1
+      },
+      {
+        "route": "/xrlauncherhwapi/v1/signApi/gray/upgrade",
+        "old_offset": 925256,
+        "new_offset": 902816,
+        "new_occurrences": 1
+      }
+    ],
+    "new_host_supported_by_current_pinned_builder": false,
+    "installed": false,
+    "scope": "read-only DEX symbol and native-data comparison; not a runtime compatibility test"
+  },
+  "installed_or_flashed": false,
+  "next_step": "Port existing iO Agent to official Android 1.0.10 (258), then verify in-place upgrade, original UI, glasses Q&A, daily summaries, todo and back gestures before delivery."
+}
