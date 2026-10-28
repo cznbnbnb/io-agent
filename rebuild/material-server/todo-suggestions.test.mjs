@@ -1,0 +1,51 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {MaterialStore} from './store.mjs';
+import {listen} from './http.mjs';
+import {BridgeClient} from '../agent-bridge/client.mjs';
+
+test('native todo requires phone acceptance, stable keys and one phone write intent',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'io-native-todo-'));let now=Date.now();const s=new MaterialStore(path.join(dir,'db'),{clock:()=>now});
+  t.after(()=>{s.close();fs.rmSync(dir,{recursive:true,force:true});});
+  const a=s.devices.enroll({owner:'synthetic',role:'agent',label:'Agent'}),p=s.devices.enroll({owner:'synthetic',role:'phone',label:'Phone'}),other=s.devices.enroll({owner:'other',role:'agent',label:'Other'}),p2=s.devices.enroll({owner:'synthetic',role:'phone',label:'Second phone'});
+  const input={todo_key:'daily-2026-10-27-follow-up',content:'测试待办：确认物料进度',source:'Codex'},r=s.todoSuggestions.create(a.token,input);
+  assert.equal(r.native_created,false);assert.equal(r.state,'pending_confirmation');
+  assert.deepEqual(s.todoSuggestions.create(a.token,input),r);
+  assert.throws(()=>s.todoSuggestions.create(a.token,{...input,content:'changed'}),{code:'TODO_KEY_CONFLICT'});
+  assert.throws(()=>s.todoSuggestions.get(other.token,r.proposal_id),{code:'TODO_SUGGESTION_NOT_FOUND'});
+  assert.throws(()=>s.todoSuggestions.phone(a.token,r.proposal_id,{action:'show'}));
+  assert.throws(()=>s.todoSuggestions.phone(p.token,r.proposal_id,{action:'begin'}),{code:'TODO_STATE_CONFLICT'});
+  assert.equal(s.todoSuggestions.pending(p.token).items.length,1);
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'show'}).state,'shown');
+  assert.equal(s.todoSuggestions.pending(p2.token).items.length,0);
+  assert.throws(()=>s.todoSuggestions.phone(p2.token,r.proposal_id,{action:'accept'}),{code:'TODO_OTHER_PHONE'});
+  assert.throws(()=>s.todoSuggestions.phone(p.token,r.proposal_id,{action:'created',native_id:'synthetic-1'}),{code:'TODO_STATE_CONFLICT'});
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'accept'}).state,'accepted');
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'begin'}).may_create,true);
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'begin'}).may_create,false);
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'unknown',error:'OFFICIAL_SOURCE_TIMEOUT'}).native_created,false);
+  assert.throws(()=>s.todoSuggestions.phone(p.token,r.proposal_id,{action:'begin'}),{code:'TODO_STATE_CONFLICT'});
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'created',native_id:'synthetic-1'}).native_created,true);
+  assert.equal(s.todoSuggestions.phone(p.token,r.proposal_id,{action:'created',native_id:'synthetic-1'}).native_created,true);
+  assert.throws(()=>s.todoSuggestions.phone(p.token,r.proposal_id,{action:'created',native_id:'different'}),{code:'TODO_RESULT_CONFLICT'});
+  const declined=s.todoSuggestions.create(a.token,{todo_key:'decline',content:'忽略此测试'});
+  s.todoSuggestions.phone(p.token,declined.proposal_id,{action:'show'});s.todoSuggestions.phone(p.token,declined.proposal_id,{action:'decline'});
+  assert.throws(()=>s.todoSuggestions.phone(p.token,declined.proposal_id,{action:'begin'}),{code:'TODO_STATE_CONFLICT'});
+  const expired=s.todoSuggestions.create(a.token,{todo_key:'expire',content:'过期测试',expires_at:new Date(now+60000).toISOString()});now+=60001;
+  assert.equal(s.todoSuggestions.get(a.token,expired.proposal_id).state,'expired');
+  assert.throws(()=>s.todoSuggestions.phone(p.token,expired.proposal_id,{action:'show'}),{code:'TODO_STATE_CONFLICT'});
+});
+
+test('todo suggestion HTTP and shared client work without a native Agent session',async t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'io-todo-http-')),s=new MaterialStore(path.join(dir,'db')),server=await listen(s);
+  t.after(async()=>{await new Promise(r=>server.close(r));s.close();fs.rmSync(dir,{recursive:true,force:true});});
+  const a=s.devices.enroll({owner:'synthetic',role:'agent',label:'Agent'}),file=path.join(dir,'device.json');fs.writeFileSync(file,JSON.stringify(a),{mode:0o600});
+  const client=new BridgeClient({schema_version:'1.0',base_url:'http://127.0.0.1:'+server.address().port+'/v1/',owner_id:a.owner_id,producer_id:a.producer_id,server_id:a.server_id,credential_file:file,computer_id:'test-computer',agent_id:'todo-test',allow_loopback_http:true});
+  const r=await client.todoSuggestion('todo-add',{todo_key:'http-test',content:'合成待办'});assert.equal(r.state,'pending_confirmation');
+  assert.deepEqual(await client.todoSuggestion('todo-status',{proposal_id:r.proposal_id}),r);
+  await assert.rejects(client.todoSuggestion('todo-status',{proposal_id:'bad'}),{code:'INVALID_QUERY'});
+  await assert.rejects(client.todoSuggestion('todo-add',{todo_key:'too-long',content:'字'.repeat(49)}),{code:'INVALID_TODO_SUGGESTION'});
+});

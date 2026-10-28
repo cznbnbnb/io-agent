@@ -60,6 +60,12 @@
 
 保存 request_id。pending 时继续等同一个问题，不重复发题；state=answered 时读取 `answer.body.option_id` 和 `answer.body.text`，在当前 WorkBuddy 对话按答案继续。用户看到题目后长按退出、口述并确认，CLI 才能收到答案。服务器保存不等于眼镜已显示。
 
+## 原厂待办建议
+
+已配对电脑可使用 `node io-agent.mjs todo-add`，标准输入例如 `{"todo_key":"daily-2026-10-27-follow-up","content":"确认物料到货进度","source":"WorkBuddy"}`。它先向眼镜提出建议，用户确认后才由手机加入原厂待办。此命令及 `todo-status` 不需要当前聊天、`join` 或 Python，可用于已有的定时 Agent 任务。
+
+保存返回的 `proposal_id`，以 `node io-agent.mjs todo-status` 和 `{"proposal_id":"返回的标识"}` 查询。同一 `todo_key` 重试保持原内容；`pending_confirmation`、`shown`、`accepted`、`creating` 都不表示创建完成，仅 `native_created: true` 表示手机报告原厂创建成功。`unknown` 时先核对原厂待办，不自动重投。参数、状态及手机前置条件见 [原厂待办 CLI 说明](rebuild/agent-bridge/questions/NATIVE-TODOS.md)。
+
 ## 当前边界
 
 - 此包连接的是已经运行的 Agent 会话。不会启动 WorkBuddy，也不能保证从手机远程唤醒、打断或恢复其进程。

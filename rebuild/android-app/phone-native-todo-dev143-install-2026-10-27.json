@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:15:26.984021+00:00",
+  "candidate": "0.5.3-dev143",
+  "version_code": 10565,
+  "sha256": "4733d9f7d6e6bc83654be1305e18b8bf6360b41fededbb2b1265aaa065789163",
+  "baseline_sha256": "20d5f2dab0608095a4101a4f5bb7b2000abb2801dd7de680e18246f29cdd2f36",
+  "delta_bytes": 1932072,
+  "delta_sha256": "f28637325045c5c8b816a1de54c01ad819209b6b9821e9c0489f0355f4878ef5",
+  "reconstructed_full_sha_verified": true,
+  "installed_full_sha_verified": true,
+  "installed": true,
+  "product_data_cleared": false,
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "normal_install_result": "Success",
+  "rollback": "0.5.3-dev142"
+}

@@ -95,6 +95,17 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
       if(req.method==='GET'&&url.pathname==='/v1/daily-summaries'){
         observation.route='materials';send(200,store.page(token,'daily-summaries',query));return;
       }
+      if(url.pathname==='/v1/todo-suggestions'){
+        if(url.search)reject(400,'INVALID_QUERY');
+        if(req.method==='POST'){send(200,store.todoSuggestions.create(token,await smallJson(req,observation,4096)));return;}
+        if(req.method==='GET'){send(200,store.todoSuggestions.pending(token));return;}
+      }
+      const todo=/^\/v1\/todo-suggestions\/(todo-[a-f0-9]{64})$/.exec(url.pathname);
+      if(todo){
+        if(url.search)reject(400,'INVALID_QUERY');
+        if(req.method==='GET'){send(200,store.todoSuggestions.get(token,todo[1]));return;}
+        if(req.method==='POST'){send(200,store.todoSuggestions.phone(token,todo[1],await smallJson(req,observation,1024)));return;}
+      }
       if(req.method==='POST'&&url.pathname==='/v1/pairings'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.createPairing(token,await smallJson(req,observation)));return;}
       if(req.method==='POST'&&url.pathname==='/v1/credentials/refresh'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.refresh(token));return;}
       if(req.method==='GET'&&url.pathname==='/v1/devices'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.list(token));return;}

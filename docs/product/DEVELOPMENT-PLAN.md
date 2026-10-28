@@ -1,5 +1,7 @@
 # 雷鸟 iO：按用户场景逐项完成的开发计划
 
+2026-10-27【原厂待办建议 CLI / dev143】已完成 `todo-add`、`todo-status` 的普通、便携与受管入口，复用电脑长期配对，不要求原生 session、join 或 Python。服务器已上线独立建议状态，手机通过原生建议卡接收确认后才调用原厂创建接口，结果未知不自动重复写入；刷新复用原厂 Flutter 待办链。dev143/10565 已以 1,932,072 字节差异安装并核对完整 SHA，保留 Claude dev142 改动，回退142。服务端及相关25项、受管/桌面/便携9项定向检查通过；原厂协议85项、耐久确认27项、共享HTTP传输64项及卡片回归通过。真实点头→原厂列表→眼镜待办的联合验收仍待 A27-T01，不能据代码或SDK提交宣称已闭环；确认前不制造真实待办。Claude 新的会话卡名称改动 ee78282 是另批源码，按其交接由后续 dev144 合入，不额外重出143。见[CLI用法](../../rebuild/agent-bridge/questions/NATIVE-TODOS.md)。
+
 2026-10-27【原生Codex同会话入口】用户明确保留原生聊天框、忙时可排队。已将85ddd5原“连接自检与回执”从ACP常驻占用迁为桌面唯一持有者＋follower桥接；同native ID、配对、默认不变。电脑输入标记被桥接下一轮读回，两条手机任务实际依次排队完成，新用户消息不再含大段CLI说明。原只读权限导致邮箱EPERM，用户随后明确允许本条会话工作区可写，原生设置接口应用后help/daily成功查询5天；网络保持关闭。眼镜问答路径只ask一次，Android语音“选一。符合预期。”经同request返回原native turn，原手机task completed。101项定向检查及最后客户端变更的5项回归通过；手机仍dev139，未动App启动链或Claude正式服务。原生窗口视觉解锁与日常体验继续跟踪A27-S05/S06，其他Desktop聊天自动接入单列后续。[实现与代价](../../rebuild/agent-bridge/hosts/codex-desktop-shared.md)。
 
 2026-10-27【每日智记查询 CLI 已接通】原通用查询未注入受管会话，电脑权限也缺失，手机那条Codex如实报告只有四个问答命令。现新增同一CLI的 `daily`，服务器窄权限只投影每日AI总结，当前账号电脑权限已更新，旧单会话授权不扩权。公网实际读到10-23至10-27共5天；85ddd5原native会话实际help及两次daily完成，10-26返回revision2，范围返回5个日期。两条正式服务及配对/默认保留，手机仍dev139无改动。6项新增SQLite/HTTP/CLI/大正文邮箱检查及42项相关旧检查通过；1项ArkTS历史导出测试缺既有fixture，未伪造补齐。便携包查询在无session/Python情况下通过；定时总结任务未自动创建。见[查询说明](../../rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)与[交付证据](../../rebuild/agent-bridge/hosts/daily-summary-cli-2026-10-27.json)。

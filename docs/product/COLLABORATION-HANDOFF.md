@@ -4,6 +4,20 @@
 - `TaskTargetUI.bind`：第一行 Agent + 类型色块 + 默认；第二行是会话名（join 时的 topic；只重复 Agent 与「手机工作区」的标签显示为「手机专用会话」）；第三行是状态 + 项目目录（`rayneo-io-agent` / `iO Agent/Claude`）。十六进制 ID 只留在连接详情页。
 - 任务详情头部的会话行同样改为「会话名 · 目录」。纯函数 `TaskPresentation.sessionName/folder` 有单测（presentation 77 通过），`build.mjs --compile-only` 通过。
 - Codex 持锁出 dev143 期间不出包、不改版本号；锁空后由 Claude 合并 dev143 再出 dev144。
+## [codex] 2026-10-27 待办CLI便携包与固定副本已按ac122a8核对
+
+源码已提交推送 `ac122a8`。原路径 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip` 已重新打包，不另堆副本；181,349字节、48个文件，SHA `3205a27aec74a3bf8fa8a09a39593936aa7362a2cd5eef6cf5a1d5a5aa79ce9c`。manifest固定完整源码commit，逐文件SHA通过，包含NATIVE-TODOS说明和WorkBuddy的AGENTS条目，不含凭据。实际解压包在无原生session、无Python、独立本地SQLite/HTTP下完成help→todo-add→同键重试→todo-status，仅一条待确认建议，未创建真实原厂待办。
+
+固定运行副本7文件SHA与同一源码核对，安装记录已固定来源；两条正式服务、原生会话、默认及配对保留。本批不再装包；现装143、回退142。A27-T01仍待佩戴准备回复，未发测试待办、未伪造接受。进度超时watch已关闭；收尾释放Codex设备锁，让Claude能合本批后继续dev144。旧未跟踪材料不提交。[交付证据](../../rebuild/android-app/native-todo-delivery-dev143-2026-10-27.json)。
+
+## [codex] 2026-10-27 dev143：原厂待办建议CLI已部署并装机，待点头联合验收
+
+用户已选择“眼镜先显示建议，点头确认后添加”。新增共用 `todo-add` / `todo-status`，普通/便携CLI不依赖原生session、join或Python；受管任务继续使用原轮次隐藏绑定和工作区邮箱。服务器只保存建议与处理结果，手机收到该UID的真实接受操作后才调用原厂RayNeoTasks创建；原厂列表与眼镜刷新走现有Flutter待办链，不建私有列表、不自动加截止时间、不创建定时任务。结果未知保留unknown且不自动重写，拒绝/到期/重复操作不新增。
+
+- **协作与装机**：已合Claude 2b9aa7a/dev142，dev143/10565完整SHA `4733d9f7d6e6bc83654be1305e18b8bf6360b41fededbb2b1265aaa065789163`；只传1,932,072字节差异，基线、重建和现装SHA核对，正常安装启动，不清数据。只留143和回退142，141核对SHA后清理。ee78282会话名/目录UI是Claude另批未出包源码，按其交接由后续dev144合本批再交付；本次不覆盖对方checkout，也不把ee78282算作143内容。
+- **验证范围**：服务器及相关25项、受管/桌面/便携9项（有重叠），最终CLI文案变更4项；原厂协议85、耐久确认27、HTTP传输64及843卡片断言/50热路径/8000并发通过。新服务已上线，有代码备份与SQLite在线快照，没有修改配对权限。真实点头、创建返回原厂ID、原厂列表及镜片待办回读**尚未验收**；A27-T01已登记，佩戴准备问题已发出，尚未发送测试待办、不伪造手机接受。
+- **正式可用性**：固定公共CLI副本已更新新增命令，两条空闲正式服务重连后目录确认online/can_execute，原native、配对和默认保留。待源码提交后重新打包便携ZIP并固定manifest；仅本批进度watch关闭，不撤正式连接。旧未跟踪DelegateCapture/DelegateConfirm/DS_Store材料原样保留；3份未跟踪Java构建时暂移、恢复哈希，未纳包/提交。
+- **证据与下一步**：[交付证据](../../rebuild/android-app/native-todo-delivery-dev143-2026-10-27.json)、[CLI用法](../../rebuild/agent-bridge/questions/NATIVE-TODOS.md)、[原厂静态合同](../../rebuild/android-app/todo-stock-contract-2026-10-27.json)。先集中完成A27-T01；通过后推荐把todo-add接进用户选定的已有日常检查任务，只提出建议、仍须点头，不自动另建日程。当前没有新测试身份待撤销，收尾释放Codex设备锁。
 
 ## [claude] 2026-10-28 dev142：任务状态色块与「已过期」；连接页重排；Claude 会话不再因切目录掉线（已装机，回退 dev141）
 

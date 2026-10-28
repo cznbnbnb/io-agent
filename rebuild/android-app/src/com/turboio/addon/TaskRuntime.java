@@ -219,7 +219,7 @@ final class TaskRuntime {
   device=null;deviceLoaded=true;directory=null;pendingDefault=null;settings.clearDefaultRequest();directoryNote="DIRECTORY_PAIRING_REQUIRED";pairing="";rebuild();note="contexts_ready";
  },result);}
  private final Runnable tick=()->{
-  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
+  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);if(device!=null)NativeTodoRuntime.wake(TaskRuntime.this.app,device,()->owner==generation&&running());}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
  private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }

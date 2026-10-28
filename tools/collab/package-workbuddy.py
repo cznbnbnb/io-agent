@@ -23,6 +23,7 @@ def files():
  for name in ['questions/cli.mjs','device.mjs','connector.mjs']:js(BRIDGE/name)
  for name in ['questions/tool.py','questions/adapter.py','hermes/enroll_home.py']:py(BRIDGE/name)
  found.add(BRIDGE/'questions/DAILY-SUMMARIES.md')
+ found.add(BRIDGE/'questions/NATIVE-TODOS.md')
  found.add(BRIDGE/'hosts/codex-desktop-profile.json')
  return found
 if __name__=='__main__':

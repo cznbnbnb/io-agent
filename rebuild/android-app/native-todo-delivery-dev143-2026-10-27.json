@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "at": "2026-10-28T04:23:27.206995+00:00",
+  "scope": "Confirmation-gated native RayNeo todos; installed development candidate, real wearer confirmation and stock list readback remain pending",
+  "merged_peer_base": "2b9aa7a",
+  "later_peer_source": "ee78282",
+  "later_peer_source_in_apk": false,
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/todo-release-1793160424032687359",
+    "source_sha256": {
+      "store.mjs": "b956ce5f09456733568c2084848cb1776fa3293313dac758675d4b53be19b470",
+      "http.mjs": "93a873b8051fd6961cd2073a82cf84bc3d57a41ed9cd753b4fbdd3ff49007d1f",
+      "todo-suggestions.mjs": "2b990bb02df74b0fb845c694216735ec69877f33425c48c8a12f78db51cfa9c6"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_smoke_passed": true
+  },
+  "installation": {
+    "schema": 1,
+    "at": "2026-10-28T04:15:26.984021+00:00",
+    "candidate": "0.5.3-dev143",
+    "version_code": 10565,
+    "sha256": "4733d9f7d6e6bc83654be1305e18b8bf6360b41fededbb2b1265aaa065789163",
+    "baseline_sha256": "20d5f2dab0608095a4101a4f5bb7b2000abb2801dd7de680e18246f29cdd2f36",
+    "delta_bytes": 1932072,
+    "delta_sha256": "f28637325045c5c8b816a1de54c01ad819209b6b9821e9c0489f0355f4878ef5",
+    "reconstructed_full_sha_verified": true,
+    "installed_full_sha_verified": true,
+    "installed": true,
+    "product_data_cleared": false,
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "normal_install_result": "Success",
+    "rollback": "0.5.3-dev142"
+  },
+  "tests": {
+    "server_and_affected_regressions": {
+      "passed": 25,
+      "failed": 0
+    },
+    "managed_desktop_acp_and_todo_cli": {
+      "passed": 9,
+      "failed": 0
+    },
+    "final_cli_text_change_regression": {
+      "passed": 4,
+      "failed": 0
+    },
+    "official_protocol_assertions": 85,
+    "durable_todo_session_assertions": 27,
+    "shared_calendar_http_assertions": 64,
+    "agent_card_assertions": 843,
+    "hot_path_assertions": 50,
+    "concurrent_hot_path_checks": 8000,
+    "test_groups_overlap": true
+  },
+  "native_sources": {
+    "NativeTodoRuntime.java": "e12fe3c58bf54f381e770174ce138e168a4b9db12400403e8a70569b277014c3",
+    "NativeTodoSession.java": "fef1a3dd09522efd1d989b21f85e7c7b794dd08bbc91ccbcbcc7ba3d3c3c7240",
+    "Host107Todo.java": "c1c76bfde4212ffe6c613527583b7d8692be6f51309b947c16a9b0c216ee1355",
+    "OfficialTodoCreate.java": "b456ce1d973e05b1f524aca0f6948928a4bc5ed14b298bf7b56341afb6975c68",
+    "Host107LifelogHttp.java": "245fb921eb2baed66f10055cf09fff4b2799f279745ccbf788f466a0420ef306",
+    "Host107Suggestion.java": "3708124a61a8747bea2fefa3da329a2686b8ee2a2e11c5e14b5492521118c783",
+    "AgentCardRuntime.java": "d28cc30efea18e8f4f698d060e8a8238ee3e4c90b9d129ee4a0fd3d5aede71f2",
+    "TaskPairing.java": "fd2edc8504495729ba0647c06b3e2ea35858c66b66d3e85a50f72ce1525c3c95",
+    "TaskRuntime.java": "b5b0f55279214eeea53fae31f6f7debef8ca8073d690f13ab324faf0ccb8a8a6"
+  },
+  "production_native_todo_created": false,
+  "production_todo_suggestion_sent": false,
+  "wearer_confirmation_received": false,
+  "native_cache_readback_verified": false,
+  "glasses_display_confirmed": false,
+  "formal_services": {
+    "codex": {
+      "route": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30",
+      "pid": 68796,
+      "online": true,
+      "can_execute": true
+    },
+    "claude": {
+      "route": "45943428-a960-45f3-8c6c-c1fd7a5e8e60",
+      "pid": 68804,
+      "online": true,
+      "can_execute": true
+    },
+    "pairings_and_default_preserved": true
+  },
+  "runtime_files": {
+    "rebuild/agent-bridge/client.mjs": "9b5370e0416dfe48c2bd5165e1954d918b2547405b09ac3436a1429bee93ccf4",
+    "rebuild/agent-bridge/questions/cli.mjs": "d3f805eafd8e6a2dc80cb88346d96237ea2ee1b13fd93dfc0de8051324e3ad8b",
+    "rebuild/agent-bridge/questions/managed-cli.mjs": "496c386333bba77ba96ecaf847ce1a48c80881496c9870d9fdafd5a8069df99c",
+    "rebuild/agent-bridge/questions/NATIVE-TODOS.md": "c5abfb85a91a3649e8ddb5a2f04f3f40efbe89584ca95fabaf3b6e978cab5f41",
+    "io-agent.mjs": "8296478770c930739ce7560cee51b08a40008527fa28979a8d9a25439173fc22",
+    "README.md": "ba90ff254b219f6fd19a9cad408b60409427d3e5eb9a33d9e27f9302915cc283",
+    "AGENTS.md": "3afe59b03195a6f75722bfec126a9e56f4aa7596e4fccb68f57115445cd8b156"
+  },
+  "retention": {
+    "retained": [
+      "artifacts/iO-Agent-Android-0.5.3-dev143.apk",
+      "artifacts/iO-Agent-Android-0.5.3-dev142.apk"
+    ],
+    "removed": {
+      "apk": "rebuild/android-app/artifacts/iO-Agent-Android-0.5.3-dev141.apk",
+      "sha256": "c8c2c51dc21f17ba6f8d95d0f221a212adafcf4a09777623b146efb1ca608f35",
+      "bytes": 430211432
+    }
+  },
+  "temporary_device_files_removed": true,
+  "root_progress_watch_disabled": true,
+  "pending_manual_item": "A27-T01",
+  "test_identities_created": false,
+  "known_failures": [
+    "First Java compilation found a blank-final app reference in the tick lambda; fixed by TaskRuntime.this.app, then compiled and signed successfully.",
+    "First pure session test source list missed TaskConnection; fixed the test source list.",
+    "No production native create, stock cache readback, or lens success is claimed without the wearer confirmation test."
+  ],
+  "portable_package": {
+    "file": "/Users/cznbnb/Project/AI Glasses Project/rayneo-io-agent-codex/outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip",
+    "bytes": 181349,
+    "sha256": "3205a27aec74a3bf8fa8a09a39593936aa7362a2cd5eef6cf5a1d5a5aa79ce9c",
+    "source_commit": "ac122a8a0bb4c23d319ab00df7f5b64a17f65113",
+    "entries": 48,
+    "manifest_hashes_verified": true,
+    "contains_credentials": false,
+    "smoke": {
+      "actual_extracted_zip": true,
+      "python_available": false,
+      "native_session_present": false,
+      "help_add_retry_status": true,
+      "suggestions_created": 1,
+      "native_todos_created": 0,
+      "synthetic_local_server_only": true
+    }
+  },
+  "runtime_source_commit": "ac122a8a0bb4c23d319ab00df7f5b64a17f65113",
+  "runtime_disk_hashes_verified": true
+}

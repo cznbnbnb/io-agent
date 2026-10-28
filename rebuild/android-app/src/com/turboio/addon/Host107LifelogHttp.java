@@ -35,17 +35,21 @@ final class Host107LifelogHttp implements OfficialLifelogRefresh.Transport,Offic
   * this method neither discovers other months nor retries a failed request. */
  public byte[] calendar(OfficialLifelogCalendarRequest selected)throws Exception{
   MaterialWire.require(selected!=null&&"POST".equals(selected.method)&&"/lifelog/api/v1/calendar".equals(selected.path)&&"".equals(selected.query),"LIFELOG_CALENDAR_REQUEST_REQUIRED");
-  check();byte[] body=selected.body(),key=null;HttpsURLConnection request=null;ScheduledExecutorService watchdog=null;ScheduledFuture<?> cutoff=null;AtomicBoolean expired=new AtomicBoolean(false);
+  return post(selected.path,selected.body());
+ }
+ byte[] createTodo(OfficialTodoCreate.Request selected)throws Exception{return post(selected.path,selected.body());}
+ private byte[] post(String path,byte[] body)throws Exception{
+  check();byte[] key=null;HttpsURLConnection request=null;ScheduledExecutorService watchdog=null;ScheduledFuture<?> cutoff=null;AtomicBoolean expired=new AtomicBoolean(false);
   try{
    MaterialWire.require(body!=null&&body.length>0&&body.length<=4096,"LIFELOG_CALENDAR_REQUEST_BUDGET");
    String[] signing=inputs();Host107Login.Session login=Host107Login.session(account);check();
    String access=login.accessToken();MaterialWire.require(access!=null&&!access.isEmpty()&&access.length()<=16384&&access.indexOf('\r')<0&&access.indexOf('\n')<0,"OFFICIAL_ACCESS_HEADER_INVALID");
    String nonce=UUID.randomUUID().toString().replace("-",""),timestamp=Long.toString(System.currentTimeMillis()/1000);
    key=signing[1].getBytes(StandardCharsets.UTF_8);
-   String canonical=OfficialGatewaySigning.canonical("POST",selected.path,"",nonce,timestamp,body);
+   String canonical=OfficialGatewaySigning.canonical("POST",path,"",nonce,timestamp,body);
    String authorization=OfficialGatewaySigning.authorization(signing[0],key,timestamp,canonical);Arrays.fill(key,(byte)0);key=null;
    check();MaterialWire.require(account.same(Host107Login.account()),"OFFICIAL_ACCOUNT_CHANGED");
-   request=(HttpsURLConnection)new URL(BASE+"/lifelog/api/v1/calendar").openConnection();active=request;check();
+   request=(HttpsURLConnection)new URL(BASE+path).openConnection();active=request;check();
    request.setInstanceFollowRedirects(false);request.setUseCaches(false);request.setConnectTimeout(5000);request.setReadTimeout(10000);request.setRequestMethod("POST");request.setDoOutput(true);request.setFixedLengthStreamingMode(body.length);
    request.setRequestProperty("Accept","application/json");request.setRequestProperty("Accept-Encoding","identity");request.setRequestProperty("Content-Type","application/json; charset=utf-8");request.setRequestProperty("app-version","1.0.7");request.setRequestProperty("platform","android");request.setRequestProperty("lang","zh-CN");request.setRequestProperty("time-zone","Asia/Shanghai");request.setRequestProperty("xtcl-access-token",access);
    request.setRequestProperty("xtcl-app",signing[0]);request.setRequestProperty("xtcl-nonce",nonce);request.setRequestProperty("xtcl-timestamp",timestamp);request.setRequestProperty("xtcl-authorization",authorization);

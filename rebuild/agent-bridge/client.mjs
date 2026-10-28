@@ -148,6 +148,16 @@ export class BridgeClient{
   async devices(){return (await this.#send('GET','devices')).body;}
   /** Native session metadata only; these endpoints never send model input. */
   async agentSessions(){return (await this.#send('GET','agent-sessions')).body;}
+  async todoSuggestion(action,input){
+    if(!['todo-add','todo-status'].includes(action))fail('INVALID_QUERY',{permanent:true});
+    const status=action==='todo-status';
+    if(status&&(!input||Object.keys(input).join()!=='proposal_id'||typeof input.proposal_id!=='string'||!/^todo-[a-f0-9]{64}$/.test(input.proposal_id)))fail('INVALID_QUERY',{permanent:true});
+    const result=(await this.#send(status?'GET':'POST','todo-suggestions'+(status?'/'+input.proposal_id:''),status?undefined:JSON.stringify(input))).body;
+    if(result?.schema_version!=='1.0'||!/^todo-[a-f0-9]{64}$/.test(result.proposal_id??'')||
+      !['pending_confirmation','shown','accepted','creating','created','declined','expired','failed','unknown'].includes(result.state)||
+      typeof result.native_created!=='boolean'||result.glasses_display_confirmed!==false)fail('INVALID_RESPONSE',{permanent:true});
+    return result;
+  }
   async publishAgentSession(input){return (await this.#send('POST','agent-sessions',JSON.stringify(input))).body;}
   async setAgentDefault(input){return (await this.#send('PUT','agent-default',JSON.stringify(input))).body;}
   async unpair(deviceId){

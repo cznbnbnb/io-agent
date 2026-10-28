@@ -24,6 +24,18 @@ final class TaskPairing {
   if(r.status==410)throw new IOException("CURSOR_RESET_REQUIRED");if(r.status!=200)throw new IOException(r.status==401?"PAIRING_REVOKED":error(r));
   return WireJson.map(WireJson.read(r.body));
  }
+ static java.util.List<NativeTodoSession.Proposal> todoSuggestions(TaskDevice d)throws IOException{
+  TaskApi.Response r=exchange("GET",d.base+"todo-suggestions",d.token,null);
+  if(r.status==404)return java.util.Collections.emptyList();if(r.status!=200)throw new IOException(error(r));
+  Map<String,Object> body=WireJson.map(WireJson.read(r.body));TaskWire.require("1.0".equals(body.get("schema_version")),"TODO_RESPONSE_INVALID");
+  java.util.List<Object> rows=WireJson.list(body.get("items"));TaskWire.require(rows.size()<=20,"TODO_RESPONSE_INVALID");java.util.List<NativeTodoSession.Proposal> result=new java.util.ArrayList<>();
+  for(Object row:rows)result.add(new NativeTodoSession.Proposal(row));return result;
+ }
+ static Map<String,Object> todoAction(TaskDevice d,String id,Map<String,Object> action)throws IOException{
+  TaskWire.require(id.matches("todo-[a-f0-9]{64}"),"TODO_ID_INVALID");
+  TaskApi.Response r=exchange("POST",d.base+"todo-suggestions/"+id,d.token,WireJson.bytes(action));if(r.status!=200)throw new IOException(error(r));
+  Map<String,Object> body=WireJson.map(WireJson.read(r.body));TaskWire.require(id.equals(body.get("proposal_id")),"TODO_RESPONSE_INVALID");return body;
+ }
  static TaskSessionDirectory directory(TaskDevice d,long now)throws IOException{
   TaskWire.require(d.expiresAt>now,"PAIRING_EXPIRED");TaskApi.Response identity=exchange("GET",d.base+"identity",d.token,null);if(identity.status!=200)throw new IOException(error(identity));
   Map<String,Object> who=WireJson.map(WireJson.read(identity.body));TaskWire.require("1.0".equals(who.get("schema_version"))&&d.owner.equals(who.get("owner_id"))&&d.server.equals(who.get("server_id"))&&d.producer.equals(who.get("producer_id"))&&d.expiresAt==TaskWire.stamp(who.get("expires_at")),"DIRECTORY_IDENTITY_MISMATCH");
