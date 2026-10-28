@@ -3,7 +3,7 @@
 用户截图对比：Codex 桌面里，手机发来的指示是干净的用户消息；Claude 这边却被套了两层：Claude Code 加的「The io-agent-session-bridge plugin sent a message: … This is how Claude Code surfaces…」，和插件自己加的 `[iO operation <uuid>]` 前缀。真机先验证了手机 → 本 Desktop 会话（两条都作为新一轮出现）和桌面 → 眼镜（notify 已存服务器）。
 
 - `register.js`：改为 `$.prompt.submit({text, asUser:true})`，原文提交，不再加前缀。turn.start 按原文精确匹配已提交的操作（`matchesBoundTurn` 仍兼容旧外壳）。用户自己打出相同文字时，admit 记一次 `userEchoes`，那一轮记为观察，不会占用手机这次操作。带保留前缀或外壳的粘贴仍然拒绝。
-- 测试：claude-mod 45 项（新增 asUser/原文/用户同文不认领）；agent-bridge 全部 350 通过、0 失败。
+- 测试：claude-mod 44 项全过（新增 asUser/原文/用户同文不认领）；agent-bridge 全部 350 通过、0 失败。
 - 已用 `setup-session-control.mjs --apply` 升级用户级插件到 0.2.1（`claude plugin update`），已装文件与源码一致。已打开的会话需 `/reload-plugins` 后生效；未在真机复验干净显示。
 
 ## [claude] 2026-10-28 快进合并 Codex f942d48；当前 Claude Desktop 会话常驻在线
