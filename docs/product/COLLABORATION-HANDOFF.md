@@ -1,3 +1,9 @@
+## [codex] 2026-10-28 cz-iot-cli 便携包与本机正式入口已交付
+
+源码/App提交4966c9b，dev150现装、回退149。提交后重建`outputs/cz-iot-cli.zip`（181679字节，50项，49份载荷SHA全核对，无凭据），SHA `fc0368546f49a00734590a532b84e27a0adeebd2f9d004f63f6f9a523809e65c`。本机稳定runtime已更新10份命名/入口/文档文件，`~/.local/bin/cz-iot-cli`已可执行，canonical与旧io-agent入口help均含daily/todo/ask。只重载两条空闲自有连接器，原native session不变；正式Codex、Claude Code服务与服务器目录均在线可执行，配对/默认与Desktop启动环境保留。[交付证据](../../rebuild/agent-bridge/hosts/cz-iot-cli-delivery-2026-10-28.json)。
+
+手机停留于工作区折叠任务列表，真机展开、搜索、51条全选与返回检查见下条。Windows/WorkBuddy异机仍未实测，下一项建议用新包验证；不重测已通过的眼镜待办。仅原有未跟踪Delegate/DS_Store保留，正式服务不撤销；本轮完成checkpoint后关watch并释放设备锁。
+
 ## [codex] 2026-10-28 dev150：任务按工作区折叠，CLI 正式命名 cz-iot-cli
 
 用户要求 App 保留 iO Agent、自有页面不挂 RayNeo 品牌，CLI 正式命名 cz-iot-cli，并补充任务按工作区归类。Claude 远端最新仍 520ad23，已包含，未操作对方工作目录。

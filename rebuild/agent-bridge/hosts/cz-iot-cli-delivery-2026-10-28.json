@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-28",
+  "source_commit": "4966c9b24470b05da45ef0afceeeb83c6069e808",
+  "cli_name": "cz-iot-cli",
+  "package": {
+    "path": "outputs/cz-iot-cli.zip",
+    "bytes": 181679,
+    "sha256": "fc0368546f49a00734590a532b84e27a0adeebd2f9d004f63f6f9a523809e65c",
+    "entries": 50,
+    "payload_files_hash_verified": 49,
+    "contains_credentials": false
+  },
+  "installed_runtime_files": {
+    "cz-iot-cli.mjs": "2b46aa61f86a35f2ab726f43af831633a7f1519da45f255a48ba0609eec6b01f",
+    "io-agent.mjs": "1b0cffae6070e0e9a52e577c38aa2aa02329b19c662396431818ef50031bf735",
+    "package.json": "b83003c3d07181c586c8b31a7e4291658041b572ced8ef0a16642bd5d82c1e67",
+    "setup.mjs": "8845703645a38d72ce61b3d52b01114b543ce17019c7761c890012a14a54a5b6",
+    "README.md": "02569c83ddb49c767f9f903f436b35bc59f58d0a75b3b28c242a4106d12c1bce",
+    "AGENTS.md": "3bc94c164c8f07e7c165cd0a6177be6f6ae1cd615188c3a2116cb63f9b83ee56",
+    "rebuild/agent-bridge/questions/cli.mjs": "072747d5e2cf629390ac9296a0f6f242e0f6320af35930deccc6f7b2da14e277",
+    "rebuild/agent-bridge/questions/managed-cli.mjs": "f736e8fad16dc58206772f7573675179865e6eccb2c407778136404399f56e13",
+    "rebuild/agent-bridge/questions/DAILY-SUMMARIES.md": "17f1fcf50b51e8a84fcb2a08c091dbfd827d6ded6551a471223be7abbf4773b7",
+    "rebuild/agent-bridge/questions/NATIVE-TODOS.md": "7a2c4d559000e38484bdf1df00613d8c911d9b8b7bb5e7f7bbf1e76e372c76a0"
+  },
+  "canonical_command_on_PATH": true,
+  "canonical_and_legacy_help": true,
+  "same_native_sessions": true,
+  "formal_service_running": true,
+  "server_directory": [
+    {
+      "profile": "codex-phone",
+      "online": true,
+      "can_execute": true
+    },
+    {
+      "profile": "claude-code-phone",
+      "online": true,
+      "can_execute": true
+    }
+  ],
+  "pairing_and_defaults_not_modified": true,
+  "global_desktop_launch_environment_modified": false,
+  "tests": "Portable extracted package integrated against isolated loopback; local npm bin installation, new/legacy alias, daily, todo, pair reuse, new-session ask-answer-wait. Core todo/shared Desktop 7 passed.",
+  "not_verified": [
+    "Windows real machine",
+    "WorkBuddy real machine"
+  ],
+  "app_version": "0.5.3-dev150",
+  "app_evidence": "rebuild/android-app/workspace-groups-dev150-2026-10-28.json"
+}
