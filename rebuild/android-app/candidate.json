@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev147",
-  "version_code": 10569,
-  "revision": "io-agent-native-todo-main-thread",
+  "version": "0.5.3-dev149",
+  "version_code": 10571,
+  "revision": "io-agent-task-library",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-28T06:12:42.583Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev147.apk",
-  "bytes": 430219624,
-  "sha256": "c56dcc4dbbc6b7df4cfaedf344afae00c9612dc966bcc76d20c9e7d0a9989f62",
+  "signed": "2026-10-28T06:39:06.220Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev149.apk",
+  "bytes": 430227816,
+  "sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -47,8 +47,8 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
-  "phone_disconnected_by_user": true,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false
 }

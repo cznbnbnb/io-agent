@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "feature": "phone_task_library",
+  "claude_merged_commit": "520ad23",
+  "version": "0.5.3-dev149",
+  "sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
+  "rollback": {
+    "version": "0.5.3-dev148",
+    "sha256": "e0bdcd29b9c025a895993223a1bca9a951082b5430b77145aa8d343f1dc2dcb3"
+  },
+  "scope": {
+    "search": "received task command, message text, agent/computer/session label",
+    "favorite": "phone-local durable metadata per binding/task",
+    "delete": "recoverable phone-list removal only",
+    "server_tasks_deleted": false,
+    "native_sessions_modified": false,
+    "project_files_deleted": false,
+    "running_pending_unanswered_protected": true
+  },
+  "tests": {
+    "library_checks": 62,
+    "actual_ui_method_checks": 34,
+    "task_presentation_checks": 80,
+    "sdk_back_versions": [
+      29,
+      33,
+      36
+    ],
+    "existing_navigation_and_voice_back_regression": "passed",
+    "java_d8_signed_original_dex_audit": "passed"
+  },
+  "device": {
+    "dev148": {
+      "version": "0.5.3-dev148",
+      "installed": true,
+      "data_cleared": false,
+      "delta": {
+        "baseline_sha256": "c56dcc4dbbc6b7df4cfaedf344afae00c9612dc966bcc76d20c9e7d0a9989f62",
+        "candidate_sha256": "e0bdcd29b9c025a895993223a1bca9a951082b5430b77145aa8d343f1dc2dcb3",
+        "apk_bytes": 430227816,
+        "delta_bytes": 1940264,
+        "commands": 8091,
+        "delta_sha256": "d81efe9c9702b21aaafe445d5fde977814bb8c60ec55f59eda5e7fd2578c539e",
+        "reconstruction_hash_verified": true
+      },
+      "installed_sha256": "e0bdcd29b9c025a895993223a1bca9a951082b5430b77145aa8d343f1dc2dcb3",
+      "rollback": "0.5.3-dev147"
+    },
+    "dev149": {
+      "version": "0.5.3-dev149",
+      "installed": true,
+      "data_cleared": false,
+      "delta": {
+        "baseline_sha256": "e0bdcd29b9c025a895993223a1bca9a951082b5430b77145aa8d343f1dc2dcb3",
+        "candidate_sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
+        "apk_bytes": 430227816,
+        "delta_bytes": 1940264,
+        "commands": 8091,
+        "delta_sha256": "b00a03c3203b07573f2414f09e05c007641711d073426871c93b84fce4f6f0cd",
+        "reconstruction_hash_verified": true
+      },
+      "installed_sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
+      "rollback": "0.5.3-dev148"
+    },
+    "completed_count": 51,
+    "select_all_entire_filter": true,
+    "edge_back_dismisses_confirmation_only": true,
+    "next_back_exits_selection": true,
+    "search_query": "phoneping8",
+    "search_matches": 2,
+    "test_target": "phoneping8replyexactlyPHONEOKthenendtheturn",
+    "favorite_exact_target": true,
+    "favorite_survived_apk_update_restart": true,
+    "deleted_exact_target_locally": true,
+    "deleted_view_count": 1,
+    "restored_exact_target": true,
+    "favorite_preserved_on_restore": true,
+    "qa_favorite_cleared": true,
+    "qa_deleted_records_remaining": 0,
+    "new_app_crash_observed": false,
+    "crash_log_note": "Existing crash buffer contained Oct27 UiAutomationService errors before the Oct28 14:36-14:41 local test. No new app exception observed.",
+    "final_ui_visual_check": "Existing dark/green cards retained; centered search; selected-mode footer; controls visible",
+    "actual_long_press_select": true,
+    "running_delete_disabled": true
+  },
+  "manual_style_acceptance": "pending user natural use, A28-TM01",
+  "limitations": [
+    "Phone-local organization does not sync favorites/deletion across phones or delete server/native chats",
+    "Search covers received mobile history, not unreceived desktop conversation files"
+  ]
+}

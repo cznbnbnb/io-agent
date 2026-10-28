@@ -25,7 +25,7 @@ final class AgentWorkspace {
   LinearLayout navigation=new LinearLayout(a);String[] titles={"任务","资料","设置"},names={"tasks","materials","settings"};
   for(int i=0;i<3;i++){final int index=i;LinearLayout item=AgentUI.column(a);item.setGravity(Gravity.CENTER);item.setPadding(0,AgentUI.dp(a,8),0,AgentUI.dp(a,8));icons[i]=new AgentUI.Icon(a,names[i]);item.addView(icons[i],new LinearLayout.LayoutParams(AgentUI.dp(a,23),AgentUI.dp(a,23)));AgentUI.gap(a,item,5);labels[i]=AgentUI.text(a,titles[i],12,AgentUI.MUTED);labels[i].setGravity(Gravity.CENTER);item.addView(labels[i]);item.setContentDescription(titles[i]);item.setFocusable(true);item.setOnClickListener(v->select(index));navigation.addView(item,new LinearLayout.LayoutParams(0,AgentUI.dp(a,64),1));}
   screen.dock.addView(navigation);tasks=TaskRuntime.get(a);observer=(value,error)->{if(closed)return;snapshot=value;String stateKey=settingsKey(value);if(!stateKey.equals(fingerprint)){fingerprint=stateKey;if(settingsBody!=null)renderSettings();}};tasks.observe(a,observer);
-  screen.backHandler(()->lastTab==1&&materialPage!=null&&materialPage.back());
+  screen.backHandler(()->lastTab==0&&taskPage!=null?taskPage.back():lastTab==1&&materialPage!=null&&materialPage.back());
   screen.dialog.setOnDismissListener(dialog->{closed=true;tasks.unobserve(observer);if(taskPage!=null)taskPage.close();if(materialPage!=null)materialPage.close();});select(lastTab);
  }
  private void select(int index){

@@ -66,6 +66,7 @@ final class MaterialReadingUI {
   void rotate(float degrees){turn=degrees;invalidate();}
   @Override protected void onDraw(Canvas c){float s=Math.min(getWidth(),getHeight())/24f;c.save();c.translate((getWidth()-24*s)/2,(getHeight()-24*s)/2);c.scale(s,s);c.rotate(turn,12,12);paint.setColor(color);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2f);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeJoin(Paint.Join.ROUND);Path p=new Path();
    switch(name){
+    case "star":for(int i=0;i<10;i++){double angle=-Math.PI/2+i*Math.PI/5;float radius=i%2==0?9:4.2f;float x=12+(float)Math.cos(angle)*radius,y=12+(float)Math.sin(angle)*radius;if(i==0)p.moveTo(x,y);else p.lineTo(x,y);}p.close();break;
     case "down":p.moveTo(6,9);p.lineTo(12,15);p.lineTo(18,9);break;
     case "right":p.moveTo(9,6);p.lineTo(15,12);p.lineTo(9,18);break;
     case "refresh":{float r=7.5f,from=-60,sweep=300;p.addArc(new RectF(12-r,12-r,12+r,12+r),from,sweep);double end=Math.toRadians(from+sweep);float tx=12+(float)(r*Math.cos(end)),ty=12+(float)(r*Math.sin(end));
