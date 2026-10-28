@@ -10,6 +10,7 @@ import {SessionPairings,SESSION_SCOPES} from './session-pairings.mjs';
 import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
+import {TodoSuggestions} from './todo-suggestions.mjs';
 
 const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
@@ -100,7 +101,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);
+      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -145,7 +146,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){

@@ -336,7 +336,7 @@ final class AgentCardRuntime {
  private final Runnable poll=new Runnable(){public void run(){try{pump();}finally{main.postDelayed(this,250);}}};
  static boolean observe(String kind,Map<?,?> data){
   if(!"messageReceived".equals(kind)||data==null)return false;Object raw=data.get("message");if(!(raw instanceof Map))return false;Map<?,?> m=(Map<?,?>)raw;int business=HostBusiness.id(m.get("businessId"));Object payload=m.get("payload"),target=m.get("deviceId");if(!(payload instanceof byte[])||((byte[])payload).length>8192)return false;
-  byte[] bytes=((byte[])payload).clone();boolean ours=business==21&&AgentCardSession.ownsOperation(bytes);
+  byte[] bytes=((byte[])payload).clone();if(NativeTodoRuntime.observe(business,target instanceof String?(String)target:null,bytes))return true;boolean ours=business==21&&AgentCardSession.ownsOperation(bytes);
   // Private task UID events never reach the stock todo handler, including after restart/corruption.
   AgentCardRuntime r=instance;if(r==null)return ours;if(!ours&&business!=9)return false;
   if(!(target instanceof String)||((String)target).isEmpty()||((String)target).length()>256)return ours;

@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "scope": "Static inspection of stock Android 1.0.7 / 230 only; no device, network or real task write",
+  "sources": [
+    {
+      "path": "build/host-107/lib/arm64-v8a/libapp.so",
+      "sha256": "a35159a82c0916f62ed6c4da271a40217300cc6678b29c54f2591d9fb592a45c"
+    },
+    {
+      "path": "build/r4-deletion-blutter/pp.txt",
+      "sha256": "662a42f399d52f316df470f790405901970a9776a63f364ecc9e3f6c18a7531f"
+    },
+    {
+      "path": "build/host-107/smali_classes2/com/rayneo/rayneo_venus_push_plugin/emas/RayNeoPushMessageReceiver.smali",
+      "sha256": "230279e56eda933901a3d0a7b203560d9ad82de31b7ffd356c541647cb7d25cb"
+    },
+    {
+      "path": "build/host-107/smali_classes2/k8/k.smali",
+      "sha256": "e82c04f9ae82fec5a555b9dd102275fda01e4bebd1de28492cad37a5cc4c8e34"
+    },
+    {
+      "path": "build/host-107/smali_classes2/k8/k$a.smali",
+      "sha256": "92f36e5d5e284b95d2732646d32c6412d2839dc0f8fdbc3eebf4b207b33fd7bb"
+    }
+  ],
+  "create": {
+    "method": "POST",
+    "path": "/action/api/v2/tasks/create",
+    "repository_aot": "0x2916618",
+    "path_literal_aot": "0x2916710",
+    "request_model": "CreateTaskRequestVO, class 2088",
+    "to_json_wrapper_aot": "0x2913ca4",
+    "serializer_aot": "0x1861dbc",
+    "verified_json_fields": [
+      "content", "description", "priority", "starred", "sourceType", "sourceId",
+      "completed", "clientId", "source", "listId", "dueDate", "dueTimeZone"
+    ],
+    "boundary_emitted_fields": ["content", "source", "clientId"],
+    "content_policy": "Nonempty trimmed single line, at most 48 UTF-16 code units; no ISO controls or Unicode line separators. Product suggestion-card policy, not a discovered server maximum.",
+    "source": "rayneoTasks",
+    "source_evidence": {
+      "method": "AiTaskUploadSource.applyToCreateRequest",
+      "aot": "0x1867420",
+      "rayneo_enum_zero_mapping_aot": "0x1867454",
+      "other_mappings": ["googleTasks", "microsoftTodo", "systemReminders"]
+    },
+    "client_id_policy": "Java UUID.nameUUIDFromBytes(UTF-8('io-agent-native-todo/1:' + proposal_id)); stable UUID v3 per proposal; retries must retain original content and proposal_id",
+    "omitted_unverified_values": ["sourceType", "sourceId", "priority", "dueDate", "dueTimeZone", "listId"],
+    "server_idempotency_proven": false
+  },
+  "response": {
+    "model": "ApiResponse<BaseIdDTO>",
+    "api_response_factory_aot": "0x15225b4",
+    "numeric_zero_comparison_aot_range": ["0x1522648", "0x1522654"],
+    "success_factory_aot": "0x1522bfc",
+    "success_condition": "Root code equals numeric zero; data is the decoded BaseIdDTO object",
+    "base_id_model": "BaseIdDTO, class 2078",
+    "base_id_from_json_aot": "0x18669c8",
+    "id_decode_aot": "0x1684504",
+    "string_id_decode_aot": "0x1681528",
+    "verified_fields": ["id", "source", "sourceId", "listId"],
+    "id_type": "Stock helper accepts nonempty strings without requiring numeric-only format and converts numeric input to text. This boundary preserves opaque strings and exact positive JSON long IDs; it rejects other representations.",
+    "local_response_budget_bytes": 65536,
+    "boundary_receipt": "The original stock id as a String; HTTP/API success is cloud creation evidence only, not proof of native UI or lens visibility"
+  },
+  "original_refresh": {
+    "receiver": {
+      "method": "Lcom/rayneo/rayneo_venus_push_plugin/emas/RayNeoPushMessageReceiver;->onMessage(Landroid/content/Context;Lcom/alibaba/sdk/android/push/notification/CPushMessage;)V",
+      "smali_line": 220,
+      "forwarding_lines": [273, 281],
+      "call": "Lk8/k;->a(Ljava/lang/String;Ljava/util/HashMap;)V with method onMessage"
+    },
+    "java_entry": {
+      "companion": "Lk8/k;->j:Lk8/k$a;",
+      "singleton_method": "Lk8/k$a;->d()Lk8/k;",
+      "singleton_smali_line": 1408,
+      "forward_method": "Lk8/k;->a(Ljava/lang/String;Ljava/util/HashMap;)V",
+      "forward_smali_line": 270,
+      "event_sink": "Lk8/k;->o:Loa/m$a$a;",
+      "sink_null_log_smali_line": 491,
+      "semantics": "Copies map, adds __method, emits through original Flutter push EventSink on main thread or posts to its Handler. A null sink drops the event; do not report refresh delivered."
+    },
+    "minimal_local_event": {
+      "method": "onMessage",
+      "map": {"content": "{\"type\":\"microsoftTodo.refresh\",\"body\":{}}"},
+      "note": "Use fixed internal refresh event after confirmed creation; this is a local original-plugin notification, not a fabricated CPushMessage or external push request"
+    },
+    "dart_parser": {
+      "method": "PushService._parsePushEvent",
+      "wrapper_aot": "0x1b4881c",
+      "async_body_aot": "0x2a82530",
+      "accepted_shape": "root content or data.msg.content; content JSON string or map; type String and body map or JSON string required",
+      "push_event_construct_aot_range": ["0x2a82888", "0x2a82890"]
+    },
+    "task_listener": {
+      "service": "AiTaskService",
+      "handler_aot": "0x1ab5144",
+      "refresh_literal_aot": "0x1ab51b8",
+      "get_task_list_call_aot": "0x1ab5204",
+      "view_model_get_task_list_aot": "0x283d908",
+      "call_option": "forceExternalSources:true",
+      "view_model_pending_upload_aot": "0x1684810",
+      "view_model_pending_upload_call_aot": "0x283db50",
+      "task_change_handler_aot": "0x18d04d8",
+      "original_todo_event_item_conversion_aot": "0x18d0ac4",
+      "glasses_reconnect_handler_aot": "0x1ab5508",
+      "glasses_reconnect_sync_call_aot": "0x1ab55e0",
+      "note": "Original listener refreshes the original task provider/cache and has native task-change/glasses synchronization machinery. Runtime provider activation, original-list readback and lens synchronization still need verification; never substitute invented business22 task IDs."
+    }
+  },
+  "alternative_not_implemented": {
+    "path": "/action/api/v1/tasks/batchSync",
+    "body": "taskList array with operation and clientId",
+    "body_serializer_aot": "0x168bf1c",
+    "item_serializer_aot": "0x16859ec",
+    "observation": "Original manual RayNeo creation participates in local pending-change/batchSync flow. This boundary intentionally does not synthesize Isar tasks, temporary local IDs or mappings."
+  },
+  "remaining_runtime_checks": [
+    "Confirm create v2 accepts the three-field RayNeo request and returns an original cloud task id for the current account",
+    "Confirm the original Flutter push EventSink and AiTaskService provider are active before requesting refresh",
+    "Confirm refresh reads the created id into the original task list/cache and the original glasses todo list",
+    "On create failure do not ACK suggestion acceptance; a refresh failure after successful create must not cause another blind create"
+  ]
+}
