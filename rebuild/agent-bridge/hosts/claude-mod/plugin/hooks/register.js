@@ -1,4 +1,4 @@
-import {validateConnection, validateRegistry, validateAction, stamp, matchesBoundTurn, reservedBridgeText, object, uuid} from './protocol.js';
+import {validateConnection, validateRegistry, validateAction, matchesBoundTurn, reservedBridgeText, object, uuid, MOD_NAME} from './protocol.js';
 
 // This is a Claude Mod, not Node.js. All I/O goes through documented $ calls.
 // Keep $ calls in full and pass $ only to top-level functions for static validation.
@@ -14,6 +14,9 @@ let activeTurn = null;
 let busy = true; // Loading into a busy conversation must not manufacture idle.
 let journal = {operations:{}, tools:{}, outbox:[]};
 let pending = {};
+// Texts the user typed that equal a submitted phone input. Those turns are the
+// user's own and must not claim the queued operation.
+let userEchoes = {};
 let writeTail = Promise.resolve();
 let storageFailed = false;
 const synchronousTools = new Set(['Read','Write','Edit','MultiEdit','Glob','Grep','LS','NotebookEdit','TodoWrite','TaskCreate','TaskGet','TaskList','TaskUpdate','TaskStop','AskUserQuestion']);
@@ -207,7 +210,7 @@ async function perform($, action) {
   }
   const now = await $.clock.now();
   if (Date.parse(action.expires_at) <= now) { await receipt($, id, 'expired'); return; }
-  pending[id] = {text:stamp(id) + action.text, expires_at:action.expires_at};
+  pending[id] = {text:action.text, expires_at:action.expires_at};
   await receipt($, id, 'queued_native');
   if (!(await exact($))) return;
   if (Date.parse(action.expires_at) <= await $.clock.now()) {
@@ -221,7 +224,9 @@ async function perform($, action) {
   pending[id].submitted = true;
   // No await: submit waits for an idle turn. Awaiting it would block the
   // background pump, including independent stop requests and receipt retries.
-  $.prompt.submit({text:pending[id].text}).then(
+  // asUser: the phone text is the wearer's own words, so the transcript shows it
+  // as a plain user message without the plugin attribution wrapper.
+  $.prompt.submit({text:pending[id].text, asUser:true}).then(
     result => submissionSettled($, id, result),
     () => submissionFailed($, id)
   ).catch(() => { enabled = false; if (timer) timer.cancel(); });
@@ -295,7 +300,7 @@ async function discover($){
     if(enabled&&connection.session_id===descriptor.session_id&&connection.cwd===descriptor.cwd&&connection.token===descriptor.token&&connection.url===descriptor.url&&connection.binding_id===descriptor.binding_id)return;
     const turn=activeTurn,wasBusy=busy;
     if(enabled)await end($);
-    activeTurn=turn;busy=wasBusy;pending={};storageFailed=false;
+    activeTurn=turn;busy=wasBusy;pending={};userEchoes={};storageFailed=false;
     await connect($,descriptor);
     if(activeTurn)await observe($,activeTurn,0);
   }catch{if(enabled)await end($,false);/* No usable descriptor means no network dispatch. */}
@@ -317,7 +322,7 @@ async function end($,notify=true) {
   if (!enabled) return;
   enabled = false;
   if (timer) timer.cancel();
-  activeTurn = null; pending = {};
+  activeTurn = null; pending = {}; userEchoes = {};
   // session.end covers /clear, /resume and /branch. Do not rebind a new ID.
   if(notify)try { await post($, '/v1/end', {}); } catch (error) { /* heartbeat expires */ }
 }
@@ -340,6 +345,8 @@ async function admit($, e, next) {
   // A pasted operation marker or attribution wrapper must not impersonate our
   // pending turn, even when the text and claimed plugin name match exactly.
   if ((!globalMode||enabled)&&reservedBridgeText(e.text)) return {drop:'This text uses a reserved bridge operation marker.'};
+  if (enabled && e.origin?.name !== MOD_NAME && Object.values(pending).some(p => p.submitted && p.text === e.text))
+    userEchoes[e.text] = (userEchoes[e.text] ?? 0) + 1;
   return next(e);
 }
 async function started($, e) {
@@ -349,7 +356,9 @@ async function started($, e) {
   // The actual SDK turn text is wrapped, and self-dispatch does not invoke our
   // prompt.submit hook. Match the complete authenticated, already-dispatched
   // input; never search inside arbitrary user messages for an operation ID.
-  const id = Object.keys(pending).find(key => pending[key].submitted &&
+  const echo = userEchoes[e.text] > 0;
+  if (echo && --userEchoes[e.text] === 0) delete userEchoes[e.text];
+  const id = echo ? undefined : Object.keys(pending).find(key => pending[key].submitted &&
     !journal.operations[key]?.turn_id && matchesBoundTurn(e.text, pending[key].text));
   if (id && await exact($)) {
     journal.operations[id].coverage=1;

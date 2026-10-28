@@ -194,7 +194,7 @@ test('session end revokes binding, drops unsent work, and old native callbacks c
 
 test('changed native session/cwd unbinds, and marker replay from another origin is rejected',async t=>{
   const f=await fixture(t), s=await simulator(t,f), id=await f.enqueue();await s.tick();
-  const text=s.state.submissions[0].text;
+  const text=stamp(id)+s.state.submissions[0].text;
   assert.ok((await s.fire('prompt.submit',{text,origin:{kind:'user'}})).drop);
   assert.ok((await s.fire('prompt.submit',{text:stamp(id)+'changed',origin:{kind:'plugin',name:MOD_NAME}})).drop);
   s.state.cwd += '/other';await s.tick();
@@ -295,6 +295,17 @@ test('false wrapper prefix, mixed user text, or changed attribution cannot claim
     await s.admit(0,'actual-owned-turn',actualSdkWrapper(input));await s.tick();
     assert.equal((await f.broker.host.inspectOperation(id)).turnId,'actual-owned-turn');
   }
+});
+
+test('phone input is submitted as the user\'s own words, and a typed copy never claims it',async t=>{
+  const f=await fixture(t),s=await simulator(t,f),id=await f.enqueue('Synthetic phone words');await s.tick(2);
+  assert.equal(s.state.submissions[0].text,'Synthetic phone words');
+  assert.equal(s.state.submissions[0].asUser,true);
+  const typed=await s.fire('prompt.submit',{text:'Synthetic phone words',origin:{kind:'user'}});assert(typed.event);
+  await s.fire('turn.start',{turnId:'typed-copy',text:'Synthetic phone words'});await s.tick();
+  assert.equal((await f.broker.host.inspectOperation(id)).turnId,null);
+  await s.admit(0,'phone-turn');await s.tick();
+  assert.equal((await f.broker.host.inspectOperation(id)).turnId,'phone-turn');
 });
 
 test('a correct host wrapper without trusted native dispatch does not bind any native turn',async t=>{
