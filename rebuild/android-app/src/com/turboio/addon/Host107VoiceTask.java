@@ -20,7 +20,7 @@ final class Host107VoiceTask {
  private volatile boolean closed;
  private volatile boolean engineEnded;
 
- private static Class<?> type(String name)throws ReflectiveOperationException{return Class.forName(name);}
+ private static Class<?> type(String name)throws ReflectiveOperationException{return Class.forName(Host107Abi.className(name));}
  private static Object call(Object target,String method,Class<?>[] signature,Object...args)throws ReflectiveOperationException{
   return target.getClass().getMethod(method,signature).invoke(target,args);
  }

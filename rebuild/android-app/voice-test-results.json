@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "at": "2026-10-26T07:19:03.752Z",
+  "at": "2026-10-28T08:50:18.365Z",
   "assertions": 1960,
   "kind": "JVM real atomic voice journals and answer mailbox; reflection-based official ASR boundary with ABI doubles",
   "abi": {
-    "host": "1.0.7",
-    "host_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
+    "host": "1.0.10",
+    "host_sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",
     "proofs": [
       {
         "descriptor": "Lcom/rayneo/airuntime/controller/ASRController;",
-        "path": "smali_classes2/com/rayneo/airuntime/controller/ASRController.smali",
-        "sha256": "c8d5581c88988d4625e24edf27e6dc9132b48dabab80d9385f183561a5bfaf4e",
+        "path": "smali_classes3/com/rayneo/airuntime/controller/ASRController.smali",
+        "sha256": "9030e7b00c2be2d8e11734a9baeee34df50cf93af0a38a27c93b0c274ea46df8",
         "required": [
           ".method public final createTask(Ljava/lang/String;)Lcom/rayneo/airuntime/controller/ASRTask;",
           ".method public final destroyTask(Ljava/lang/String;)V"
@@ -18,8 +18,8 @@
       },
       {
         "descriptor": "Lcom/rayneo/airuntime/controller/ASRTask;",
-        "path": "smali_classes2/com/rayneo/airuntime/controller/ASRTask.smali",
-        "sha256": "f97a444a62b8b457dfae2835331095f6cb1dd379c9d6117665aaaf63e354defa",
+        "path": "smali_classes3/com/rayneo/airuntime/controller/ASRTask.smali",
+        "sha256": "37599fbb82404cf8c9209a0fe7639ec74ef6b1e0c816c0d3087d9380e5f58620",
         "required": [
           ".method public final initTask(Lcom/rayneo/airuntime/controller/RayNeoASRConfig;Lcom/rayneo/airuntime/bridge/AudioRecorderBridge$AudioRecorderAdapter;Lcom/rayneo/airuntime/controller/ASRResultListener;)Z",
           ".method public final startTask()Z",
@@ -30,8 +30,8 @@
       },
       {
         "descriptor": "Lcom/rayneo/airuntime/controller/RayNeoASRConfig;",
-        "path": "smali_classes2/com/rayneo/airuntime/controller/RayNeoASRConfig.smali",
-        "sha256": "059c556b16ef482313caa0656e233fcc82ee3b2118f87f25568521aeb43f8947",
+        "path": "smali_classes3/com/rayneo/airuntime/controller/RayNeoASRConfig.smali",
+        "sha256": "44be00d7bf0c3e58f4c4a4a3678d939988f810eef5639691ee1426fb5cb1cef6",
         "required": [
           ".method public constructor <init>()V",
           ".method public final getInputAudioFormat()Ljava/lang/String;",
@@ -49,8 +49,8 @@
       },
       {
         "descriptor": "Lcom/rayneo/airuntime/controller/ASRResultListener;",
-        "path": "smali_classes2/com/rayneo/airuntime/controller/ASRResultListener.smali",
-        "sha256": "8e59e466ba7e581a8cb144d974edb13fc844deb8bcd6ae800e0c411716463dfa",
+        "path": "smali_classes3/com/rayneo/airuntime/controller/ASRResultListener.smali",
+        "sha256": "b771e84ca4743001fea2cc76669b33eac230bb0f5a3f0f9d71b96e0bfcb00fbb",
         "required": [
           ".method public abstract onAsrResult(Ljava/lang/String;Z)V",
           ".method public abstract onAudioRecordStart()V",
@@ -63,17 +63,17 @@
       },
       {
         "descriptor": "Lcom/rayneo/airuntime/bridge/AudioRecorderBridge$AudioRecorderAdapter;",
-        "path": "smali_classes2/com/rayneo/airuntime/bridge/AudioRecorderBridge$AudioRecorderAdapter.smali",
-        "sha256": "5d963c64d4e907c7f210cb21d95409f6d4760f6b245077fc8ba900b35213423a",
+        "path": "smali_classes3/com/rayneo/airuntime/bridge/AudioRecorderBridge$AudioRecorderAdapter.smali",
+        "sha256": "74fec777158cac7fa2c8045e89470f726ef2152558809dd432ccc803698f59f2",
         "required": [
           ".method public final notifyRecordData([B)V",
           ".method public final notifyRecordStop()V"
         ]
       },
       {
-        "descriptor": "Lp8/o;",
-        "path": "smali_classes2/p8/o.smali",
-        "sha256": "4cb19c13933f8eef556fc0d7363b67f8f9ce60f338e9015f6834ca9874c6d326",
+        "descriptor": "Ll9/p;",
+        "path": "smali_classes3/l9.1/p.smali",
+        "sha256": "b3125f2df046fc0c633779d33b206197def484ef1a2239b627ce661cbbc5b58f",
         "required": [
           ".method public constructor <init>()V",
           ".method public final onCreate()Z",
@@ -85,9 +85,9 @@
         ]
       },
       {
-        "descriptor": "Ly8/d;",
-        "path": "smali_classes2/y8/d.smali",
-        "sha256": "9c0f98d2a56a6b10f562c14d1da6b62d6739644b74a74b20bcf4fe040e5da3e3",
+        "descriptor": "Lu9/e;",
+        "path": "smali_classes3/u9.1/e.smali",
+        "sha256": "436aceef35c8e1e44c97cfde26238896093fc3911d2159ddef8eff5dc266fc71",
         "required": [
           ".field public static volatile b:Lio/flutter/embedding/engine/a;"
         ]
@@ -95,82 +95,82 @@
       {
         "descriptor": "Lio/flutter/embedding/engine/a;",
         "path": "smali_classes3/io/flutter/embedding/engine/a.smali",
-        "sha256": "58c1a855cdaf08437e3c0de5f9aa199a27226401c8bc32502a0a42801938c668",
+        "sha256": "6466762e4f9b368a50b231c00e201abfd69f56386a472de85b7b446b8db8ed5d",
         "required": [
-          ".field public final d:Lfa/d;"
+          ".field public final d:Lfb/d;"
         ]
       },
       {
-        "descriptor": "Lfa/d;",
-        "path": "smali_classes3/fa.1/d.smali",
-        "sha256": "e483206b2e3ebcbdb3037b23ab09b6859253d3abebb0a0bb807d4866f2b1c5d0",
+        "descriptor": "Lfb/d;",
+        "path": "smali_classes3/fb.1/d.smali",
+        "sha256": "bc04155c8b33f1b526797bda45951e304745d1b8b85a001aca77e5ed9360b8ba",
         "required": [
           ".field public final a:Ljava/util/HashMap;"
         ]
       },
       {
-        "descriptor": "Lcom/rayneo/rayneo_venus_sdk_plugin/f;",
-        "path": "smali_classes2/com/rayneo/rayneo_venus_sdk_plugin/f.smali",
-        "sha256": "05c20fe23315a07cb5c9c36a65dfac6d545c02be1c1e3d3ece2bd627d35a93e1",
+        "descriptor": "Lcom/rayneo/rayneo_venus_sdk_plugin/g;",
+        "path": "smali_classes3/com/rayneo/rayneo_venus_sdk_plugin/g.smali",
+        "sha256": "512d57047ec06db62d564689671d4f39083be7c095f84049c5c4fb10fde18972",
         "required": [
-          ".field public final y:Lm8/k;"
+          ".field public final y:Li9/k;"
         ]
       },
       {
-        "descriptor": "Lm8/k;",
-        "path": "smali_classes2/m8/k.1.smali",
-        "sha256": "cfa254809bccfbaaddade4feadb5529ffe769c84fdeeb81dbba31cbca853e95f",
+        "descriptor": "Li9/k;",
+        "path": "smali_classes3/i9.1/k.1.smali",
+        "sha256": "568448af2ce5a0260737560d64030552acb169a907c8fb7dfe44f52bbd8a6f48",
         "required": [
-          ".field public final u:Lp8/e;"
+          ".field public final u:Ll9/e;"
         ]
       },
       {
-        "descriptor": "Lp8/e;",
-        "path": "smali_classes2/p8/e.smali",
-        "sha256": "cf1936b48a2e7b16e0a00eb9c59e937b5906a3348e195d5f02e1786c18117eb6",
+        "descriptor": "Ll9/e;",
+        "path": "smali_classes3/l9.1/e.smali",
+        "sha256": "8867c7628c6c6cc518f065090d94455883f3dd9bfbe163fa59ad1d0336d19d63",
         "required": [
-          ".field public final a:Ls8/a;",
-          ".field public final b:LAb/a;",
+          ".field public final a:Lo9/a;",
+          ".field public final b:Lzc/a;",
           ".field public final i:Ljava/lang/Object;",
           ".field public j:Z",
           ".field public k:Z",
           ".field public l:Z",
           ".field public m:Z",
-          ".field public final o:Lp8/k;",
-          ".field public final p:Lp8/g;",
-          ".field public final q:Lp8/a;",
+          ".field public final o:Ll9/l;",
+          ".field public final p:Ll9/g;",
+          ".field public final q:Ll9/a;",
           ".method public final b()Lcom/rayneo/airuntime/controller/ASRController;",
           ".method public final c()Z"
         ]
       },
       {
-        "descriptor": "Lp8/a;",
-        "path": "smali_classes2/p8/a.smali",
-        "sha256": "68bfb46059d199889a9e0ed5819f8e057b5e73ee07877c1ebe8a4a880cd2dc87",
+        "descriptor": "Ll9/a;",
+        "path": "smali_classes3/l9.1/a.smali",
+        "sha256": "d9f7db95775255a315913ca6d23570e1a226f1a98cf7fd0b4c602e6392cc86d0",
         "required": [
           ".field public c:Lcom/rayneo/airuntime/controller/ASRTask;"
         ]
       },
       {
-        "descriptor": "Lp8/k;",
-        "path": "smali_classes2/p8/k.smali",
-        "sha256": "71074c83e18b419d9dd520f428f8eff0382d25becad04e3d345147fc3e6c5487",
+        "descriptor": "Ll9/l;",
+        "path": "smali_classes3/l9.1/l.smali",
+        "sha256": "95ebf48045ef76d33008eb1bc8307d82f35c8c76ccec4fe3a3f5b9ffed6ddc28",
         "required": [
           ".field public b:Lcom/rayneo/airuntime/controller/ASRTask;"
         ]
       },
       {
-        "descriptor": "Lp8/g;",
-        "path": "smali_classes2/p8/g.smali",
-        "sha256": "4b61ba3bd39db823bb2af48d5f059478de526bd6730172d496a0a02aa2a57d54",
+        "descriptor": "Ll9/g;",
+        "path": "smali_classes3/l9.1/g.smali",
+        "sha256": "1e1ab244fea39c9b354bcab54c34c2c35ef3f0a04847ca5d781233d5c6f34e8a",
         "required": [
           ".field public d:Lcom/rayneo/airuntime/controller/ASRTask;"
         ]
       },
       {
-        "descriptor": "Ls8/a;",
-        "path": "smali_classes2/s8/a.smali",
-        "sha256": "ea74003762e1f3846b2969a49ac75778d5c1cbde8b6c2d0ef66adef648f2c924",
+        "descriptor": "Lo9/a;",
+        "path": "smali_classes3/o9.1/a.smali",
+        "sha256": "70305458c9484f6080014ceb74ff4ba6a581b3c22c38a59accb4f559fb7e00eb",
         "required": [
           ".field public a:Ljava/lang/String;",
           ".field public c:Ljava/lang/String;",
@@ -178,17 +178,17 @@
         ]
       },
       {
-        "descriptor": "LAb/a;",
-        "path": "smali_classes3/Ab/a.smali",
-        "sha256": "00fe4d4d19ab26329c0c00ca01eb8ce02492b07ae8f4633ea89167bb3d960c09",
+        "descriptor": "Lzc/a;",
+        "path": "smali_classes4/zc.1/a.smali",
+        "sha256": "7010cf8c1f14dbcbaea44dd1f0aa8a36c1e51b6e58f09a9c583d0bd0d3953354",
         "required": [
           ".method public abstract invoke()Ljava/lang/Object;"
         ]
       },
       {
         "descriptor": "Lcom/rayneo/airuntime/utils/OpusDecoder;",
-        "path": "smali_classes2/com/rayneo/airuntime/utils/OpusDecoder.smali",
-        "sha256": "f73a2b51337a12aa4d530bde8076b4e93806dd9399ee391f8f72964e8ac800ad",
+        "path": "smali_classes3/com/rayneo/airuntime/utils/OpusDecoder.smali",
+        "sha256": "b58e0e6a68e14c908a7e2d8ccd07b06f49e2abc6655d510bdd1c745ebeed0055",
         "required": [
           ".method public constructor <init>()V",
           ".method public final init-uN6NtqM(II)Z",
@@ -267,47 +267,55 @@
     },
     {
       "path": "src/com/turboio/addon/Host107VoiceTask.java",
-      "sha256": "f714824dc097a665774fda18ee3a35d3e41e17d0a7852ee209e08d7eecbe54c5"
+      "sha256": "03ea236dea06e90e1730510d132d5d864640377fa4e4c30774e0553b4f61ea06"
     },
     {
       "path": "src/com/turboio/addon/Host107VoiceEnvironment.java",
-      "sha256": "6586bc340f8d4a99b9a80c861a1ed097ebf6bb31052e740f37bcce509a8bf895"
+      "sha256": "4d4cce9aa7f569d02fdad657e7ab5769ce0e20b4ae4b08ae478569f9157ceabc"
     },
     {
       "path": "src/com/turboio/addon/TaskControl.java",
-      "sha256": "2dea8a59f9a0b513be9ce2d88ed1e39b1f9c4189cc177aca01d4319865bd6492"
+      "sha256": "af1cf91f0dda18690096c1c6d0d08ec21e8e7097628be25e6785562a58fac14a"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
-      "sha256": "9187874823587ef11f4cac565ff43f5bec8b1712fea4c604cf9426363a49fc66"
+      "sha256": "8dc57a7992a5350d7988e3c4ca8595f5864a4d6410171cb92445be4e174ea7e7"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "8f0e60047e71b750cda4fbd71558eba550872e844d902f423eeaa364447da973"
+      "sha256": "52b43f32b4089981645fe7b7bfaab5d711b3178740169d8c91f283f8c42afdc8"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "cb4f0b521e3a43ff874074426a23bf8d5cb669972c36b9afd114a200094e626e"
+      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "99236a6463980e217f5ae3795c45c0d1079319f41ef4a4fa69d6fed89840af18"
+      "sha256": "96926d5fd4254fc311adbd9df7428cd4c7aae539f7223e9a4d04e2873cfeb081"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskDevice.java",
+      "sha256": "45d41b99c76a1692bac60df380aa9053abde36a795361f345a1d2069949909a6"
+    },
+    {
+      "path": "src/com/turboio/addon/SessionPairingCode.java",
+      "sha256": "d1b492d2b62807792cba96e7b2def2bed997ba3f38422dfe3771ffd676837031"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a675adfc53a8a5d0297a9908ffe8ecaf60dde3e2e28090b9306a4c944687dfa2"
+      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "873376ba1c5b071685aa5d54d7999439fd02da586eb480c1600a935c08e0ea65"
+      "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
-      "sha256": "98ba6669af921669b04fa30eb29954d954aa9277f634123a268be5949247dcbb"
+      "sha256": "fd7c141cc893999ff771b16d3edd3a56fc9a7e9e4594094c12a718c5f15c0746"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "ae4c3cdaec76ac502f2d37e2537aa7fc1372401e6befa9b4494b8f403fabd735"
+      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -428,6 +436,10 @@
     {
       "path": "../../tools/android/voice-fixtures/com/rayneo/rayneo_venus_sdk_plugin/f.java",
       "sha256": "5e111fb967039914cf78308901e8ca59e43dd59814974b0866e5e30a27b29469"
+    },
+    {
+      "path": "../../tools/android/voice-fixtures/com/turboio/addon/Host107Abi.java",
+      "sha256": "ee2e897e4716e16c78027af959b0f1a4ebbcec91f612c194af0496161fcb35e5"
     },
     {
       "path": "../../tools/android/voice-fixtures/fa/d.java",

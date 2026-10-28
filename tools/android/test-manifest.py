@@ -31,7 +31,7 @@ def tree(data):
             stack.append(node)
         elif u16(c,0)==0x103:stack.pop()
     return root
-with zipfile.ZipFile(ROOT/'.private/hosts/RayNeo-1.0.7-230-original.apk') as z:original=background(z.read('AndroidManifest.xml'))
+with zipfile.ZipFile(ROOT/'.private/hosts/RayNeo-1.0.10-258-original.apk') as z:original=background(z.read('AndroidManifest.xml'))
 patched=patch(original)
 assert patch(patched)==patched
 before=tree(original);after=tree(patched);expected=copy.deepcopy(before)

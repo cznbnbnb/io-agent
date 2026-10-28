@@ -8,11 +8,11 @@ final class PrompterSharePort {
  static void trace(String text){android.util.Log.i("TurboIOTransfer",text);}
  private static Object observer;private static final List<List<Object>> attached=new ArrayList<>();
  private static Object create()throws Exception{
-  Class<?> g=Class.forName("Y3.g"),kind=Class.forName("j4.H");Object share=Class.forName("j4.w").getField("c").get(null);
-  Object[] kinds=(Object[])Array.newInstance(kind,2);kinds[0]=kind.getField("b").get(null);kinds[1]=kind.getField("c").get(null);
+  Class<?> g=NavReflect.type("Y3.g"),kind=NavReflect.type("j4.H");Object share=NavReflect.field(NavReflect.type("j4.w"),"c");
+  Object[] kinds=(Object[])Array.newInstance(kind,2);kinds[0]=NavReflect.field(kind,"b");kinds[1]=NavReflect.field(kind,"c");
   return Proxy.newProxyInstance(g.getClassLoader(),new Class[]{g},(o,m,a)->{
    if(m.getDeclaringClass()==Object.class){if(m.getName().equals("hashCode"))return System.identityHashCode(o);if(m.getName().equals("equals"))return o==a[0];return "TurboIOPrompterShare";}
-   switch(m.getName()){case "a":return share;case "f":return kinds.clone();case "c":if(a!=null&&a.length==1)deliver(a[0]);return null;default:return null;}
+   switch(m.getName()){case "a":return share;case "d":return kinds.clone();case "c":if(a!=null&&a.length==1)deliver(a[0]);return null;default:return null;}
   });
  }
  private static void deliver(Object message){
@@ -28,7 +28,7 @@ final class PrompterSharePort {
  @SuppressWarnings("unchecked")
  static synchronized boolean attach(){
   detach();
-  try{if(observer==null)observer=create();Object registry=NavReflect.call(NavReflect.field(Class.forName("Y3.o"),"d"),"a");Map<?,?> channels=(Map<?,?>)NavReflect.field(registry,"a");Class<?> channel=Class.forName("Y3.l");
+  try{if(observer==null)observer=create();Object registry=NavReflect.call(NavReflect.field(NavReflect.type("Y3.o"),"d"),"a");Map<?,?> channels=(Map<?,?>)NavReflect.field(registry,"a");Class<?> channel=NavReflect.type("Y3.l");
    for(Object c:channels.values())if(channel.isInstance(c)){List<Object> list=(List<Object>)NavReflect.field(c,"h");if(!list.contains(observer)){list.add(observer);attached.add(list);}}
   }catch(Exception e){detach();return false;}
   PrompterSharePort.trace("prompter share-port channels="+attached.size());return !attached.isEmpty();

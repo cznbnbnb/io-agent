@@ -40,10 +40,11 @@ def symbols(data):
         classes[owner]={'access':u32(at+4),'super':types[u32(at+8)] if u32(at+8)!=0xffffffff else None,'members':members}
     return classes
 def audit(apk):
-    with zipfile.ZipFile(ROOT/'.private/hosts/RayNeo-1.0.7-230-original.apk') as source,zipfile.ZipFile(apk) as after:
-        original=symbols(source.read('classes2.dex'));rebuilt=symbols(after.read('classes2.dex'))
+    with zipfile.ZipFile(ROOT/'.private/hosts/RayNeo-1.0.10-258-original.apk') as source,zipfile.ZipFile(apk) as after:
+        original={};rebuilt={}
+        for dex in ['classes2.dex','classes3.dex']:original.update(symbols(source.read(dex)));rebuilt.update(symbols(after.read(dex)))
     if original.keys()!=rebuilt.keys():raise ValueError('Host class set changed')
-    hooks={'Lcom/rayneo/rayneo_venus_sdk_plugin/e;':{'c'},'Lq8/c$c;':{'onAsrResult','onNlpResult','onResponseComplete'},'Lcom/rayneo/venus/MainActivity;':{'onPostResume'},'Lcom/rayneo/venus/VenusApplication;':{'onCreate'},'Lcom/rayneo/rayneo_venus_sdk_plugin/j;':{'z'},'LY3/V;':{'o'},'LY3/u;':{'u'}}
+    hooks={'Lcom/rayneo/rayneo_venus_sdk_plugin/e;':{'c'},'Lm9/c$c;':{'onAsrResult','onNlpResult','onResponseComplete'},'Lcom/rayneo/venus/MainActivity;':{'onPostResume'},'Lcom/rayneo/venus/VenusApplication;':{'onCreate'},'Lcom/rayneo/rayneo_venus_sdk_plugin/k;':{'z'},'LO4/Y;':{'s'},'LO4/v;':{'u'}}
     renamed=0;member_count=0
     for owner,definition in original.items():
         expected=dict(definition['members'])
@@ -51,7 +52,7 @@ def audit(apk):
             if not member.startswith('method:'):continue
             name=member[7:].split('(',1)[0]
             if name not in hooks.get(owner,set()):continue
-            prefix='ioAgentOriginal_' if owner=='LY3/V;' else 'turboioOriginal_'
+            prefix='ioAgentOriginal_' if owner=='LO4/Y;' else 'turboioOriginal_'
             expected['method:'+prefix+member[7:]]=expected[member];renamed+=1
         actual=rebuilt[owner]
         if actual['members']!=expected or actual['access']!=definition['access'] or actual['super']!=definition['super']:raise ValueError('Unexpected class/member change: '+owner)

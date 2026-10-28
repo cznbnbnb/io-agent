@@ -8,7 +8,7 @@ final class Host107VoiceEnvironment {
  private static final String BASE="com.rayneo.airuntime.controller.";
  private final Object plugin,helper,lock,controller,config;
  private Host107VoiceEnvironment(Object plugin,Object helper,Object lock,Object controller,Object config){this.plugin=plugin;this.helper=helper;this.lock=lock;this.controller=controller;this.config=config;}
- private static Class<?> type(String name)throws ReflectiveOperationException{return Class.forName(name);}
+ private static Class<?> type(String name)throws ReflectiveOperationException{return Class.forName(Host107Abi.className(name));}
  private static Object field(Object object,String name)throws ReflectiveOperationException{return object.getClass().getField(name).get(object);}
  private static Object call(Object object,String method)throws ReflectiveOperationException{return object.getClass().getMethod(method).invoke(object);}
  private static void set(Object object,String method,Class<?> parameter,Object value)throws ReflectiveOperationException{object.getClass().getMethod(method,parameter).invoke(object,value);}

@@ -17,7 +17,7 @@ final class Host107RecordingDeletion implements OfficialRecordingDeletion.Source
   Map<?,?> plugins=(Map<?,?>)NavReflect.field(NavReflect.field(engine,"d"),"a");
   Object plugin=plugins.get(NavReflect.type("za.a0"));
   MaterialWire.require(plugin!=null,"OFFICIAL_DELETION_STORE_UNAVAILABLE");
-  Method getter=plugin.getClass().getDeclaredMethod("k",String.class,NavReflect.type("za.n"));
+  Method getter=plugin.getClass().getDeclaredMethod("a",String.class,NavReflect.type("za.n"));
   getter.setAccessible(true);Object value=getter.invoke(plugin,exactKey,null);
   MaterialWire.require(value==null||value instanceof String&&((String)value).length()<=1048576,"OFFICIAL_DELETION_BUDGET");
   MaterialWire.require(account.same(current()),"OFFICIAL_ACCOUNT_CHANGED");

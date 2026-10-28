@@ -12,7 +12,7 @@ sys.path.insert(0,str(ROOT/'upstream'/'android-addon'))
 from addon_assets import assets
 from background_manifest import patch as patch_manifest
 from product_manifest import patch as patch_product
-from native_route107 import MEMBER as ROUTE_MEMBER, patch_library, report as route_report
+from native_route110 import MEMBER as ROUTE_MEMBER, patch_library, report as route_report
 
 def native_preparation():
     product=json.loads((ROOT/'product.json').read_text(encoding='utf-8'))
@@ -60,7 +60,7 @@ def assemble(source,hook,addon,destination):
         if set(extra)&set(names):raise ValueError('Asset collision')
         original_manifest=z.read('AndroidManifest.xml')
         manifest=patch_product(patch_manifest(original_manifest))
-        for f in [hook,addon]:
+        for f in [hook/(dex+'-hooked.dex') for dex in ['classes2','classes3']]+[addon]:
             with open(f,'rb') as raw:
                 if not raw.read(4)==b'dex\n':raise ValueError('Invalid DEX')
         temp=pathlib.Path(str(destination)+'.assembling')
@@ -68,7 +68,7 @@ def assemble(source,hook,addon,destination):
         with zipfile.ZipFile(temp,'x',allowZip64=True) as out:
             for info in z.infolist():
                 if signature(info.filename):continue
-                if info.filename=='classes2.dex':content=pathlib.Path(hook).read_bytes()
+                if info.filename in ['classes2.dex','classes3.dex']:content=(hook/(info.filename[:-4]+'-hooked.dex')).read_bytes()
                 elif info.filename=='AndroidManifest.xml':content=manifest
                 elif info.filename==ROUTE_MEMBER and native_preparation():content=patch_library(z.read(info))
                 else:content=z.read(info)
@@ -88,7 +88,7 @@ def audit(source,destination,hook,addon):
         if b!=expected:raise ValueError('Unexpected ZIP member difference')
         changed=[];preserved=0
         for name in a&b:
-            if name=='classes2.dex':expected_bytes=pathlib.Path(hook).read_bytes()
+            if name in ['classes2.dex','classes3.dex']:expected_bytes=(hook/(name[:-4]+'-hooked.dex')).read_bytes()
             elif name=='AndroidManifest.xml':expected_bytes=patch_product(patch_manifest(before.read(name)))
             elif name==ROUTE_MEMBER and native_preparation():expected_bytes=patch_library(before.read(name))
             else:

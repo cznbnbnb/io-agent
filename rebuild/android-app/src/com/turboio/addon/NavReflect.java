@@ -5,7 +5,7 @@ import java.lang.reflect.*;
 /** Version-scoped public API adapter. No vendor code copied. */
 final class NavReflect {
     static Class<?> type(String name)throws Exception{return Class.forName(Host107Abi.className(name));}
-    static Object field(Object target,String name)throws Exception{return (target instanceof Class?(Class<?>)target:target.getClass()).getField(name).get(target instanceof Class?null:target);}
+    static Object field(Object target,String name)throws Exception{Class<?> owner=target instanceof Class?(Class<?>)target:target.getClass();if(owner.getName().equals("a5.h")&&name.equals("b"))return owner.getMethod("g").invoke(target);return owner.getField(Host107Abi.fieldName(owner,name)).get(target instanceof Class?null:target);}
     private static Class<?> boxed(Class<?> c){if(c==boolean.class)return Boolean.class;if(c==int.class)return Integer.class;if(c==long.class)return Long.class;if(c==float.class)return Float.class;if(c==double.class)return Double.class;return c;}
     private static boolean fits(Class<?>[] types,Object[] args){if(types.length!=args.length)return false;for(int i=0;i<types.length;i++){if(args[i]==null){if(types[i].isPrimitive())return false;}else if(!boxed(types[i]).isInstance(args[i]))return false;}return true;}
     static Object make(String name,Object...args)throws Exception{for(Constructor<?> c:type(name).getConstructors())if(fits(c.getParameterTypes(),args))return c.newInstance(args);throw new NoSuchMethodException(name);}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-28T04:08:43.687Z",
+  "at": "2026-10-28T08:50:13.817Z",
   "scope": "Unmodified production calendar HTTP transport with synthetic Android/login/HTTPS doubles; real 30-second independent disconnect",
   "device": false,
   "network": false,
@@ -10,7 +10,7 @@
   "sources": [
     {
       "path": "src/com/turboio/addon/Host107LifelogHttp.java",
-      "sha256": "245fb921eb2baed66f10055cf09fff4b2799f279745ccbf788f466a0420ef306"
+      "sha256": "bd365583554b0040c439a9ab8041b48eb0ba5267e49c13fc78fcd5937f71405f"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogCalendarRequest.java",

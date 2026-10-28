@@ -13,7 +13,7 @@ overlay.push(writeTestProductInfo(output));
 // Pure-JVM dependencies added since this list was written (e.g. VoiceAnswerSession) come from
 // -sourcepath; Host107Abi's recording gate is a no-owner stub here and is tested by test-voice.mjs.
 overlay.push(path.join(workspace,'tools/android/host-policy-fixtures/com/turboio/addon/Host107Recording.java'));
-run('javac',['-encoding','UTF-8','-d',output,'-sourcepath',[path.join(root,'src'),path.join(root,'upstream/android-addon/src')].join(path.delimiter),...original,...overlay,'tools/android/fixtures/Y3/D.java','tools/android/AtomicDocumentTest.java','tools/android/HostPolicyTest.java','tools/android/TaskConnectionTest.java','tools/android/WireJsonTest.java','tools/android/TaskMailboxTest.java','tools/android/TaskHttpsTest.java','tools/android/TaskContextsTest.java']);
+run('javac',['-encoding','UTF-8','-d',output,'-sourcepath',[path.join(root,'src'),path.join(root,'upstream/android-addon/src')].join(path.delimiter),...original,...overlay,'tools/android/fixtures/Y3/D.java','tools/android/fixtures/O4/H.java','tools/android/AtomicDocumentTest.java','tools/android/HostPolicyTest.java','tools/android/TaskConnectionTest.java','tools/android/WireJsonTest.java','tools/android/TaskMailboxTest.java','tools/android/TaskHttpsTest.java','tools/android/TaskContextsTest.java']);
 run('java',['-cp',output,'com.turboio.addon.AtomicDocumentTest',output]);
 run('java',['-cp',output,'com.turboio.addon.HostPolicyTest']);
 run('java',['-cp',output,'com.turboio.addon.TaskConnectionTest']);

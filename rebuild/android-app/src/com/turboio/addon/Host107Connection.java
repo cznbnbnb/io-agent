@@ -10,7 +10,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Exact stock 1.0.7 ABI. Reuses stock service/core/concrete delegates and auth. */
+/** Exact stock 1.0.10 ABI. Reuses stock service/core/concrete delegates and auth. */
 public final class Host107Connection implements GlassesConnection {
  private static final String PLUGIN="com.rayneo.rayneo_venus_sdk_plugin.j",MANAGER="Y3.u",OWNER="com.rayneo.rayneo_venus_sdk_plugin.h";
  private static final String[] LANES={"a","b","c","e"},CALLBACKS={"H","I","K","J"};
@@ -35,9 +35,9 @@ public final class Host107Connection implements GlassesConnection {
  void listen(Runnable listener){mainThread();listeners.add(listener);}
  void unlisten(Runnable listener){mainThread();listeners.remove(listener);}
  private void changed(){if(notificationPending.compareAndSet(false,true))main.postDelayed(()->{notificationPending.set(false);for(Runnable listener:new ArrayList<>(listeners))try{listener.run();}catch(RuntimeException ignored){}},100);}
- private static Class<?> type(String name)throws Exception{return Class.forName(name);}
+ private static Class<?> type(String name)throws Exception{return Class.forName(Host107Abi.className(name));}
  private static Object field(Object owner,String name)throws Exception{return NavReflect.field(owner,name);}
- private static void set(Object owner,String name,Object value)throws Exception{Class<?> c=owner instanceof Class?(Class<?>)owner:owner.getClass();c.getField(name).set(owner instanceof Class?null:owner,value);}
+ private static void set(Object owner,String name,Object value)throws Exception{Class<?> c=owner instanceof Class?(Class<?>)owner:owner.getClass();c.getField(Host107Abi.fieldName(c,name)).set(owner instanceof Class?null:owner,value);}
  private static Object call(Object owner,String name,Object...args)throws Exception{return NavReflect.call(owner,name,args);}
  private static Object make(String name,Object...args)throws Exception{return NavReflect.make(name,args);}
  private static void require(boolean condition,String code){if(!condition)throw new IllegalStateException(code);}
@@ -131,7 +131,7 @@ public final class Host107Connection implements GlassesConnection {
   // Re-read the SDK dictionary immediately before consuming the single-use permit.
   self.peer(target.id);target=FirmwareRecoverySelection.select(self.snapshot().peers,permit,SystemClock.elapsedRealtime());
   permit.consume(target.id,SystemClock.elapsedRealtime());
-  require(Boolean.TRUE.equals(call(type(OWNER),"b",target.id,null,false)),"DEVICE_CONNECT_FAILED");self.note="DEVICE_CONNECTING";self.changed();
+  require(Boolean.TRUE.equals(call(type(OWNER),"b",self.peer(target.id),null,false,null)),"DEVICE_CONNECT_FAILED");self.note="DEVICE_CONNECTING";self.changed();
  }
  private void action()throws Exception{mainThread();permissions();bluetooth();require(owned&&manager!=null,"DEVICE_NOT_ENABLED");require(!foreignDelegates(),"DEVICE_OTHER_OWNER");noWork();}
  @Override public void scan()throws Exception{
@@ -151,7 +151,7 @@ public final class Host107Connection implements GlassesConnection {
   Object raw=call(type(PLUGIN),"j",device);require(raw instanceof Map,"DEVICE_SDK_UNAVAILABLE");String bond=small(((Map<?,?>)raw).get("bondState"),64);
   require(pair?(bond.equals("unbound")||bond.equals("localBondedNativeUnbound")):bond.equals("bonded"),"DEVICE_BINDING_MISMATCH");
   for(Peer p:snapshot().peers)require(!p.connected||p.id.equals(id),"DEVICE_OTHER_CONNECTED");
-  stopScan();require(Boolean.TRUE.equals(call(type(OWNER),"b",id,null,pair)),"DEVICE_CONNECT_FAILED");note="DEVICE_CONNECTING";changed();
+  stopScan();require(Boolean.TRUE.equals(call(type(OWNER),"b",device,null,pair,null)),"DEVICE_CONNECT_FAILED");note="DEVICE_CONNECTING";changed();
  }
  @Override public void disconnect(String id)throws Exception{action();peer(id);require(Boolean.TRUE.equals(call(type(OWNER),"d",id,null)),"DEVICE_DISCONNECT_FAILED");note="DEVICE_DISCONNECTING";changed();}
  @Override public void disable()throws Exception{

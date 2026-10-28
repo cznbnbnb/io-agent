@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {classFile} from '../../rebuild/android-app/host-107.mjs';
+import {classFile} from '../../rebuild/android-app/host-110.mjs';
 import {verifySnapshot} from './verify-source.mjs';
 
 test('Resolve exact descriptors despite Windows case collisions and CRLF',()=>{

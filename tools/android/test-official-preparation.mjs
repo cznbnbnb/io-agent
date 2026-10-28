@@ -22,7 +22,7 @@ for wrong in [patched,original[:-1],b'unknown',bytes([original[0]^1])+original[1
 print('Android107 route: pinned source/result, unchanged instructions/headers, exact two strings, wrong input/repeated patch refused')`]);
 const sources=['Fixed60OfficialFeed.java','Fixed60Firmware.java','Fixed60Profile.java','Host107Abi.java','HeadGestureGate.java','CardInputClosure.java','SuggestionGate.java','HeadGestureSession.java','FixedPeerHash.java','FirmwareQueue.java','NavReflect.java'].map(n=>path.join(root,'src/com/turboio/addon',n));const original=['BoundedJson.java','OtaFrame.java'].map(n=>path.join(root,'upstream/android-addon/src/com/turboio/addon',n));
 sources.push(writeTestProductInfo(out));
-run('javac',['-encoding','UTF-8','-d',out,...sources,...original,'tools/android/fixtures/Y3/D.java','tools/android/Fixed60OfficialFeedTest.java','tools/android/HostPolicyTest.java']);
+run('javac',['-encoding','UTF-8','-d',out,...sources,...original,'tools/android/fixtures/Y3/D.java','tools/android/fixtures/O4/H.java','tools/android/Fixed60OfficialFeedTest.java','tools/android/HostPolicyTest.java']);
 run('java',['-cp',out,'com.turboio.addon.HostPolicyTest']);
 const candidate=path.join(workspace,'rebuild/phase1/device-private/stock-firmware-1.0.5.5/suggestion60-candidate/StrixOS-1.0.5.5-SUGGEST60-OFFLINE-01-UNFLASHED.zip');
 const result=run('java',['-cp',out,'com.turboio.addon.Fixed60OfficialFeedTest',candidate]);const match=/source\/guard: (\d+) assertions passed/.exec(result);if(!match)throw Error('Missing fixed60 feed result');

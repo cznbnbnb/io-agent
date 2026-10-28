@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "at_utc": "2026-10-28T09:15:30.103Z",
+  "scope": "iO Agent migration from official Android 1.0.7/230 to 1.0.10/258",
+  "product": "iO Agent",
+  "version": "0.5.3-dev152",
+  "version_code": 10574,
+  "host_version": "1.0.10",
+  "host_code": 258,
+  "official_input_sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",
+  "apk_sha256": "7953f161c99e72171bd4990946167b9cd77b1b50037e06580b8ea9f7e0ace138",
+  "source_count": 264,
+  "migration_install": {
+    "version": "0.5.3-dev151",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "ac1950fbcf9d897875ef55c3700cea3dcf38f01b0ee7477e75a916afd779dd0a",
+      "candidate_sha256": "b014bc456c9fb3107582e55ac7ab73f3c0780ca42527206f50fbf5beb9fcbd94",
+      "apk_bytes": 435067497,
+      "delta_bytes": 44171842,
+      "commands": 8051,
+      "delta_sha256": "e424e43bb2bf50151af9524a95e084d6eb53168863f3836e393d65cf20733a85",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "b014bc456c9fb3107582e55ac7ab73f3c0780ca42527206f50fbf5beb9fcbd94",
+    "rollback": "0.5.3-dev150"
+  },
+  "final_install": {
+    "version": "0.5.3-dev152",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "b014bc456c9fb3107582e55ac7ab73f3c0780ca42527206f50fbf5beb9fcbd94",
+      "candidate_sha256": "7953f161c99e72171bd4990946167b9cd77b1b50037e06580b8ea9f7e0ace138",
+      "apk_bytes": 435067497,
+      "delta_bytes": 1950713,
+      "commands": 8141,
+      "delta_sha256": "834d87adad84586d7b0393f7608ac25203a81436afb78d310dd2cd876bc802bd",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "7953f161c99e72171bd4990946167b9cd77b1b50037e06580b8ea9f7e0ace138",
+    "rollback": "0.5.3-dev151"
+  },
+  "runtime_probe": {
+    "build": "dev151",
+    "checks_passed": 13,
+    "same_login_read": true,
+    "shared_stock_connection": true,
+    "authenticated_ble_and_spp": true,
+    "single_connected_peer": true,
+    "business_wire_id_21": true,
+    "native_opus_init_and_release": true,
+    "voice_environment_idle": true,
+    "original_deletion_store_read": true,
+    "official_daily_read": true,
+    "original_todo_refresh": true,
+    "recording_started": false,
+    "native_todo_created": false,
+    "firmware_written": false,
+    "credentials_exported": false,
+    "driver_uninstalled": true,
+    "note": "Waited for the existing deferred runtime boot before probing. dev152 only corrects an extension-tools host label and version metadata."
+  },
+  "normal_ui": {
+    "stock_home_opens_with_existing_account_content": true,
+    "agent_entry_opens": true,
+    "material_list_and_detail_read": true,
+    "materials_default_collapsed": true,
+    "completed_tasks_grouped_by_workspace": true,
+    "completed_tasks_visible_at_probe": 32,
+    "online_sessions_visible": 3,
+    "default_codex_workspace_preserved": true,
+    "export_directory_preserved": "Download/IO 文档",
+    "final_build_label_verified": true,
+    "entire_private_preferences_hashed": false
+  },
+  "question_smoke": {
+    "build": "dev151",
+    "synthetic_developer_question": true,
+    "request_key": "codex-host110-dev151-phone-smoke-20261028",
+    "phone_answer": "passed",
+    "input_source": "phone",
+    "returned_to_same_native_session_and_task": true,
+    "pending_question_remaining": false,
+    "glasses_display_receipt_logged": true,
+    "physical_lens_observed_by_user": false,
+    "physical_dictation_tested_on_new_host": false
+  },
+  "checks": {
+    "host_pinned_abi_proofs": 33,
+    "voice_pinned_abi_proofs": 18,
+    "voice_assertions": 1960,
+    "native_todo_runtime_assertions": 131,
+    "calendar_http_assertions": 64,
+    "host_descriptor_and_source_tests": 2,
+    "login_and_manifest": "passed",
+    "sdk29_33_36_navigation_and_voice_back": "passed",
+    "native_route_exact_readonly_data_slots_and_wrong_input": "passed",
+    "current_host_ota_queue_policy": "passed",
+    "original_dex_members_preserved": 193212,
+    "explicit_wrappers": 9,
+    "signature_v2_v3": true,
+    "original_source_files_unchanged": 237,
+    "unknown_delegate_sources_packaged": false
+  },
+  "glasses_firmware": {
+    "unchanged": "Strix OS1.0.5.5",
+    "case_unchanged": "1.1.42",
+    "new_official_query_this_batch": false
+  },
+  "retention": {
+    "retained": [
+      "0.5.3-dev152",
+      "0.5.3-dev150"
+    ],
+    "rollback_reason": "last verified host 1.0.7 build before the host upgrade",
+    "removed": [
+      {
+        "path": "artifacts/iO-Agent-Android-0.5.3-dev149.apk",
+        "sha256": "825041d6f6e8e371a6ec0bf62f67e166c6e30d1477c01a0d58859094f821813d",
+        "bytes": 430227816
+      },
+      {
+        "path": "artifacts/iO-Agent-Android-0.5.3-dev151.apk",
+        "sha256": "b014bc456c9fb3107582e55ac7ab73f3c0780ca42527206f50fbf5beb9fcbd94",
+        "bytes": 435067497
+      }
+    ],
+    "retired_generated_stage": "build/host-107",
+    "current_stage": "build/host-110",
+    "original_inputs_preserved": true
+  },
+  "collaboration": {
+    "claude_latest_included": "520ad23",
+    "other_checkout_modified": false,
+    "formal_services_pairing_and_default_preserved": true
+  },
+  "remaining": [
+    "A28-UP01: physical lens/dictation observation on the upgraded host during normal use; no claim of new firmware or physical full-path retest."
+  ],
+  "overall": "adapted_and_installed; stated automatic and phone checks passed; new-host physical observation pending",
+  "cleanup": {
+    "diagnostic_package_uninstalled": true,
+    "device_xml_and_delta_temporaries_removed": true,
+    "current_task_watch_disabled": true,
+    "device_lock_released": true,
+    "formal_services_not_stopped": true
+  }
+}

@@ -34,7 +34,7 @@ final class LifelogAudioRuntime {
  private void pollNative(OfficialAccountBinding account,long firstReadMs){Token candidate=null;try{
   Fixed60Session.Link link=Host107Ota.link();
   if(account!=null&&link.peer!=null&&!link.peer.isEmpty()&&link.generation>0){Object raw=Class.forName("com.rayneo.rayneo_venus_sdk_plugin.e").getField("c").get(null);if(raw instanceof CopyOnWriteArrayList){Object[] listeners=((CopyOnWriteArrayList<?>)raw).toArray();String task=null;int valid=0;
-   if(listeners.length<=16)for(Object listener:listeners){if(listener==null||!listener.getClass().getName().equals("t8.b$b"))continue;Object manager=field(field(listener,"a"),"b");if(!manager.getClass().getName().equals("o8.m"))continue;Object config=field(manager,"C");if(config==null)continue;String id=(String)NavReflect.call(config,"getTaskId");
+   if(listeners.length<=16)for(Object listener:listeners){if(listener==null||!listener.getClass().getName().equals(Host107Abi.className("t8.b$b")))continue;Object manager=field(field(listener,"a"),"b");if(!manager.getClass().getName().equals(Host107Abi.className("o8.m")))continue;Object config=field(manager,"C");if(config==null)continue;String id=(String)NavReflect.call(config,"getTaskId");
     if(id!=null&&id.matches("[A-Za-z0-9_-]{1,128}")&&id.equals(NavReflect.call(config,"getDialogId"))&&String.valueOf(field(account,"accountId")).equals(NavReflect.call(config,"getUserName"))&&"opus".equals(NavReflect.call(config,"getInputAudioFormat"))&&Integer.valueOf(16000).equals(NavReflect.call(config,"getInputAudioRate"))){task=id;valid++;}}
    if(valid==1)candidate=new Token(account.binding,FixedPeerHash.of(link.peer),task,link.generation,0,SystemClock.elapsedRealtime());
   }}

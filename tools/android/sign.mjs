@@ -1,5 +1,6 @@
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
+import {HOST} from '../../rebuild/android-app/host-110.mjs';
 import {PRODUCT,OFFICIAL_SOURCE_ROUTING} from './profile.mjs';
 import {PYTHON,exe} from './host-tools.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../rebuild/android-app');
@@ -28,18 +29,18 @@ const verification=run('java',['-Duser.language=en','-Duser.country=US','-jar',s
 if(!/Verified using v2 scheme.*true/.test(verification)||!/Verified using v3 scheme.*true/.test(verification))throw new Error('Required APK signatures missing');
 fs.writeFileSync(path.join(build,'signature-verification.txt'),verification);
 run(path.join(sdk,exe('zipalign')),['-c','-P','16','4',dest]);
-const audit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),path.join(root,'.private/hosts/RayNeo-1.0.7-230-original.apk'),path.join(build,'classes2-hooked.dex'),path.join(build,'dex/classes.dex'),dest,'--audit'],true));
+const audit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.join(root,'assemble.py'),path.join(root,'.private/hosts',HOST.apk),build,path.join(build,'dex/classes.dex'),dest,'--audit'],true));
 const privateAudit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-private.py'),dest],true));
 const dexAudit=JSON.parse(run(PYTHON,['-S','-X','utf8',path.resolve(root,'../../tools/android/audit-dex.py'),dest],true));
 const sourceRecord=JSON.parse(fs.readFileSync(path.join(build,'compile-status.json'),'utf8'));
-if(sourceRecord.product_sha256!==hash(path.join(root,'product.json'))||sourceRecord.addon_sha256!==hash(path.join(build,'dex/classes.dex'))||sourceRecord.host_dex_sha256!==hash(path.join(build,'classes2-hooked.dex')))throw new Error('Compile provenance mismatch');
-if((sourceRecord.native_route_policy_sha256??null)!==(OFFICIAL_SOURCE_ROUTING?hash(path.join(root,"native_route107.py")):null))throw new Error("Native source-routing policy changed after compilation");
+if(sourceRecord.product_sha256!==hash(path.join(root,'product.json'))||sourceRecord.addon_sha256!==hash(path.join(build,'dex/classes.dex'))||HOST.hookDexes.some(dex=>sourceRecord.host_dex_sha256[dex]!==hash(path.join(build,dex+'-hooked.dex'))))throw new Error('Compile provenance mismatch');
+if((sourceRecord.native_route_policy_sha256??null)!==(OFFICIAL_SOURCE_ROUTING?hash(path.join(root,"native_route110.py")):null))throw new Error("Native source-routing policy changed after compilation");
 for(const item of sourceRecord.sources)if(hash(path.join(root,item.path))!==item.sha256)throw new Error('Source changed after compilation');
 fs.writeFileSync(path.join(root,'candidate-source.json'),JSON.stringify(sourceRecord,null,2)+'\n');
 fs.writeFileSync(path.join(root,'private-audit.json'),JSON.stringify(privateAudit,null,2)+'\n');
 const certificate=verification.match(/Signer #1 certificate SHA-256 digest: ([a-f0-9]+)/i)?.[1];
 if(!certificate)throw new Error('Certificate digest unavailable');
-const metadata={schema:1,product:PRODUCT.name,version:PRODUCT.version,version_code:PRODUCT.version_code,revision:PRODUCT.revision,host_version:'1.0.7',host_code:230,signed:new Date().toISOString(),apk:path.relative(root,dest),bytes:fs.statSync(dest).size,sha256:hash(dest),signer_sha256:certificate,signature_v2:true,signature_v3:true,native_library_zip_page_alignment:16384,general_zip_alignment:4,audit,dex_audit:dexAudit,installed:false,phone_disconnected_by_user:true,one_minute_card_passed:false,release_gate_passed:false};
+const metadata={schema:1,product:PRODUCT.name,version:PRODUCT.version,version_code:PRODUCT.version_code,revision:PRODUCT.revision,host_version:HOST.version,host_code:HOST.code,signed:new Date().toISOString(),apk:path.relative(root,dest),bytes:fs.statSync(dest).size,sha256:hash(dest),signer_sha256:certificate,signature_v2:true,signature_v3:true,native_library_zip_page_alignment:16384,general_zip_alignment:4,audit,dex_audit:dexAudit,installed:false,phone_disconnected_by_user:true,one_minute_card_passed:false,release_gate_passed:false};
 const previous=path.join(root,'candidate.json');if(fs.existsSync(previous)){
  const old=JSON.parse(fs.readFileSync(previous)),rollbackFile=path.join(root,'rollback-candidate.json'),rollback=fs.existsSync(rollbackFile)?JSON.parse(fs.readFileSync(rollbackFile,'utf8')):null;
  if(old.apk!==metadata.apk){

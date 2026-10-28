@@ -7,7 +7,7 @@ run('python',['-S','-X','utf8','tools/android/fixed60-profile.py','--check']);
 const original=['BoundedJson.java','OtaFrame.java','OtaRecoveryGuard.java'].map(n=>path.join(root,'upstream/android-addon/src/com/turboio/addon',n));
 const sources=['Fixed60Profile.java','Fixed60Firmware.java','Fixed60Journal.java','Fixed60Session.java','FirmwareRecoverySelection.java','GlassesConnection.java','FirmwareQueue.java','Host107Abi.java','HeadGestureGate.java','CardInputClosure.java','SuggestionGate.java','HeadGestureSession.java','FixedPeerHash.java','NavReflect.java','AtomicDocument.java','WireJson.java'].map(n=>path.join(root,'src/com/turboio/addon',n));
 sources.push(writeTestProductInfo(output));
-run('javac',['-encoding','UTF-8','-d',output,...original,...sources,'tools/android/fixtures/Y3/D.java','tools/android/Fixed60Test.java','tools/android/HostPolicyTest.java']);
+run('javac',['-encoding','UTF-8','-d',output,...original,...sources,'tools/android/fixtures/Y3/D.java','tools/android/fixtures/O4/H.java','tools/android/Fixed60Test.java','tools/android/HostPolicyTest.java']);
 run('java',['-cp',output,'com.turboio.addon.HostPolicyTest']);
 const base=path.join(workspace,'rebuild/phase1/device-private/stock-firmware-1.0.5.5');
 const result=run('java',['-cp',output,'com.turboio.addon.Fixed60Test',path.join(base,'suggestion60-candidate/StrixOS-1.0.5.5-SUGGEST60-OFFLINE-01-UNFLASHED.zip'),path.join(base,'Strix-OS-1.0.5.5-original.zip'),output]);
