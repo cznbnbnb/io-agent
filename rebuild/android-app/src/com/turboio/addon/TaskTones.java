@@ -19,12 +19,9 @@ final class TaskTones {
  static String label(TaskPresentation.Tone tone){
   switch(tone){case WAITING:return "待回复";case RUNNING:return "进行中";case STOPPING:return "已打断";case DONE:return "已完成";case ENDED:return "已结束";case FAILED:return "失败";default:return "已过期";}
  }
- /** {text, background} for an Agent: Claude Code warm, Codex blue, anything else neutral. */
+ /** {text, background} for an Agent: Claude (desktop) orange, Claude Code (background) sand, Codex blue, anything else neutral. */
  static int[] agent(String name){
-  return name.startsWith("Claude")?new int[]{0xffeaa57f,0xff33231a}:name.startsWith("Codex")?new int[]{0xff8ab8ff,0xff19263a}:new int[]{MaterialReadingUI.SOFT,MaterialReadingUI.RAISED};
+  return name.equals("Claude Code")?new int[]{0xffd9b98c,0xff2c2519}:name.startsWith("Claude")?new int[]{0xffeaa57f,0xff33231a}:name.startsWith("Codex")?new int[]{0xff8ab8ff,0xff19263a}:new int[]{MaterialReadingUI.SOFT,MaterialReadingUI.RAISED};
  }
- /** Managed phone workspaces live under "iO Agent"; everything else is a session the user opened on the computer. */
- static String kind(String workspace,String label){
-  return workspace.replace('\\','/').contains("/iO Agent/")||label.contains("手机工作区")?"手机工作区":"电脑会话";
- }
+
 }

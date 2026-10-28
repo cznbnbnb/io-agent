@@ -65,7 +65,7 @@ final class TaskWorkspace {
   case "reconcile":return "正在核对上次提交";case "TASK_IMPORT_UNAVAILABLE":return "没有可读取的登记文件，请从电脑重新提供";
   case "TASK_KEY_UNAVAILABLE":case "TASK_CONFIG_INVALID":return "本机连接无法读取，请重新登记";
   case "TASK_CONFIG_SAVE_FAILED":return "连接未能保存，请重试";
-  case "TASK_PROFILES_FULL":return "手机登记已满，而且每条都在等你回复或是默认目标。先回复这些问题，或在「查看连接」里暂停一条后移除";
+  case "TASK_PROFILES_FULL":return "手机最多登记 "+TaskProfiles.MAX+" 个会话，现在每个都是默认会话、在等你回复或有未发出的内容，没有能自动替换的。回复等待中的问题，或在「查看连接」里暂停一个不用的会话后再试";
   case "TASK_PROFILE_ACTIVE":return "会话凭据仍有效，不能移除";case "TASK_TARGET_SELECTED":return "当前委托会话不能移除，请先切换委托会话";
   case "STORE_IN_USE":return "这个会话正由另一连接程序使用";
   case "TASK_TEXT_INVALID":case "TASK_ANSWER_INVALID":return "请填写完整内容，或为问题选择一个答案";

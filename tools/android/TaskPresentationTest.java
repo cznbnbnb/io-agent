@@ -56,6 +56,7 @@ public final class TaskPresentationTest {
   check(TaskPresentation.plain("## 结论\n- **手机到桌面：** 用 `cli` 看 [文档](https://x)").equals("结论\n• 手机到桌面： 用 cli 看 文档"));check(TaskPresentation.plain("3 * 4 = 12").equals("3 * 4 = 12"));
   check(TaskPresentation.sessionName("Codex · 手机工作区","Codex").equals("手机专用会话"));check(TaskPresentation.sessionName("任务页 UI 重设计","Claude Code").equals("任务页 UI 重设计"));check(TaskPresentation.sessionName("","Codex").equals("手机专用会话"));
   check(TaskPresentation.folder("/Users/u/Documents/iO Agent/Claude").equals("iO Agent/Claude"));check(TaskPresentation.folder("/Users/u/Project/rayneo-io-agent-codex").equals("rayneo-io-agent-codex"));check(TaskPresentation.folder("C:\\Users\\u\\work").equals("work"));
+  check(TaskPresentation.agentName("claude","io-claude-code","/Users/u/Project/app").equals("Claude"));check(TaskPresentation.agentName("claude","io-claude-code","/Users/u/Documents/iO Agent/Claude").equals("Claude Code"));check(TaskPresentation.agentName("codex","x","/Users/u/Documents/iO Agent/Codex").equals("Codex"));
   // Session offline: open tasks lapse only after ten quiet minutes; completed ones and other sessions stay as they are.
   List<Object> quiet=Arrays.asList(cached(task(a,"quiet","agent_received",1)),cached(task(a,"done","completed",2)));Set<String> offline=new HashSet<>(Arrays.asList(pa.binding));
   TaskPresentation early=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,quiet,Collections.emptyList())),NOW+60000,offline);check(early.filter("running").size()==1);

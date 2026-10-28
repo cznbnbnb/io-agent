@@ -9,7 +9,7 @@ import java.util.*;
 
 /** Connection controls stay in detail. Selecting a default never retargets an answer. */
 final class AgentConnectionsPage {
- static void show(Activity activity){new Page(activity,"list",null).open();}
+ static void show(Activity activity){TaskNames.init(activity);new Page(activity,"list",null).open();}
  static void defaults(Activity activity){new Page(activity,"defaults",null).open();}
  private static void detail(Activity activity,String binding){new Page(activity,"detail",binding).open();}
 
@@ -83,9 +83,15 @@ final class AgentConnectionsPage {
    if(!expired.isEmpty()){fold("已到期登记",expired.size(),history,()->{history=!history;redraw();});if(history)for(TaskHub.View view:expired)sessionCard(view,elapsed);}
    AgentUI.gap(activity,screen.body,18);
    AgentUI.button(activity,screen.body,"选择默认 Agent 与工作区",false,()->defaults(activity));AgentUI.gap(activity,screen.body,8);
-   screen.body.addView(AgentUI.text(activity,"每个会话保留自己的任务和回复。暂停某个会话只停止手机收发，电脑上的任务不会因此暂停。",12,AgentUI.MUTED));
+   screen.body.addView(AgentUI.text(activity,"手机已登记 "+snapshot.contexts.size()+" / "+TaskProfiles.MAX+" 个会话。满了会自动替换最久没用的离线会话；只有默认会话、还在等你回复或有未发出内容的会话会被保留。",12,AgentUI.MUTED));
    AgentUI.button(activity,screen.dock,"添加 Agent 会话",true,()->AgentSessionPairUI.show(activity));
    TextView legacy=AgentUI.text(activity,"导入旧版连接",13,AgentUI.MUTED);legacy.setGravity(android.view.Gravity.CENTER);legacy.setFocusable(true);legacy.setOnClickListener(v->register(null));screen.body.addView(legacy,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,44)));
+  }
+  /** A local name for this session; empty restores the name it joined with. */
+  void rename(TaskSessionDirectory.Entry e,String agent){
+   android.widget.EditText edit=AgentUI.input(activity);edit.setSingleLine(true);edit.setText(TaskNames.get(e.route));edit.setHint(TaskPresentation.sessionName(e.label,agent));edit.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(TaskNames.MAX)});
+   AgentUI.alert(activity).setTitle("修改名称").setMessage("只改这台手机上显示的名称，不影响电脑上的会话。留空恢复原名称。").setView(edit).setNegativeButton("取消",null)
+    .setPositiveButton("保存",(dialog,which)->{TaskNames.set(e.route,edit.getText().toString());feedback="名称已更新。";redraw();}).show();
   }
   TaskSessionDirectory.Entry entry(TaskHub.View view){return snapshot.directory==null?null:snapshot.directory.find(view.profile.connection.route());}
   void section(String title,int count){
@@ -112,10 +118,11 @@ final class AgentConnectionsPage {
    TaskConnection connection=view.profile.connection;boolean expired=connection.expiresAt<=System.currentTimeMillis();
    LinearLayout card=AgentUI.card(activity,screen.body);
    // Readable names first; the raw ids stay selectable at the end for support.
-   TaskSessionDirectory.Entry e=entry(view);String agent=TaskPresentation.agentName(connection.agent);
-   field(card,"Agent",agent+(e==null?"":" · "+TaskTones.kind(e.workspace,e.label)));field(card,"电脑",e==null?TaskPresentation.computerName(connection.computer):TaskTargetUI.computer(e));
-   if(e!=null){if(!e.label.isEmpty())field(card,"会话",e.label);field(card,"工作目录",e.workspace);field(card,"状态",e.status(TaskSessionDirectory.elapsed()));}
+   TaskSessionDirectory.Entry e=entry(view);String agent=e==null?TaskPresentation.agentName(connection.agent):TaskTargetUI.agent(e);
+   field(card,"Agent",agent+(e==null?"":TaskPresentation.background(e.workspace)?" · 电脑后台运行，不在桌面应用里显示":" · 电脑上的桌面应用会话"));field(card,"电脑",e==null?TaskPresentation.computerName(connection.computer):TaskTargetUI.computer(e));
+   if(e!=null){field(card,"名称",TaskNames.title(e.route,e.label,agent));if(!e.label.isEmpty()&&!TaskNames.get(e.route).isEmpty())field(card,"原名称",e.label);field(card,"工作目录",e.workspace);field(card,"状态",e.status(TaskSessionDirectory.elapsed()));}
    field(card,"会话 ID",connection.session);
+   if(e!=null){TaskSessionDirectory.Entry named=e;TextView rename=AgentUI.button(activity,screen.body,"修改名称",false,()->rename(named,agent));rename.setEnabled(!busy);}
    String topic=topic(view);if(!topic.isEmpty())field(card,"任务主题",topic);
    field(card,"连接状态",status(view));field(card,"登记有效期",date(connection.expiresAt));
    field(card,"默认目标",binding.equals(snapshot.defaultBinding)?"当前默认 Agent 与工作区":"未设为默认");

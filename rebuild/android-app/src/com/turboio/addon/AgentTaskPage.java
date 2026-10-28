@@ -31,7 +31,7 @@ final class AgentTaskPage {
  private boolean active,closed,showHistory,openingQuestion;
  private long nextExpiry=Long.MAX_VALUE;
 
- AgentTaskPage(Activity a,Runnable openConnections){
+ AgentTaskPage(Activity a,Runnable openConnections){TaskNames.init(a);
   activity=a;this.openConnections=openConnections;runtime=TaskRuntime.get(a);
   root=AgentUI.column(a);scroll=new ScrollView(a);scroll.setFillViewport(true);
   body=AgentUI.column(a);int side=AgentUI.dp(a,16);body.setPadding(side,AgentUI.dp(a,12),side,AgentUI.dp(a,20));scroll.addView(body);
@@ -50,6 +50,8 @@ final class AgentTaskPage {
  void refresh(){if(!closed&&active)runtime.read(null);}
  void close(){if(closed)return;closed=true;runtime.unobserve(observer);for(AgentUI.Screen form:new ArrayList<>(forms))if(form.dialog.isShowing())form.dialog.dismiss();forms.clear();if(detail!=null&&detail.dialog.isShowing())detail.dialog.dismiss();}
  private boolean alive(){return !closed&&!activity.isFinishing()&&!activity.isDestroyed();}
+ /** Claude or Claude Code as the directory tells them apart; the saved id alone cannot. */
+ private String agentOf(TaskConnection c){TaskSessionDirectory.Entry e=snapshot.directory==null?null:snapshot.directory.find(c.route());return e==null?TaskPresentation.agentName(c.agent):TaskTargetUI.agent(e);}
  /** The computer as the directory names it ("Mac · user"), so one Mac reads the same under every registration. */
  private String machine(TaskConnection c){TaskSessionDirectory.Entry e=snapshot.directory==null?null:snapshot.directory.find(c.route());return e==null?TaskPresentation.computerName(c.computer):TaskTargetUI.computer(e);}
  /** Registrations whose session a fresh directory read shows offline, or no longer lists. */
@@ -153,7 +155,7 @@ final class AgentTaskPage {
   if(!status.equals(chip)){TextView detail=MaterialReadingUI.line(a,status.startsWith(chip+" · ")?status.substring(chip.length()+3):status,12,tone==TaskPresentation.Tone.WAITING?MaterialReadingUI.AMBER:AgentUI.MUTED,1);detail.setPadding(AgentUI.dp(a,8),0,0,0);state.addView(detail,new LinearLayout.LayoutParams(0,-2,1));}
   LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,-2);sp.topMargin=AgentUI.dp(a,6);text.addView(state,sp);
   // Which Agent and computer, the Agent in its own color.
-  String agent=TaskPresentation.agentName(row.profile.connection.agent);int[] tint=TaskTones.agent(agent);
+  String agent=agentOf(row.profile.connection);int[] tint=TaskTones.agent(agent);
   LinearLayout where=new LinearLayout(a);where.setGravity(Gravity.CENTER_VERTICAL);MaterialReadingUI.chip(a,where,agent,tint[0],tint[1]).setLayoutParams(new LinearLayout.LayoutParams(-2,AgentUI.dp(a,20)));
   TextView machine=MaterialReadingUI.line(a,machine(row.profile.connection),12,AgentUI.MUTED,1);machine.setPadding(AgentUI.dp(a,8),0,0,0);where.addView(machine,new LinearLayout.LayoutParams(0,-2,1));
   LinearLayout.LayoutParams op=new LinearLayout.LayoutParams(-1,-2);op.topMargin=AgentUI.dp(a,6);text.addView(where,op);line.addView(text,new LinearLayout.LayoutParams(0,-2,1));
@@ -185,12 +187,12 @@ final class AgentTaskPage {
  private void renderDetails(TaskPresentation.Row row){
   if(detail==null)return;int position=detail.scroll.getScrollY();LinearLayout content=detail.body;content.removeAllViews();
   // Who runs it: the Agent in its color, the computer, and the session by its name rather than its id.
-  TaskConnection link=row.profile.connection;String agent=TaskPresentation.agentName(link.agent);int[] tint=TaskTones.agent(agent);
+  TaskConnection link=row.profile.connection;String agent=agentOf(link);int[] tint=TaskTones.agent(agent);
   TaskSessionDirectory.Entry entry=snapshot==null||snapshot.directory==null?null:snapshot.directory.find(link.route());
   LinearLayout who=new LinearLayout(activity);who.setGravity(Gravity.CENTER_VERTICAL);MaterialReadingUI.chip(activity,who,agent,tint[0],tint[1]).setLayoutParams(new LinearLayout.LayoutParams(-2,AgentUI.dp(activity,22)));
-  TextView machine=MaterialReadingUI.line(activity,(entry==null?TaskPresentation.computerName(link.computer):TaskTargetUI.computer(entry))+(entry==null?"":" · "+TaskTones.kind(entry.workspace,entry.label)),13,AgentUI.MUTED,1);machine.setPadding(AgentUI.dp(activity,8),0,0,0);who.addView(machine,new LinearLayout.LayoutParams(0,-2,1));content.addView(who);
+  TextView machine=MaterialReadingUI.line(activity,entry==null?TaskPresentation.computerName(link.computer):TaskTargetUI.computer(entry),13,AgentUI.MUTED,1);machine.setPadding(AgentUI.dp(activity,8),0,0,0);who.addView(machine,new LinearLayout.LayoutParams(0,-2,1));content.addView(who);
   String session=link.session.length()>6?link.session.substring(0,6):link.session;
-  TextView where=MaterialReadingUI.line(activity,entry==null?"会话 · "+session:TaskPresentation.sessionName(entry.label,TaskPresentation.agentName(link.agent))+" · "+TaskPresentation.folder(entry.workspace),12,AgentUI.MUTED,1);where.setPadding(0,AgentUI.dp(activity,6),0,0);content.addView(where);
+  TextView where=MaterialReadingUI.line(activity,entry==null?"会话 · "+session:TaskNames.title(entry.route,entry.label,agent)+" · "+TaskPresentation.folder(entry.workspace),12,AgentUI.MUTED,1);where.setPadding(0,AgentUI.dp(activity,6),0,0);content.addView(where);
   AgentUI.gap(activity,content,14);full(content,row.command(),20);
   int stopStep=TaskWire.set("stop_requested","stop_unconfirmed").contains(row.state)?1:"stopped".equals(row.state)?2:"resume_requested".equals(row.state)?3:0;
   LinearLayout status=AgentUI.card(activity,content);TaskPresentation.Tone tone=presentation.tone(row);int[] color=TaskTones.status(tone);

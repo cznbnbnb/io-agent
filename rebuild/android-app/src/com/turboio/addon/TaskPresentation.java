@@ -112,6 +112,13 @@ final class TaskPresentation {
  static String firstLine(String text){String trimmed=text==null?"":text.trim();if(trimmed.isEmpty())return "未命名任务";return trimmed.split("\\R",2)[0];}
  static String source(TaskProfiles.Profile p){return agentName(p.connection.agent)+" · "+computerName(p.connection.computer);}
  /** Wire ids read as product names: io-claude-code → Claude Code, generated computer ids shortened. */
+ /** Sessions in the managed "iO Agent" folder run in the background on the computer, not in a desktop app. */
+ static boolean background(String workspace){return workspace.replace('\\','/').contains("/iO Agent/");}
+ /** The name the wearer knows: Claude for the desktop app, Claude Code for the background command line. */
+ static String agentName(String host,String agentId,String workspace){
+  if("codex".equals(host))return "Codex";if("claude".equals(host))return background(workspace)?"Claude Code":"Claude";
+  return agentId!=null&&agentId.contains("workbuddy")?"WorkBuddy":"ACP Agent";
+ }
  static String agentName(String id){String s=id.toLowerCase(Locale.ROOT);return s.contains("codex")?"Codex":s.contains("claude")?"Claude Code":id;}
  static String computerName(String id){return id.startsWith("computer-")?"电脑 "+shortComputer(id):id;}
  /** What tells two sessions apart for a person: the name given at join, unless it only repeats the Agent and kind. */

@@ -17,15 +17,15 @@ final class TaskTargetUI {
  /** What a card shows, from a live directory entry or, before the directory loads, the saved connection. */
  static final class Target {
   // agent = which Agent, computer = which machine, title = which session (its label, else the workspace).
-  final String agent,computer,title,workspace,session,status,kind;final int tone;
-  Target(String agent,String computer,String title,String workspace,String session,String status,int tone,String kind){this.agent=agent;this.computer=computer;this.title=title;this.workspace=workspace;this.session=session;this.status=status;this.tone=tone;this.kind=kind;}
+  final String agent,computer,title,workspace,session,status;final int tone;
+  Target(String agent,String computer,String title,String workspace,String session,String status,int tone){this.agent=agent;this.computer=computer;this.title=title;this.workspace=workspace;this.session=session;this.status=status;this.tone=tone;}
   static Target of(TaskSessionDirectory.Entry e,long elapsed){
    String gate=e.gate(elapsed);
    int tone=!gate.isEmpty()?MaterialReadingUI.DIM:Boolean.FALSE.equals(e.busy)?MaterialReadingUI.ACCENT_SOFT:MaterialReadingUI.AMBER;
-   String agent="codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent";
-   return new Target(agent,computer(e),TaskPresentation.sessionName(e.label,agent),TaskPresentation.folder(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone,TaskTones.kind(e.workspace,e.label));
+   String agent=agent(e);
+   return new Target(agent,computer(e),TaskNames.title(e.route,e.label,agent),TaskPresentation.folder(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone);
   }
-  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),c.project,c.project,c.session,"状态待更新",MaterialReadingUI.DIM,"");}
+  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),c.project,c.project,c.session,"状态待更新",MaterialReadingUI.DIM);}
  }
  /** The directory carries no machine name, only an opaque computer id; the workspace's home folder tells the
   * wearer which machine it is ("Mac · alice"). Falls back to a short id. */
@@ -36,6 +36,7 @@ final class TaskTargetUI {
   if(m.find())return "Windows · "+m.group(1);
   return shortId(String.valueOf(e.route.get("computer_id")));
  }
+ static String agent(TaskSessionDirectory.Entry e){return TaskPresentation.agentName(e.host,String.valueOf(e.route.get("agent_id")),e.workspace);}
  private static String shortId(String id){return TaskPresentation.shortComputer(id);}
  static boolean ready(TaskSessionDirectory.Entry e,long elapsed){return e.gate(elapsed).isEmpty();}
  /** The last two folders are what tells sessions apart; the full path stays in details. */
@@ -58,7 +59,6 @@ final class TaskTargetUI {
   }
   View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,t.tone,4));LinearLayout.LayoutParams dl=new LinearLayout.LayoutParams(dp(a,8),dp(a,8));dl.rightMargin=dp(a,8);top.addView(dot,dl);
   top.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,t.agent,16,TaskTones.agent(t.agent)[0],1)));
-  if(!t.kind.isEmpty()){LinearLayout.LayoutParams kp=new LinearLayout.LayoutParams(-2,dp(a,20));kp.leftMargin=dp(a,8);int[] tint=TaskTones.agent(t.agent);MaterialReadingUI.chip(a,top,t.kind,tint[0],tint[1]).setLayoutParams(kp);}
   if(isDefault){LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-2,dp(a,20));cp.leftMargin=dp(a,8);TextView chip=MaterialReadingUI.chip(a,top,"默认",MaterialReadingUI.ACCENT_SOFT,MaterialReadingUI.ACCENT_BG);chip.setLayoutParams(cp);}
   top.addView(new View(a),new LinearLayout.LayoutParams(0,1,1));
   if(selected){View gap=new View(a);top.addView(gap,new LinearLayout.LayoutParams(dp(a,6),1));MaterialReadingUI.glyph(a,top,"check",MaterialReadingUI.ACCENT_SOFT,18);}
@@ -76,7 +76,7 @@ final class TaskTargetUI {
 
  /** Bottom sheet listing every session. Choosing one dismisses the sheet and hands the entry back. */
  static Dialog pick(Activity a,List<TaskSessionDirectory.Entry> sessions,Predicate<TaskSessionDirectory.Entry> isDefault,Predicate<TaskSessionDirectory.Entry> isSelected,Consumer<TaskSessionDirectory.Entry> chosen){
-  long now=TaskSessionDirectory.elapsed();Dialog d=new AgentDialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+  TaskNames.init(a);long now=TaskSessionDirectory.elapsed();Dialog d=new AgentDialog(a);d.requestWindowFeature(Window.FEATURE_NO_TITLE);
   LinearLayout root=AgentUI.column(a);root.setBackground(MaterialReadingUI.corners(a,SHEET,22,0));root.setPadding(dp(a,16),dp(a,10),dp(a,16),dp(a,8));
   View handle=new View(a);handle.setBackground(MaterialReadingUI.fill(a,0xff3a423f,2));LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(dp(a,36),dp(a,4));hp.gravity=Gravity.CENTER_HORIZONTAL;hp.bottomMargin=dp(a,14);root.addView(handle,hp);
   root.addView(MaterialReadingUI.bold(AgentUI.text(a,"交给谁",18,AgentUI.INK)));

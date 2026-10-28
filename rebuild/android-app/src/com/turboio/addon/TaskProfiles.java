@@ -56,18 +56,27 @@ final class TaskProfiles {
   get(binding);TaskWire.require(!binding.equals(selected),"TASK_TARGET_SELECTED");
   List<Profile> rows=new ArrayList<>();for(Profile p:profiles)if(!p.binding.equals(binding))rows.add(p);return new TaskProfiles(selected,rows);
  }
- /** A full registry gives up its oldest idle slot instead of refusing a new session: a connection
-  * derived from the paired device (the same route derives the same binding later, so its mailbox and
-  * drafts come back), never the default, never one in keep (unanswered questions); paused first, then
-  * offline, then online, oldest first within each. */
- TaskProfiles makeRoom(TaskDevice device,Set<String> keep,Set<String> online){
+ /** A full registry gives up its oldest idle slot instead of refusing a new session. Candidates: a
+  * connection derived from the paired device (the same route derives the same binding later, so its
+  * mailbox and drafts come back), or an imported one whose credential already expired. Never the
+  * default, never one in keep (unsent phone input or an unanswered question). Expired or paused first,
+  * then offline, then online, oldest first within each. */
+ TaskProfiles makeRoom(TaskDevice device,Set<String> keep,Set<String> online,long now){
   if(profiles.size()<MAX)return this;
   Profile victim=null;int best=Integer.MAX_VALUE;
   for(Profile p:profiles){
-   if(p.binding.equals(selected)||keep.contains(p.binding)||!device.owns(p.connection))continue;
-   int rank=!p.enabled?0:online.contains(p.binding)?2:1;if(rank<best){best=rank;victim=p;}
+   boolean lapsed=p.connection.expiresAt<=now;
+   if(p.binding.equals(selected)||keep.contains(p.binding)||!(device.owns(p.connection)||lapsed))continue;
+   int rank=lapsed||!p.enabled?0:online.contains(p.binding)?2:1;if(rank<best){best=rank;victim=p;}
   }
   TaskWire.require(victim!=null,"TASK_PROFILES_FULL");return drop(victim.binding);
+ }
+ /** Whether a mailbox outbox still holds phone input the server has not durably taken. Delivered rows
+  * stay in the outbox as history; they never pin a registration. */
+ static boolean unsent(List<Object> outbox){
+  for(Object raw:outbox){Map<String,Object> row=WireJson.map(raw);
+   if(Boolean.TRUE.equals(row.get("needs_lookup"))||!TaskWire.set("server_stored","expired","withdrawn_local").contains(row.get("state")))return true;}
+  return false;
  }
  TaskProfiles enabled(String binding,boolean enabled,long now){
   Profile prior=get(binding);TaskWire.require(!enabled||prior.connection.expiresAt>now,"TASK_IMPORT_EXPIRED");List<Profile> rows=new ArrayList<>();for(Profile p:profiles)rows.add(p.binding.equals(binding)?new Profile(p.connection,enabled):p);return new TaskProfiles(selected,rows);

@@ -82,7 +82,7 @@ final class TaskSettings {
  boolean ensureSession(TaskDevice device,Map<String,Object> route,long now,Set<String> keep,Set<String> online)throws Exception{synchronized(LOCK){
   TaskSessionDirectory.route(route);TaskProfiles current=loadAll();TaskConnection connection=device.derive(route,now);
   for(TaskProfiles.Profile p:current.profiles)if(p.binding.equals(connection.binding())){if(p.connection.token().equals(device.token))return false;write(current.upsert(connection,p.enabled,now,false));return true;}
-  current=current.makeRoom(device,keep,online);write(current.upsert(connection,true,now,current.selected()==null));return true;
+  current=current.makeRoom(device,keep,online,now);write(current.upsert(connection,true,now,current.selected()==null));return true;
  }}
  void pauseDevice(TaskDevice device)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll();long now=System.currentTimeMillis();for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&p.enabled)next=next.enabled(p.binding,false,now);write(next);}}
  /** Adds connections for newly joined sessions and moves every derived connection to the device's
@@ -93,7 +93,7 @@ final class TaskSettings {
   for(TaskProfiles.Profile p:current.profiles)if(device.owns(p.connection)&&!p.connection.token().equals(device.token))next=next.upsert(device.derive(p.connection.route(),now),p.enabled,now,false);
   for(Map<String,Object> route:routes){
    TaskConnection c=device.derive(route,now);boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
-   try{next=next.makeRoom(device,busy,online);}catch(RuntimeException full){if(!"TASK_PROFILES_FULL".equals(full.getMessage()))throw full;break;}
+   try{next=next.makeRoom(device,busy,online,now);}catch(RuntimeException full){if(!"TASK_PROFILES_FULL".equals(full.getMessage()))throw full;break;}
    // Discovery never substitutes another session for an explicit default, even when
    // that default is paused or expired. Only an empty registry needs an initial choice.
    TaskProfiles.Profile selected=next.selected();next=next.upsert(c,true,now,selected==null);

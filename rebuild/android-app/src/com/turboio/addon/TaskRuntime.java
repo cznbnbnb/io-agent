@@ -174,9 +174,14 @@ final class TaskRuntime {
   if(hub.profiles().profiles.size()>=TaskProfiles.MAX)for(Map<String,Object> route:routes){boolean found=false;for(TaskProfiles.Profile p:hub.profiles().profiles)if(TaskWire.same(p.connection.route(),route))found=true;if(!found){pairing="TASK_PROFILES_FULL";break;}}
   if(now>=nextDirectory)try{refreshDirectory(now);}catch(Exception failure){directoryNote=TaskApi.safeError(failure);}
  }
- /** Registrations a full registry must not give up: unanswered questions and the shared default. */
+ /** Registrations a full registry must not give up: phone input not yet on the server, questions still
+  * waiting for an answer, and the shared default. Delivered history alone never holds a slot. */
  private Set<String> keepBindings(long now){
-  Set<String> keep=new HashSet<>();if(hub!=null)for(TaskHub.View v:hub.views())if(!v.pending.isEmpty())keep.add(v.binding);
+  Set<String> keep=new HashSet<>();
+  if(hub!=null)for(TaskHub.View v:hub.views()){
+   if(TaskProfiles.unsent(v.pending)){keep.add(v.binding);continue;}
+   try{if(!new TaskPresentation(Collections.singletonList(new TaskPresentation.Source(v.profile,v.objects,v.pending)),now).questions.isEmpty())keep.add(v.binding);}catch(RuntimeException unreadable){keep.add(v.binding);}
+  }
   Map<String,Object> route=directory==null?null:directory.defaultRoute();if(route!=null&&device!=null)try{keep.add(device.derive(route,now).binding());}catch(RuntimeException ignored){}
   return keep;
  }

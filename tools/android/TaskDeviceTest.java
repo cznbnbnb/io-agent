@@ -55,17 +55,23 @@ public final class TaskDeviceTest {
   for(int i=0;i<TaskProfiles.MAX;i++){TaskConnection c=d.derive(route("full-"+i),NOW);b.add(c.binding());full=full.upsert(c,true,NOW,i==0);}
   yes(full.profiles.size()==TaskProfiles.MAX&&full.selected.equals(b.get(0)));
   Set<String> none=new HashSet<>(),online=new HashSet<>(b.subList(0,6));
-  TaskProfiles roomy=full.makeRoom(d,new HashSet<>(Arrays.asList(b.get(6))),online);
+  TaskProfiles roomy=full.makeRoom(d,new HashSet<>(Arrays.asList(b.get(6))),online,NOW);
   yes(roomy.profiles.size()==TaskProfiles.MAX-1&&!roomy.profiles.stream().anyMatch(p->p.binding.equals(b.get(7))));
   yes(roomy.selected.equals(b.get(0)));
-  TaskProfiles paused=full.enabled(b.get(12),false,NOW).makeRoom(d,none,none);
+  TaskProfiles paused=full.enabled(b.get(12),false,NOW).makeRoom(d,none,none,NOW);
   yes(!paused.profiles.stream().anyMatch(p->p.binding.equals(b.get(12))));
-  yes(full.makeRoom(d,none,new HashSet<>(b)).profiles.stream().noneMatch(p->p.binding.equals(b.get(1))));
+  yes(full.makeRoom(d,none,new HashSet<>(b),NOW).profiles.stream().noneMatch(p->p.binding.equals(b.get(1))));
   Set<String> allButDefault=new HashSet<>(b);allButDefault.remove(b.get(0));
-  TaskProfiles fullFinal=full;fails(()->fullFinal.makeRoom(d,allButDefault,none),"TASK_PROFILES_FULL");
+  TaskProfiles fullFinal=full;fails(()->fullFinal.makeRoom(d,allButDefault,none,NOW),"TASK_PROFILES_FULL");
   yes(roomy.upsert(d.derive(route("newcomer"),NOW),true,NOW,false).profiles.size()==TaskProfiles.MAX);
   yes(d.derive(route("full-7"),NOW).binding().equals(b.get(7)));
-  TaskProfiles small=TaskProfiles.empty().upsert(d.derive(route("only"),NOW),true,NOW,true);yes(small.makeRoom(d,none,none)==small);
+  TaskProfiles small=TaskProfiles.empty().upsert(d.derive(route("only"),NOW),true,NOW,true);yes(small.makeRoom(d,none,none,NOW)==small);
+  // Delivered history never pins a slot; only input the server has not durably taken does.
+  yes(!TaskProfiles.unsent(Arrays.asList(WireJson.object("state","server_stored"),WireJson.object("state","expired"),WireJson.object("state","withdrawn_local"))));
+  yes(TaskProfiles.unsent(Arrays.asList(WireJson.object("state","server_stored"),WireJson.object("state","retry_wait"))));
+  yes(TaskProfiles.unsent(Arrays.asList(WireJson.object("state","server_stored","needs_lookup",true))));yes(!TaskProfiles.unsent(new ArrayList<>()));
+  // Once credentials have lapsed, even online slots are free to give up; the default still never is.
+  TaskProfiles lapsed=full.makeRoom(d,none,new HashSet<>(b),Long.MAX_VALUE);yes(lapsed.selected.equals(b.get(0))&&lapsed.profiles.size()==TaskProfiles.MAX-1);
   System.out.println("task device: "+checks+" checks passed");
  }
 }
