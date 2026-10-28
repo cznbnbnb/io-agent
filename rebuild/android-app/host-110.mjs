@@ -49,5 +49,8 @@ export function verifyHost(root){
  for(const [f,dex] of [[listener,'classes3'],[activity,'classes3'],[event,'classes3'],[queue,'classes2'],[manager,'classes2'],[audio,'classes3']])if(!path.relative(root,f).startsWith('smali_'+dex+path.sep))throw new Error('Unexpected hook DEX: '+f);
  check('Lyb/a0;',['.method public final a(Ljava/lang/String;Lyb/n;)Ljava/lang/String;']);
  check('Lg9/l$a;',['.method public final d()Lg9/l;']);
+ check('LO4/h;',['.method public abstract a()La5/w;','.method public abstract c(LO4/q;)V','.method public abstract d()[La5/H;']);
+ check('LO4/m;',['.field public final i:Ljava/util/concurrent/CopyOnWriteArrayList;','.method public final f(La5/I;LO4/q;)V','    iget-object v0, v0, LO4/m;->i:Ljava/util/concurrent/CopyOnWriteArrayList;','    invoke-interface {v0, v15}, LO4/h;->c(LO4/q;)V']);
+ check('LO4/q;',['.field public final a:Ljava/lang/String;','.field public final i:[B','.field public final p:La5/h;']);
  const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,proofs};
 }

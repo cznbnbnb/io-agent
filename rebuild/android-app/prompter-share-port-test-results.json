@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scope": "Production PrompterSharePort; synthetic reflection/pinned SDK shape and queued Android handler; no device IO",
+  "passed": true,
+  "checks": 17,
+  "old_h_list_regression_detected": true,
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/PrompterSharePort.java",
+      "sha256": "c9fc54efcc18903f74dcafbb13518aadc83b04759e617a09dc6d3d841f5f9d84"
+    },
+    {
+      "path": "../../tools/android/PrompterSharePortTest.java",
+      "sha256": "9cc603dd63220dd000ee130b140e9a934ab817a328418050f0bd2cd8b9e9e315"
+    },
+    {
+      "path": "../../tools/android/test-prompter-share-port.mjs",
+      "sha256": "74ce69d5ac95a1c0b352b4700a790c68b78cb4b3f6b8d7ecd5d4d5100d802895"
+    }
+  ]
+}

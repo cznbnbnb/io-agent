@@ -23,7 +23,7 @@ final class AgentCardRuntime {
  private WeakReference<Activity> activity;private volatile long observedGeneration=Long.MIN_VALUE;
  private boolean localLease,fetching,checkingShow,answerBusy,headStarted,restoreStarted,pumping;
  // Questions whose interrupted dictation was closed after a restart; offered again once.
- private final Set<String> reoffer=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>(),questionChecks=new HashSet<>(),retiredPrompters=new HashSet<>();
+ private final Set<String> reoffer=new HashSet<>(),displayedPrompters=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>(),questionChecks=new HashSet<>(),retiredPrompters=new HashSet<>();
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
@@ -178,9 +178,7 @@ final class AgentCardRuntime {
   Set<String> next=new HashSet<>(offered);next.add(key);
   if(!prefs.edit().putStringSet("offered",next).putString("prompter_owner",owner.encode()).commit()){NewsTele.cancelTask(display[0]);message="显示记录未保存，已请求退出；问题保留在手机";return false;}
   offered.clear();offered.addAll(next);
-  // The manuscript was accepted by the glasses link: that is what 「眼镜显示」 records (user's call, 2026-10-27).
-  tasks.receipt(source.binding,request,"glasses_displayed");
-  message="长问题已发到眼镜提词器；看完长按退出后口述";refresh();return true;
+  message="正在传输问题文稿；等待眼镜收齐并运行";refresh();return true;
  }
  private void forget(String key){if(!offered.contains(key))return;Set<String> next=new HashSet<>(offered);next.remove(key);if(prefs.edit().putStringSet("offered",next).commit()){offered.clear();offered.addAll(next);}}
  private TaskPrompterNotice prompterNotice(){return TaskPrompterNotice.read(prefs.getString("prompter_notice_owner","{}"));}
@@ -230,6 +228,12 @@ final class AgentCardRuntime {
   if(!owner.did.equals(NewsTele.did()))return;
   // Missing startup snapshot is unknown; the durable deadline still applies.
   if(!owner.live(System.currentTimeMillis())||!enabled()||!attended()||snapshot!=null&&!prompterAllowed(owner,snapshot))withdrawPrompter(owner.binding,owner.id,"原问题已失效或转到手机，正在退出提词器");
+  else if(NewsTele.displayed(owner.did)){
+   if(!displayedPrompters.contains(owner.did)&&prompterAllowed(owner,snapshot)){
+    TaskHub.View source=snapshot.context(owner.binding);tasks.receipt(owner.binding,source.item("request",owner.id),"glasses_displayed");displayedPrompters.add(owner.did);
+   }
+   message="问题文稿已收齐，眼镜已报告运行；看完长按退出后口述";
+  }else message="提词器："+NewsTele.status();
  }
  /** A matching expired/withdrawn DID is adopted for stop-only recovery, never for recording. */
  private NewsTele.Adoption orphan(String did){

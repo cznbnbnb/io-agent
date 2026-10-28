@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-28T04:07:25.492Z",
+  "at": "2026-10-28T09:53:15.261Z",
   "assertions": 843,
   "sources": [
     {
@@ -41,7 +41,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "402e0ce7f77cc9d41e9f58cc2ab086d5d511ea2d166875f6b84802423e039061"
+      "sha256": "96926d5fd4254fc311adbd9df7428cd4c7aae539f7223e9a4d04e2873cfeb081"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",

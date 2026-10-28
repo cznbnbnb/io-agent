@@ -186,7 +186,7 @@
     },
     {
       "path": "src/com/turboio/addon/NewsTele.java",
-      "sha256": "3ba372eac027ce7b32f415a5b7ba17c5003dc4132f30f15128dac3d954d97e9a"
+      "sha256": "d38d803f0ee47c60449b99b0fcf1a16b9fc9a4e813af48b03a3f0056fa120761"
     },
     {
       "path": "src/com/turboio/addon/NewsUI.java",
@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "d28cc30efea18e8f4f698d060e8a8238ee3e4c90b9d129ee4a0fd3d5aede71f2"
+      "sha256": "e0b4b736f8d6ef61cb2ba48effa5adc155f8e3c31ac154d29907ab44b694901e"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -866,7 +866,7 @@
     },
     {
       "path": "src/com/turboio/addon/PrompterSharePort.java",
-      "sha256": "08b97db995430847fa2e4115dceb549db17196e7c5d56257465e7b16eff32705"
+      "sha256": "c9fc54efcc18903f74dcafbb13518aadc83b04759e617a09dc6d3d841f5f9d84"
     },
     {
       "path": "src/com/turboio/addon/RawRxTrace.java",
@@ -1054,11 +1054,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "10208ba9f39604171374dfec70c13a34e883388ad9fe2b7cefc69eb45f60efd4"
+      "sha256": "7430ceeff87e83c40e71c8c6fd4aa7ff8de8ee24bcbd344b7c2b68bde59e5a56"
     }
   ],
-  "product_sha256": "efd6758cc6324a27df3be42efbbe8d449f5abfee846197f54b65cc64999541a4",
-  "addon_sha256": "db40ce6a384043015bb5108b66b1b853904d4d520ba55fa159b0ce8601643f9f",
+  "product_sha256": "9915829e475f17baf968a95d618610811bf4655fd441a8a004c1cfccbf74f76f",
+  "addon_sha256": "96726987c062d68cfadec0ef412e95ed5052ee03d60051da53ab75ed75463d19",
   "host_dex_sha256": {
     "classes2": "3f0b4328f8dac2b7c3f86ac1d999843dce2d71ba474087c48b8a49e76fda840f",
     "classes3": "1095a1996ae8872420767bd2e9500447aa37ffac85bebd158126a8c3049e6a19"

@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "at_utc": "2026-10-28T10:02:20.774+00:00",
+  "version": "0.5.3-dev154",
+  "version_code": 10576,
+  "host_version": "1.0.10",
+  "apk_sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
+  "failure": {
+    "reported_by_user": true,
+    "affected": "dev152",
+    "sequence": [
+      "prepare type2/code1 accepted",
+      "FILE_TRANSFER info sent",
+      "no SHARE ACK/chunk/result received",
+      "glasses exited with type6/code3"
+    ],
+    "root_cause": "O4.m.f dispatches received IO frames from i; observer was attached to lifecycle list h. Both lists still exist with the same type."
+  },
+  "fix": [
+    "Attach the per-manuscript observer to i and detach only that exact observer, preserving stock listeners.",
+    "Only report glasses_displayed after complete file plus same-DID running or automatic reading-position evidence.",
+    "Keep prepare/failed transfer separate from displayed and show current transfer status."
+  ],
+  "checks": {
+    "pinned_host_contracts": 36,
+    "share_port_checks": 17,
+    "old_h_list_regression_detected": true,
+    "production_newstele_checks": 169,
+    "file_transfer_assertions": 18,
+    "agent_card_assertions": 843,
+    "hot_path_assertions": 50,
+    "concurrency_cases": 8000,
+    "java_d8_signature_and_original_dex_audit": "passed"
+  },
+  "device": {
+    "first_repair_install": {
+      "version": "0.5.3-dev153",
+      "installed": true,
+      "data_cleared": false,
+      "delta": {
+        "baseline_sha256": "7953f161c99e72171bd4990946167b9cd77b1b50037e06580b8ea9f7e0ace138",
+        "candidate_sha256": "d29a956b4a29196ff0bf38a5cbedd54fa3b400f90a70e9763cc1abcb297f61b3",
+        "apk_bytes": 435067497,
+        "delta_bytes": 1950713,
+        "commands": 8141,
+        "delta_sha256": "28fa2e4b62bd11c74c7a75f81e7263b4995788f211262f415fbe7629d466906c",
+        "reconstruction_hash_verified": true
+      },
+      "installed_sha256": "d29a956b4a29196ff0bf38a5cbedd54fa3b400f90a70e9763cc1abcb297f61b3",
+      "rollback": "0.5.3-dev152"
+    },
+    "final_install": {
+      "version": "0.5.3-dev154",
+      "installed": true,
+      "data_cleared": false,
+      "delta": {
+        "baseline_sha256": "d29a956b4a29196ff0bf38a5cbedd54fa3b400f90a70e9763cc1abcb297f61b3",
+        "candidate_sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
+        "apk_bytes": 435067497,
+        "delta_bytes": 1950713,
+        "commands": 8141,
+        "delta_sha256": "a56e3b174df63ccf6c9f56b827e6f899e7b7db258073f870f54fc666a1f49684",
+        "reconstruction_hash_verified": true
+      },
+      "installed_sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
+      "rollback": "0.5.3-dev153"
+    },
+    "final_transfer_trace": [
+      "prompter rx type=2 action=2 code=1 phase=prepare",
+      "prompter file-tx bytes=117 type=1",
+      "prompter file-rx bytes=40 type=2",
+      "prompter file-rx bytes=45 type=3",
+      "prompter file-tx bytes=332 type=4",
+      "prompter file-rx bytes=40 type=5",
+      "prompter rx type=2 action=2 code=7 phase=file",
+      "prompter rx type=8 action=1 code=1 phase=ready",
+      "prompter rx type=8 action=1 code=1 phase=playing",
+      "prompter rx type=8 action=1 code=1 phase=playing",
+      "prompter rx type=8 action=1 code=1 phase=playing",
+      "receipt glasses_displayed sent"
+    ],
+    "receipt_only_after_full_file_and_reading": true,
+    "server_display_receipt_confirmed": true,
+    "answers": {
+      "153": {
+        "state": "answered",
+        "input_source": "voice",
+        "option_id": "passed",
+        "text": "开发者自检通过，选一。\n嗯。",
+        "returned_to_original_session": true
+      },
+      "154": {
+        "state": "answered",
+        "input_source": "voice",
+        "option_id": null,
+        "text": "开发者确认通过。",
+        "returned_to_original_session": true
+      }
+    },
+    "phone_question_inbox_empty_after_test": true,
+    "voice_finished_and_released": true,
+    "voice_confirmation_and_answer_return_observed": true,
+    "physical_lens_appearance_independently_observed": false
+  },
+  "boundaries": {
+    "firmware_written": false,
+    "native_todo_created": false,
+    "real_material_deleted": false,
+    "formal_services_pairing_and_default_preserved": true,
+    "new_test_credential_created": false,
+    "unknown_delegate_sources_packaged": false
+  },
+  "retention": {
+    "current": "dev154",
+    "rollback": "dev150",
+    "intermediate_152_153_removed": true,
+    "stage": "build/host-110",
+    "reason": "Keep the verified pre-upgrade host as rollback rather than an affected interim host build."
+  },
+  "overall": "fixed, installed, real file transfer and voice answer return passed; lens visual appearance remains distinct",
+  "cleanup": {
+    "both_synthetic_questions_answered": true,
+    "phone_pending_empty": true,
+    "voice_and_confirmation_released": true,
+    "device_temporary_xml_removed": true,
+    "current_task_watch_disabled": true,
+    "device_lock_released": true,
+    "formal_services_preserved": true
+  }
+}

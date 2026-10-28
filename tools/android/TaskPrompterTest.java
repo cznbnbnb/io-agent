@@ -19,6 +19,18 @@ public final class TaskPrompterTest {
  static Map<String,Object> copy(Map<String,Object> v){return WireJson.map(WireJson.copy(v));}
  static boolean allows(TaskPrompterOwner o,TaskConnection c,Map<String,Object> r,Map<String,Object> p){return o.allows(c,true,r,p,false,false,NOW);}
  public static void main(String[] args)throws Exception{
+  // A transport submit or prepare ACK is not a display receipt. Run the actual file handshake.
+  String wireDid=start();yes(!NewsTele.displayed(wireDid));frame("glasses",wireDid,2,2,1);Handler.ready();yes(!NewsTele.displayed(wireDid));
+  PrompterFile.Message info=PrompterFile.decode(NavReflect.sent.get(NavReflect.sent.size()-1));yes(info.type==1&&info.fileSize>0);
+  PrompterFile.Message part=new PrompterFile.Message();part.type=2;part.uuid=wireDid;NewsTele.receiveFile("glasses",PrompterFile.encode(part));
+  part.type=3;part.chunkId=1;part.size=4096;NewsTele.receiveFile("glasses",PrompterFile.encode(part));Handler.ready();yes(!NewsTele.displayed(wireDid));
+  part=new PrompterFile.Message();part.type=5;part.uuid=wireDid;NewsTele.receiveFile("glasses",PrompterFile.encode(part));yes(!NewsTele.displayed(wireDid));
+  frame("glasses",wireDid,2,2,7);yes(!NewsTele.displayed(wireDid));frame("other",wireDid,3,1,1);yes(!NewsTele.displayed(wireDid));frame("glasses","wrong-did",3,1,1);yes(!NewsTele.displayed(wireDid));
+  frame("glasses",wireDid,8,1,1);yes(NewsTele.displayed(wireDid)&&!NewsTele.displayed("other"));frame("glasses",wireDid,4,1,1);yes(NewsTele.displayed(wireDid));
+  set("phase","ready");frame("glasses",wireDid,3,1,1);yes(NewsTele.displayed(wireDid));
+  NewsTele.control(6);yes(!NewsTele.displayed(wireDid));frame("glasses",wireDid,6,2,1);yes(!NewsTele.displayed(wireDid));
+  // Failure or a start frame before any file/business completion cannot report successful display.
+  wireDid=start();frame("glasses",wireDid,8,1,1);yes(!NewsTele.displayed(wireDid));frame("glasses",wireDid,3,1,1);yes(!NewsTele.displayed(wireDid));wireDid=start();frame("glasses",wireDid,2,2,0);yes(!NewsTele.displayed(wireDid));
   TaskConnection c=connection();Map<String,Object> r=request(c),p=task(c);TaskPrompterOwner o=TaskPrompterOwner.create("test-did","glasses",c,r,NOW);
   yes(o.until==NOW+60000);yes(TaskPrompterOwner.deadline(c,r,NOW+60000)==NOW+60000);
   Map<String,Object> longer=copy(r);longer.put("expires_at",TaskWire.now(NOW+7200000));yes(TaskPrompterOwner.deadline(c,longer,NOW)==NOW+180000);yes(TaskPrompterOwner.deadline(c,longer,c.expiresAt-1000)==c.expiresAt);
@@ -113,4 +125,4 @@ final class NativeTransfer {static String peer="glasses";static final Handler MA
 final class BackgroundWork {static void acquire(String key,int n){}static void release(String key){}}
 final class TaskAttention {static final Set<String> held=new HashSet<>();static void hold(String key,long ms){held.add(key);}static void release(String key){held.remove(key);}}
 final class PrompterSharePort {static boolean attach(){return true;}static void detach(){}static void trace(String s){}}
-final class NavReflect {interface Callback{void run(String n,Object[] args);}static final List<byte[]> sent=new ArrayList<>();static Object type(String s){return s;}static Object field(Object o,String s){return o;}static Object proxy(String s,Callback c){return c;}static Object make(String s,Object...args){return args[0];}static Object call(Object o,String s,Object...args){if(s.equals("u"))sent.add((byte[])args[0]);return s;}}
+final class NavReflect {interface Callback{void run(String n,Object[] args);}static final List<byte[]> sent=new ArrayList<>();static Object type(String s){return s;}static Object field(Object o,String s){return o;}static Object proxy(String s,Callback c){return c;}static Object make(String s,Object...args){return args[0];}static Object call(Object o,String s,Object...args){if(s.equals("u")){sent.add((byte[])args[0]);((Callback)args[1]).run("invoke",new Object[]{args[0],null});}return s;}}

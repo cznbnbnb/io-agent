@@ -1,6 +1,6 @@
 package com.turboio.addon;
 import java.lang.reflect.*;import java.util.*;
-/** Host 1.0.7 tags inbound FILE_TRANSFER frames with the SHARE ability (Y3.b0) and hands them only
+/** Host 1.0.10 tags inbound FILE_TRANSFER frames with the SHARE ability (Y3.b0) and hands them only
  * to SHARE observers (stock t4.c); the RELAY bridge behind messageReceived never sees them. The
  * prompter pull (ACK, chunk requests, result) therefore needs its own observer on the live channel.
  * Attached for one prompter session only; stock t4.c still logs and ignores the unknown DID. */
@@ -29,7 +29,7 @@ final class PrompterSharePort {
  static synchronized boolean attach(){
   detach();
   try{if(observer==null)observer=create();Object registry=NavReflect.call(NavReflect.field(NavReflect.type("Y3.o"),"d"),"a");Map<?,?> channels=(Map<?,?>)NavReflect.field(registry,"a");Class<?> channel=NavReflect.type("Y3.l");
-   for(Object c:channels.values())if(channel.isInstance(c)){List<Object> list=(List<Object>)NavReflect.field(c,"h");if(!list.contains(observer)){list.add(observer);attached.add(list);}}
+   for(Object c:channels.values())if(channel.isInstance(c)){List<Object> list=(List<Object>)NavReflect.field(c,"i");if(!list.contains(observer)){list.add(observer);attached.add(list);}}
   }catch(Exception e){detach();return false;}
   PrompterSharePort.trace("prompter share-port channels="+attached.size());return !attached.isEmpty();
  }

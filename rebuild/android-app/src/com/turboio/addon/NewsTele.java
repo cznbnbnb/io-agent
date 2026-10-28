@@ -36,6 +36,8 @@ final class NewsTele {
  static final long QUESTION_SHOW_MS=180000;
  private static final Runnable questionTimeout=()->{if(active()&&taskOwned&&!phase.equals("uncertain")&&!phase.equals("closing")){PrompterSharePort.trace("prompter question timeout phase="+phase);onExit=null;note="任务显示期限已到，正在退出提词器；内容保留在手机";control(6);}};
  static String status(){return note;}static boolean active(){return !did.isEmpty();}
+ /** A send/prepare ACK is insufficient: the same manuscript must be fully received and running. */
+ static boolean displayed(String owner){return active()&&did.equals(owner)&&(phase.equals("playing")||phase.equals("paused"))&&(file==null||file.complete&&businessReady);}
  static String checksum(byte[] b){long h=2166136261L;for(byte v:b)h=((h^(v&255))*16777619L)&0xffffffffL;return String.format(Locale.ROOT,"%08x",h);}
  private static String md5(byte[] b)throws Exception{StringBuilder s=new StringBuilder();for(byte v:MessageDigest.getInstance("MD5").digest(b))s.append(String.format(Locale.ROOT,"%02x",v&255));return s.toString();}
  static void start(String content,int value){start(content,value,null);}
@@ -108,7 +110,10 @@ final class NewsTele {
   if(e.type==6&&(action==1||action==2&&code==1)){Runnable exited=action==1&&code==1?onExit:null;if(action==1)send(6,new JSONObject().put("did",did).put("action",2).put("code",1));
   // 2026-10-24 (device): a queued notice took the lens in the gap before the dictation opened (VOICE_CAPTURE_BUSY).
   if(exited!=null)TaskAttention.hold("voice",30000);clear();note=action==1&&code!=1?"眼镜非长按退出（code="+code+"）；不打开口述，问题保留在手机":"眼镜已退出；新闻稿保留在手机";if(exited!=null)NativeTransfer.MAIN.post(exited);return;}
-  if(e.type==8&&action==1){send(8,new JSONObject().put("did",did).put("action",2).put("code",1));return;}
+  if(e.type==8&&action==1){send(8,new JSONObject().put("did",did).put("action",2).put("code",1));
+   // The glasses may start reading automatically, without a type3 start exchange.
+   if(phase.equals("ready")&&file!=null&&file.complete&&businessReady){phase="playing";note="眼镜已报告阅读位置；镜片显示请人工确认";}
+   return;}
   if(e.type==2&&action==2&&waiting==2){if(j.has("total")&&j.optInt("total")!=text.length)return;if(code!=1&&code!=7){fail("眼镜拒绝准备（"+code+"）");return;}
    if(!fileStarted){if(code!=1){fail("未传稿即收到完成码");return;}fileStarted=true;phase="file";deadline=SystemClock.elapsedRealtime()+120000;note="文件信息已发送，按眼镜请求分块传稿";final PrompterFile.Outbound owner=file;sendFile(file.info(),ok->{if(file==owner&&!ok)fail("新闻稿文件信息未确认");});}
    else if(code==7){businessReady=true;ready();}return;}
