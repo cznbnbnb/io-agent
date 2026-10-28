@@ -70,7 +70,9 @@ export async function ensureResident({agent,binding,runtime,label,legacyTaskId,e
   if(!owner)return{resident_live:false,can_execute:false,reason:'NATIVE_OWNER_NOT_FOUND'};
   const workerFile=fileURLToPath(new URL('./session-resident.mjs',import.meta.url));
   if(!fs.existsSync(workerFile))return{resident_live:false,can_execute:false,reason:'RESIDENT_COMPONENT_NOT_INSTALLED'};
-  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId],...(endpoint?{endpoint,rpcPath}:{})});
+  // rejoin lets the Claude Mod join a Desktop continuation of this conversation with the same CLI.
+  const rejoin={node:process.execPath,cli:fileURLToPath(new URL('../questions/cli.mjs',import.meta.url))};
+  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId],rejoin,...(endpoint?{endpoint,rpcPath}:{})});
   privateDirectory(home);const root=privateDirectory(path.join(home,'sessions')),directory=privateDirectory(path.join(root,residentKey(binding)));
   let previous;try{previous=privateRecord(path.join(directory,'resident.json'));}catch{}
   const prior=residentStatus(binding,{home,read});

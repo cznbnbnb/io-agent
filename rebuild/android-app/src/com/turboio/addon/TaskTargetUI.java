@@ -17,14 +17,14 @@ final class TaskTargetUI {
  /** What a card shows, from a live directory entry or, before the directory loads, the saved connection. */
  static final class Target {
   // agent = which Agent, computer = which machine, title = which session (its label, else the workspace).
-  final String agent,computer,title,workspace,session,status;final int tone;
-  Target(String agent,String computer,String title,String workspace,String session,String status,int tone){this.agent=agent;this.computer=computer;this.title=title;this.workspace=workspace;this.session=session;this.status=status;this.tone=tone;}
+  final String agent,computer,title,workspace,session,status,kind;final int tone;
+  Target(String agent,String computer,String title,String workspace,String session,String status,int tone,String kind){this.agent=agent;this.computer=computer;this.title=title;this.workspace=workspace;this.session=session;this.status=status;this.tone=tone;this.kind=kind;}
   static Target of(TaskSessionDirectory.Entry e,long elapsed){
    String gate=e.gate(elapsed);
    int tone=!gate.isEmpty()?MaterialReadingUI.DIM:Boolean.FALSE.equals(e.busy)?MaterialReadingUI.ACCENT_SOFT:MaterialReadingUI.AMBER;
-   return new Target("codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent",computer(e),e.label.isEmpty()?shortPath(e.workspace):e.label,shortPath(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone);
+   return new Target("codex".equals(e.host)?"Codex":"claude".equals(e.host)?"Claude Code":String.valueOf(e.route.get("agent_id")).contains("workbuddy")?"WorkBuddy":"ACP Agent",computer(e),e.label.isEmpty()?shortPath(e.workspace):e.label,shortPath(e.workspace),String.valueOf(e.route.get("session_id")),e.status(elapsed),tone,TaskTones.kind(e.workspace,e.label));
   }
-  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),shortPath(c.project),shortPath(c.project),c.session,"状态待更新",MaterialReadingUI.DIM);}
+  static Target saved(TaskConnection c){return new Target(TaskPresentation.agentName(c.agent),TaskPresentation.computerName(c.computer),shortPath(c.project),shortPath(c.project),c.session,"状态待更新",MaterialReadingUI.DIM,"");}
  }
  /** The directory carries no machine name, only an opaque computer id; the workspace's home folder tells the
   * wearer which machine it is ("Mac · alice"). Falls back to a short id. */
@@ -56,7 +56,8 @@ final class TaskTargetUI {
    card.setContentDescription("选择交给哪个会话");return;
   }
   View dot=new View(a);dot.setBackground(MaterialReadingUI.fill(a,t.tone,4));LinearLayout.LayoutParams dl=new LinearLayout.LayoutParams(dp(a,8),dp(a,8));dl.rightMargin=dp(a,8);top.addView(dot,dl);
-  top.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,t.agent,16,AgentUI.INK,1)));
+  top.addView(MaterialReadingUI.bold(MaterialReadingUI.line(a,t.agent,16,TaskTones.agent(t.agent)[0],1)));
+  if(!t.kind.isEmpty()){LinearLayout.LayoutParams kp=new LinearLayout.LayoutParams(-2,dp(a,20));kp.leftMargin=dp(a,8);int[] tint=TaskTones.agent(t.agent);MaterialReadingUI.chip(a,top,t.kind,tint[0],tint[1]).setLayoutParams(kp);}
   if(isDefault){LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-2,dp(a,20));cp.leftMargin=dp(a,8);TextView chip=MaterialReadingUI.chip(a,top,"默认",MaterialReadingUI.ACCENT_SOFT,MaterialReadingUI.ACCENT_BG);chip.setLayoutParams(cp);}
   top.addView(new View(a),new LinearLayout.LayoutParams(0,1,1));
   TextView status=MaterialReadingUI.line(a,t.status,12,t.tone==MaterialReadingUI.DIM?AgentUI.MUTED:t.tone,1);status.setPadding(dp(a,8),0,0,0);top.addView(status);

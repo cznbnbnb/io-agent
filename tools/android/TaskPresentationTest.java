@@ -47,7 +47,18 @@ public final class TaskPresentationTest {
   List<Object> objects=new ArrayList<>(Arrays.asList(cached(ta),cached(done),cached(cancelled),cached(unknown),cached(question))),pending=new ArrayList<>(Arrays.asList(localTask,answer,newTask));
   byte[] before=WireJson.bytes(WireJson.object("objects",objects,"pending",pending));
   TaskPresentation value=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,objects,pending),new TaskPresentation.Source(pb,Arrays.asList(cached(tb)),Collections.emptyList())),NOW);
-  check(value.rows.size()==6);check(value.filter("running").size()==4);check(value.filter("completed").size()==1);check(value.filter("all").size()==6);
+  check(value.rows.size()==6);check(value.filter("running").size()==4);check(value.filter("completed").size()==2);check(value.filter("expired").isEmpty());check(value.filter("all").size()==6);
+  // Open past its own deadline: expired, not running, no longer offering controls; a server "expired" task too.
+  Map<String,Object> lapsed=task(a,"lapsed","running",20);lapsed.put("expires_at",TaskWire.now(NOW-1));Map<String,Object> gone=task(a,"gone","expired",21);
+  TaskPresentation aged=showing(pa,lapsed,gone,task(a,"fresh","running",22));
+  check(aged.filter("expired").size()==2);check(aged.filter("running").size()==1);check(aged.tone(aged.find(pa.binding+"/lapsed"))==TaskPresentation.Tone.EXPIRED);
+  check(aged.status(aged.find(pa.binding+"/lapsed"),NOW).startsWith("已过期"));check(aged.tone(aged.find(pa.binding+"/fresh"))==TaskPresentation.Tone.RUNNING);
+  check(TaskPresentation.plain("## 结论\n- **手机到桌面：** 用 `cli` 看 [文档](https://x)").equals("结论\n• 手机到桌面： 用 cli 看 文档"));check(TaskPresentation.plain("3 * 4 = 12").equals("3 * 4 = 12"));
+  // Session offline: open tasks lapse only after ten quiet minutes; completed ones and other sessions stay as they are.
+  List<Object> quiet=Arrays.asList(cached(task(a,"quiet","agent_received",1)),cached(task(a,"done","completed",2)));Set<String> offline=new HashSet<>(Arrays.asList(pa.binding));
+  TaskPresentation early=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,quiet,Collections.emptyList())),NOW+60000,offline);check(early.filter("running").size()==1);
+  TaskPresentation late=new TaskPresentation(Arrays.asList(new TaskPresentation.Source(pa,quiet,Collections.emptyList()),new TaskPresentation.Source(pb,Arrays.asList(cached(task(b,"live","running",3))),Collections.emptyList())),NOW+TaskPresentation.ORPHAN_GRACE+10,offline);
+  check(late.filter("expired").size()==1);check(late.filter("running").size()==1);check(late.filter("completed").size()==1);check(late.status(late.find(pa.binding+"/quiet"),NOW).equals("已过期 · 原会话已离线"));check(late.tone(late.find(pa.binding+"/quiet"))==TaskPresentation.Tone.EXPIRED);
   check(value.find(a.binding()+"/same-id").profile==pa);check(value.find(b.binding()+"/same-id").profile==pb);check(!value.find(a.binding()+"/same-id").localOnly());check(value.find(a.binding()+"/local-only").localOnly());
   check(TaskPresentation.status(value.find(a.binding()+"/same-id")).equals("等待你的回复"));check(TaskPresentation.status(value.find(a.binding()+"/local-only")).contains("本机"));check(value.find(a.binding()+"/same-id").command().contains("\n完整保留"));
   check(value.questions.size()==1);TaskPresentation.Question q=value.questions.get(0);check(q.binding.equals(a.binding())&&q.parent==ta);check(q.queuedAnswer()&&q.localAnswer==answer);check(q.available(NOW));check(!q.available(NOW+86400001));

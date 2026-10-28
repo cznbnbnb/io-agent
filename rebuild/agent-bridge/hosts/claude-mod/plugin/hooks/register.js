@@ -41,9 +41,10 @@ async function persist($) {
 }
 async function exact($) {
   if (!enabled) return false;
+  // The session id alone is the identity: the working directory moves whenever a
+  // shell in the session changes folder, and that must not take the session offline.
   const session = await $.session.id();
-  const cwd = await $.session.cwd();
-  return enabled && session === connection.session_id && cwd === connection.cwd;
+  return enabled && session === connection.session_id;
 }
 async function post($, endpoint, body) {
   const response = await $.http.fetch(connection.url + endpoint, {
@@ -253,8 +254,7 @@ async function connect($,descriptor) {
   connection = descriptor;
   if (!validateConnection(connection)) throw new Error('CLAUDE_MOD_CONNECTION_INVALID');
   const session = await $.session.id();
-  const cwd = await $.session.cwd();
-  if (session !== connection.session_id || cwd !== connection.cwd) throw new Error('CLAUDE_MOD_BINDING_MISMATCH');
+  if (session !== connection.session_id) throw new Error('CLAUDE_MOD_BINDING_MISMATCH');
   const loaded = await $.store.get(storeKey());
   journal = loaded || {operations:{}, tools:{}, outbox:[]};
   journal.tools ??= {};
@@ -278,7 +278,7 @@ async function discover($){
   if(!globalMode||!registryRoot||discovering||pumping||observing)return;
   discovering=true;
   try{
-    const session=await $.session.id(),cwd=await $.session.cwd();
+    const session=await $.session.id();
     if(discoverySession!==session){discoverySession=session;activeTurn=null;busy=true;recentCompletions={};}
     const rootStat=await $.fs.stat(registryRoot,{resolve:true});
     if(rootStat.kind!=='dir'||rootStat.isLink||rootStat.realPath!==registryRoot){if(enabled)await end($,false);return;}
@@ -292,7 +292,7 @@ async function discover($){
         const stat=await $.fs.stat(file,{resolve:true});
         if(stat.isLink||stat.kind!=='file'||stat.realPath!==file)continue;
         const candidate=JSON.parse(await $.fs.read(file));
-        if(validateConnection(candidate)&&candidate.session_id===session&&candidate.cwd===cwd)matches.push(candidate);
+        if(validateConnection(candidate)&&candidate.session_id===session)matches.push(candidate);
       }catch{}
     }
     if(matches.length!==1){if(enabled)await end($,false);return;}
@@ -341,11 +341,34 @@ async function observe($,turnId,coverage){
     if(recentCompletions[turnId])await completeEntry($,id,recentCompletions[turnId]);
   }finally{observing=false;}
 }
+// A Desktop continuation starts a new native session whose first prompt names the previous
+// transcript. When that previous session was joined here, join the continuation with the same
+// CLI and topic, so the conversation stays online on the phone. Nothing else is ever joined.
+const CONTINUATION = 'This session is being continued from a previous conversation';
+let rejoinTried = false;
+async function rejoinContinuation($, text) {
+  if (!globalMode || enabled || rejoinTried || typeof text !== 'string' || !text.startsWith(CONTINUATION) || !registryRoot) return;
+  rejoinTried = true;
+  const previous = new Set([...text.matchAll(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl/g)].map(m => m[1]));
+  if (!previous.size) return;
+  const session = await $.session.id();
+  const entries = await $.fs.list(registryRoot);
+  for (const entry of entries.slice(0, 64)) {
+    if (entry.kind !== 'dir' || entry.isLink) continue;
+    let r; try { r = JSON.parse(await $.fs.read(registryRoot + '/' + entry.name + '/resident.json')); } catch { continue; }
+    if (r?.runtime !== 'claude-code' || !previous.has(r.binding?.route?.session_id) || !/^\/[^\u0000]+$/.test(r.binding.workspace ?? '') ||
+      typeof r.label !== 'string' || !/^\/[^\u0000]+$/.test(r.rejoin?.node ?? '') || !/^\/[^\u0000]+\.mjs$/.test(r.rejoin?.cli ?? '')) continue;
+    await $.process.run(['/bin/sh', '-c', 'cd "$1" && printf %s "$2" | CLAUDE_CODE_SESSION_ID="$3" "$4" "$5" join', 'sh',
+      r.binding.workspace, JSON.stringify({topic:r.label}), session, r.rejoin.node, r.rejoin.cli], {timeoutMs:120000});
+    return;
+  }
+}
 async function admit($, e, next) {
   // This callback sees other origins, not this Mod's own native submission.
   // A pasted operation marker or attribution wrapper must not impersonate our
   // pending turn, even when the text and claimed plugin name match exactly.
   if ((!globalMode||enabled)&&reservedBridgeText(e.text)) return {drop:'This text uses a reserved bridge operation marker.'};
+  rejoinContinuation($, e.text).catch(() => {});
   if (enabled && e.origin?.name !== MOD_NAME && Object.values(pending).some(p => p.submitted && p.text === e.text))
     userEchoes[e.text] = (userEchoes[e.text] ?? 0) + 1;
   return next(e);

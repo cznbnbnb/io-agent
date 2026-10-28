@@ -68,5 +68,5 @@ final class TaskDevice {
   }
   return out;
  }
- String preview(){return "已配对："+label+"\n有效期至："+expires+"（自动续期）";}
+ String preview(){return "已配对 · "+label+"\n自动续期 · 有效至 "+java.time.Instant.ofEpochMilli(expiresAt).atZone(java.time.ZoneId.systemDefault()).format(java.time.format.DateTimeFormatter.ofPattern("M月d日 HH:mm"));}
 }

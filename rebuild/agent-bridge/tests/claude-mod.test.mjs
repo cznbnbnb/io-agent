@@ -192,12 +192,13 @@ test('session end revokes binding, drops unsent work, and old native callbacks c
   assert.equal((await f.request('/v1/bind')).ok,false);
 });
 
-test('changed native session/cwd unbinds, and marker replay from another origin is rejected',async t=>{
+test('changed native session unbinds, a moved cwd does not, and marker replay from another origin is rejected',async t=>{
   const f=await fixture(t), s=await simulator(t,f), id=await f.enqueue();await s.tick();
   const text=stamp(id)+s.state.submissions[0].text;
   assert.ok((await s.fire('prompt.submit',{text,origin:{kind:'user'}})).drop);
   assert.ok((await s.fire('prompt.submit',{text:stamp(id)+'changed',origin:{kind:'plugin',name:MOD_NAME}})).drop);
-  s.state.cwd += '/other';await s.tick();
+  s.state.cwd += '/other';await s.tick();assert.equal(f.broker.lifecycle().ended,false);
+  s.state.sessionId=randomUUID();await s.tick();
   assert.ok((await s.fire('prompt.submit',{text,origin:{kind:'plugin',name:MOD_NAME}})).drop);
   await assert.rejects(f.broker.host.status(),{code:'CLAUDE_MOD_NOT_CONNECTED'});
 });
@@ -312,7 +313,8 @@ test('the end reason tells a Mod reload from a replaced conversation',async t=>{
   const f=await fixture(t),s=await simulator(t,f);await s.tick();
   await s.fire('session.end',{reason:'other'});assert.deepEqual([f.broker.lifecycle().ended,f.broker.lifecycle().endReason],[true,'other']);
   const g=await fixture(t),u=await simulator(t,g);await u.tick();
-  u.state.cwd+='/other';await u.tick();assert.equal(g.broker.lifecycle().endReason,'session_changed');
+  u.state.cwd+='/other';await u.tick();assert.equal(g.broker.lifecycle().ended,false);
+  u.state.sessionId=randomUUID();await u.tick();assert.equal(g.broker.lifecycle().endReason,'session_changed');
 });
 
 test('a correct host wrapper without trusted native dispatch does not bind any native turn',async t=>{
@@ -512,13 +514,33 @@ function registry(f){
     const folder=path.join(root,name);fs.mkdirSync(folder,{recursive:true,mode:0o700});fs.writeFileSync(path.join(folder,'binding.json'),JSON.stringify(descriptor),{mode:0o600});
   }};
 }
-test('global Mod stays inert until an exact session and cwd registry descriptor exists',async t=>{
+test('a Desktop continuation of a joined conversation joins the new session once with the same topic',async t=>{
+  const f=await fixture(t),r=registry(f),s=await simulator(t,f,undefined,{registryRoot:r.root}),runs=[];
+  s.$.process.run=async argv=>{runs.push(argv);return {exitCode:0,stdout:'',stderr:''};};
+  const previous=randomUUID(),other=randomUUID(),folder=path.join(r.root,'c'.repeat(64));fs.mkdirSync(folder,{mode:0o700});
+  fs.writeFileSync(path.join(folder,'resident.json'),JSON.stringify({runtime:'claude-code',label:'Synthetic topic',
+    binding:{workspace:s.state.cwd,route:{session_id:previous}},rejoin:{node:'/usr/local/bin/node',cli:'/synthetic/questions/cli.mjs'}}));
+  const settle=()=>new Promise(resolve=>setTimeout(resolve,20));
+  await s.fire('prompt.submit',{text:'Ordinary first prompt mentioning '+previous+'.jsonl'});await settle();assert.equal(runs.length,0);
+  const summary=id=>'This session is being continued from a previous conversation that ran out of context.\nTranscript: /x/'+id+'.jsonl';
+  await s.fire('prompt.submit',{text:summary(other)});await settle();assert.equal(runs.length,0);
+  const g=await fixture(t),h=registry(g),u=await simulator(t,g,undefined,{registryRoot:h.root}),later=[];
+  u.$.process.run=async argv=>{later.push(argv);return {exitCode:0,stdout:'',stderr:''};};
+  const folder2=path.join(h.root,'d'.repeat(64));fs.mkdirSync(folder2,{mode:0o700});
+  fs.writeFileSync(path.join(folder2,'resident.json'),JSON.stringify({runtime:'claude-code',label:'Synthetic topic',
+    binding:{workspace:u.state.cwd,route:{session_id:previous}},rejoin:{node:'/usr/local/bin/node',cli:'/synthetic/questions/cli.mjs'}}));
+  await u.fire('prompt.submit',{text:summary(previous)});await settle();
+  assert.equal(later.length,1);assert.deepEqual(later[0].slice(4),[u.state.cwd,JSON.stringify({topic:'Synthetic topic'}),u.state.sessionId,'/usr/local/bin/node','/synthetic/questions/cli.mjs']);
+  await u.fire('prompt.submit',{text:summary(previous)});await settle();assert.equal(later.length,1);
+});
+
+test('global Mod stays inert until a registry descriptor for this exact session exists',async t=>{
   const f=await fixture(t),r=registry(f),s=await simulator(t,f,undefined,{registryRoot:r.root});
   await s.discover();assert.deepEqual(s.state.network,[]);assert.equal(s.state.submissions.length,0);
   const plain=await s.fire('prompt.submit',{text:stamp(randomUUID())+'ordinary text'});assert(plain.event);
-  r.write({...f.descriptor(),cwd:f.directory+'/foreign'});await s.discover();assert.deepEqual(s.state.network,[]);
   r.write({...f.descriptor(),session_id:randomUUID()});await s.discover();assert.deepEqual(s.state.network,[]);
-  r.write();await s.discover();assert.equal(f.broker.lifecycle().connected,true);
+  // The shell may have moved the session's folder since it joined; the session id still finds it.
+  s.state.cwd+='/moved';r.write();await s.discover();assert.equal(f.broker.lifecycle().connected,true);
   assert.equal(s.state.submissions.length,0);assert.equal((await f.broker.host.status()).busy,true);
 });
 test('joining an already-running local turn exposes identity and interrupt but never invents pre-tool coverage',async t=>{

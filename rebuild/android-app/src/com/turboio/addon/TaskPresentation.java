@@ -20,6 +20,12 @@ final class TaskPresentation {
    id=(String)body.get("task_id");state=item==null?"queued":(String)item.get("state");key=binding+"/"+id;
   }
   boolean completed(){return "completed".equals(state);}
+  /** Expired by the server, or still open past its own deadline: the original session will not move it again. */
+  boolean expired(long now){
+   if("expired".equals(state))return true;
+   if(item==null)return local!=null&&"expired".equals(local.get("state"));
+   long deadline=stamp(item.get("expires_at"));return active()&&deadline>0&&deadline<=now;
+  }
   boolean active(){return TaskWire.set("queued","agent_received","running","waiting_answer","cancel_requested","execution_unknown","stop_requested","stop_unconfirmed","stopped","resume_requested").contains(state)&&!(item==null&&local!=null&&TaskWire.set("expired","withdrawn_local").contains(local.get("state")));}
   boolean localOnly(){return item==null;}
   String command(){return (String)body.get("command");}
@@ -37,8 +43,12 @@ final class TaskPresentation {
  final List<Row> rows;
  final List<Question> questions;
  private final long observedAt;
- TaskPresentation(List<Source> sources,long now){
-  observedAt=now;
+ /** Bindings whose session the directory reports offline or gone; their open tasks lapse after a quiet spell. */
+ private final Set<String> gone;
+ static final long ORPHAN_GRACE=10*60*1000L;
+ TaskPresentation(List<Source> sources,long now){this(sources,now,Collections.emptySet());}
+ TaskPresentation(List<Source> sources,long now,Set<String> gone){
+  observedAt=now;this.gone=gone;
   List<Row> rows=new ArrayList<>();List<Question> questions=new ArrayList<>();
   for(Source source:sources){
    Map<String,Map<String,Object>> tasks=new LinkedHashMap<>(),queuedTasks=new LinkedHashMap<>(),answers=new HashMap<>();
@@ -59,7 +69,20 @@ final class TaskPresentation {
   questions.sort(Comparator.comparingInt((Question q)->q.queuedAnswer()?1:0).thenComparing(Comparator.comparingLong((Question q)->stamp(q.item.get("stored_at"))).reversed()).thenComparing(q->q.binding+"/"+q.id));
   this.rows=Collections.unmodifiableList(rows);this.questions=Collections.unmodifiableList(questions);
  }
- List<Row> filter(String filter){List<Row> out=new ArrayList<>();for(Row row:rows)if("all".equals(filter)||("completed".equals(filter)?row.completed():row.active()))out.add(row);return out;}
+ /** running: open and within its deadline; completed: finished or ended by the wearer; expired: lapsed. */
+ List<Row> filter(String filter){List<Row> out=new ArrayList<>();for(Row row:rows){boolean expired=expired(row);
+  if("all".equals(filter)||"completed".equals(filter)&&(row.completed()||"cancelled".equals(row.state))||"expired".equals(filter)&&expired||"running".equals(filter)&&row.active()&&!expired)out.add(row);}return out;}
+ boolean expired(Row row){return row.expired(observedAt)||orphaned(row);}
+ /** Still open, but its session went offline (ended or continued under a new id) and nothing moved for a while. */
+ boolean orphaned(Row row){return !row.localOnly()&&row.active()&&gone.contains(row.binding)&&observedAt-row.order()>=ORPHAN_GRACE;}
+ String status(Row row,long now){return row.expired(now)&&!"expired".equals(row.state)?"已过期 · 原会话没有再更新":orphaned(row)?"已过期 · 原会话已离线":status(row);}
+ /** One tone per kind of status, shared by the list chip and the detail header. */
+ enum Tone {WAITING,RUNNING,STOPPING,DONE,ENDED,FAILED,EXPIRED}
+ Tone tone(Row row){
+  if(expired(row))return Tone.EXPIRED;
+  switch(row.localOnly()?"queued":row.state){case "waiting_answer":return Tone.WAITING;case "completed":return Tone.DONE;case "cancelled":return Tone.ENDED;case "failed":return Tone.FAILED;
+   case "cancel_requested":case "stop_requested":case "stop_unconfirmed":case "stopped":case "resume_requested":case "execution_unknown":return Tone.STOPPING;default:return Tone.RUNNING;}
+ }
  Row find(String key){for(Row row:rows)if(row.key.equals(key))return row;return null;}
  /** Navigation only: an old question record may point to one independently
   * observed execution in its exact profile/account/session. Ambiguity and
@@ -80,6 +103,11 @@ final class TaskPresentation {
    if(selected!=null)return null;selected=candidate;
   }
   return selected;
+ }
+ /** Agent replies arrive as Markdown; the phone shows plain text, so drop emphasis, code ticks, heading marks and link targets. */
+ static String plain(String text){
+  String s=text.replaceAll("\\*\\*(.+?)\\*\\*","$1").replaceAll("__(.+?)__","$1").replaceAll("`{1,3}([^`]*)`{1,3}","$1").replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)","$1");
+  return s.replaceAll("(?m)^#{1,6}\\s+","").replaceAll("(?m)^(\\s*)[-*]\\s+","$1• ").trim();
  }
  static String firstLine(String text){String trimmed=text==null?"":text.trim();if(trimmed.isEmpty())return "未命名任务";return trimmed.split("\\R",2)[0];}
  static String source(TaskProfiles.Profile p){return agentName(p.connection.agent)+" · "+computerName(p.connection.computer);}

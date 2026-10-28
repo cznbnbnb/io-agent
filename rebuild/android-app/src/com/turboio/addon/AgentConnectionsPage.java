@@ -2,6 +2,7 @@ package com.turboio.addon;
 
 import android.app.Activity;
 import android.content.res.ColorStateList;
+import android.view.Gravity;
 import android.widget.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -14,7 +15,7 @@ final class AgentConnectionsPage {
 
  private static final class Page {
   final Activity activity;final String mode,binding;final TaskRuntime runtime;final AgentUI.Screen screen;
-  TaskRuntime.Snapshot snapshot;String last="",choice="",feedback="";boolean closed,busy,history,choiceMade;long choiceRevision;
+  TaskRuntime.Snapshot snapshot;String last="",choice="",feedback="";boolean closed,busy,history,offline,choiceMade;long choiceRevision;
   final TaskRuntime.Result observer=this::accept;
   Page(Activity activity,String mode,String binding){
    this.activity=activity;this.mode=mode;this.binding=binding;runtime=TaskRuntime.get(activity);
@@ -29,7 +30,7 @@ final class AgentConnectionsPage {
    snapshot=state;if(!visible()||busy)return;
    if(!error.isEmpty())feedback=TaskWorkspace.label(error);
    else if(state.contexts.isEmpty()&&state.note.matches("[A-Z][A-Z0-9_]+"))feedback=TaskWorkspace.label(state.note);
-   String key=state.fingerprint()+"/"+feedback+"/"+history+"/"+choice;
+   String key=state.fingerprint()+"/"+feedback+"/"+history+"/"+offline+"/"+choice;
    for(TaskHub.View view:state.contexts)key+="/"+(view.profile.connection.expiresAt<=System.currentTimeMillis());
    if(key.equals(last))return;last=key;render();
   }
@@ -53,9 +54,12 @@ final class AgentConnectionsPage {
     card.addView(AgentUI.text(activity,"在电脑上运行 device.mjs pair-phone 得到配对码，输入一次即可；之后电脑上的 Agent 会话会自动出现在这里，无需再导入登记文件。",14,AgentUI.MUTED));
     AgentUI.button(activity,card,"输入配对码",true,this::askCode);
    }else{
-    card.addView(AgentUI.text(activity,snapshot.device,15,AgentUI.INK));
+    // One compact row: who is paired and until when, with unpairing as a quiet link rather than a full-width button.
+    String[] lines=snapshot.device.split("\n",2);LinearLayout row=new LinearLayout(activity);row.setGravity(Gravity.CENTER_VERTICAL);LinearLayout who=new LinearLayout(activity);who.setOrientation(LinearLayout.VERTICAL);
+    who.addView(AgentUI.text(activity,lines[0],15,AgentUI.INK));if(lines.length>1)who.addView(AgentUI.text(activity,lines[1],12,AgentUI.MUTED));row.addView(who,new LinearLayout.LayoutParams(0,-2,1));
+    TextView unpair=AgentUI.text(activity,"解除配对",13,AgentUI.MUTED);unpair.setPadding(AgentUI.dp(activity,12),AgentUI.dp(activity,10),AgentUI.dp(activity,4),AgentUI.dp(activity,10));row.addView(unpair);card.addView(row);
     if(!snapshot.pairing.isEmpty())card.addView(AgentUI.text(activity,snapshot.pairing.equals("PAIRING_REVOKED")||snapshot.pairing.equals("PAIRING_EXPIRED")?"配对已失效，请在电脑上生成新的配对码后重新配对":"配对同步暂时失败："+TaskWorkspace.label(snapshot.pairing),14,AgentUI.ACCENT));
-    AgentUI.button(activity,card,"解除配对",false,()->AgentUI.confirm(activity,"解除这台手机的配对？","服务器会作废这台手机的凭据，自动出现的会话连接会暂停；已有任务和回复记录继续保留。",()->{busy=true;runtime.unpairDevice((state,error)->done(state,error,"已解除配对。"));}));
+    unpair.setOnClickListener(v->AgentUI.confirm(activity,"解除这台手机的配对？","服务器会作废这台手机的凭据，自动出现的会话连接会暂停；已有任务和回复记录继续保留。",()->{busy=true;runtime.unpairDevice((state,error)->done(state,error,"已解除配对。"));}));
    }
    AgentUI.gap(activity,screen.body,12);
   }
@@ -67,35 +71,51 @@ final class AgentConnectionsPage {
     .setPositiveButton("配对",(dialog,which)->{String code=edit.getText().toString();try{TaskDevice.code(code);}catch(IllegalArgumentException invalid){feedback="配对码格式不对，应为 10 位字母数字";redraw();return;}
      busy=true;feedback="正在配对…";redraw();runtime.pair(code,(state,error)->done(state,error,"配对成功。电脑上的 Agent 会话会自动出现在这里。"));}).show();
   }
+  /** Sessions grouped by whether they can take work now: online first, offline and expired folded. */
   void renderList(){
    pairingCard();
-   AgentUI.button(activity,screen.body,"选择默认 Agent 与工作区",false,()->defaults(activity));
-   screen.body.addView(AgentUI.text(activity,"每条连接都保留自己的任务和回复。暂停连接会暂停手机交换消息，电脑上的任务不会因此暂停。",14,AgentUI.MUTED));
-   List<TaskHub.View> expired=new ArrayList<>();int shown=0;long now=System.currentTimeMillis();
-   for(TaskHub.View view:snapshot.contexts){if(view.profile.connection.expiresAt<=now)expired.add(view);else{connectionCard(view);shown++;}}
-   if(shown==0)screen.body.addView(AgentUI.text(activity,snapshot.contexts.isEmpty()?(snapshot.device.isEmpty()?"还没有电脑连接。请先完成手机配对。":"已配对，等待电脑上的 Agent 会话加入。"):"暂无有效连接。",16,AgentUI.INK));
-   if(!expired.isEmpty()){
-    AgentUI.gap(activity,screen.body,16);
-    AgentUI.button(activity,screen.body,(history?"收起":"查看")+"已到期连接（"+expired.size()+"）",false,()->{history=!history;redraw();});
-    if(history)for(TaskHub.View view:expired)connectionCard(view);
-   }
+   long now=System.currentTimeMillis(),elapsed=TaskSessionDirectory.elapsed();List<TaskHub.View> live=new ArrayList<>(),idle=new ArrayList<>(),expired=new ArrayList<>();
+   for(TaskHub.View view:snapshot.contexts){if(view.profile.connection.expiresAt<=now)expired.add(view);else{TaskSessionDirectory.Entry e=entry(view);if(e!=null&&TaskTargetUI.ready(e,elapsed))live.add(view);else idle.add(view);}}
+   section("在线会话",live.size());
+   if(live.isEmpty())screen.body.addView(AgentUI.text(activity,snapshot.contexts.isEmpty()?(snapshot.device.isEmpty()?"还没有电脑连接。请先完成手机配对。":"已配对，等待电脑上的 Agent 会话加入。"):"现在没有在线的会话。在电脑上的会话里运行一次 join，它就会出现在这里。",14,AgentUI.MUTED));
+   for(TaskHub.View view:live)sessionCard(view,elapsed);
+   if(!idle.isEmpty()){fold("离线会话",idle.size(),offline,()->{offline=!offline;redraw();});if(offline)for(TaskHub.View view:idle)sessionCard(view,elapsed);}
+   if(!expired.isEmpty()){fold("已到期登记",expired.size(),history,()->{history=!history;redraw();});if(history)for(TaskHub.View view:expired)sessionCard(view,elapsed);}
+   AgentUI.gap(activity,screen.body,18);
+   AgentUI.button(activity,screen.body,"选择默认 Agent 与工作区",false,()->defaults(activity));AgentUI.gap(activity,screen.body,8);
+   screen.body.addView(AgentUI.text(activity,"每个会话保留自己的任务和回复。暂停某个会话只停止手机收发，电脑上的任务不会因此暂停。",12,AgentUI.MUTED));
    AgentUI.button(activity,screen.dock,"添加 Agent 会话",true,()->AgentSessionPairUI.show(activity));
-   AgentUI.button(activity,screen.body,"导入旧版连接",false,()->register(null));
+   TextView legacy=AgentUI.text(activity,"导入旧版连接",13,AgentUI.MUTED);legacy.setGravity(android.view.Gravity.CENTER);legacy.setFocusable(true);legacy.setOnClickListener(v->register(null));screen.body.addView(legacy,new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,44)));
   }
-  void connectionCard(TaskHub.View view){
-   TaskConnection connection=view.profile.connection;LinearLayout card=AgentUI.card(activity,screen.body);
-   card.addView(AgentUI.text(activity,connection.agent+(view.binding.equals(snapshot.defaultBinding)?" · 默认":""),18,AgentUI.INK));
-   card.addView(AgentUI.text(activity,connection.computer+" · "+connection.project,14,AgentUI.MUTED));
-   String topic=topic(view);if(!topic.isEmpty()){TextView text=AgentUI.text(activity,topic,15,AgentUI.INK);text.setMaxLines(2);text.setEllipsize(android.text.TextUtils.TruncateAt.END);card.addView(text);}
-   AgentUI.gap(activity,card,10);card.addView(AgentUI.text(activity,status(view),13,AgentUI.MUTED));
-   AgentUI.button(activity,card,"查看连接",false,()->detail(activity,view.binding));
+  TaskSessionDirectory.Entry entry(TaskHub.View view){return snapshot.directory==null?null:snapshot.directory.find(view.profile.connection.route());}
+  void section(String title,int count){
+   LinearLayout head=new LinearLayout(activity);head.setGravity(android.view.Gravity.BOTTOM);head.setPadding(0,AgentUI.dp(activity,6),0,AgentUI.dp(activity,8));
+   head.addView(MaterialReadingUI.bold(AgentUI.text(activity,title,16,AgentUI.INK)));head.addView(AgentUI.text(activity,"  "+count,14,AgentUI.MUTED));screen.body.addView(head);
+  }
+  void fold(String title,int count,boolean open,Runnable toggle){
+   LinearLayout row=new LinearLayout(activity);row.setGravity(android.view.Gravity.CENTER_VERTICAL);row.setPadding(AgentUI.dp(activity,14),0,AgentUI.dp(activity,10),0);row.setBackground(MaterialReadingUI.pressable(activity,MaterialReadingUI.fill(activity,MaterialReadingUI.CARD,14)));
+   row.addView(AgentUI.text(activity,title,14,MaterialReadingUI.SOFT));row.addView(AgentUI.text(activity,"  "+count,13,AgentUI.MUTED),new LinearLayout.LayoutParams(0,-2,1));
+   row.addView(AgentUI.text(activity,open?"收起":"展开",13,AgentUI.MUTED));MaterialReadingUI.glyph(activity,row,open?"down":"right",AgentUI.MUTED,14);
+   row.setFocusable(true);row.setContentDescription(title+" "+count+"，"+(open?"收起":"展开"));row.setOnClickListener(v->toggle.run());
+   LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,AgentUI.dp(activity,46));lp.topMargin=AgentUI.dp(activity,14);screen.body.addView(row,lp);
+  }
+  void sessionCard(TaskHub.View view,long elapsed){
+   TaskSessionDirectory.Entry e=entry(view);TaskTargetUI.Target t=e!=null?TaskTargetUI.Target.of(e,elapsed):TaskTargetUI.Target.saved(view.profile.connection);
+   LinearLayout card=new LinearLayout(activity);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.topMargin=AgentUI.dp(activity,8);screen.body.addView(card,lp);
+   String note=view.profile.connection.expiresAt<=System.currentTimeMillis()?"登记已到期，需要重新登记":!view.profile.enabled?"手机收发已暂停":null;
+   TaskTargetUI.bind(activity,card,t,view.binding.equals(snapshot.defaultBinding),false,"",note,topic(view),MaterialReadingUI.CARD);
+   card.setOnClickListener(v->detail(activity,view.binding));
   }
   void renderDetail(){
    TaskHub.View view=snapshot.context(binding);
    if(view==null){screen.body.addView(AgentUI.text(activity,"这条连接已变化，请返回连接列表。",16,AgentUI.INK));return;}
    TaskConnection connection=view.profile.connection;boolean expired=connection.expiresAt<=System.currentTimeMillis();
    LinearLayout card=AgentUI.card(activity,screen.body);
-   field(card,"Agent",connection.agent);field(card,"电脑",connection.computer);field(card,"工作区",connection.project);field(card,"登记会话",connection.session);
+   // Readable names first; the raw ids stay selectable at the end for support.
+   TaskSessionDirectory.Entry e=entry(view);String agent=TaskPresentation.agentName(connection.agent);
+   field(card,"Agent",agent+(e==null?"":" · "+TaskTones.kind(e.workspace,e.label)));field(card,"电脑",e==null?TaskPresentation.computerName(connection.computer):TaskTargetUI.computer(e));
+   if(e!=null){if(!e.label.isEmpty())field(card,"会话",e.label);field(card,"工作目录",e.workspace);field(card,"状态",e.status(TaskSessionDirectory.elapsed()));}
+   field(card,"会话 ID",connection.session);
    String topic=topic(view);if(!topic.isEmpty())field(card,"任务主题",topic);
    field(card,"连接状态",status(view));field(card,"登记有效期",date(connection.expiresAt));
    field(card,"默认目标",binding.equals(snapshot.defaultBinding)?"当前默认 Agent 与工作区":"未设为默认");
