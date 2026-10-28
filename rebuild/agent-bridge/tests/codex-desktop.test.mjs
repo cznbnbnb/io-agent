@@ -13,7 +13,7 @@ const encode=frame=>{const body=Buffer.from(JSON.stringify(frame));const header=
 const turn=(id,status,messageId=null)=>({turnId:id,status,params:{clientUserMessageId:messageId},items:[{text:'private transcript that must not enter status'}]});
 function state(turns=[]){return{id:THREAD,cwd:'/synthetic/selected-workspace',turns,threadRuntimeStatus:{type:turns.some(t=>t.status==='inProgress')?'active':'idle'}};}
 
-async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true}={}){
+async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true,sharedConversation=false}={}){
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'io-desktop-')));fs.chmodSync(dir,0o700);
   const socketPath=path.join(dir,'ipc.sock'),messages=[],sockets=new Set();let current=initial,revision=0,snapshots=0;
   function write(socket,frame){const bytes=encode(frame);if(fragment){socket.write(bytes.subarray(0,2));socket.write(bytes.subarray(2,7));socket.write(bytes.subarray(7));}else socket.write(bytes);}
@@ -33,7 +33,7 @@ async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true}={
   });
   await new Promise(resolve=>server.listen(socketPath,resolve));fs.chmodSync(socketPath,0o600);
   const channel=await new DesktopChannel(socketPath,{timeoutMs}).connect();
-  const session=await new CodexDesktopSession(channel,THREAD).attach();
+  const session=await new CodexDesktopSession(channel,THREAD,{sharedConversation}).attach();
   t.after(async()=>{session.close();for(const socket of sockets)socket.destroy();await new Promise(resolve=>server.close(resolve));fs.rmSync(dir,{recursive:true});});
   return{channel,session,messages,dir,socketPath,get snapshots(){return snapshots;},
     broadcast(change,extra){for(const socket of sockets)broadcast(socket,change,extra);},
@@ -41,6 +41,35 @@ async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true}={
     replace(next){current=next;revision++;for(const socket of sockets)broadcast(socket,{type:'snapshot',revision,conversationState:current});},
     writeRaw(bytes){for(const socket of sockets)socket.write(bytes);},disconnect(){for(const socket of sockets)socket.destroy();}};
 }
+
+test('shared native owner receives clean user input and hidden task context, retaining desktop settings',async t=>{
+  const messageId=randomUUID();let received;
+  const f=await fixture(t,{sharedConversation:true,handler:({frame,reply})=>{
+    if(frame.method!=='thread-follower-start-turn')return false;
+    received=frame;reply({result:{turn:{id:'native-shared-turn',status:'inProgress'},admissionOutcome:'started'}});return true;
+  }});
+  const additionalContext={'io-agent-current-task':{kind:'application',value:'hidden task argv'}};
+  assert.equal(f.session.capabilities.atomic_idle_start,false);
+  assert.equal(f.session.capabilities.shared_conversation_input,true);
+  assert.deepEqual(await f.session.start({text:'only the user message',clientUserMessageId:messageId,additionalContext}),{accepted:true,clientUserMessageId:messageId,turnId:'native-shared-turn',status:'inProgress'});
+  assert.deepEqual(received.params.turnStart.request.input,[{type:'text',text:'only the user message',text_elements:[]}]);
+  assert.deepEqual(received.params.turnStart.request.additionalContext,additionalContext);
+  assert.deepEqual(received.params.turnStart.context,{clientUserMessageId:messageId,inheritThreadSettings:true});
+  for(const key of ['model','effort','approvalPolicy','sandboxPolicy','permissions'])assert.equal(received.params.turnStart.request[key],undefined);
+  assert.equal(f.messages.filter(m=>m.method==='thread-follower-start-turn').length,1);
+});
+
+test('shared owner still queues busy input and reconciles steering IDs and only final output',async t=>{
+  const messageId=randomUUID(),native={...turn('same-turn','inProgress'),items:[{type:'steeringUserMessage',clientUserMessageId:messageId},{type:'agentMessage',phase:'commentary',text:'not final'}]};
+  const f=await fixture(t,{sharedConversation:true,initial:state([native])});
+  await assert.rejects(f.session.start({text:'queued remotely',clientUserMessageId:randomUUID()}),{code:'CODEX_DESKTOP_BUSY',outcomeUnknown:false});
+  assert(!f.messages.some(m=>m.method==='thread-follower-start-turn'));
+  assert.deepEqual(await f.session.inspectOperation(messageId),{found:true,turnId:'same-turn',status:'inProgress'});
+  f.patch([{op:'replace',path:['turns',0,'status'],value:'completed'},{op:'add',path:['turns',0,'items',2],value:{type:'agentMessage',phase:'final_answer',text:'exact final'}}]);
+  assert.deepEqual(await f.session.inspectOperation(messageId),{found:true,turnId:'same-turn',status:'completed',resultComplete:true,result:{type:'text',text:'exact final'}});
+  f.patch([{op:'replace',path:['turns',0,'items',2,'text'],value:'updated final'}]);
+  assert.equal((await f.session.inspectOperation(messageId)).result.text,'updated final');
+});
 
 test('private socket, split frames and pinned owner expose metadata only',async t=>{
   const f=await fixture(t,{initial:state([turn('one','inProgress')])});

@@ -5,6 +5,7 @@ import {runtimeDigest} from '../runtime-events.mjs';
 import {directoryRoute,directoryLabel} from '../session-directory.mjs';
 import {NativeRuntimeAdapter} from './native-runtime.mjs';
 import {AcpSession} from './acp-session.mjs';
+import {CodexDesktopSharedHost} from './codex-desktop-shared.mjs';
 import {CodexAppServerSession} from './codex-app-server.mjs';
 import {createClaudeModBroker} from './claude-mod/broker.mjs';
 
@@ -18,7 +19,7 @@ const hostCapabilities=Object.freeze({atomic_idle_start:false,atomic_queue_appen
  * not retried behind the user's back: restart the bridge to reconnect. */
 export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now,
   connectCodex=(id,options)=>CodexAppServerSession.connect(id,options),
-  createClaudeBroker=createClaudeModBroker,connectAcp=options=>AcpSession.connect(options)}={}){
+  createClaudeBroker=createClaudeModBroker,connectAcp=options=>AcpSession.connect(options),connectDesktop=options=>CodexDesktopSharedHost.connect(options)}={}){
   const native=config.native_runtime;
   need(path.isAbsolute(configDirectory??'')&&object(native)&&config.adapter_command===undefined);
   need(Object.keys(native).every(k=>['state_file','sessions'].includes(k))&&typeof native.state_file==='string'&&native.state_file&&
@@ -26,7 +27,7 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
   const resolve=v=>path.resolve(configDirectory,v);
   const stateFile=resolve(native.state_file),keys=new Set(),directories=new Set();
   const entries=native.sessions.map(s=>{
-    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','rpc_path','auth_file','broker_directory','acp'].includes(k))&&
+    need(object(s)&&Object.keys(s).every(k=>['host_kind','workspace','route','label','endpoint','rpc_path','auth_file','broker_directory','acp','desktop'].includes(k))&&
       ['codex','claude','acp'].includes(s.host_kind)&&typeof s.workspace==='string'&&s.workspace&&directoryRoute(s.route)&&
       s.route.computer_id===config.computer_id&&s.route.agent_id===config.agent_id);
     const label=typeof s.label==='string'?s.label.trim():s.label;
@@ -34,6 +35,12 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
     const key=runtimeDigest(s.route);need(!keys.has(key));keys.add(key);
     let workspace;try{workspace=fs.realpathSync(resolve(s.workspace));need(fs.statSync(workspace).isDirectory());}catch{need(false);}
     const binding={server_id:config.server_id,owner_id:config.owner_id,host_kind:s.host_kind,workspace,route:structuredClone(s.route)};
+    if(s.desktop!==undefined){
+      need(s.host_kind==='codex'&&object(s.desktop)&&Object.keys(s.desktop).sort().join()==='session_id,state_file'&&
+        typeof s.desktop.session_id==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(s.desktop.session_id)&&typeof s.desktop.state_file==='string'&&s.desktop.state_file&&
+        ['endpoint','rpc_path','auth_file','broker_directory','acp'].every(k=>s[k]===undefined));
+      return{binding,label,desktop:{sessionId:s.desktop.session_id,stateFile:resolve(s.desktop.state_file)}};
+    }
     if(s.acp!==undefined){
       need(object(s.acp)&&Object.keys(s.acp).sort().join()==='command,session_id,state_file'&&
         Array.isArray(s.acp.command)&&s.acp.command.length>0&&s.acp.command.every(v=>typeof v==='string'&&!/[\0\r\n]/.test(v))&&path.isAbsolute(s.acp.command[0])&&
@@ -68,7 +75,10 @@ export function createNativeBridgeAdapter(config,{configDirectory,clock=Date.now
       try{
         for(const e of entries){
           let host;
-          if(e.acp){
+          if(e.desktop){
+            host=await connectDesktop({...e.desktop,workspace:e.binding.workspace,conversationId:e.binding.route.session_id,connectorDirectory:configDirectory,glasses:{bridge:{...config,native_runtime:undefined},route:e.binding.route}});
+            closers.push(()=>host.close());
+          }else if(e.acp){
             host=await connectAcp({...e.acp,workspace:e.binding.workspace,conversationId:e.binding.route.session_id,permissionMode:'phone',...(fs.existsSync(path.join(configDirectory,'connector.json'))?{connectorDirectory:configDirectory,glasses:{bridge:{...config,native_runtime:undefined},route:e.binding.route}}:{})});
             closers.push(()=>host.close());
           }else if(e.binding.host_kind==='codex'){

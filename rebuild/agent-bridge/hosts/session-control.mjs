@@ -153,9 +153,10 @@ export class SessionControl {
     try{status=await this.#hostStatus();}catch(error){this.#change(next,'queued',safeCode(error));return this.list();}
     const nativeQueue=this.#host.capabilities?.atomic_queue_append===true;
     if(status.busy&&!nativeQueue){this.#change(next,'queued','waiting_for_idle');return this.list();}
-    // A local busy check is not atomic with the user's desktop input. Do not
-    // expose execution until the host guarantees reject-on-busy (never steer).
-    if(this.#host.capabilities?.atomic_idle_start!==true&&!nativeQueue){this.#change(next,'queued','host_idle_admission_unverified');return this.list();}
+    // Shared Desktop mode uses the native owner's user-message admission.
+    // Busy messages queue here; simultaneous desktop input may be supplemented
+    // in that same native turn. It does not claim atomic idle-only delivery.
+    if(this.#host.capabilities?.atomic_idle_start!==true&&!nativeQueue&&this.#host.capabilities?.shared_conversation_input!==true){this.#change(next,'queued','host_idle_admission_unverified');return this.list();}
     if(Date.parse(next.expires_at)<=this.#clock()){this.#change(next,'expired','deadline_before_dispatch');return this.list();}
     this.#change(next,'sending');
     try{

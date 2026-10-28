@@ -44,6 +44,11 @@ test('busy native session queues, explicit unknown host idle capability never se
   const f=fixture(t),q=f.open();q.enqueue(f.command());f.host.busy=true;await q.tick();assert.equal(q.list()[0].reason,'waiting_for_idle');
   f.host.busy=false;f.host.capabilities.atomic_idle_start=false;await q.tick();assert.equal(q.list()[0].reason,'host_idle_admission_unverified');assert.equal(f.calls.length,0);
 });
+test('shared desktop owner explicitly admits same-session messages after busy desktop work ends',async t=>{
+  const f=fixture(t),q=f.open();f.host.capabilities={shared_conversation_input:true,atomic_idle_start:false};f.host.busy=true;
+  q.enqueue(f.command());await q.tick();assert.equal(q.list()[0].reason,'waiting_for_idle');assert.equal(f.calls.length,0);
+  f.host.busy=false;await q.tick();await q.tick();assert.equal(f.calls.length,1);assert.equal(q.list()[0].phase,'running');
+});
 test('native queue admission while busy survives reopen and expiry without starting a second operation',async t=>{
   const f=fixture(t);let q=f.open();f.host.busy=true;f.host.capabilities={atomic_idle_start:false,atomic_queue_append:true};
   const first=f.command(),second=f.command();q.enqueue(first);q.enqueue(second);await q.tick();

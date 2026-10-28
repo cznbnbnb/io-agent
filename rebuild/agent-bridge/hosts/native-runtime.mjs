@@ -120,7 +120,7 @@ export class NativeRuntimeAdapter{
       if(!(status.busy===null||typeof status.busy==='boolean')||typeof status.canExecute!=='boolean')return unavailable(e,'NATIVE_RUNTIME_READINESS_INVALID');
       const nativeQueue=e.host.capabilities?.atomic_queue_append===true;
       return{...unavailable(e,null),availability:'online',busy:status.busy,
-        can_execute:status.canExecute&&(nativeQueue||e.host.capabilities?.atomic_idle_start===true&&status.busy===false),
+        can_execute:status.canExecute&&(nativeQueue||e.host.capabilities?.shared_conversation_input===true||e.host.capabilities?.atomic_idle_start===true&&status.busy===false),
         exact_turn_interrupt:e.host.capabilities?.exact_turn_interrupt===true,atomic_queue_append:nativeQueue,
         reason:status.reason==null?null:safeCode({code:status.reason})};
     };

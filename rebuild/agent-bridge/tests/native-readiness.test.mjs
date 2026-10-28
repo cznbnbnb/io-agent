@@ -104,7 +104,7 @@ test('identity, workspace, unsupported metadata, system errors and malformed sta
   assert(result.sessions.every(s=>s.can_execute===false&&s.descendants_proof===false));assert(!JSON.stringify(result).includes('/private/path'));
 });
 
-test('busy and unknown can only accept new work when the host has native atomic queue admission',async t=>{
+test('busy and unknown accept new work only with native queue or explicit shared-conversation admission',async t=>{
   const f=fixture(t,3),a=await f.open();
   Object.assign(f.bindings[0].status,{busy:true});Object.assign(f.bindings[1].status,{busy:null});
   Object.assign(f.bindings[2].status,{busy:true});f.bindings[2].host.capabilities={atomic_idle_start:true,exact_turn_interrupt:true};
@@ -112,6 +112,8 @@ test('busy and unknown can only accept new work when the host has native atomic 
   assert.equal(byId.get(f.bindings[0].binding.route.session_id).can_execute,true);
   assert.equal(byId.get(f.bindings[1].binding.route.session_id).can_execute,true);
   assert.equal(byId.get(f.bindings[2].binding.route.session_id).can_execute,false);
+  f.bindings[2].host.capabilities={shared_conversation_input:true};
+  assert.equal((await a.readinessSnapshot()).sessions.find(s=>s.route.session_id===f.bindings[2].binding.route.session_id).can_execute,true);
 });
 
 test('a lost controller lock disables only its binding even when both native hosts are online',async t=>{

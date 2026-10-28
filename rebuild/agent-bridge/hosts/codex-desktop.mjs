@@ -102,7 +102,10 @@ export class DesktopChannel {
         }else if(frame.type==='response'){
           const pending=this.#pending.get(frame.requestId);if(!pending)continue;
           this.#pending.delete(frame.requestId);clearTimeout(pending.timer);
-          if(frame.resultType==='error')pending.reject(new DesktopError(frame.error==='no-client-found'?'CODEX_DESKTOP_OWNER_UNAVAILABLE':'CODEX_DESKTOP_REQUEST_FAILED',{outcomeUnknown:pending.mutation&&frame.error!=='no-client-found'}));
+          if(frame.resultType==='error'){
+            const error=new DesktopError(frame.error==='no-client-found'?'CODEX_DESKTOP_OWNER_UNAVAILABLE':'CODEX_DESKTOP_REQUEST_FAILED',{outcomeUnknown:pending.mutation&&frame.error!=='no-client-found'});
+            error.nativeReason=typeof frame.error==='string'?frame.error.slice(0,512):null;pending.reject(error);
+          }
           else if(frame.resultType!=='success'||frame.method!==pending.method||pending.targetClientId&&frame.handledByClientId!==pending.targetClientId||!object(frame.result))pending.reject(new DesktopError('CODEX_DESKTOP_PROTOCOL',{outcomeUnknown:pending.mutation}));
           else pending.resolve(frame);
         }else if(frame.type==='broadcast')for(const listener of this.#listeners)listener(frame);
@@ -119,7 +122,7 @@ export class DesktopChannel {
   close(){this.#fail('CODEX_DESKTOP_DISCONNECTED');}
 }
 
-function turnsOf(state){
+export function turnsOf(state){
   if(state.turnHistory?.kind==='canonical'){
     const history=state.turnHistory.history;
     requireValue(object(history?.entitiesByKey)&&Array.isArray(history.islands),'CODEX_DESKTOP_STATE_UNSUPPORTED');
@@ -145,41 +148,42 @@ function turnsOf(state){
   if(Array.isArray(state.turns))return state.turns;
   throw new DesktopError('CODEX_DESKTOP_STATE_UNSUPPORTED');
 }
-function projectTurn(turn){return{turnId:turn?.turnId??null,status:turn?.status??null,params:{clientUserMessageId:turn?.params?.clientUserMessageId??null}};}
-function projectHistory(history){
+function projectTurn(turn,includeItems=false){return{turnId:turn?.turnId??null,status:turn?.status??null,params:{clientUserMessageId:turn?.params?.clientUserMessageId??null},...(includeItems?{items:structuredClone(turn?.items??[])}:{})};}
+function projectHistory(history,includeItems=false){
   requireValue(object(history?.entitiesByKey)&&Array.isArray(history.islands),'CODEX_DESKTOP_STATE_UNSUPPORTED');
   const entries=Object.entries(history.entitiesByKey);requireValue(entries.length<=10000,'CODEX_DESKTOP_STATE_LIMIT');
-  return{entitiesByKey:Object.fromEntries(entries.map(([key,turn])=>[key,projectTurn(turn)])),islands:structuredClone(history.islands)};
+  return{entitiesByKey:Object.fromEntries(entries.map(([key,turn])=>[key,projectTurn(turn,includeItems)])),islands:structuredClone(history.islands)};
 }
-function projectState(state){
+function projectState(state,includeItems=false){
   return{id:state.id,cwd:state.cwd??null,threadRuntimeStatus:state.threadRuntimeStatus??null,resumeState:state.resumeState??null,
-    unconfirmedTurnSubmissions:Array.isArray(state.unconfirmedTurnSubmissions)?state.unconfirmedTurnSubmissions.map(projectSubmission):[],turns:Array.isArray(state.turns)?state.turns.map(projectTurn):[],
-    ...(state.turnHistory?.kind==='canonical'?{turnHistory:{kind:'canonical',history:projectHistory(state.turnHistory.history)}}:{})};
+    unconfirmedTurnSubmissions:Array.isArray(state.unconfirmedTurnSubmissions)?state.unconfirmedTurnSubmissions.map(projectSubmission):[],turns:Array.isArray(state.turns)?state.turns.map(t=>projectTurn(t,includeItems)):[],
+    ...(state.turnHistory?.kind==='canonical'?{turnHistory:{kind:'canonical',history:projectHistory(state.turnHistory.history,includeItems)}}:{})};
 }
 function projectSubmission(submission){return{terminal:submission?.terminal??null};}
 const SKIP=Symbol('irrelevant');
-function projectPatch(parts,value){
-  if(parts.length===0)return projectState(value);
+function projectPatch(parts,value,includeItems=false){
+  if(parts.length===0)return projectState(value,includeItems);
   if(['id','cwd','threadRuntimeStatus','resumeState'].includes(parts[0]))return value;
   if(parts[0]==='unconfirmedTurnSubmissions')return parts.length===1?value.map(projectSubmission):parts.length===2?projectSubmission(value):parts.length===3&&parts[2]==='terminal'?value:SKIP;
   let rest;
   if(parts[0]==='turns'){
-    if(parts.length===1)return value.map(projectTurn);if(parts.length===2)return projectTurn(value);rest=parts.slice(2);
+    if(parts.length===1)return value.map(t=>projectTurn(t,includeItems));if(parts.length===2)return projectTurn(value,includeItems);rest=parts.slice(2);
   }else if(parts[0]==='turnHistory'){
-    if(parts.length===1)return value?.kind==='canonical'?{kind:'canonical',history:projectHistory(value.history)}:{kind:value?.kind??null};
+    if(parts.length===1)return value?.kind==='canonical'?{kind:'canonical',history:projectHistory(value.history,includeItems)}:{kind:value?.kind??null};
     if(parts[1]==='kind')return value;
     if(parts[1]!=='history')return SKIP;
-    if(parts.length===2)return projectHistory(value);
+    if(parts.length===2)return projectHistory(value,includeItems);
     if(parts[2]==='islands')return value;
     if(parts[2]!=='entitiesByKey')return SKIP;
-    if(parts.length===3)return Object.fromEntries(Object.entries(value).map(([key,turn])=>[key,projectTurn(turn)]));
-    if(parts.length===4)return projectTurn(value);rest=parts.slice(4);
+    if(parts.length===3)return Object.fromEntries(Object.entries(value).map(([key,turn])=>[key,projectTurn(turn,includeItems)]));
+    if(parts.length===4)return projectTurn(value,includeItems);rest=parts.slice(4);
   }else return SKIP;
   if(rest[0]==='turnId'||rest[0]==='status')return value;
+  if(includeItems&&rest[0]==='items')return structuredClone(value);
   if(rest[0]==='params')return rest.length===1?{clientUserMessageId:value?.clientUserMessageId??null}:rest[1]==='clientUserMessageId'?value:SKIP;
   return SKIP;
 }
-export function applyMetadataPatches(state,patches){
+export function applyMetadataPatches(state,patches,{includeItems=false}={}){
   requireValue(Array.isArray(patches)&&patches.length<=10000,'CODEX_DESKTOP_STATE_LIMIT');
   for(const patch of patches){
     const parts=patch.path;requireValue(Array.isArray(parts)&&parts.length<=64&&parts.every(part=>(typeof part==='string'||Number.isSafeInteger(part))&&!['__proto__','prototype','constructor'].includes(part))&&['add','replace','remove'].includes(patch.op),'CODEX_DESKTOP_PATCH_INVALID');
@@ -188,8 +192,9 @@ export function applyMetadataPatches(state,patches){
     let value;
     if(patch.op==='remove'){
       const relevant=parts.length===0||['id','cwd','threadRuntimeStatus','resumeState'].includes(parts[0])||parts[0]==='unconfirmedTurnSubmissions'&&(parts.length<=2||parts.length===3&&parts[2]==='terminal')||parts[0]==='turns'&&(parts.length<=2||['status','turnId'].includes(parts[2])||parts[2]==='params'&&(parts.length===3||parts[3]==='clientUserMessageId'))||parts[0]==='turnHistory'&&(parts.length<=2||parts[2]==='islands'||parts[2]==='entitiesByKey'&&(parts.length<=4||['status','turnId'].includes(parts[4])||parts[4]==='params'&&(parts.length===5||parts[5]==='clientUserMessageId')));
-      if(!relevant)continue;
-    }else{value=projectPatch(parts,patch.value);if(value===SKIP)continue;}
+      const itemPath=includeItems&&(parts[0]==='turns'&&parts[2]==='items'||parts[0]==='turnHistory'&&parts[2]==='entitiesByKey'&&parts[4]==='items');
+      if(!relevant&&!itemPath)continue;
+    }else{value=projectPatch(parts,patch.value,includeItems);if(value===SKIP)continue;}
     if(parts.length===0){requireValue(patch.op!=='remove','CODEX_DESKTOP_PATCH_INVALID');state=value;continue;}
     let parent=state;for(const part of parts.slice(0,-1)){requireValue(object(parent)||Array.isArray(parent),'CODEX_DESKTOP_PATCH_INVALID');requireValue(Object.hasOwn(parent,part),'CODEX_DESKTOP_PATCH_INVALID');parent=parent[part];}
     const key=parts.at(-1);requireValue(object(parent)||Array.isArray(parent),'CODEX_DESKTOP_PATCH_INVALID');
@@ -228,11 +233,13 @@ const CAPABILITIES=Object.freeze({atomic_idle_start:false,exact_turn_interrupt:t
 
 export class CodexDesktopSession {
   #channel;#owner;#snapshotPromise=null;#state=null;#stateError=null;#revision=-1;#unlisten=null;#snapshotReject=null;#snapshotTimer=null;
-  constructor(channel,conversationId){requireValue(uuid(conversationId),'CODEX_DESKTOP_SESSION_INVALID');this.#channel=channel;this.conversationId=conversationId;}
-  get capabilities(){return CAPABILITIES;}
-  static async connect(conversationId,{socketPath=path.join(os.homedir(),'.codex/ipc/ipc.sock'),asar,timeoutMs=5000}={}){
+  #shared;
+  constructor(channel,conversationId,{sharedConversation=false}={}){requireValue(uuid(conversationId),'CODEX_DESKTOP_SESSION_INVALID');this.#channel=channel;this.conversationId=conversationId;this.#shared=sharedConversation;}
+  get capabilities(){return this.#shared?{...CAPABILITIES,shared_conversation_input:true,final_result_evidence:true}:CAPABILITIES;}
+  lifecycle(){return{closed:this.#stateError!==null,reason:this.#stateError};}
+  static async connect(conversationId,{socketPath=path.join(os.homedir(),'.codex/ipc/ipc.sock'),asar,timeoutMs=5000,sharedConversation=false}={}){
     verifyDesktopBuild(asar);const channel=await new DesktopChannel(socketPath,{timeoutMs}).connect();
-    try{return await new CodexDesktopSession(channel,conversationId).attach();}catch(error){channel.close();throw error;}
+    try{return await new CodexDesktopSession(channel,conversationId,{sharedConversation}).attach();}catch(error){channel.close();throw error;}
   }
   async attach(){
     const reply=await this.#channel.request('thread-owner-discovery',{hostId:'local',conversationId:this.conversationId});
@@ -258,10 +265,10 @@ export class CodexDesktopSession {
           const change=p.change;requireValue(Number.isSafeInteger(change?.revision)&&change.revision>=0,'CODEX_DESKTOP_PATCH_INVALID');
           if(change.type==='snapshot'){
             requireValue(change.revision>=this.#revision,'CODEX_DESKTOP_STATE_GAP');
-            const projected=projectState(change.conversationState);summarizeState(projected,this.conversationId);this.#state=projected;
+            const projected=projectState(change.conversationState,this.#shared);summarizeState(projected,this.conversationId);this.#state=projected;
           }else if(change.type==='patches'){
             requireValue(this.#state&&change.baseRevision===this.#revision&&change.revision>this.#revision,'CODEX_DESKTOP_STATE_GAP');
-            this.#state=applyMetadataPatches(this.#state,change.patches);summarizeState(this.#state,this.conversationId);
+            this.#state=applyMetadataPatches(this.#state,change.patches,{includeItems:this.#shared});summarizeState(this.#state,this.conversationId);
           }else throw new DesktopError('CODEX_DESKTOP_STATE_UNSUPPORTED');
           this.#revision=change.revision;clearTimeout(this.#snapshotTimer);this.#snapshotReject=null;resolve(this.#state);
         }catch(error){this.#invalidate(error instanceof DesktopError?error.code:'CODEX_DESKTOP_PATCH_INVALID');}
@@ -277,13 +284,20 @@ export class CodexDesktopSession {
     await this.#channel.request('thread-follower-read-model-settings',{conversationId:this.conversationId},{targetClientId:this.#owner});
     if(this.#stateError)throw new DesktopError(this.#stateError);return summarizeState(this.#state,this.conversationId);
   }
-  async start({text,clientUserMessageId}){
+  async start({text,clientUserMessageId,additionalContext}){
     requireValue(typeof text==='string'&&text.trim()&&Buffer.byteLength(text)<=32768&&uuid(clientUserMessageId),'CODEX_DESKTOP_INPUT_INVALID');
-    // Neither start-turn nor user-message admission supplies an atomic
-    // idle-only fence. A desktop user can start a turn after any status check,
-    // and native turn/start may steer that turn. No override is provided.
-    throw new DesktopError('CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED');
+    requireValue(this.#shared,'CODEX_DESKTOP_IDLE_ADMISSION_UNVERIFIED');
+    const current=await this.status();if(current.busy)throw new DesktopError('CODEX_DESKTOP_BUSY');
+    // Normal delivery waits for idle. If desktop input wins admission after
+    // this check, let the native owner's shared-message admission associate
+    // this input with that same conversation; never start another model owner.
+    const reply=await this.#channel.request('thread-follower-start-turn',{conversationId:this.conversationId,turnStart:{
+      request:{threadId:this.conversationId,input:[{type:'text',text,text_elements:[]}],clientUserMessageId,...(additionalContext?{additionalContext}:{})},
+      context:{clientUserMessageId,inheritThreadSettings:true}
+    }},{targetClientId:this.#owner,mutation:true});
+    return{accepted:true,clientUserMessageId,...validateStartReceipt(reply)};
   }
+  async settings(){const reply=await this.#channel.request('thread-follower-read-model-settings',{conversationId:this.conversationId},{targetClientId:this.#owner});return reply.result.settings;}
   async interrupt(expectedTurnId){
     requireValue(typeof expectedTurnId==='string'&&expectedTurnId.length>0&&expectedTurnId.length<=160,'CODEX_DESKTOP_TURN_INVALID');
     const current=await this.status();if(current.activeTurnId!==expectedTurnId)return{requested:false,expectedTurnId,reason:'turn_no_longer_active'};
@@ -293,10 +307,15 @@ export class CodexDesktopSession {
   }
   async inspectOperation(clientUserMessageId){
     requireValue(uuid(clientUserMessageId),'CODEX_DESKTOP_INPUT_INVALID');await this.status();const state=await this.snapshot();
-    const matches=turnsOf(state).filter(turn=>turn?.params?.clientUserMessageId===clientUserMessageId);
+    const matches=turnsOf(state).filter(turn=>turn?.params?.clientUserMessageId===clientUserMessageId||this.#shared&&turn.items.some(item=>item.type==='steeringUserMessage'&&item.clientUserMessageId===clientUserMessageId||item.type==='userMessage'&&item.clientId===clientUserMessageId));
     requireValue(matches.length<=1,'CODEX_DESKTOP_OPERATION_AMBIGUOUS');
     if(!matches.length)return{found:false,outcomeUnknown:true};
-    const turn=matches[0];return{found:true,turnId:turn.turnId??null,status:turn.status??null};
+    const turn=matches[0],result={found:true,turnId:turn.turnId??null,status:turn.status??null};
+    if(this.#shared&&turn.status==='completed'){
+      const messages=turn.items.filter(item=>item.type==='agentMessage'&&item.phase==='final_answer'&&typeof item.text==='string');
+      if(messages.length){const text=messages.map(item=>item.text).join('\n\n');requireValue(Buffer.byteLength(text)<=1024*1024,'CODEX_DESKTOP_RESULT_LIMIT');return{...result,resultComplete:true,result:{type:'text',text}};}
+    }
+    return result;
   }
   close(){try{if(this.#owner)this.#channel.broadcast('thread-stream-following-changed',{hostId:'local',conversationId:this.conversationId,following:false},this.#owner);}catch{}this.#invalidate('CODEX_DESKTOP_DISCONNECTED');this.#channel.close();}
 }

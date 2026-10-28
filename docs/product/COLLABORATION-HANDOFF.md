@@ -1,3 +1,13 @@
+## [codex] 2026-10-27 原生Codex同会话入口已接通：排队、隐藏CLI上下文与语音回传
+
+用户明确保留原生会话框、忙时可以排队，不用网页聊天。正式85ddd5沿用原native `01a17d09-d939-78b1-ac2e-d601a8f7a544`（连接自检与回执），停止闲置Codex ACP进程后由原桌面持有者执行；连接器只做follower IPC与耐久队列。`connector.json`显式`control_mode:desktop`，原`acp.json`及配置备份保留，默认revision18不变，Claude正式服务继续运行。没有修改全局启动变量、App包或手机dev139；未提交voice7/DS_Store候选。
+
+- 桌面消息记住IOSHARED-1027，随后follower输入准确读回；电脑执行时两条手机任务先排队再依次完成，各有独立原生turn。新用户消息只有实际输入，短CLI动态绑定放后台application additionalContext，完整命令schema按需help；旧聊天不删。当前安装App四份实际源码重新核对并固定hash，保留版本不符拒绝机制。cloud admission开关在本地收到明确不支持，已省略，不谎称原子空闲锁或原生队列追加。
+- 原会话实际只读导致CLI邮箱EPERM，原生也无request_permissions工具；未绕过。用户明确选择本条会话工作区可写后，用原owner设置接口应用，网络仍关闭、通用临时写入排除；原生保留该session专属可视化目录。工作区客户端只读无凭据bootstrap，host持私有账本/凭据联网。真实help、daily成功读到5天，保留原标记。语音“选一。符合预期。”（ok）经同一request返回原native turn，任务`codex-shared-two-way-6e55f971-443` completed；单题、两次等待，没有重复提词器。
+- 101项定向检查通过，最后客户端边界变更补5项回归；含实际受限Node文件权限进程证明客户端不读host账本。来源、失败、真实任务/回答和权限范围见[本批证据](../../rebuild/agent-bridge/hosts/codex-desktop-shared-proof-2026-10-27.json)及[说明](../../rebuild/agent-bridge/hosts/codex-desktop-shared.md)。本条迁移不等于当前开发原聊天或所有Desktop会话都已接入；原生输入框视觉解锁和日常配置体验仍由A27-S05/S06跟踪，未以日志代替镜片观察。
+
+本批收尾：正常提交推送，更新固定运行副本与便携包来源；只关闭本批进度看守、释放设备锁，保留正式配对、服务、历史与默认。Claude分支最新6abb2d9已包含，未碰其工作目录。后续推荐将其他用户选定的日常Codex聊天接入同一入口，并观察窗口编辑体验；不恢复已禁用的Desktop启动覆盖。
+
 ## [codex] 2026-10-27 用户截图确认两项接入缺陷：重复说明与桌面会话占用（仅排查，未修复）
 
 用户在“连接自检与回执”看到每轮长篇iO说明，以及“已在另一个应用中打开，请先在那边关闭会话，才能在这里继续”。两张截图均已用本机Vision OCR核对；配置的图片识别服务两路均401，未修改其密钥。App read_thread核对同native `01a17d09-d939-78b1-ac2e-d601a8f7a544`，最新用户消息确实由长CLI说明＋真实输入两段组成，App侧notLoaded。

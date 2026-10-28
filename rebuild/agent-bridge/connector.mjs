@@ -19,6 +19,7 @@ export function readConnector(directory){
   const profile=privateRecord(path.join(directory,'connector.json'));
   need(profile.schema_version===1&&profile.managed===true&&uuid(profile.route_session_id)&&/^[a-z][a-z0-9-]{1,31}$/.test(profile.runtime??'')&&typeof profile.label==='string'&&profile.label.trim()===profile.label&&profile.label.length>0&&profile.label.length<=40&&
     path.isAbsolute(profile.workspace??'')&&Array.isArray(profile.command)&&profile.command.length>0&&profile.command.every(v=>typeof v==='string'&&!/[\0\r\n]/.test(v))&&path.isAbsolute(profile.command[0]),'CONNECTOR_PROFILE_INVALID');
+  need(profile.control_mode===undefined||profile.control_mode==='desktop'&&profile.runtime==='codex','CONNECTOR_CONTROL_MODE_INVALID');
   return profile;
 }
 /** Creates a NEW managed session only. It cannot import a Desktop session ID.
@@ -43,7 +44,8 @@ export function connectorConfig(directory,{deviceFile}={}){
   return{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
     computer_id:route.computer_id,agent_id:route.agent_id,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{}),
     native_runtime:{state_file:'runtime.json',sessions:[{host_kind:p.runtime==='codex'?'codex':p.runtime==='claude-code'?'claude':'acp',workspace:p.workspace,route,label:p.label,
-      acp:{command:p.command,session_id:fs.existsSync(path.join(directory,'acp.json'))?privateRecord(path.join(directory,'acp.json'),64*1024*1024).session_id:null,state_file:'acp.json'}}]}};
+      ...(p.control_mode==='desktop'?{desktop:{session_id:privateRecord(path.join(directory,'acp.json'),64*1024*1024).session_id,state_file:'desktop.json'}}:
+        {acp:{command:p.command,session_id:fs.existsSync(path.join(directory,'acp.json'))?privateRecord(path.join(directory,'acp.json'),64*1024*1024).session_id:null,state_file:'acp.json'}})}]}};
 }
 export async function runConnector(directory,{deviceFile,signal,maximumMs=0,onReady=()=>{}}={}){
   const config=connectorConfig(directory,{deviceFile}),adapter=createNativeBridgeAdapter(config,{configDirectory:directory});
