@@ -1,3 +1,13 @@
+## [codex] 2026-10-27 用户截图确认两项接入缺陷：重复说明与桌面会话占用（仅排查，未修复）
+
+用户在“连接自检与回执”看到每轮长篇iO说明，以及“已在另一个应用中打开，请先在那边关闭会话，才能在这里继续”。两张截图均已用本机Vision OCR核对；配置的图片识别服务两路均401，未修改其密钥。App read_thread核对同native `01a17d09-d939-78b1-ac2e-d601a8f7a544`，最新用户消息确实由长CLI说明＋真实输入两段组成，App侧notLoaded。
+
+源码根因：`AcpSession.start`每轮 `prompt.unshift(cli.instruction)`，适配器将其持久化为普通userMessage；`finish`只结束轮次，不释放 `session/load` 占用，连接器生命周期常驻持有原生会话。会话记忆可保留用法，但不能代替当前task/turn绑定；需要把稳定说明放到后台初始化/文档，保留准确的动态绑定。独占生命周期使桌面同一会话无法输入或改设置，不能称为双端共用已经完成。
+
+官方app-server文档说明 `thread/unsubscribe` 最后订阅撤销后仍有30分钟空闲卸载宽限；已装codex-acp的closeSession内部也只做unsubscribe。因此不能未经验证就把“退订”报告为立即解锁。https://learn.chatgpt.com/docs/app-server#unsubscribe-from-a-loaded-thread 。本轮未改源码、未重启/停止正式连接、未操作手机或发送新任务，现有功能保留。
+
+后续建议：先将说明与动态绑定分开；会话交接设计须说明代价。按需加载、空闲释放可让桌面恢复，但电脑使用期间手机需要等候，重新接入有恢复开销；要两端随时补充和调设置，需要统一会话控制入口。该取舍尚未由用户选定，不自动修改Desktop启动链或用另一条会话替代。验收项A27-S05/S06已登记，不要求用户重现现有截图。
+
 ## [codex] 2026-10-27 每日总结CLI便携包已按378d095重新打包并核对
 
 源码提交 `378d095` 已包含每日总结查询、服务器窄权限、受管CLI自动注入及完整原Codex会话读回证据。原路径ZIP重新打包，manifest固定源码完整commit，44个文件、逐文件SHA均已核对，不含凭据，并包含daily使用说明；解压包的无session/Python查询及原问答已通过。本条只补最终包与固定运行副本的来源记录，不重跑未变化的全链；手机仍dev139，无新装包。具体字节数和SHA见[交付证据](../../rebuild/agent-bridge/hosts/daily-summary-cli-2026-10-27.json)，下载文件为 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip`。
