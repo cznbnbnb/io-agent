@@ -1,9 +1,10 @@
-## [claude] 2026-10-28 dev146：手机登记逻辑重做；桌面叫 Claude、后台叫 Claude Code；会话可自定义名称（已装机，回退 dev145）
+## [claude] 2026-10-28 dev146/dev147：手机登记逻辑重做；桌面叫 Claude、后台叫 Claude Code；会话可自定义名称（dev147 已装机，回退 dev146）
 
 - 「手机登记已满」根因：`TaskRuntime.keepBindings` 把 outbox 非空的登记都当成「有未完成内容」，而 outbox 会保留最多 300 条已送达历史，所以只要从手机给某个会话发过一次，它就永远不能被替换，几次之后 16 个槽全被锁死。
 - 现在只保护三种：默认会话、有尚未被服务器接收的手机输入（`TaskProfiles.unsent`）、还有等你回答的问题。`makeRoom` 也能替换凭据已过期的旧版导入登记；排序：过期/暂停 → 离线 → 在线，同级先旧后新。连接页底部显示「手机已登记 N / 16」和替换规则；仍满时的提示说明具体原因。
 - 命名：目录里 host=claude 且工作区在受管的 `iO Agent/` 下的是电脑后台运行的 Claude Code（ACP/CLI，不在桌面应用里显示），其余叫 Claude（桌面应用会话）。去掉「手机工作区 / 电脑会话」标签；两者色块不同（Claude 橙、Claude Code 沙色、Codex 蓝）。
 - 自定义名称：`TaskNames` 只存手机本地（按 route key），连接详情页「修改名称」，留空恢复原名；选择器、连接页、任务详情都优先显示自定义名称。
+- 真机核对：16/16 登记时在选择器里切到 Claude 不再报已满；选择器显示 Codex / Claude / Claude Code 三种；连接详情「修改名称」保存后显示「名称 + 原名称」，留空恢复。dev147 只补了「修改名称」按钮下方间距。
 - 已合并 Codex dev145。测试：bridge 356、presentation 80、device 42、control 98、prompter 150 通过。
 
 ## [codex] 2026-10-27 用户确认手机与眼镜原厂待办均可见，A27-T01通过

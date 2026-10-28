@@ -122,7 +122,7 @@ final class AgentConnectionsPage {
    field(card,"Agent",agent+(e==null?"":TaskPresentation.background(e.workspace)?" · 电脑后台运行，不在桌面应用里显示":" · 电脑上的桌面应用会话"));field(card,"电脑",e==null?TaskPresentation.computerName(connection.computer):TaskTargetUI.computer(e));
    if(e!=null){field(card,"名称",TaskNames.title(e.route,e.label,agent));if(!e.label.isEmpty()&&!TaskNames.get(e.route).isEmpty())field(card,"原名称",e.label);field(card,"工作目录",e.workspace);field(card,"状态",e.status(TaskSessionDirectory.elapsed()));}
    field(card,"会话 ID",connection.session);
-   if(e!=null){TaskSessionDirectory.Entry named=e;TextView rename=AgentUI.button(activity,screen.body,"修改名称",false,()->rename(named,agent));rename.setEnabled(!busy);}
+   if(e!=null){TaskSessionDirectory.Entry named=e;TextView rename=AgentUI.button(activity,screen.body,"修改名称",false,()->rename(named,agent));rename.setEnabled(!busy);AgentUI.gap(activity,screen.body,10);}
    String topic=topic(view);if(!topic.isEmpty())field(card,"任务主题",topic);
    field(card,"连接状态",status(view));field(card,"登记有效期",date(connection.expiresAt));
    field(card,"默认目标",binding.equals(snapshot.defaultBinding)?"当前默认 Agent 与工作区":"未设为默认");
