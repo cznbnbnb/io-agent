@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev142",
-  "version_code": 10564,
-  "revision": "io-agent-confirm-card-action-diagnostics",
+  "version": "0.5.3-dev143",
+  "version_code": 10565,
+  "revision": "io-agent-native-todo-suggestions",
   "host_version": "1.0.7",
   "host_code": 230,
-  "signed": "2026-10-28T03:45:26.062Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev142.apk",
-  "bytes": 430211432,
-  "sha256": "20d5f2dab0608095a4101a4f5bb7b2000abb2801dd7de680e18246f29cdd2f36",
+  "signed": "2026-10-28T04:10:17.209Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev143.apk",
+  "bytes": 430219624,
+  "sha256": "4733d9f7d6e6bc83654be1305e18b8bf6360b41fededbb2b1265aaa065789163",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -37,7 +37,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": false
+    "device_installed": true
   },
   "dex_audit": {
     "schema": 1,
@@ -50,5 +50,6 @@
   "installed": true,
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false
+  "release_gate_passed": false,
+  "phone_install_evidence": "phone-native-todo-dev143-install-2026-10-27.json"
 }

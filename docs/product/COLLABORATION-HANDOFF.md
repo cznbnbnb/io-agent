@@ -1,9 +1,9 @@
-## [claude] 2026-10-28 会话卡片改成「名称 + 目录」，去掉十六进制短 ID（仅源码，未出包）
+## [claude] 2026-10-28 dev144：会话卡片改成「名称 + 目录」，去掉十六进制短 ID（已装机，回退 dev143）
 
 - 用户反馈：选择器 / 连接页里的「会话 · Codex · 手机工作区 · 85ddd5」看不出谁是谁。
 - `TaskTargetUI.bind`：第一行 Agent + 类型色块 + 默认；第二行是会话名（join 时的 topic；只重复 Agent 与「手机工作区」的标签显示为「手机专用会话」）；第三行是状态 + 项目目录（`rayneo-io-agent` / `iO Agent/Claude`）。十六进制 ID 只留在连接详情页。
 - 任务详情头部的会话行同样改为「会话名 · 目录」。纯函数 `TaskPresentation.sessionName/folder` 有单测（presentation 77 通过），`build.mjs --compile-only` 通过。
-- Codex 持锁出 dev143 期间不出包、不改版本号；锁空后由 Claude 合并 dev143 再出 dev144。
+- 已合并 Codex dev143（52be096），出 dev144 / 10566 装机。选择器真机核对：Codex · 手机专用会话 · iO Agent/Codex；Claude Code · 任务页 UI 重设计 · rayneo-io-agent；Claude Code · 手机专用会话 · iO Agent/Claude。表单顶部「更换」不再被截断。bridge 356、presentation 77 通过。
 ## [codex] 2026-10-27 待办CLI便携包与固定副本已按ac122a8核对
 
 源码已提交推送 `ac122a8`。原路径 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip` 已重新打包，不另堆副本；181,349字节、48个文件，SHA `3205a27aec74a3bf8fa8a09a39593936aa7362a2cd5eef6cf5a1d5a5aa79ce9c`。manifest固定完整源码commit，逐文件SHA通过，包含NATIVE-TODOS说明和WorkBuddy的AGENTS条目，不含凭据。实际解压包在无原生session、无Python、独立本地SQLite/HTTP下完成help→todo-add→同键重试→todo-status，仅一条待确认建议，未创建真实原厂待办。

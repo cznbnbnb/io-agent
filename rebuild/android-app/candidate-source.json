@@ -330,7 +330,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentTaskPage.java",
-      "sha256": "36ca2cad7d2cb9c071e2262e180899583032006eeb53180d1b6445f78d58b4d3"
+      "sha256": "4bce14f132235d697bd05345ecdcb5562b7504585e2412bc586ae54e43e5428e"
     },
     {
       "path": "src/com/turboio/addon/AgentUI.java",
@@ -942,7 +942,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskPresentation.java",
-      "sha256": "1e4185fb6e04e0bbf2a64ba0c35e0ebc09b3ba8112aadc3afeff7bfad2953727"
+      "sha256": "2408f19bb4d9dba5084e630f46732d3e597f4115164b7383122f673359905dcd"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
@@ -970,7 +970,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskTargetUI.java",
-      "sha256": "c0df61f3bed6f0c101595f22e7d8bfcfec83d6290d0024b03b03fb5f5db4800d"
+      "sha256": "299871283b1ede9234f2ee758e23261afefd4436b8c5e4c22f295f7d650904b8"
     },
     {
       "path": "src/com/turboio/addon/TaskTones.java",
@@ -1042,11 +1042,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "55b5ef48e1af16e2f683118428a805bf5f150b01f25437bad0e030061e358982"
+      "sha256": "15b3db55a1f96f43432f892b4128805978cb3d478446b881adf8e7c6731b5fd0"
     }
   ],
-  "product_sha256": "c1e1390ac905076622d9b7701a2c24a4377a1ab90bebdb68a9e068aa69ab1b4f",
-  "addon_sha256": "b8b0d318abb62265da76b6449fbb57d1bf5f514e475bb2632f6cab3c6b95f6a3",
+  "product_sha256": "1bea49aabb6e275832d34e224fdd2d55cbbb2e466aad0fdf3dadba791794f052",
+  "addon_sha256": "8fb344ec634dc1d16d721c69ee59c4657dedc49dd4eb570214ca0448a1f85b42",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",
