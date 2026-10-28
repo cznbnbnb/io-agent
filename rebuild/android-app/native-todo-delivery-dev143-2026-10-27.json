@@ -88,8 +88,8 @@
   },
   "runtime_files": {
     "rebuild/agent-bridge/client.mjs": "9b5370e0416dfe48c2bd5165e1954d918b2547405b09ac3436a1429bee93ccf4",
-    "rebuild/agent-bridge/questions/cli.mjs": "0e57f736069a123b50cd33715478a22bfbec1bdff249a399cad0448e36efdcf1",
-    "rebuild/agent-bridge/questions/managed-cli.mjs": "c3d0a0de5f81c2497da5bb972e541bef7bd7c50864af6fbbdeb847e7270bdc2d",
+    "rebuild/agent-bridge/questions/cli.mjs": "d3f805eafd8e6a2dc80cb88346d96237ea2ee1b13fd93dfc0de8051324e3ad8b",
+    "rebuild/agent-bridge/questions/managed-cli.mjs": "496c386333bba77ba96ecaf847ce1a48c80881496c9870d9fdafd5a8069df99c",
     "rebuild/agent-bridge/questions/NATIVE-TODOS.md": "c5abfb85a91a3649e8ddb5a2f04f3f40efbe89584ca95fabaf3b6e978cab5f41",
     "io-agent.mjs": "8296478770c930739ce7560cee51b08a40008527fa28979a8d9a25439173fc22",
     "README.md": "ba90ff254b219f6fd19a9cad408b60409427d3e5eb9a33d9e27f9302915cc283",
@@ -114,5 +114,25 @@
     "First Java compilation found a blank-final app reference in the tick lambda; fixed by TaskRuntime.this.app, then compiled and signed successfully.",
     "First pure session test source list missed TaskConnection; fixed the test source list.",
     "No production native create, stock cache readback, or lens success is claimed without the wearer confirmation test."
-  ]
+  ],
+  "portable_package": {
+    "file": "/Users/cznbnb/Project/AI Glasses Project/rayneo-io-agent-codex/outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip",
+    "bytes": 181349,
+    "sha256": "3205a27aec74a3bf8fa8a09a39593936aa7362a2cd5eef6cf5a1d5a5aa79ce9c",
+    "source_commit": "ac122a8a0bb4c23d319ab00df7f5b64a17f65113",
+    "entries": 48,
+    "manifest_hashes_verified": true,
+    "contains_credentials": false,
+    "smoke": {
+      "actual_extracted_zip": true,
+      "python_available": false,
+      "native_session_present": false,
+      "help_add_retry_status": true,
+      "suggestions_created": 1,
+      "native_todos_created": 0,
+      "synthetic_local_server_only": true
+    }
+  },
+  "runtime_source_commit": "ac122a8a0bb4c23d319ab00df7f5b64a17f65113",
+  "runtime_disk_hashes_verified": true
 }

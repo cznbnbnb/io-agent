@@ -1,3 +1,9 @@
+## [codex] 2026-10-27 待办CLI便携包与固定副本已按ac122a8核对
+
+源码已提交推送 `ac122a8`。原路径 `outputs/io-agent-workbuddy-session-pairing-2026-10-26.zip` 已重新打包，不另堆副本；181,349字节、48个文件，SHA `3205a27aec74a3bf8fa8a09a39593936aa7362a2cd5eef6cf5a1d5a5aa79ce9c`。manifest固定完整源码commit，逐文件SHA通过，包含NATIVE-TODOS说明和WorkBuddy的AGENTS条目，不含凭据。实际解压包在无原生session、无Python、独立本地SQLite/HTTP下完成help→todo-add→同键重试→todo-status，仅一条待确认建议，未创建真实原厂待办。
+
+固定运行副本7文件SHA与同一源码核对，安装记录已固定来源；两条正式服务、原生会话、默认及配对保留。本批不再装包；现装143、回退142。A27-T01仍待佩戴准备回复，未发测试待办、未伪造接受。进度超时watch已关闭；收尾释放Codex设备锁，让Claude能合本批后继续dev144。旧未跟踪材料不提交。[交付证据](../../rebuild/android-app/native-todo-delivery-dev143-2026-10-27.json)。
+
 ## [codex] 2026-10-27 dev143：原厂待办建议CLI已部署并装机，待点头联合验收
 
 用户已选择“眼镜先显示建议，点头确认后添加”。新增共用 `todo-add` / `todo-status`，普通/便携CLI不依赖原生session、join或Python；受管任务继续使用原轮次隐藏绑定和工作区邮箱。服务器只保存建议与处理结果，手机收到该UID的真实接受操作后才调用原厂RayNeoTasks创建；原厂列表与眼镜刷新走现有Flutter待办链，不建私有列表、不自动加截止时间、不创建定时任务。结果未知保留unknown且不自动重写，拒绝/到期/重复操作不新增。
