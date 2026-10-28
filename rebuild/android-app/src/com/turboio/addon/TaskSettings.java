@@ -77,25 +77,23 @@ final class TaskSettings {
  Map<String,Object> defaultRequest(TaskDevice d)throws Exception{synchronized(LOCK){String value=prefs.getString(DEFAULT_REQUEST,null);if(value==null)return null;byte[] bytes=open(value,DEFAULT_AAD,8192);try{Map<String,Object> saved=WireJson.map(WireJson.read(bytes));if(!d.server.equals(saved.get("server"))||!d.owner.equals(saved.get("owner"))||!d.deviceId.equals(saved.get("device")))return null;Map<String,Object> request=WireJson.map(saved.get("request"));BoundedJson.keys(request,"request_id","expected_revision","route");TaskSessionDirectory.uuid(request.get("request_id"));TaskWire.nonnegative(request.get("expected_revision"));if(request.get("route")!=null)TaskSessionDirectory.route(request.get("route"));return request;}finally{Arrays.fill(bytes,(byte)0);}}}
  void saveDefaultRequest(TaskDevice d,Map<String,Object> request)throws Exception{synchronized(LOCK){byte[] bytes=WireJson.bytes(WireJson.object("server",d.server,"owner",d.owner,"device",d.deviceId,"request",request));TaskWire.require(prefs.edit().putString(DEFAULT_REQUEST,seal(bytes,DEFAULT_AAD)).commit(),"TASK_CONFIG_SAVE_FAILED");}}
  void clearDefaultRequest()throws Exception{synchronized(LOCK){TaskWire.require(prefs.edit().remove(DEFAULT_REQUEST).commit(),"TASK_CONFIG_SAVE_FAILED");}}
- /** Only explicit picker/default use materializes a directory target. Never evict
-  * a question connection or an unsubmitted UI draft to fit a new session. */
- boolean ensureSession(TaskDevice device,Map<String,Object> route,long now)throws Exception{synchronized(LOCK){
+ /** Only explicit picker/default use materializes a directory target. A full registry makes room
+  * with TaskProfiles.makeRoom; a connection with unanswered questions is never the one given up. */
+ boolean ensureSession(TaskDevice device,Map<String,Object> route,long now,Set<String> keep,Set<String> online)throws Exception{synchronized(LOCK){
   TaskSessionDirectory.route(route);TaskProfiles current=loadAll();TaskConnection connection=device.derive(route,now);
   for(TaskProfiles.Profile p:current.profiles)if(p.binding.equals(connection.binding())){if(p.connection.token().equals(device.token))return false;write(current.upsert(connection,p.enabled,now,false));return true;}
-  TaskWire.require(current.profiles.size()<TaskProfiles.MAX,"TASK_PROFILES_FULL");write(current.upsert(connection,true,now,current.selected()==null));return true;
+  current=current.makeRoom(device,keep,online);write(current.upsert(connection,true,now,current.selected()==null));return true;
  }}
  void pauseDevice(TaskDevice device)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll();long now=System.currentTimeMillis();for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&p.enabled)next=next.enabled(p.binding,false,now);write(next);}}
  /** Adds connections for newly joined sessions and moves every derived connection to the device's
-  * current token in one write. Discovery never evicts a connection: absent outgoing rows cannot
-  * prove that unanswered questions or UI drafts are disposable. Capacity is reported explicitly. */
- boolean syncDevice(TaskDevice device,List<Map<String,Object>> routes,Set<String> busy,long now)throws Exception{synchronized(LOCK){
+  * current token in one write. When full, a new session takes the oldest idle slot (TaskProfiles.makeRoom); if
+  * every slot is busy or the default, capacity is reported explicitly. */
+ boolean syncDevice(TaskDevice device,List<Map<String,Object>> routes,Set<String> busy,Set<String> online,long now)throws Exception{synchronized(LOCK){
   TaskProfiles current=loadAll(),next=current;
   for(TaskProfiles.Profile p:current.profiles)if(device.owns(p.connection)&&!p.connection.token().equals(device.token))next=next.upsert(device.derive(p.connection.route(),now),p.enabled,now,false);
   for(Map<String,Object> route:routes){
    TaskConnection c=device.derive(route,now);boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
-   // A mailbox's absence of outgoing rows does not prove that its questions or
-   // UI drafts are disposable. Capacity is explicit; discovery never evicts.
-   if(next.profiles.size()>=TaskProfiles.MAX)break;
+   try{next=next.makeRoom(device,busy,online);}catch(RuntimeException full){if(!"TASK_PROFILES_FULL".equals(full.getMessage()))throw full;break;}
    // Discovery never substitutes another session for an explicit default, even when
    // that default is paused or expired. Only an empty registry needs an initial choice.
    TaskProfiles.Profile selected=next.selected();next=next.upsert(c,true,now,selected==null);

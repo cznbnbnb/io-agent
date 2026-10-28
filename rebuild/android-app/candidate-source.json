@@ -930,7 +930,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "c916d8debb6dc9c3be9361f090434c93362edb5339c83ff9e8c1d435e504fa82"
+      "sha256": "402e0ce7f77cc9d41e9f58cc2ab086d5d511ea2d166875f6b84802423e039061"
     },
     {
       "path": "src/com/turboio/addon/TaskPrompterNotice.java",
@@ -942,7 +942,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "6be9f469c3a74fe9d10a5830f3954a829a86e8e381442cc2d2b0f7405d116bff"
+      "sha256": "3a6869a422347fc39eb839f17f01aafeae9c5c2a704a15c9621335cb22fee71d"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -950,7 +950,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskSettings.java",
-      "sha256": "9bf9c3f359976d2fb908937b4a36cec4dfeee46c7c4d0a38905a59655b676d5b"
+      "sha256": "3ec1303b8ccde76576f5f4d318356649d15a87983885ff6fed18c415ca99bde4"
     },
     {
       "path": "src/com/turboio/addon/TaskTargetUI.java",
@@ -962,7 +962,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWorkspace.java",
-      "sha256": "2b1784e6c6f1901939ae018abe93214a515d132f73a281a29e7a9c4ee6376640"
+      "sha256": "a19b7813c0e2051b30099eabefb2032c4506e6169ff5dc3ad5b97ef8fdedfce2"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerCoordinator.java",
@@ -1022,11 +1022,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "de8984abc66b9dee22888e31e8cde3392595e537b43483c991560878466e837a"
+      "sha256": "646d56466a5801702158f4b32460326b878dc2e3f1b08a68776c52b7ef8ae2bc"
     }
   ],
-  "product_sha256": "e41ced9362cf2e7837d8df7fae1280d5f4d18ff70a064ea1effd623cdab576db",
-  "addon_sha256": "ebc85fb59a636334487b9b74c5f12684d208d25a904df222620b25985dcd0bd7",
+  "product_sha256": "f56301b18fbdceb5f29a9bcdfee693a7e18e9e9dc31ad4e5f1c8e30ecd321dff",
+  "addon_sha256": "0bcdf69e0c4f48ecf83069567a0f579e89560440546ce6e15ff147c9ed3fdade",
   "host_dex_sha256": "f1d85404a4f3d2a9aedf13e39dab4c9e27073cd5097eee3b89dbc196f379d8a7",
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91",

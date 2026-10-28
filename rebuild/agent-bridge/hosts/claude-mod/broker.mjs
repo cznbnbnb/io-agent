@@ -72,7 +72,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
     save();
     const token = randomBytes(32).toString('hex');
     const witnessEpoch=randomUUID();
-    let instance = null, ended = false, heartbeat = 0, busy = true, activeTurn = null, enginePid = null;
+    let instance = null, ended = false, endReason = null, heartbeat = 0, busy = true, activeTurn = null, enginePid = null;
     let publicUrl;
     const envelope = value => ({...value, session_id:binding.route.session_id, cwd:binding.workspace});
     const ready = () => { check(); need(instance && !ended && clock() - heartbeat < 5000, 'CLAUDE_MOD_NOT_CONNECTED'); };
@@ -108,6 +108,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       heartbeat = clock();
       if (endpoint === '/v1/end') {
         ended = true; busy = true; activeTurn = null;
+        endReason = ['clear','resume','logout','prompt_input_exit','session_changed'].includes(request.reason) ? request.reason : 'other';
         for (const id of journal.order) {
           const op = journal.operations[id];
           if (op.phase === 'queued') op.phase = 'dropped';
@@ -323,7 +324,7 @@ export async function createClaudeModBroker({directory, binding, clock = Date.no
       }
     };
     return {host, pluginDirectory, configFile, snapshot:() => journal.order.map(id => clean(journal.operations[id])),
-      lifecycle:()=>({bound:instance!==null,ended,connected:Boolean(instance&&!ended&&clock()-heartbeat<5000),lastHeartbeatAt:heartbeat,enginePid}),
+      lifecycle:()=>({bound:instance!==null,ended,endReason,connected:Boolean(instance&&!ended&&clock()-heartbeat<5000),lastHeartbeatAt:heartbeat,enginePid}),
       async close() { if (closed) return; closed = true; witness?.close();await new Promise(resolve => server.close(resolve)); lock.release(); } };
   } catch (error) { witness?.close();server?.close(); lock.release(); throw error; }
 }

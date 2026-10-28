@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "name": "iO Agent Android",
-  "version": "0.5.3-dev139",
-  "version_code": 10561,
+  "version": "0.5.3-dev140",
+  "version_code": 10562,
   "revision": "io-agent-confirm-card-action-diagnostics",
-  "apk_stem": "iO-Agent-Android-0.5.3-dev139",
+  "apk_stem": "iO-Agent-Android-0.5.3-dev140",
   "launcher": "com.rayneo.venus.MainActivity",
   "rayneo_account_required_for_local_features": true,
   "ota_writes_enabled": false,

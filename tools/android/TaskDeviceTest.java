@@ -49,6 +49,23 @@ public final class TaskDeviceTest {
    List<Map<String,Object>> discovered=TaskDevice.openRoutes(WireJson.object("items",Arrays.asList(task("control-task",state,route("original-session")))));
    yes(discovered.size()==1&&discovered.get(0).get("session_id").equals("original-session"));
   }
+  // A full registry gives up its oldest idle derived slot: never the default or one with unanswered
+  // questions; paused first, then offline, then online. A re-derived route gets the same binding back.
+  TaskProfiles full=TaskProfiles.empty();List<String> b=new ArrayList<>();
+  for(int i=0;i<TaskProfiles.MAX;i++){TaskConnection c=d.derive(route("full-"+i),NOW);b.add(c.binding());full=full.upsert(c,true,NOW,i==0);}
+  yes(full.profiles.size()==TaskProfiles.MAX&&full.selected.equals(b.get(0)));
+  Set<String> none=new HashSet<>(),online=new HashSet<>(b.subList(0,6));
+  TaskProfiles roomy=full.makeRoom(d,new HashSet<>(Arrays.asList(b.get(6))),online);
+  yes(roomy.profiles.size()==TaskProfiles.MAX-1&&!roomy.profiles.stream().anyMatch(p->p.binding.equals(b.get(7))));
+  yes(roomy.selected.equals(b.get(0)));
+  TaskProfiles paused=full.enabled(b.get(12),false,NOW).makeRoom(d,none,none);
+  yes(!paused.profiles.stream().anyMatch(p->p.binding.equals(b.get(12))));
+  yes(full.makeRoom(d,none,new HashSet<>(b)).profiles.stream().noneMatch(p->p.binding.equals(b.get(1))));
+  Set<String> allButDefault=new HashSet<>(b);allButDefault.remove(b.get(0));
+  TaskProfiles fullFinal=full;fails(()->fullFinal.makeRoom(d,allButDefault,none),"TASK_PROFILES_FULL");
+  yes(roomy.upsert(d.derive(route("newcomer"),NOW),true,NOW,false).profiles.size()==TaskProfiles.MAX);
+  yes(d.derive(route("full-7"),NOW).binding().equals(b.get(7)));
+  TaskProfiles small=TaskProfiles.empty().upsert(d.derive(route("only"),NOW),true,NOW,true);yes(small.makeRoom(d,none,none)==small);
   System.out.println("task device: "+checks+" checks passed");
  }
 }

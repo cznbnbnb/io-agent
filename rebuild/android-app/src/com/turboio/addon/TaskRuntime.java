@@ -90,14 +90,14 @@ final class TaskRuntime {
  void readDirectory(Result result){work(()->{login();refreshDirectory(System.currentTimeMillis());},result);schedule();}
  void ensureTarget(Map<String,Object> route,Result result){final Map<String,Object> frozen=TaskSessionDirectory.route(route);work(()->{
   login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(directory!=null&&directory.find(frozen)!=null,"DIRECTORY_TARGET_MISSING");
-  if(settings.ensureSession(device,frozen,System.currentTimeMillis()))rebuild();
+  long now=System.currentTimeMillis();if(settings.ensureSession(device,frozen,now,keepBindings(now),onlineBindings(now)))rebuild();
  },result);}
  void setDefault(Map<String,Object> route,long expectedRevision,Result result){final Map<String,Object> frozen=route==null?null:TaskSessionDirectory.route(route);work(()->setDefaultInternal(frozen,expectedRevision),result);schedule();}
  void retryDefault(Result result){work(()->{TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");Map<String,Object> request=settings.defaultRequest(device);TaskWire.require(request!=null,"DIRECTORY_DEFAULT_MISSING");setDefaultInternal(request.get("route")==null?null:TaskSessionDirectory.route(request.get("route")),TaskWire.nonnegative(request.get("expected_revision")));},result);}
  private void setDefaultInternal(Map<String,Object> route,long expectedRevision)throws Exception{
   login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");TaskWire.require(device.expiresAt>System.currentTimeMillis(),"PAIRING_EXPIRED");
   Map<String,Object> request=settings.defaultRequest(device);
-  if(request==null){refreshDirectory(System.currentTimeMillis());TaskWire.require(directory.defaultRevision()==expectedRevision,"DEFAULT_REVISION_CONFLICT");if(route!=null){directory.requireExecutable(route,TaskSessionDirectory.elapsed());if(settings.ensureSession(device,route,System.currentTimeMillis()))rebuild();}
+  if(request==null){refreshDirectory(System.currentTimeMillis());TaskWire.require(directory.defaultRevision()==expectedRevision,"DEFAULT_REVISION_CONFLICT");if(route!=null){directory.requireExecutable(route,TaskSessionDirectory.elapsed());if(settings.ensureSession(device,route,System.currentTimeMillis(),keepBindings(System.currentTimeMillis()),onlineBindings(System.currentTimeMillis())))rebuild();}
    request=WireJson.object("request_id",UUID.randomUUID().toString(),"expected_revision",expectedRevision,"route",route);settings.saveDefaultRequest(device,request);
   }else TaskWire.require(TaskWire.same(request.get("route"),route)&&TaskWire.nonnegative(request.get("expected_revision"))==expectedRevision,"DIRECTORY_DEFAULT_PENDING");
   pendingDefault=request;
@@ -112,7 +112,7 @@ final class TaskRuntime {
  private void refreshDirectory(long now)throws Exception{
   if(!Host107Login.loggedIn())TaskWire.require(false,Host107Login.loginCode());TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
   try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;directoryNote="";nextDirectory=now+15000;
-   Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
+   Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now,keepBindings(now),onlineBindings(now)))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
   }catch(Exception failure){directoryNote=TaskApi.safeError(failure);nextDirectory=now+15000;throw failure;}
  }
  void pause(String binding,Result result){
@@ -168,12 +168,21 @@ final class TaskRuntime {
     routes.addAll(TaskDevice.openRoutes(p));seen=seen.withCursor(TaskWire.text(p.get("next_cursor"),4096,false));pairing="";if(!Boolean.TRUE.equals(p.get("has_more")))break;
    }
   }
-  Set<String> busy=new HashSet<>();if(hub!=null)for(TaskHub.View v:hub.views())if(!v.pending.isEmpty())busy.add(v.binding);
-  boolean changed=settings.syncDevice(seen,routes,busy,now);
+  boolean changed=settings.syncDevice(seen,routes,keepBindings(now),onlineBindings(now),now);
   if(seen!=d){settings.saveDevice(seen);device=seen;}
   if(changed)rebuild();
   if(hub.profiles().profiles.size()>=TaskProfiles.MAX)for(Map<String,Object> route:routes){boolean found=false;for(TaskProfiles.Profile p:hub.profiles().profiles)if(TaskWire.same(p.connection.route(),route))found=true;if(!found){pairing="TASK_PROFILES_FULL";break;}}
   if(now>=nextDirectory)try{refreshDirectory(now);}catch(Exception failure){directoryNote=TaskApi.safeError(failure);}
+ }
+ /** Registrations a full registry must not give up: unanswered questions and the shared default. */
+ private Set<String> keepBindings(long now){
+  Set<String> keep=new HashSet<>();if(hub!=null)for(TaskHub.View v:hub.views())if(!v.pending.isEmpty())keep.add(v.binding);
+  Map<String,Object> route=directory==null?null:directory.defaultRoute();if(route!=null&&device!=null)try{keep.add(device.derive(route,now).binding());}catch(RuntimeException ignored){}
+  return keep;
+ }
+ private Set<String> onlineBindings(long now){
+  Set<String> online=new HashSet<>();if(directory!=null&&device!=null)for(TaskSessionDirectory.Entry e:directory.sessions)if(e.online)try{online.add(device.derive(e.route,now).binding());}catch(RuntimeException ignored){}
+  return online;
  }
  private void rebuild()throws Exception{generation++;cancelAll();if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();}
  interface SessionPreviewResult {void done(SessionPairingCode.Preview preview,String error);}

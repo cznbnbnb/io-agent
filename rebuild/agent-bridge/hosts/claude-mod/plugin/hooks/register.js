@@ -235,7 +235,7 @@ async function pump($) {
   if (!enabled || pumping) return;
   pumping = true;
   try {
-    if (!(await exact($))) { await end($); return; }
+    if (!(await exact($))) { await end($,true,'session_changed'); return; }
     if(activeTurn&&!Object.values(journal.operations).some(op=>op.turn_id===activeTurn&&['submit','observe'].includes(op.kind)))
       await observe($,activeTurn,0);
     for (let n=0;n<8 && journal.outbox.length;n++) await flush($);
@@ -318,13 +318,14 @@ async function start($){
   await discover($);
   discoveryTimer=$.clock.every(2000,async()=>{await discover($);});
 }
-async function end($,notify=true) {
+async function end($,notify=true,reason='other') {
   if (!enabled) return;
   enabled = false;
   if (timer) timer.cancel();
   activeTurn = null; pending = {}; userEchoes = {};
   // session.end covers /clear, /resume and /branch. Do not rebind a new ID.
-  if(notify)try { await post($, '/v1/end', {}); } catch (error) { /* heartbeat expires */ }
+  // The reason lets the host tell a replaced conversation from a Mod reload.
+  if(notify)try { await post($, '/v1/end', {reason}); } catch (error) { /* heartbeat expires */ }
 }
 async function observe($,turnId,coverage){
   if(!enabled||observing||!(await exact($)))return;
@@ -390,7 +391,7 @@ async function completed($, e) {
   if(id)await completeEntry($,id,e);
 }
 async function sessionEnded($,e){
-  await end($);
+  await end($,true,typeof e.reason==='string'?e.reason:'other');
   recentCompletions={};activeTurn=null;busy=true;
   if(globalMode&&['clear','resume'].includes(e.reason))return;
   if(discoveryTimer)discoveryTimer.cancel();

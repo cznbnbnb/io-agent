@@ -55,7 +55,13 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
         atomic(path.join(directory,'health.json'),{schema_version:1,binding_key:key,worker,at:new Date().toISOString(),cloud_online:false,can_execute:false,reason});
         await sleep(5000);continue;
       }
-      if(broker?.lifecycle?.().ended)break;
+      // A Mod reload ends the old instance while the same conversation lives on: rebuild the broker
+      // for the next instance. Only a replaced conversation ends this helper; a closed one ends with
+      // its native owner process above.
+      if(broker?.lifecycle?.().ended){
+        if(['clear','resume','session_changed'].includes(broker.lifecycle().endReason))break;
+        await bridge.stop();bridge=null;broker=null;continue;
+      }
       if(adapter.lifecycle().closed)break;
       try{
         for(const event of await adapter.pendingObservedTasks?.()??[])

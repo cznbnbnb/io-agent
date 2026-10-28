@@ -308,6 +308,13 @@ test('phone input is submitted as the user\'s own words, and a typed copy never 
   assert.equal((await f.broker.host.inspectOperation(id)).turnId,'phone-turn');
 });
 
+test('the end reason tells a Mod reload from a replaced conversation',async t=>{
+  const f=await fixture(t),s=await simulator(t,f);await s.tick();
+  await s.fire('session.end',{reason:'other'});assert.deepEqual([f.broker.lifecycle().ended,f.broker.lifecycle().endReason],[true,'other']);
+  const g=await fixture(t),u=await simulator(t,g);await u.tick();
+  u.state.cwd+='/other';await u.tick();assert.equal(g.broker.lifecycle().endReason,'session_changed');
+});
+
 test('a correct host wrapper without trusted native dispatch does not bind any native turn',async t=>{
   const f=await fixture(t),s=await simulator(t,f),id=await f.enqueue();
   await s.fire('turn.start',{turnId:'user-paste',text:actualSdkWrapper(stamp(id)+'Synthetic request')});
@@ -555,7 +562,7 @@ test('registry disappearance disables network and duplicate exact descriptors ne
 });
 test('global discovery survives clear and binds only a newly joined replacement session',async t=>{
   const f=await fixture(t),r=registry(f);r.write();const s=await simulator(t,f,undefined,{registryRoot:r.root});
-  await s.fire('session.end',{reason:'clear'});assert.equal(f.broker.lifecycle().ended,true);
+  await s.fire('session.end',{reason:'clear'});assert.equal(f.broker.lifecycle().ended,true);assert.equal(f.broker.lifecycle().endReason,'clear');
   const second=await fixture(t);s.state.sessionId=second.binding.route.session_id;s.state.cwd=second.binding.workspace;
   await s.discover();assert.equal(second.broker.lifecycle().bound,false);
   r.write(second.descriptor(),'b'.repeat(64));await s.discover();assert.equal(second.broker.lifecycle().connected,true);

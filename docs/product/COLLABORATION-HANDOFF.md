@@ -1,3 +1,12 @@
+## [claude] 2026-10-28 dev140：手机登记满了自动腾出空闲名额；插件重载不再让常驻进程下线（已装机，回退 dev139）
+
+用户反馈手机选 Claude 时报「已登记会话达到上限」，而且找不到移除入口。原因：每个 join 过的会话（包括 Codex 的各种测试会话）都会被手机自动登记，上限 16 条。由配对设备派生的登记有效期很长，「移除」只对已暂停或已到期的登记出现，所以名额被永久占满。
+
+- `TaskProfiles.makeRoom`：满了时让出最旧的空闲名额。只动由本机配对派生的登记（同一路由以后派生出同一个 binding，收件箱和草稿都能找回）。不动默认目标，也不动有待回答问题的会话。优先顺序：已暂停 > 离线 > 在线，同级先旧后新。`ensureSession`（选择器 / 默认）和 `syncDevice`（自动发现）都改用它；只有全部名额都忙时才报 `TASK_PROFILES_FULL`，提示改为说明原因和处理办法。`TaskRuntime.keepBindings/onlineBindings` 提供保留集合和在线集合。
+- 常驻进程：`/reload-plugins` 时，旧插件实例会以 session.end 调用 `/v1/end`，broker 标记 ended，常驻进程随之 `SESSION_ENDED` 退出。第一次 join 后约 12 秒就退出很可能也是这个原因。现在插件把结束原因发给 broker（`endReason`）：只有 clear / resume / session_changed 才退出；其他情况（如重载）重建 broker，等新实例绑定；会话真正关闭时，原生 owner 进程退出，常驻进程也随之退出。插件更新到 0.2.2。
+- 测试：task-device 37（新增 makeRoom 8 项）、task-presentation 57、task-directory 63+35、task-control 98、task-prompter 150、agent-card 843、claude-mod 45、agent-bridge 全部 351 通过、0 失败。test-task-presentation 编译列表补上 TaskDevice。
+- 真机 dev140 / 10562 已装：选择器里本会话和「Claude Code · 手机工作区」都能选，没有再报已满。回退 dev139。
+
 ## [claude] 2026-10-28 Claude 插件 0.2.1：手机指示以用户原话出现在桌面会话
 
 用户截图对比：Codex 桌面里，手机发来的指示是干净的用户消息；Claude 这边却被套了两层：Claude Code 加的「The io-agent-session-bridge plugin sent a message: … This is how Claude Code surfaces…」，和插件自己加的 `[iO operation <uuid>]` 前缀。真机先验证了手机 → 本 Desktop 会话（两条都作为新一轮出现）和桌面 → 眼镜（notify 已存服务器）。
