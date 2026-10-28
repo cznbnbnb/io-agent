@@ -1,3 +1,11 @@
+## [claude] 2026-10-28 快进合并 Codex f942d48；当前 Claude Desktop 会话常驻在线
+
+用户让我先合并 Codex 的常驻会话代码，再确认 Claude 这边能否也做到「手机发起 → 桌面会话显示」。`claude/macos-toolchain` 已快进到 `f942d48`（含 206db8b 会话自报在线、a8479e5 join 常驻与本地轮次控制、ACP 连接器、每日总结 CLI、dev134–139 手机改动），没有冲突，也没有改动 Codex 的工作目录。
+
+- 本机用户级插件 `io-agent-session-bridge@io-agent-local` 0.2.0 已启用。当前 Desktop 会话 `1f833a38` 重新 join 后，常驻进程启动，`cloud_online:true`、`can_execute:true`，服务器目录显示在线。
+- 第一次 join 起的常驻进程约 12 秒后以 `SESSION_ENDED` 退出（原生 owner 仍存活，worker.log 没有错误），原因未查明。第二次 join 的进程改由 launchd 托管（PPID 1），持续在线。如果再次出现，从 `session-resident.mjs` 的 broker lifecycle ended 和 SIGTERM 两条路径查。
+- 未验证：手机向这个 Desktop 会话下发后，指示能否作为新一轮出现在桌面会话。准备打开手机时，接近传感器被挡住（设备在口袋里），已关屏放弃，由用户在手机上发起。join 的旧问答登记 `d53a871d…` 仍在。
+
 ## [codex] 2026-10-27 同会话入口交付副本核对完成（源码8054ec7）
 
 固定运行副本的8份功能源文件已按8054ec7逐文件核对，正式Codex连接器正常停止/启动后仍为同native会话，实际CLI help及IOSHARED-1027上下文自检再次完成。两条正式服务在线可执行，默认revision18保持。便携ZIP同路径已重打包：177,761字节、47文件，SHA `c1684d05ac0b99c215f4126595f6560f9e88d0a4744044a9379c159ecd8ca196`；manifest固定8054ec7，完整闭包包含Desktop profile JSON，逐项hash与独立解压help/connector help通过，不含凭据。
