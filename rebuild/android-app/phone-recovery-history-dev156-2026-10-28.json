@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-28",
-  "status": "code_complete_dev156_pending_device_connection",
+  "status": "dev156_installed_primary_restoration_and_background_history_verified",
   "server": {
     "deployed": true,
     "backup": "/var/lib/turboio-material/phone-presence-release-1793244555268387394",
@@ -18,19 +18,21 @@
     "source_commit": "5ed3f3e"
   },
   "installed_new_phone": {
-    "version": "0.5.3-dev155",
+    "version": "0.5.3-dev156",
     "installed": true,
     "data_cleared": false,
     "delta": {
-      "baseline_sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
-      "candidate_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+      "baseline_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+      "candidate_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
       "apk_bytes": 435075689,
       "delta_bytes": 1958905,
       "commands": 8141,
-      "delta_sha256": "57488f801852c9432fe313d522958fa0a5595a989c76a7673aa090a0899a0914",
+      "delta_sha256": "b114d86f6df0a2e4d1a8358b8a8dd65ca0d4cc6c800b583d39a364bbae4991d2",
       "reconstruction_hash_verified": true
     },
-    "installed_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+    "own_honor_install_prompt_confirmed": true,
+    "installed_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+    "baseline": "0.5.3-dev155",
     "rollback": "0.5.3-dev154"
   },
   "candidate": {
@@ -61,7 +63,21 @@
     "old_phone_usb_unavailable": true,
     "old_phone_still_dev154": true,
     "old_phone_cached_display_fence_not_verified": true,
-    "dev156_installed": false
+    "dev156_installed": true,
+    "upgrade_retained_settings": {
+      "primary_label_retained": true,
+      "default_codex_retained": true,
+      "connection_label": [
+        "8 个已启用"
+      ]
+    },
+    "diagnostic_driver_uninstalled_after_verification": true,
+    "new_background_dates_in_normal_calendar": {
+      "2026-10-23": true,
+      "2026-10-24": true,
+      "2026-10-25": true
+    },
+    "normal_workspace_reopened_after_diagnostic": true
   },
   "history": {
     "dev155_actual_error": "LIFELOG_CALENDAR_COVERAGE_INCOMPLETE",
@@ -72,11 +88,111 @@
     "loaded_before_fix": 0,
     "fix": "independent per-month retry; schema1 migration; keep incomplete months unknown; continue known dates",
     "local_assertions": 365,
-    "device_after_fix_verified": false,
+    "device_after_fix_verified": true,
     "range": "recent 12 months plus explicitly browsed older months",
     "capacity": "256 records / 4 MiB; pause with saved cursor; no eviction",
     "timezone": "Asia/Shanghai calendar contract only",
-    "upload_transcripts_or_audio": false
+    "upload_transcripts_or_audio": false,
+    "device_ui_observations": [
+      {
+        "phase": "initial_after_install",
+        "selected": "2026-10-29",
+        "status": [
+          "部分月份未核实，其他资料继续加载。已核实 1 月 / 待核实 11 月 · 正文 0/9 天 范围：最近 12 个月及已浏览月份。"
+        ],
+        "date_markers": [
+          "2026-10-26，有已保存记录",
+          "2026-10-27，有已保存记录",
+          "2026-10-28，有已保存记录",
+          "2026-10-29，有已保存记录",
+          "2026-10-30，无已保存记录",
+          "2026-10-31，无已保存记录",
+          "2026-11-01，无已保存记录"
+        ]
+      },
+      {
+        "phase": "normal_round_observation",
+        "at": "2026-10-29T05:42:37.218819+00:00",
+        "selected": "2026-10-29",
+        "status": [
+          "部分月份未核实，其他资料继续加载。已核实 1 月 / 待核实 11 月 · 正文 0/9 天 范围：最近 12 个月及已浏览月份。"
+        ],
+        "date_markers": [
+          "2026-10-26，有已保存记录",
+          "2026-10-27，有已保存记录",
+          "2026-10-28，有已保存记录",
+          "2026-10-29，有已保存记录",
+          "2026-10-30，无已保存记录",
+          "2026-10-31，无已保存记录",
+          "2026-11-01，无已保存记录"
+        ]
+      },
+      {
+        "phase": "idle_observation",
+        "at": "2026-10-29T05:45:13.270075+00:00",
+        "selected": "2026-10-29",
+        "status": [
+          "部分月份未核实，其他资料继续加载。已核实 1 月 / 待核实 11 月 · 正文 0/9 天 范围：最近 12 个月及已浏览月份。"
+        ]
+      },
+      {
+        "phase": "continuous_awake_observation",
+        "at": "2026-10-29T05:49:28.135560+00:00",
+        "selected": "2026-10-29",
+        "status": [
+          "部分月份未核实，其他资料继续加载。已核实 1 月 / 待核实 11 月 · 正文 3/9 天 范围：最近 12 个月及已浏览月份。"
+        ]
+      },
+      {
+        "phase": "body_progress_check",
+        "at": "2026-10-29T05:51:59.163904+00:00",
+        "selected": "2026-10-29",
+        "status": [
+          "部分月份未核实，其他资料继续加载。已核实 1 月 / 待核实 11 月 · 正文 5/9 天 范围：最近 12 个月及已浏览月份。"
+        ]
+      }
+    ],
+    "observation_note": "Foreground selected-day refresh completed with 4 records; keep normal phone display awake to observe history without repeated Activity resume refreshes.",
+    "natural_scheduler_progress_verified": true,
+    "selected_day_unchanged_during_observation": "2026-10-29",
+    "old_incomplete_months_not_misreported_empty": true,
+    "direct_new_source_fetch_verified": true,
+    "verification_basis": "Normal page remained selected on 2026-10-29; durable read timestamps after this installation prove complete background reads of 2026-10-23/24/25.",
+    "device_progress": {
+      "indexed_months": 1,
+      "unverified_months": 11,
+      "known_dates": 9,
+      "loaded_dates": [
+        "2026-10-23",
+        "2026-10-24",
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-27",
+        "2026-10-28"
+      ],
+      "pending_known_dates": 3,
+      "body_error": "",
+      "capacity_paused": false,
+      "local_records": 146,
+      "fresh_nonselected_days": [
+        {
+          "date": "2026-10-23",
+          "read_at": 1793253153158,
+          "source_count": 29
+        },
+        {
+          "date": "2026-10-24",
+          "read_at": 1793253090857,
+          "source_count": 36
+        },
+        {
+          "date": "2026-10-25",
+          "read_at": 1793253035854,
+          "source_count": 14
+        }
+      ],
+      "diagnostic_read_only": true
+    }
   },
   "tests": {
     "server_regression_tests": 42,
@@ -109,5 +225,10 @@
     "installed_command_help_verified": true,
     "formal_services_restarted": false,
     "payload_hashes_verified": 49
+  },
+  "retention": {
+    "current": "dev156",
+    "rollback": "dev154",
+    "superseded_dev155_removed_after_installed_hash_verified": true
   }
 }
