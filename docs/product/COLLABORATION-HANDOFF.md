@@ -1,3 +1,7 @@
+## [codex] 2026-10-28 进行中：换机恢复、主手机仲裁，随后补历史智记
+
+用户已批准按此顺序实施。Claude最新520ad23已包含；本批会改设备配对/服务器HTTP与投送边界、TaskRuntime/AgentConnectionsPage/设置页，再改MaterialRuntime历史读取及资料状态。沿用AgentUI/MaterialReadingUI；不触碰Claude checkout及原未跟踪Delegate材料。持codex设备锁，候选预留dev155 /10577；正式配对、默认Agent、已有资料保留，不撤旧手机。恢复通过已配对电脑一次性授权同owner，不相信客户端自报owner；主手机切换等待旧短许可到期避免双机投送。历史仅本机缓存，不新增转写/音频上传或Agent文件通道。
+
 ## [codex] 2026-10-29 新手机无线调试已接通，换机数据/绑定缺口已核对
 
 当前调试已切到荣耀BRT-AN00 / Android17（SDK37）；现装仍dev154且完整SHA与候选匹配，没有App/服务器改动或重装。用户本人完成USB信任、Wi-Fi/Tailscale登录及无线调试网络授权，提供新端口后由remote-adb核对实际新手机序列。仅使用明确无线端点完成getprop、有效PNG截图、Dozing查询、唤醒与App启动命令；不是USB回退。Tailscale系统电池豁免已添加并核对。私有config.json已更新新IP/端口/serial，旧手机config.previous-phone.json保留一份；未改锁屏，页面操作仍需正常解锁。荣耀OEM自启动、整机重启/异地换网未测，不承诺无须操作永久恢复。

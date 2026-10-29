@@ -106,6 +106,9 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         if(req.method==='GET'){send(200,store.todoSuggestions.get(token,todo[1]));return;}
         if(req.method==='POST'){send(200,store.todoSuggestions.phone(token,todo[1],await smallJson(req,observation,1024)));return;}
       }
+      if(['POST','PUT'].includes(req.method)&&url.pathname==='/v1/phone-presence'){
+        if(url.search)reject(400,'INVALID_QUERY');send(200,store.phones.update(token,await smallJson(req,observation,1024),req.method==='PUT'));return;
+      }
       if(req.method==='POST'&&url.pathname==='/v1/pairings'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.createPairing(token,await smallJson(req,observation)));return;}
       if(req.method==='POST'&&url.pathname==='/v1/credentials/refresh'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.refresh(token));return;}
       if(req.method==='GET'&&url.pathname==='/v1/devices'){if(url.search)reject(400,'INVALID_QUERY');send(200,store.devices.list(token));return;}

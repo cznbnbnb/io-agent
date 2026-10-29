@@ -62,7 +62,7 @@ export class DeviceRegistry {
       const failures=this.db.prepare('SELECT count FROM pair_failures WHERE window_start=?').get(window)?.count??0;
       if(failures>=FAILURE_LIMIT)reject(429,'PAIRING_RATE_LIMITED');
       const code=normalizeCode(input?.code);
-      const valid=input&&typeof input==='object'&&Object.keys(input).every(k=>k==='code')&&new RegExp('^['+ALPHABET+']{10}$').test(code);
+      const valid=input&&typeof input==='object'&&Object.keys(input).every(k=>['code','account_binding'].includes(k))&&new RegExp('^['+ALPHABET+']{10}$').test(code);
       const row=valid?this.db.prepare('SELECT * FROM pairings WHERE code_digest=?').get(sha(code)):null;
       if(!row||row.used_at!==null||row.expires<=now){
         this.db.prepare('INSERT INTO pair_failures VALUES (?,1) ON CONFLICT(window_start) DO UPDATE SET count=count+1').run(window);
@@ -70,7 +70,9 @@ export class DeviceRegistry {
         return null; // committed before rejecting, so the failure counts
       }
       this.db.prepare('UPDATE pairings SET used_at=? WHERE code_digest=?').run(now,row.code_digest);
-      return this.enroll({owner:row.owner,role:row.role,label:row.label});
+      const issued=this.enroll({owner:row.owner,role:row.role,label:row.label});
+      if(input.account_binding!==undefined)this.store.phones.account({owner:row.owner,device_id:issued.device_id},input.account_binding);
+      return issued;
     })??reject(400,'PAIRING_CODE_INVALID');
   }
   // The old token stays valid for a short grace so in-flight requests finish; it renews only once,

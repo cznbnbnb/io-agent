@@ -4,6 +4,7 @@ import path from 'node:path';
 import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
+import {PhonePresence} from './phone-presence.mjs';
 import {DeviceRegistry} from './devices.mjs';
 import {MaterialPairings} from './material-pairings.mjs';
 import {SessionPairings,SESSION_SCOPES} from './session-pairings.mjs';
@@ -101,7 +102,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
+      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -146,7 +147,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1','primary_phone_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -481,6 +482,7 @@ export class MaterialStore {
   }
   queueGet(token,kind,objectId){
     const {p}=this.queueRead(token,kind),head=this.queueHead(p.owner,kind,objectId);if(!head)reject(404,QUEUE_MISSING[kind]);
+    if(kind==='request'&&JSON.parse(p.scopes).includes('receipts:phone')&&!this.phones.permits(p))reject(409,'PRIMARY_PHONE_REQUIRED');
     if(p.sessionRoute&&p.sessionRoute!==head.route)reject(404,QUEUE_MISSING[kind]);
     const item=this.queueItem(this.queueRevision(p.owner,kind,objectId,head.revision),head.state);
     const receiptsOf=(subjectKind,subject)=>this.db.prepare("SELECT body FROM queue_revisions WHERE owner=? AND kind='receipt' AND json_extract(body,'$.subject_kind')=? AND json_extract(body,'$.subject_id')=? ORDER BY seq")
@@ -532,7 +534,8 @@ export class MaterialStore {
   }
   inbox(token,query={}){
     const p=this.auth(token),scopes=new Set(JSON.parse(p.scopes));
-    const kinds=['task','request','message'].filter(k=>QUEUE_READ[k].some(s=>scopes.has(s)));
+    const primary=this.phones.permits(p);
+    const kinds=['task','request','message'].filter(k=>QUEUE_READ[k].some(s=>scopes.has(s))&&(primary||k==='task'));
     if(!kinds.length)reject(403,'FORBIDDEN');
     if(Object.keys(query).some(k=>k!=='cursor'&&k!=='limit'))reject(400,'INVALID_QUERY');
     const limit=query.limit===undefined?20:Number(query.limit);

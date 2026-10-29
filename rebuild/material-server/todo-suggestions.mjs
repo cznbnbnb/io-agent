@@ -46,6 +46,7 @@ export class TodoSuggestions {
   pending(token){
     const p=this.store.auth(token,'receipts:phone'),device=this.store.devices.device(p);
     if(device.role!=='phone')reject(403,'PHONE_PAIRING_REQUIRED');
+    if(!this.store.phones.permits(p))return {schema_version:'1.0',items:[]};
     const rows=this.store.db.prepare("SELECT * FROM todo_suggestions WHERE owner=? AND state IN ('pending_confirmation','shown','accepted','creating') AND (phone_producer IS NULL OR phone_producer=?) ORDER BY created_at,id LIMIT 20").all(p.owner,p.producer);
     return{schema_version:'1.0',items:rows.map(r=>this.view(r)).filter(r=>!terminal.has(r.state))};
   }
@@ -56,6 +57,7 @@ export class TodoSuggestions {
       !['show','accept','decline','begin','created','failed','unknown'].includes(input.action)||
       (input.action==='created'?!text(input.native_id,128):input.native_id!==undefined)||
       (['failed','unknown'].includes(input.action)?typeof input.error!=='string'||!/^[A-Z][A-Z0-9_]{1,63}$/.test(input.error):input.error!==undefined))reject(400,'INVALID_TODO_ACTION');
+    if(['show','accept','begin'].includes(input.action)&&!this.store.phones.permits(p))reject(409,'PRIMARY_PHONE_REQUIRED');
     return this.store.tx(()=>{
       const row=this.store.db.prepare('SELECT * FROM todo_suggestions WHERE owner=? AND id=?').get(p.owner,id);
       if(!row)reject(404,'TODO_SUGGESTION_NOT_FOUND');this.view(row);
