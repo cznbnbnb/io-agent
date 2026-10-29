@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "at_utc": "2026-10-29T02:31:20.982+00:00",
+  "scope": "New phone mechanism audit and remote debug configuration; no product/server deployment",
+  "new_phone": {
+    "model": "BRT-AN00",
+    "android_release": "17",
+    "sdk": 37,
+    "app": "0.5.3-dev154",
+    "installed_apk_matches_current_full_sha": true
+  },
+  "remote_debug": {
+    "usb_first_authorization_completed_by_user": true,
+    "user_completed_tailscale_login": true,
+    "user_completed_wifi_debug_network_approval_and_supplied_port": true,
+    "same_tailnet_as_mac": true,
+    "phone_tailnet_ip_verified_from_usb_and_tailscale_ui": true,
+    "wireless_endpoint_identity_verified": true,
+    "private_config_switched_to_new_phone": true,
+    "old_phone_config_preserved_privately": true,
+    "wireless_getprop_and_png_capture": true,
+    "wireless_command_while_dozing": true,
+    "wireless_wake_and_app_launch_intent": true,
+    "tailscale_battery_whitelist_added_and_readback_verified": true,
+    "lockscreen_not_changed": true,
+    "locked_screen_still_requires_normal_unlock": true,
+    "oem_autostart_verified": false,
+    "new_phone_reboot_tested": false,
+    "new_phone_cross_wifi_change_tested": false,
+    "public_adb_port_opened": false,
+    "wireless_debug_tls_used": true,
+    "device_temp_xml_removed": true,
+    "tailscale_version": "1.104.2-tc3430f0d2-gb01fa89d5"
+  },
+  "material_findings": {
+    "refresh_reads_selected_day_only": true,
+    "event_transcript_library_local_per_phone": true,
+    "automatic_history_backfill_present": false,
+    "automatic_server_upload_daily_summaries_only": true,
+    "server_cli_read_verified": {
+      "count": 6,
+      "dates": [
+        "2026-10-23",
+        "2026-10-24",
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-27",
+        "2026-10-28"
+      ],
+      "body_exported_to_public_record": false
+    },
+    "empty_unread_date_proves_no_activity": false,
+    "latest_journal_endpoint_does_not_prove_complete_history": true
+  },
+  "agent_findings": {
+    "sessions_and_default_scoped_by_server_owner": true,
+    "phone_credential_and_local_history_are_local": true,
+    "official_app_login_alone_restores_io_pairing": false,
+    "new_phone_pairing_changed_this_batch": false,
+    "old_phone_device_revoked": false,
+    "two_same_owner_phone_inboxes_can_both_receive_same_request": true,
+    "server_rejects_second_answer": "ANSWER_ALREADY_ACCEPTED",
+    "cross_phone_display_arbitration_present": false,
+    "cli_and_acp_share_task_request_protocol": true,
+    "different_request_ids_not_deduplicated_by_text": true
+  },
+  "checks": {
+    "existing_device_pair_renewal_inbox_http_tests": 4,
+    "two_process_answer_race_tests": 1,
+    "real_store_two_phone_synthetic_scenario": {
+      "synthetic_only": true,
+      "same_owner_both_phone_inboxes_contain_request": true,
+      "second_phone_answer": "ANSWER_ALREADY_ACCEPTED",
+      "server_has_single_answer": true
+    },
+    "initial_http_test_sandbox_listen_eperm_resolved_by_authorized_rerun": true
+  },
+  "product_changes": false,
+  "app_installed_this_batch": false,
+  "paired_computer_and_formal_services_preserved": true,
+  "recommended_next": [
+    "Account-authorized phone recovery and explicit primary-phone switch",
+    "Known-history date index plus resumable bounded local history loading"
+  ],
+  "privacy": "Actual phone IP/port/serial and tailnet account are retained only in ignored local configuration, not this public evidence record.",
+  "cleanup": {
+    "device_temp_xml_removed": true,
+    "raw_debug_system_dumps_removed": true,
+    "no_qa_production_device_created": true,
+    "formal_services_and_pairing_preserved": true,
+    "current_task_watch_disabled": true,
+    "device_lock_released": true
+  }
+}
