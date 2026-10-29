@@ -25,18 +25,60 @@ final class MaterialRuntime {
  private static MaterialRuntime instance;private final Context app;private final MaterialSettings settings;private final Object guard=new Object();
  private final Handler main=new Handler(Looper.getMainLooper());private final ExecutorService io=Executors.newSingleThreadExecutor(),viewIO=Executors.newSingleThreadExecutor(),cancel=Executors.newSingleThreadExecutor();
  private volatile CatalogSnapshot recentCatalog;private volatile long recentCatalogAt;
+ private volatile MaterialHistorySchedule.Status historyStatus;private volatile String historyAccount="",historyError="";private boolean historyQueued;
+ private final Set<String> historyMonths=ConcurrentHashMap.newKeySet();
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());private volatile boolean visible;private volatile long generation,backgroundOwner=-1,lastUiAt,autoDeadline;private boolean autoQueued,networkWake;private final java.util.concurrent.atomic.AtomicInteger foregroundCatalogs=new java.util.concurrent.atomic.AtomicInteger();private volatile MaterialHttp transport;
  private volatile Host107LifelogHttp officialTransport;private MaterialConfig config;private MaterialSyncSession.Status status=new MaterialSyncSession.Status();private String note="unconfigured",autoError="",autoTarget="";private boolean prewarming;private final List<CatalogResult> prewarmWaiters=new ArrayList<>();
  private MaterialRuntime(Activity activity){this(activity,activity);}
  private MaterialRuntime(Context context,Activity activity){app=context.getApplicationContext();settings=new MaterialSettings(app);if(activity!=null){foreground.add(activity);visible=true;}((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
   public void onActivityStarted(Activity a){foreground.add(a);visible=true;}public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!visible&&backgroundOwner!=generation)invalidate();}public void onActivityDestroyed(Activity a){foreground.remove(a);}public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
  });main.postDelayed(autoTick,10000);
-  try{android.net.ConnectivityManager network=(android.net.ConnectivityManager)app.getSystemService(Context.CONNECTIVITY_SERVICE);if(network!=null)network.registerDefaultNetworkCallback(new android.net.ConnectivityManager.NetworkCallback(){public void onAvailable(android.net.Network value){main.post(()->wakeAuto(true));}});}catch(RuntimeException ignored){}
+  try{android.net.ConnectivityManager network=(android.net.ConnectivityManager)app.getSystemService(Context.CONNECTIVITY_SERVICE);if(network!=null)network.registerDefaultNetworkCallback(new android.net.ConnectivityManager.NetworkCallback(){public void onAvailable(android.net.Network value){main.post(()->{wakeAuto(true);wakeHistory(true);});}});}catch(RuntimeException ignored){}
  }
  static synchronized MaterialRuntime get(Activity activity){if(instance==null)instance=new MaterialRuntime(activity);instance.foreground.add(activity);instance.visible=true;instance.prewarm();return instance;}
  static synchronized MaterialRuntime boot(Context context){if(instance==null)instance=new MaterialRuntime(context,null);return instance;}
  private void prewarm(){synchronized(guard){if(recentCatalog!=null||prewarming||foregroundCatalogs.get()>0)return;prewarming=true;}catalog((value,error)->{List<CatalogResult> waiting=new ArrayList<>(prewarmWaiters);prewarmWaiters.clear();synchronized(guard){prewarming=false;}for(CatalogResult waiter:waiting)waiter.done(value,error);});}
- private final Runnable autoTick=new Runnable(){public void run(){wakeAuto(false);main.postDelayed(this,30000);}};
+ private final Runnable autoTick=new Runnable(){public void run(){wakeAuto(false);wakeHistory(false);main.postDelayed(this,30000);}};
+ /** Calendar discovery has a verified China-time contract. Other zones keep
+  * ordinary selected-day reads rather than silently shifting source dates. */
+ void historyMonth(String account,String month,String timezone){
+  if(!MaterialHistorySchedule.ZONE.equals(timezone))return;
+  java.time.YearMonth selected=OfficialLifelogCalendarRequest.month(month).month();
+  MaterialWire.require(account!=null&&account.matches("[a-f0-9]{64}"),"MATERIAL_HISTORY_ACCOUNT");
+  if(historyMonths.add(account+"\n"+selected))main.postDelayed(()->wakeHistory(false),6000);
+ }
+ String historyStatus(String account){
+  if(!MaterialHistorySchedule.ZONE.equals(java.time.ZoneId.systemDefault().getId()))return "历史索引暂只支持中国时区，其他日期仍可点选读取。";
+  if(account.equals(historyAccount)&&!historyError.isEmpty())return "历史资料暂缓加载，已保存内容保留，稍后自动重试。";
+  MaterialHistorySchedule.Status status=historyStatus;return status!=null&&status.account.equals(account)?status.message+" 范围：最近 12 个月及已浏览月份。":"历史资料将自动补齐最近 12 个月，仅保存到本机。";
+ }
+ void wakeHistory(boolean networkRecovered){
+  final long observed;synchronized(guard){if(historyQueued)return;historyQueued=true;observed=generation;}
+  io.execute(()->{try{historyRound(observed,networkRecovered,System.currentTimeMillis());}finally{synchronized(guard){historyQueued=false;}}});
+ }
+ private void historyRound(long observed,boolean networkRecovered,long now){
+  if(!MaterialHistorySchedule.ZONE.equals(java.time.ZoneId.systemDefault().getId())||observed!=generation||foregroundCatalogs.get()>0||visible&&now-lastUiAt<5000)return;
+  OfficialAccountBinding login=Host107Login.account();if(login==null)return;historyAccount=login.binding;
+  try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(app.getFilesDir(),login.binding)){
+   for(String key:new ArrayList<>(historyMonths))if(key.startsWith(login.binding+"\n")){schedule.include(java.time.YearMonth.parse(key.substring(65)),now);historyMonths.remove(key);}
+   MaterialHistorySchedule.Plan plan=schedule.begin(now,networkRecovered);historyStatus=schedule.status();historyError="";if(plan==null)return;
+   long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+90000000000L;}
+   Host107LifelogHttp official=null;
+   try{
+    MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
+    official=new Host107LifelogHttp(app,login,()->check(owner),MaterialHistorySchedule.ZONE);synchronized(guard){check(owner);officialTransport=official;}
+    if(plan.calendar()){
+     OfficialLifelogMonthDiscovery.Snapshot index=OfficialLifelogMonthDiscovery.read(login.binding,OfficialLifelogCalendarRequest.month(plan.month),MaterialHistorySchedule.ZONE,()->account(owner),()->check(owner),official::calendar);
+     synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");schedule.indexed(plan,index,Math.max(now,System.currentTimeMillis()));}
+    }else{
+     boolean retained;synchronized(guard){check(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),login.binding)){MaterialLocalLibrary.DayRead read=library.snapshot().day(plan.date,MaterialHistorySchedule.ZONE);retained=read!=null&&(!plan.date.equals(java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.of(MaterialHistorySchedule.ZONE)).toLocalDate().toString())||now>=read.readAt&&now-read.readAt<3600000);}}
+     if(!retained){OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(OfficialLifelogInventory.Request.day(plan.date,MaterialHistorySchedule.ZONE)),()->account(owner),official);retainDay(plan.date,MaterialHistorySchedule.ZONE,fresh,login,owner);recentCatalog=null;}
+     synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");schedule.loaded(plan,Math.max(now,System.currentTimeMillis()));}
+    }
+   }catch(Exception failed){String code=safe(failed);if(owner==generation&&login.same(Host107Login.account()))schedule.failed(plan,Math.max(now,System.currentTimeMillis()),code);
+   }finally{if(official!=null){official.close();synchronized(guard){if(officialTransport==official)officialTransport=null;}}historyStatus=schedule.status();synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}
+  }catch(Exception failed){historyError=safe(failed);}
+ }
  void wakeAuto(boolean networkRecovered){
   final long observed;final boolean recovered;synchronized(guard){networkWake|=networkRecovered;if(autoQueued)return;autoQueued=true;observed=generation;recovered=networkWake;networkWake=false;}
   io.execute(()->{try{autoSync(observed,recovered);}finally{boolean again;synchronized(guard){autoQueued=false;again=networkWake;}if(again)main.post(()->wakeAuto(false));}});
@@ -96,7 +138,7 @@ final class MaterialRuntime {
   if(saved!=null&&!saved.account.equals(current.binding))saved=null;
   MaterialCatalog uploaded=MaterialCatalog.empty(current.binding,zone);
   if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
-  MaterialLocalLibrary.Snapshot local;try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}
+  MaterialLocalLibrary.Snapshot local;synchronized(guard){checkView(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}}
   // Insights only decorate the transcript list; a damaged copy never hides it.
   LifelogInsightStore.Snapshot insights=null;try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),current.binding)){insights=store.snapshot();}catch(Exception unreadable){insights=null;}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);

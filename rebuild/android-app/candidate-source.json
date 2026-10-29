@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "e0b4b736f8d6ef61cb2ba48effa5adc155f8e3c31ac154d29907ab44b694901e"
+      "sha256": "437dc4b8e716c4e0852c2c08a53ce4e98bc8086c305341598929bf0b210f1407"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -306,7 +306,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentConnectionsPage.java",
-      "sha256": "03365b63b68d0334c4eac3aa8af97fb9e2fa741522ece0e9326e11e168a4bd37"
+      "sha256": "75216ceca83a1b286960c837b5e3a31b00a39b0e9e8f45e61dc84280b717e786"
     },
     {
       "path": "src/com/turboio/addon/AgentDelegateSession.java",
@@ -318,7 +318,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "41fa102af7c5a664633fdbca5fc3adaf3570ed1b186e36d2d4bffa080a7e50f1"
+      "sha256": "557e32d69d63d878eedb41e36dabf0cf3aae9c6c78965578cc580c2363c3f3d8"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
@@ -338,7 +338,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentWorkspace.java",
-      "sha256": "0dee84f647c386c5c8cc039fef632191f4c7d437afd0ebd097ca93fc00c542e0"
+      "sha256": "d0683b9b91f9b303b60f0d635537c1e491c314d104b8ecaad5b3b548849d527b"
     },
     {
       "path": "src/com/turboio/addon/AlwaysOnAudioBatch.java",
@@ -697,6 +697,10 @@
       "sha256": "3fab9fb88c4d3a4f76e64f357f8778b42f7a4e284c0d16d2fed2bea955bb9d93"
     },
     {
+      "path": "src/com/turboio/addon/MaterialHistorySchedule.java",
+      "sha256": "b3806876c076ed2b3791afa6fd51e83c2c331ce3a676ddd275224e886cb86a6b"
+    },
+    {
       "path": "src/com/turboio/addon/MaterialHttp.java",
       "sha256": "2533b17320533dcd04f96abb2e5d6a04e1d17f1a9e32810c59328de552dbddde"
     },
@@ -718,7 +722,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "eb7bac48c07d2238f2ef211f722ade33eba01eb8550a4e4052eb3ce48a99f9c4"
+      "sha256": "91a245135a3dc2ff2481181889c128190fd58a07b75160f85d5a59acb5688973"
     },
     {
       "path": "src/com/turboio/addon/MaterialSelect.java",
@@ -861,6 +865,10 @@
       "sha256": "da53ca5068d79b0379f03841694bf0e131ba297f0cfe469d8ca6ad7261d6cca8"
     },
     {
+      "path": "src/com/turboio/addon/PhonePresence.java",
+      "sha256": "6c1fb9727aece662f9fea4f5df4738f684d7676916ca94f5b7804eee427f37ab"
+    },
+    {
       "path": "src/com/turboio/addon/PrompterFile.java",
       "sha256": "67eea585ce7a39b51c4f8ec2496ca516406cc3426791182cfa65446e5bcaf612"
     },
@@ -950,7 +958,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskPairing.java",
-      "sha256": "fd2edc8504495729ba0647c06b3e2ea35858c66b66d3e85a50f72ce1525c3c95"
+      "sha256": "819b976d09ac02da81303e17407b041b816b535b6bdb0bef896326c88a62df39"
     },
     {
       "path": "src/com/turboio/addon/TaskPresentation.java",
@@ -970,7 +978,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "ff262db37c1258c0c600f432dd38c591e258a92d5cded28e0794c0e8b8441f29"
+      "sha256": "f4afe5bb435f64b976b89401528f28e77de604b37e2a7913926deab7e0ebfcb4"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -978,7 +986,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskSettings.java",
-      "sha256": "ff3b35f05836edce1a5a8bc9056f746dd0e87b3d6a142a12375234ecb313eca2"
+      "sha256": "2ffc599762a3458ebe914416a98e08d55a3751846d96634e77a77ad8ef32c737"
     },
     {
       "path": "src/com/turboio/addon/TaskTargetUI.java",
@@ -994,7 +1002,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWorkspace.java",
-      "sha256": "ff125c884dd720fb46e52abbf98272fb0b2e728dcceed07f4dbc3f0efc977b49"
+      "sha256": "ea3430895e16bca0da217ff8860c784ddd7a570ad9b03fd96ba0b192a22cbbce"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerCoordinator.java",
@@ -1010,7 +1018,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "7707f265d042814163948b07eecd631b295f6fc66e9148cb38cccec1881ab1bd"
+      "sha256": "9c41581827dc9c011c2857127eaaa8f8365eebdc6aba0b6466fe2849e8d1a8c6"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
@@ -1054,11 +1062,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "7430ceeff87e83c40e71c8c6fd4aa7ff8de8ee24bcbd344b7c2b68bde59e5a56"
+      "sha256": "cf85a6577b402938e596518b86133a7a66d3a616b870e4f2d3b317294f8a1ae0"
     }
   ],
-  "product_sha256": "9915829e475f17baf968a95d618610811bf4655fd441a8a004c1cfccbf74f76f",
-  "addon_sha256": "96726987c062d68cfadec0ef412e95ed5052ee03d60051da53ab75ed75463d19",
+  "product_sha256": "9be8725711a1bef3e63c21c0c2c0ce6261efaa1896589dc80c0e2342ab68eff4",
+  "addon_sha256": "c1954916c71843497c0cf0a13f575a8e250795f1f7012d38c6c7925914bfba19",
   "host_dex_sha256": {
     "classes2": "3f0b4328f8dac2b7c3f86ac1d999843dce2d71ba474087c48b8a49e76fda840f",
     "classes3": "1095a1996ae8872420767bd2e9500447aa37ffac85bebd158126a8c3049e6a19"

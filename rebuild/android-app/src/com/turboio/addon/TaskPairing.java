@@ -10,8 +10,9 @@ import javax.net.ssl.HttpsURLConnection;
  * redirects, bounded bodies, no credential logs. Pairing itself is the only call without a bearer. */
 final class TaskPairing {
  private TaskPairing(){}
- static TaskDevice pair(String code,long now)throws IOException{
-  TaskApi.Response r=exchange("POST",TaskDevice.BASE+"pair",null,TaskDevice.pairBody(code));
+ static TaskDevice pair(String code,long now)throws IOException{return pair(code,null,now);}
+ static TaskDevice pair(String code,String account,long now)throws IOException{
+  TaskApi.Response r=exchange("POST",TaskDevice.BASE+"pair",null,account==null?TaskDevice.pairBody(code):WireJson.bytes(WireJson.object("code",TaskDevice.code(code),"account_binding",account)));
   if(r.status!=200)throw new IOException(error(r));return TaskDevice.issued(r.body,TaskDevice.BASE,null,now);
  }
  /** 409: this token already renewed (an earlier reply was lost); the caller keeps the old one until it lapses. */
@@ -23,6 +24,11 @@ final class TaskPairing {
   TaskApi.Response r=exchange("GET",d.base+"inbox?limit=20"+(d.cursor.isEmpty()?"":"&cursor="+URLEncoder.encode(d.cursor,"UTF-8")),d.token,null);
   if(r.status==410)throw new IOException("CURSOR_RESET_REQUIRED");if(r.status!=200)throw new IOException(r.status==401?"PAIRING_REVOKED":error(r));
   return WireJson.map(WireJson.read(r.body));
+ }
+ static PhonePresence phone(TaskDevice d,String account,Long expected)throws IOException{
+  long started=TaskSessionDirectory.elapsed();Map<String,Object> input=WireJson.object("account_binding",account);if(expected!=null)input.put("expected_revision",expected);
+  TaskApi.Response reply=exchange(expected==null?"POST":"PUT",d.base+"phone-presence",d.token,WireJson.bytes(input));
+  if(reply.status!=200)throw new IOException(error(reply));return new PhonePresence(reply.body,d,account,started);
  }
  static java.util.List<NativeTodoSession.Proposal> todoSuggestions(TaskDevice d)throws IOException{
   TaskApi.Response r=exchange("GET",d.base+"todo-suggestions",d.token,null);

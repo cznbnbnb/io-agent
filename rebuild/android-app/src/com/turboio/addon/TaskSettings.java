@@ -69,6 +69,8 @@ final class TaskSettings {
  private static final String DEVICE="device_sealed_v1";private static final byte[] DEVICE_AAD="io-agent/task-device/1".getBytes(StandardCharsets.UTF_8);
  TaskDevice loadDevice()throws Exception{synchronized(LOCK){String text=prefs.getString(DEVICE,null);if(text==null)return null;byte[] plain=open(text,DEVICE_AAD,16384);try{return TaskDevice.decode(plain);}finally{Arrays.fill(plain,(byte)0);}}}
  void saveDevice(TaskDevice device)throws Exception{synchronized(LOCK){byte[] plain=device.encode();try{if(!prefs.edit().putString(DEVICE,seal(plain,DEVICE_AAD)).commit())throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");}finally{Arrays.fill(plain,(byte)0);}}}
+ String phoneAccount(TaskDevice d){return prefs.getString("phone_account_"+d.deviceId,"");}
+ void phoneAccount(TaskDevice d,String account){TaskWire.require(prefs.edit().putString("phone_account_"+d.deviceId,account).commit(),"TASK_CONFIG_SAVE_FAILED");}
  void clearDevice(){synchronized(LOCK){prefs.edit().remove(DEVICE).commit();}}
  private static final String DIRECTORY="session_directory_v1",DEFAULT_REQUEST="session_default_request_v1";
  private static final byte[] DIRECTORY_AAD="io-agent/session-directory/1".getBytes(StandardCharsets.UTF_8),DEFAULT_AAD="io-agent/default-request/1".getBytes(StandardCharsets.UTF_8);

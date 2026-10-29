@@ -13,6 +13,7 @@ final class TaskRuntime {
  static final class Snapshot {
   final TaskSettings.Saved saved;final String binding,note,device,pairing;final List<TaskHub.View> contexts;
   final TaskSessionDirectory directory;final String directoryNote,defaultBinding,defaultStatus,directoryProducer;final Map<String,Object> defaultRoute,pendingDefault;
+  PhonePresence phone;
   private String fingerprint;
   Snapshot(TaskHub hub,String note){this(hub,note,"","");}
   Snapshot(TaskHub hub,String note,String device,String pairing){this(hub,note,device,pairing,null,"DIRECTORY_REFRESH_REQUIRED",null,"");}
@@ -24,23 +25,26 @@ final class TaskRuntime {
   String fingerprint(){if(fingerprint==null){
    List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"session_control",v.sessionControl,"pending",v.pending,"objects",v.objects));
    List<Object> directoryRows=new ArrayList<>();if(directory!=null)for(TaskSessionDirectory.Entry e:directory.sessions)directoryRows.add(WireJson.object("route",e.route,"label",e.label,"status",e.status(TaskSessionDirectory.elapsed()),"generation",e.generation));
-   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing,"directory",directoryRows,"directory_note",directoryNote,"default",directory==null?null:directory.defaultTarget,"default_status",defaultStatus,"default_pending",this.pendingDefault)));
+   fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing,"directory",directoryRows,"directory_note",directoryNote,"default",directory==null?null:directory.defaultTarget,"default_status",defaultStatus,"default_pending",this.pendingDefault,"phone",phone==null?"":phone.fingerprint())));
   }return fingerprint;}
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
   String bindingFor(Map<String,Object> route){if(route!=null)for(TaskHub.View v:contexts)if(directory!=null&&v.profile.connection.producer.equals(directoryProducer)&&v.profile.connection.server.equals(directory.server)&&v.profile.connection.owner.equals(directory.owner)&&TaskWire.same(v.profile.connection.route(),route))return v.binding;return "";}
  }
  private static TaskRuntime instance;
  private final Context app;private final TaskSettings settings;
- private final Handler main=new Handler(Looper.getMainLooper());private final ExecutorService io=Executors.newSingleThreadExecutor();
+ private final Handler main=new Handler(Looper.getMainLooper());private final ExecutorService io=Executors.newSingleThreadExecutor(),phoneIO=Executors.newSingleThreadExecutor();
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
  private final Map<Result,Activity> observers=new LinkedHashMap<>();
  private final Map<String,TaskHttp> transports=new ConcurrentHashMap<>();private final Set<String> enabled=ConcurrentHashMap.newKeySet();
+ private volatile PhonePresence phone;
+ static boolean glassesAllowed(){TaskRuntime r=instance;PhonePresence p=r==null?null:r.phone;if(p==null||!p.allowed(TaskSessionDirectory.elapsed()))return false;OfficialAccountBinding account=Host107Login.account();return account!=null&&account.binding.equals(p.account);}
  private volatile TaskDevice device;private volatile String pairing="";private long nextDiscovery;private boolean deviceLoaded;
  private TaskSessionDirectory directory;private String directoryNote="DIRECTORY_REFRESH_REQUIRED";private long nextDirectory;private Map<String,Object> pendingDefault;
  private TaskHub hub;private String note="paused";private volatile boolean visible=true;
  private boolean initialized,ticking;private volatile long generation;
  private TaskRuntime(Context context,Activity activity){
   app=context.getApplicationContext();settings=new TaskSettings(app);if(activity!=null)foreground.add(activity);else visible=false;
+  main.postDelayed(phoneTick,6000);
   ((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityStarted(Activity a){foreground.add(a);visible=true;schedule();}
    public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!running()){cancelAll();main.removeCallbacks(tick);}}
@@ -57,7 +61,7 @@ final class TaskRuntime {
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
  private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);TurboAddon.pending(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
- private Snapshot snapshot(){TaskDevice d=device;return new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);}
+ private Snapshot snapshot(){TaskDevice d=device;Snapshot state=new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);state.phone=phone;return state;}
  private void cancelAll(){for(TaskHttp t:transports.values())t.cancel();}
  private void load()throws Exception{
   if(initialized)return;TaskProfiles profiles=settings.loadAll();final long boundGeneration=generation;enabled.clear();for(TaskProfiles.Profile p:profiles.profiles)if(p.enabled)enabled.add(p.binding);
@@ -111,7 +115,8 @@ final class TaskRuntime {
  // Also reached from the background tick, which must never wait for a renewal.
  private void refreshDirectory(long now)throws Exception{
   if(!Host107Login.loggedIn())TaskWire.require(false,Host107Login.loginCode());TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
-  try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;directoryNote="";nextDirectory=now+15000;
+  try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;
+   List<Map<String,Object>> restored=new ArrayList<>();for(TaskSessionDirectory.Entry e:fresh.sessions)if(e.online)restored.add(e.route);if(settings.syncDevice(device,restored,keepBindings(now),onlineBindings(now),now))rebuild();directoryNote="";nextDirectory=now+15000;
    Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now,keepBindings(now),onlineBindings(now)))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
   }catch(Exception failure){directoryNote=TaskApi.safeError(failure);nextDirectory=now+15000;throw failure;}
  }
@@ -157,9 +162,11 @@ final class TaskRuntime {
  // registry changed (bindings exclude the token, so mailboxes carry over); cards are not paused.
  private void device(long now)throws Exception{
   if(!deviceLoaded){device=settings.loadDevice();deviceLoaded=true;}
-  TaskDevice d=device;if(d==null)return;
-  if(now>=d.expiresAt){pairing="PAIRING_EXPIRED";return;}
+  TaskDevice d=device;if(d==null){phone=null;return;}
+  String account=pairingAccount(),boundAccount=settings.phoneAccount(d);TaskWire.require(boundAccount.isEmpty()||boundAccount.equals(account),"PHONE_ACCOUNT_MISMATCH");
+  if(now>=d.expiresAt){phone=null;pairing="PAIRING_EXPIRED";return;}
   if(d.renewDue(now)){try{d=TaskPairing.renew(d,now);settings.saveDevice(d);device=d;}catch(java.io.IOException failure){pairing=TaskApi.safeError(failure);if(pairing.equals("PAIRING_REVOKED"))return;}}
+  if(phone==null){phone=TaskPairing.phone(d,account,null);settings.phoneAccount(d,account);}
   List<Map<String,Object>> routes=new ArrayList<>();TaskDevice seen=d;
   if(now>=nextDiscovery){
    nextDiscovery=now+5000;
@@ -214,17 +221,27 @@ final class TaskRuntime {
    TaskWire.require(version==generation&&preview.account.equals(pairingAccount()),"SESSION_PAIRING_IDENTITY_CHANGED");nextDiscovery=0;
   },result);schedule();
  }
+ void makePrimary(long revision,Result result){work(()->{TaskDevice d=pairingDevice();String account=pairingAccount();phone=TaskPairing.phone(d,account,revision);settings.phoneAccount(d,account);nextDiscovery=0;},result);schedule();}
  void pair(String code,Result result){work(()->{
   login();long now=System.currentTimeMillis();
-  TaskDevice d=TaskPairing.pair(code,now);settings.saveDevice(d);device=d;deviceLoaded=true;directory=null;pendingDefault=null;pairing="";nextDiscovery=0;nextDirectory=0;device(now);note="contexts_ready";
+  String account=pairingAccount();TaskDevice d=TaskPairing.pair(code,account,now);TaskWire.require(account.equals(pairingAccount()),"SESSION_PAIRING_IDENTITY_CHANGED");settings.saveDevice(d);settings.phoneAccount(d,account);phone=null;device=d;deviceLoaded=true;directory=null;pendingDefault=null;pairing="";nextDiscovery=0;nextDirectory=0;device(now);note="contexts_ready";
  },result);schedule();}
  /** Unpairs this phone on the server, forgets the credential and pauses the derived connections. */
  void unpairDevice(Result result){work(()->{
   TaskDevice d=settings.loadDevice();if(d!=null){TaskPairing.unpair(d);settings.clearDevice();settings.pauseDevice(d);}
-  device=null;deviceLoaded=true;directory=null;pendingDefault=null;settings.clearDefaultRequest();directoryNote="DIRECTORY_PAIRING_REQUIRED";pairing="";rebuild();note="contexts_ready";
+  phone=null;device=null;deviceLoaded=true;directory=null;pendingDefault=null;settings.clearDefaultRequest();directoryNote="DIRECTORY_PAIRING_REQUIRED";pairing="";rebuild();note="contexts_ready";
  },result);}
+ private boolean phoneBusy;
+ private final Runnable phoneTick=new Runnable(){public void run(){
+  if(running()&&!phoneBusy&&device!=null){phoneBusy=true;TaskDevice d=device;phoneIO.execute(()->{try{
+   String account=pairingAccount(),bound=settings.phoneAccount(d);TaskWire.require(bound.isEmpty()||bound.equals(account),"PHONE_ACCOUNT_MISMATCH");
+   PhonePresence next=TaskPairing.phone(d,account,null);TaskDevice current=device;
+   if(current!=null&&current.deviceId.equals(d.deviceId)&&account.equals(pairingAccount()))phone=next;
+  }catch(Exception unavailable){phone=null;}finally{main.post(()->{phoneBusy=false;});}});}
+  main.postDelayed(this,6000);
+ }};
  private final Runnable tick=()->{
-  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){pairing=TaskApi.safeError(failure);}hub.pump(now);if(device!=null)NativeTodoRuntime.wake(TaskRuntime.this.app,device,()->owner==generation&&running());}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
+  if(!running()||ticking)return;ticking=true;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){phone=null;pairing=TaskApi.safeError(failure);}hub.pump(now);if(device!=null)NativeTodoRuntime.wake(TaskRuntime.this.app,device,()->owner==generation&&running()&&glassesAllowed());}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
  private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }

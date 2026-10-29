@@ -11,7 +11,11 @@ public final class MaterialMonthRuntimeTest {
  static OfficialAccountBinding account(long id){return OfficialAccountBinding.read(WireJson.bytes(WireJson.object("accountId",id,"domain","runtime-test.invalid")));}
  static void yes(boolean ok){checks++;if(!ok)throw new AssertionError("Runtime month check "+checks);}
  static MaterialConfig config(String token,boolean enabled,long expiry){return new MaterialConfig(MaterialConnection.parse(WireJson.bytes(WireJson.object("format","turboio-material-sync/1","base_url","https://synthetic.invalid/io-api/v1","owner_id","synthetic-owner","producer_id","phone-test","server_id","synthetic-server","token",token.repeat(43),"token_id","12345678-1234-4234-8234-123456789abc","expires_at",Instant.ofEpochMilli(expiry).toString())),0),OWNER.binding,enabled);}
- static byte[] calendar(){List<Object> rows=new ArrayList<>();for(int day=1;day<=31;day++)rows.add(WireJson.object("date",String.format(Locale.ROOT,"2026-10-%02d",day),"hasLog",day<=8));return WireJson.bytes(WireJson.object("code",0,"data",WireJson.object("dailyLifelogList",rows)));}
+ static byte[] calendar(){return calendar("2026-10",first(8));}
+ static byte[] calendar(String value,List<String> logged){YearMonth month=YearMonth.parse(value);List<Object> rows=new ArrayList<>();for(int day=1;day<=month.lengthOfMonth();day++){String date=month.atDay(day).toString();rows.add(WireJson.object("date",date,"hasLog",logged.contains(date)));}return WireJson.bytes(WireJson.object("code",0,"data",WireJson.object("dailyLifelogList",rows)));}
+ static OfficialLifelogMonthDiscovery.Snapshot index(String account,String month,List<String> dates)throws Exception{OfficialAccountBinding login=account.equals(OWNER.binding)?OWNER:OTHER;return OfficialLifelogMonthDiscovery.read(account,OfficialLifelogCalendarRequest.month(month),"Asia/Shanghai",()->login,()->{},request->calendar(month,dates));}
+ static Future<?> history(Fixture f,long now)throws Exception{Field field=MaterialRuntime.class.getDeclaredField("generation");field.setAccessible(true);long generation=field.getLong(f.runtime);Method method=MaterialRuntime.class.getDeclaredMethod("historyRound",long.class,boolean.class,long.class);method.setAccessible(true);return f.io.submit(()->{try{method.invoke(f.runtime,generation,false,now);}catch(ReflectiveOperationException failed){throw new RuntimeException(failed);}});}
+
  static final class Month implements MaterialRuntime.MonthResult{MaterialRuntime.MonthSelection value;String error;int calls;public void done(MaterialRuntime.MonthSelection v,String e){value=v;error=e;calls++;}}
  static final class Done implements MaterialRuntime.Result{MaterialRuntime.Snapshot value;String error;int calls;public void done(MaterialRuntime.Snapshot v,String e){value=v;error=e;calls++;}}
  static final class Catalog implements MaterialRuntime.CatalogResult{MaterialRuntime.CatalogSnapshot value;String error;int calls;public void done(MaterialRuntime.CatalogSnapshot v,String e){value=v;error=e;calls++;}}
@@ -290,6 +294,113 @@ public final class MaterialMonthRuntimeTest {
    }
   }
  }
+ static void historySchedule()throws Exception{
+  long now=Instant.parse("2026-10-29T02:00:00Z").toEpochMilli();
+  try(Fixture f=new Fixture()){
+   long at=now;MaterialHistorySchedule.Plan pending;
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    pending=schedule.begin(at,false);yes(pending.calendar()&&pending.month.equals("2026-10"));yes(schedule.status().months==12&&schedule.status().indexed==0);
+    schedule.indexed(pending,index(OWNER.binding,"2026-10",Arrays.asList("2026-10-25","2026-10-28")),at+1);yes(schedule.status().days==2&&schedule.status().loaded==0);yes(schedule.begin(at+15000,true)==null);
+   }
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    for(int i=1;i<12;i++){at+=31000;pending=schedule.begin(at,false);yes(pending!=null&&pending.calendar());schedule.indexed(pending,index(OWNER.binding,pending.month,Collections.emptyList()),at+1);}
+    yes(schedule.status().indexed==12&&schedule.status().days==2);at+=31000;pending=schedule.begin(at,false);yes(pending.date.equals("2026-10-28"));schedule.failed(pending,at+1,"SYNTHETIC_LIST_UNAVAILABLE");
+    yes(schedule.begin(at+29999,true)==null);at+=31000;pending=schedule.begin(at,true);yes(pending.date.equals("2026-10-28"));schedule.loaded(pending,at+1);yes(schedule.status().loaded==1);
+    at+=31000;pending=schedule.begin(at,false);yes(pending.date.equals("2026-10-25")); // Killed before completion.
+   }
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    yes(schedule.begin(at+1000,false)==null);at+=31000;pending=schedule.begin(at,false);yes(pending.date.equals("2026-10-25"));schedule.failed(pending,at+1,"MATERIAL_LOCAL_BUDGET");yes(schedule.status().capacity&&schedule.status().message.contains("256"));
+   }
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    yes(schedule.status().loaded==1&&schedule.status().indexed==12&&schedule.status().capacity);yes(schedule.begin(at+31000,false)==null);
+    schedule.include(YearMonth.of(2020,1),at+31000);MaterialHistorySchedule.Plan older=schedule.begin(at+31000,false);yes(older!=null&&older.calendar()&&older.month.equals("2020-01")); // Full text capacity does not block index discovery.
+   }
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OTHER.binding)){yes(schedule.status().months==0&&schedule.status().loaded==0&&!schedule.status().capacity);yes(schedule.begin(now,false)!=null);}
+  }
+  try(Fixture f=new Fixture();MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+   long at=now;for(int i=0;i<12;i++){MaterialHistorySchedule.Plan p=schedule.begin(at,false);yes(p!=null&&p.calendar());schedule.indexed(p,index(OWNER.binding,p.month,Collections.emptyList()),at+1);at+=31000;}
+   yes(schedule.begin(at,false)==null&&schedule.status().indexed==12&&schedule.status().message.contains("当前范围"));
+   schedule.include(YearMonth.of(2020,1),at);schedule.include(YearMonth.of(2027,1),at);yes(schedule.status().months==13);
+   MaterialHistorySchedule.Plan older=schedule.begin(at,false);yes(older!=null&&older.month.equals("2020-01"));schedule.failed(older,at+1,"SYNTHETIC_CALENDAR_UNAVAILABLE");
+   yes(schedule.begin(at+31000,false)==null);MaterialHistorySchedule.Plan retry=schedule.begin(at+900001,false);yes(retry!=null&&retry.month.equals("2020-01"));schedule.failed(retry,at+900002,"SYNTHETIC_CALENDAR_UNAVAILABLE");yes(schedule.begin(at+930002,false)==null);yes(schedule.begin(at+930002,true)==null);
+  }
+ }
+ static void partialHistory()throws Exception{
+  long now=Instant.parse("2026-10-29T02:00:00Z").toEpochMilli(),at=now;
+  try(Fixture f=new Fixture()){
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    MaterialHistorySchedule.Plan p=schedule.begin(at,false);schedule.indexed(p,index(OWNER.binding,p.month,Arrays.asList("2026-10-25","2026-10-28")),at+1);
+    for(int i=0;i<11;i++){at+=31000;p=schedule.begin(at,false);yes(p!=null&&p.calendar()&&!p.month.equals("2026-10"));schedule.failed(p,at+1,"LIFELOG_CALENDAR_COVERAGE_INCOMPLETE");}
+    yes(schedule.status().indexed==1&&schedule.status().unverified==11&&schedule.status().days==2&&schedule.status().loaded==0);
+    yes(schedule.status().message.contains("部分月份未核实")&&!schedule.status().message.contains("联网"));
+   }
+   // Per-month cooldown survives a restart; known dates do not wait for it.
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    at+=31000;MaterialHistorySchedule.Plan day=schedule.begin(at,false);yes(day!=null&&day.date.equals("2026-10-28"));schedule.loaded(day,at+1);
+    at+=31000;day=schedule.begin(at,false);yes(day!=null&&day.date.equals("2026-10-25"));schedule.loaded(day,at+1);yes(schedule.status().loaded==2&&schedule.status().indexed==1);
+    yes(schedule.begin(at+31000,true)==null);MaterialHistorySchedule.Plan retry=schedule.begin(now+1000000,false);yes(retry!=null&&retry.calendar()&&retry.month.equals("2026-09"));
+    schedule.indexed(retry,index(OWNER.binding,retry.month,Collections.emptyList()),now+1000001);yes(schedule.status().indexed==2&&schedule.status().unverified==10&&schedule.status().loaded==2);
+    schedule.include(YearMonth.of(2020,1),now+1000001);MaterialHistorySchedule.Plan capacity=schedule.begin(now+1031002,false);schedule.failed(capacity,now+1031003,"MATERIAL_LOCAL_BUDGET");yes(schedule.status().capacity);
+    MaterialHistorySchedule.Plan unrelated=schedule.begin(now+1062004,false);yes(unrelated!=null&&unrelated.calendar());schedule.failed(unrelated,now+1062005,"LIFELOG_CALENDAR_COVERAGE_INCOMPLETE");yes(schedule.status().capacity);
+   }
+  }
+  // Upgrade the exact dev155 failure shape: October's verified dates remain,
+  // September alone receives the old cooldown, and other months can continue.
+  try(Fixture f=new Fixture()){
+   File file=new File(f.files,"material-accounts/"+OWNER.binding+"/history-load/state.json");List<Object> rows=new ArrayList<>();
+   for(int i=0;i<12;i++){String month=YearMonth.of(2026,10).minusMonths(i).toString();rows.add(WireJson.object("month",month,"checked",i==0?now-60000:0,"dates",i==0?Arrays.asList("2026-10-25","2026-10-28"):Collections.emptyList(),"loaded",i==0?Arrays.asList("2026-10-25"):Collections.emptyList()));}
+   try(AtomicDocument journal=new AtomicDocument(file,524288)){journal.save(WireJson.object("schema",1,"account",OWNER.binding,"attempt",now,"next",now+480000,"failures",5,"capacity",false,"error","LIFELOG_CALENDAR_COVERAGE_INCOMPLETE","months",rows));}
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+    yes(schedule.status().indexed==1&&schedule.status().loaded==1&&schedule.status().unverified==11);MaterialHistorySchedule.Plan next=schedule.begin(now+31000,false);yes(next!=null&&next.calendar()&&next.month.equals("2026-08"));
+   }
+   try(AtomicDocument journal=new AtomicDocument(file,524288)){Map<String,Object> saved=WireJson.map(journal.read());yes(Long.valueOf(2).equals(saved.get("schema")));List<Object> persisted=WireJson.list(saved.get("months"));Map<String,Object> september=null;for(Object row:persisted){Map<String,Object> month=WireJson.map(row);if(month.get("month").equals("2026-09"))september=month;}yes(september!=null&&Long.valueOf(now+900000).equals(september.get("retry_after"))&&"LIFELOG_CALENDAR_COVERAGE_INCOMPLETE".equals(september.get("error")));}
+   try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==1&&schedule.status().indexed==1&&schedule.status().unverified==11);}
+  }
+ }
+ static long historyIndexed(Fixture f,long now)throws Exception{for(int i=0;i<12;i++)history(f,now+i*31000).get(3,TimeUnit.SECONDS);return now+12*31000;}
+ static void historyRuntime()throws Exception{
+  TimeZone old=TimeZone.getDefault();TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));long now=System.currentTimeMillis();
+  try{
+   // History belongs to the signed-in source account, not optional uploads.
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=null;long dayAt=historyIndexed(f,now);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==0);noUpload();
+    history(f,dayAt).get(3,TimeUnit.SECONDS);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==2&&Host107LifelogHttp.fulls==1);yes(local(f,OWNER.binding).days.size()==1);noUpload();
+    try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==1&&schedule.status().indexed==12);}
+    yes(f.runtime.historyStatus(OWNER.binding).contains("12 个月")&&!f.runtime.historyStatus(OTHER.binding).contains("已检查"));
+   }
+   // Real parser failure from eleven incomplete responses cannot hold the
+   // verified October dates behind the failed September request.
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=null;YearMonth current=YearMonth.from(Instant.ofEpochMilli(now).atZone(ZoneId.of("Asia/Shanghai")));for(int i=1;i<12;i++)Host107LifelogHttp.partialMonths.add(current.minusMonths(i).toString());
+    long dayAt=historyIndexed(f,now);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==0);
+    history(f,dayAt).get(3,TimeUnit.SECONDS);history(f,dayAt+31000).get(3,TimeUnit.SECONDS);yes(Host107LifelogHttp.lists==4&&local(f,OWNER.binding).days.size()==2);
+    try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().indexed==1&&schedule.status().unverified==11&&schedule.status().loaded==2);yes(schedule.status().message.contains("部分月份未核实")&&!schedule.status().message.contains("联网"));}noUpload();
+   }
+   // Foreground ownership cancels an in-flight day before persistence.
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=null;long dayAt=historyIndexed(f,now);Host107LifelogHttp.entered=new CountDownLatch(1);Host107LifelogHttp.release=new CountDownLatch(1);
+    Future<?> background=history(f,dayAt);yes(Host107LifelogHttp.entered.await(2,TimeUnit.SECONDS));Catalog front=new Catalog();f.runtime.catalog(front);Host107LifelogHttp.release.countDown();background.get(3,TimeUnit.SECONDS);f.finish(front);good(front);yes(front.value.catalog.entries.isEmpty()&&Host107LifelogHttp.disabled>0);
+    try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==0&&!schedule.status().capacity);}noUpload();
+   }
+   // A queued foreground catalog wins even before the background starts.
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=null;Catalog front=new Catalog();f.runtime.catalog(front);history(f,now).get(3,TimeUnit.SECONDS);f.finish(front);good(front);yes(Host107LifelogHttp.calendars==0);noUpload();
+   }
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=config("a",false,now+600000);long dayAt=historyIndexed(f,now);Host107LifelogHttp.afterFull=()->Host107Login.current=OTHER;history(f,dayAt).get(3,TimeUnit.SECONDS);
+    yes(local(f,OWNER.binding).records.isEmpty()&&local(f,OTHER.binding).records.isEmpty());try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==0);}noUpload();
+   }
+   // Capacity never evicts old text or advances the pending date.
+   try(Fixture f=new Fixture()){
+    MaterialSettings.value=null;good(f.day("2026-10-23","Asia/Shanghai"));OfficialLifelogSnapshot.Source base=local(f,OWNER.binding).records.get(0).source;List<OfficialLifelogSnapshot.Source> records=new ArrayList<>();records.add(base);
+    for(int i=1;i<256;i++){Map<String,Object> value=WireJson.map(WireJson.read(base.original()));value.put("sourceId","capacity-"+i);records.add(OfficialLifelogSnapshot.original(WireJson.bytes(value)));}
+    try(MaterialLocalLibrary library=new MaterialLocalLibrary(f.files,OWNER.binding)){library.recordRead("2026-10-23","Asia/Shanghai",records,now,()->OWNER.binding);}byte[] before=localBytes(f,OWNER.binding);
+    long dayAt=historyIndexed(f,now+60000);Host107LifelogHttp.sourceId="beyond-capacity";history(f,dayAt).get(3,TimeUnit.SECONDS);yes(Arrays.equals(before,localBytes(f,OWNER.binding)));
+    try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().capacity&&schedule.status().loaded==0);}yes(f.runtime.historyStatus(OWNER.binding).contains("暂停"));noUpload();
+   }
+   TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles"));try(Fixture f=new Fixture()){MaterialSettings.value=null;history(f,now).get(3,TimeUnit.SECONDS);yes(Host107LifelogHttp.calendars==0&&f.runtime.historyStatus(OWNER.binding).contains("中国时区"));noUpload();}
+  }finally{TimeZone.setDefault(old);}
+ }
  static AudioConfig audioConfig(MaterialConfig material,boolean enabled,long expires)throws Exception{Map<String,Object> raw=WireJson.map(WireJson.read(material.connection.encode()));raw.put("format",AudioConnection.FORMAT);raw.put("expires_at",TaskWire.now(expires));return new AudioConfig(AudioConnection.parse(WireJson.bytes(raw),0),material.account,enabled);}
  static void audioRuntime()throws Exception{
   try(Fixture f=new Fixture()){AudioDone read=new AudioDone();f.runtime.readAudio(read);f.finish(read);yes(read.error.isEmpty()&&read.value.config==null&&read.value.status.rows.isEmpty()&&AudioHttp.created==0);}
@@ -309,6 +420,7 @@ public final class MaterialMonthRuntimeTest {
  }
  public static void main(String[] args)throws Exception{
   root=new File(args[0]);
+  if(args.length>1&&args[1].equals("history")){dayReads();readingLatency();historySchedule();partialHistory();historyRuntime();System.out.println("Material month runtime: "+checks+" checks passed; real Runtime and month core, synthetic Android/IO boundaries");return;}
   // Catalog reads use the real serialized runtime and queue, reject another
   // account before revealing text, and permit local reading after upload expiry.
   try(Fixture f=new Fixture()){MaterialSettings.value=config("a",false,System.currentTimeMillis()-1000);Catalog result=new Catalog();f.runtime.catalog(result);f.finish(result);yes(result.calls==1&&result.error.isEmpty()&&result.value.catalog.account.equals(OWNER.binding));yes(result.value.catalog.entries.isEmpty()&&MaterialHttp.created==0);}
@@ -355,7 +467,7 @@ public final class MaterialMonthRuntimeTest {
   // The two existing entry points retain their original source routing.
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.sync(done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("fresh")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&OfficialLifelogBatch.reads==1&&OfficialLifelogRefresh.refreshes==1&&Host107LifelogHttp.discoveryCalls==0);}
   try(Fixture f=new Fixture()){Done done=new Done();f.runtime.syncDay("2026-10-10","Asia/Shanghai",done);f.idle();f.deliver();yes(done.error.isEmpty()&&MaterialSyncSession.kind.equals("discovery")&&MaterialSyncSession.completed==1);yes(Host107LifelogHttp.calendars==0&&Host107LifelogHttp.selected.size()==1&&Host107LifelogHttp.selected.get(0).date.equals("2026-10-10"));}
-  dayReads();autoSync();foregroundCatalogPriority();readingLatency();autoSchedule();audioRuntime();
+  dayReads();autoSync();foregroundCatalogPriority();readingLatency();autoSchedule();historySchedule();partialHistory();historyRuntime();audioRuntime();
   System.out.println("Material month runtime: "+checks+" checks passed; real Runtime and month core, synthetic Android/IO boundaries");
  }
 }
@@ -368,12 +480,14 @@ final class MaterialSettings{static volatile MaterialConfig value;static String 
 final class Host107LifelogHttp implements AutoCloseable,OfficialLifelogDiscovery.Transport{
  static int calendars,closed,discoveryCalls,lists,fulls;static volatile int disabled;
  static List<OfficialLifelogInventory.Request> selected;static CountDownLatch entered,release;
- static String eventId,sourceId,content,fail;static boolean grow,empty,changeMembership;static Runnable afterFull;
+ static String eventId,sourceId,content,fail;static Set<String> partialMonths;static boolean grow,empty,changeMembership;static Runnable afterFull;
  final MaterialSyncSession.Guard guard;final String timezone;boolean firstList=true;
  Host107LifelogHttp(android.content.Context app,OfficialAccountBinding owner,MaterialSyncSession.Guard guard){this(app,owner,guard,"Asia/Shanghai");}
  Host107LifelogHttp(android.content.Context app,OfficialAccountBinding owner,MaterialSyncSession.Guard guard,String timezone){this.guard=guard;this.timezone=timezone;}
- static void reset(){calendars=closed=disabled=discoveryCalls=lists=fulls=0;selected=new ArrayList<>();entered=release=null;eventId="synthetic-event";sourceId="synthetic-source";content="合成当天智记。\n保留完整条件 😀";fail="";grow=empty=changeMembership=false;afterFull=null;}
- byte[] calendar(OfficialLifelogCalendarRequest request)throws Exception{guard.check();calendars++;return MaterialMonthRuntimeTest.calendar();}
+ static void reset(){calendars=closed=disabled=discoveryCalls=lists=fulls=0;selected=new ArrayList<>();partialMonths=new HashSet<>();entered=release=null;eventId="synthetic-event";sourceId="synthetic-source";content="合成当天智记。\n保留完整条件 😀";fail="";grow=empty=changeMembership=false;afterFull=null;}
+ byte[] latestJournals()throws Exception{guard.check();return WireJson.bytes(WireJson.object("code",0,"data",Collections.emptyList()));}
+ byte[] deleteEvent(String id)throws Exception{guard.check();throw new IOException("TEST_DELETE_NOT_AUTHORIZED");}
+ byte[] calendar(OfficialLifelogCalendarRequest request)throws Exception{guard.check();calendars++;if(fail.equals("calendar"))throw new IOException("SYNTHETIC_CALENDAR_UNAVAILABLE");if(partialMonths.contains(request.month().toString()))return WireJson.bytes(WireJson.object("code",0,"data",WireJson.object("dailyLifelogList",Collections.emptyList())));return MaterialMonthRuntimeTest.calendar(request.month().toString(),request.month().toString().equals("2026-10")?MaterialMonthRuntimeTest.first(8):Collections.emptyList());}
  public byte[] list(OfficialLifelogInventory.Request request)throws Exception{
   if(firstList){discoveryCalls++;firstList=false;}if(selected.stream().noneMatch(q->q.path.equals(request.path)))selected.add(request);lists++;
   if(entered!=null){entered.countDown();if(!release.await(2,TimeUnit.SECONDS))throw new IOException("TEST_RELEASE_MISSING");}
@@ -413,3 +527,8 @@ final class OfficialHiveCache{static int reads;static Object read(File file){rea
 final class AudioSettings{static volatile AudioConfig value;AudioSettings(android.content.Context app){}AudioConfig load(){return value;}interface Guard{void check()throws IOException;}void save(AudioConfig config)throws IOException{save(config,()->{});}void save(AudioConfig config,Guard guard)throws IOException{guard.check();if(value!=null)value.replaceAllowed(config);value=config;guard.check();}}
 final class AudioHttp implements MaterialApi.Transport{static int created,exchanges,posts;static Runnable after;static CountDownLatch entered,release;final AudioConnection config;volatile boolean disabled;AudioHttp(AudioConnection config){this.config=config;created++;}void disable(){disabled=true;}public void cancel(){disable();}public MaterialApi.Response exchange(String path,byte[] body)throws IOException{if(disabled)throw new IOException("AUDIO_PAUSED");if(entered!=null){entered.countDown();try{if(!release.await(3,TimeUnit.SECONDS))throw new IOException("TEST_AUDIO_RELEASE_MISSING");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IOException("TEST_INTERRUPTED");}}if(disabled)throw new IOException("AUDIO_PAUSED");exchanges++;if(body!=null)posts++;if(!path.equals("/identity"))throw new IOException("SYNTHETIC_AUDIO_ROUTE_NOT_PREPARED");byte[] response=WireJson.bytes(WireJson.object("schema_version","1.0","owner_id",config.owner,"producer_id",config.producer,"server_id",config.server,"expires_at",TaskWire.now(config.expiresAt),"scopes",Arrays.asList("audio:write"),"capabilities",Arrays.asList("audio_archive_v1")));if(after!=null)after.run();return new MaterialApi.Response(200,response,0);}}
 final class LifelogAudioRuntime{static void sources(String account,List<OfficialLifelogSnapshot.Source> sources){}static CompletableFuture<AudioSyncSession.Catalog> catalogForUpload(String account){try{return CompletableFuture.completedFuture(new AudioSyncSession.Catalog(account,Collections.emptyList(),Collections.emptyList()));}catch(IOException e){CompletableFuture<AudioSyncSession.Catalog> f=new CompletableFuture<>();f.completeExceptionally(e);return f;}}}
+
+final class DailySummarySync {
+ static MaterialSyncSession.Status status(File root,MaterialConfig config){return new MaterialSyncSession.Status();}
+ static MaterialSyncSession.Status run(File root,MaterialConfig config,List<DailySummary> summaries,Set<String> dates,MaterialSyncSession.Guard guard,MaterialApi.Transport transport)throws Exception{throw new AssertionError("Local history must not call summary upload");}
+}

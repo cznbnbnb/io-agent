@@ -29,6 +29,16 @@ public final class TaskDeviceTest {
   fails(()->TaskDevice.issued(reply(TOKEN,"agent-11111111",DEVICE,"agent","2026-10-25T06:00:00.000Z","2026-10-24T18:00:00.000Z"),TaskDevice.BASE,null,NOW),"TASK_DEVICE_INVALID");
   fails(()->TaskDevice.issued(reply(TOKEN,"phone-11111111",DEVICE,"phone","2026-10-24T05:00:00.000Z","2026-10-24T04:00:00.000Z"),TaskDevice.BASE,null,NOW),"TASK_IMPORT_EXPIRED");
   fails(()->TaskDevice.issued(reply(TOKEN,"phone-11111111",DEVICE,"phone","2026-10-25T06:00:00.000Z","2026-10-25T07:00:00.000Z"),TaskDevice.BASE,null,NOW),"TASK_DEVICE_INVALID");
+  // A delayed response never extends a primary phone lease. Secondary/transition
+  // replies cannot grant one, and account/device substitutions fail at parsing.
+  String account="a".repeat(64);
+  Map<String,Object> presence=WireJson.object("schema_version","1.0","server_id",d.server,"owner_id",d.owner,"device_id",d.deviceId,"account_binding",account,"primary_device_id",d.deviceId,"revision",1L,"notice_after_seq",0L,"lease_ms",20000L,"wait_ms",0L,"phones",Arrays.asList(WireJson.object("device_id",d.deviceId,"label","手机","revoked",false)));
+  PhonePresence primary=new PhonePresence(WireJson.bytes(presence),d,account,1000);
+  yes(primary.allowed(1000));yes(primary.allowed(20999));yes(!primary.allowed(21000));yes(!primary.allowed(30000));
+  Map<String,Object> wrong=WireJson.map(WireJson.copy(presence));wrong.put("account_binding","b".repeat(64));fails(()->new PhonePresence(WireJson.bytes(wrong),d,account,1000),"PHONE_IDENTITY_MISMATCH");
+  presence.put("lease_ms",0L);presence.put("wait_ms",20000L);yes(!new PhonePresence(WireJson.bytes(presence),d,account,1000).allowed(1000));
+  presence.put("lease_ms",20000L);fails(()->new PhonePresence(WireJson.bytes(presence),d,account,1000),"PHONE_RESPONSE_INVALID");
+  presence.put("wait_ms",0L);presence.put("lease_ms",21000L);fails(()->new PhonePresence(WireJson.bytes(presence),d,account,1000),"PHONE_RESPONSE_INVALID");
   // Renewal is due after refresh_after, keeps the device, cursor and derived bindings, swaps the token.
   yes(!d.renewDue(NOW));yes(d.renewDue(d.refreshAt));yes(!d.renewDue(d.expiresAt));
   TaskDevice withCursor=d.withCursor("cursor-1");

@@ -9,7 +9,7 @@ import java.util.*;
 
 /** Registered-context inbox. A default target never changes an existing answer's binding. */
 final class TaskWorkspace {
- static String label(String code){switch(code){
+ static String label(String code){if("PHONE_ACCOUNT_MISMATCH".equals(code))return "当前登录账号与手机配对不同，请切回原账号后恢复";if("PRIMARY_PHONE_CHANGED".equals(code))return "主手机已被另一台设备更改，请刷新后重试";if("PRIMARY_PHONE_REQUIRED".equals(code))return "请在设置中将这台设为主手机后操作眼镜";switch(code){
   case "PAIRING_CODE_INVALID":return "配对码无效、已用过或已过期，请在电脑上重新生成";
   case "PAIRING_RATE_LIMITED":return "配对尝试太多，请 10 分钟后再试";
   case "PAIRING_REVOKED":case "PAIRING_EXPIRED":return "配对已失效，请在电脑上生成新的配对码后重新配对";

@@ -10,6 +10,7 @@ import java.util.*;
 /** Connection controls stay in detail. Selecting a default never retargets an answer. */
 final class AgentConnectionsPage {
  static void show(Activity activity){TaskNames.init(activity);new Page(activity,"list",null).open();}
+ static void phones(Activity activity){new Page(activity,"phones",null).open();}
  static void defaults(Activity activity){new Page(activity,"defaults",null).open();}
  private static void detail(Activity activity,String binding){new Page(activity,"detail",binding).open();}
 
@@ -19,7 +20,7 @@ final class AgentConnectionsPage {
   final TaskRuntime.Result observer=this::accept;
   Page(Activity activity,String mode,String binding){
    this.activity=activity;this.mode=mode;this.binding=binding;runtime=TaskRuntime.get(activity);
-   screen=new AgentUI.Screen(activity,"defaults".equals(mode)?"默认 Agent 与工作区":"detail".equals(mode)?"连接详情":"电脑连接");
+   screen=new AgentUI.Screen(activity,"phones".equals(mode)?"手机与换机":"defaults".equals(mode)?"默认 Agent 与工作区":"detail".equals(mode)?"连接详情":"电脑连接");
   }
   void open(){
    screen.body.addView(AgentUI.text(activity,"正在读取已登记连接…",15,AgentUI.MUTED));
@@ -41,7 +42,7 @@ final class AgentConnectionsPage {
   void render(){
    int y=screen.scroll.getScrollY();screen.body.removeAllViews();screen.dock.removeAllViews();
    if(!feedback.isEmpty())screen.body.addView(AgentUI.text(activity,feedback,14,AgentUI.ACCENT));
-   if("defaults".equals(mode))renderDefaults();else if("detail".equals(mode))renderDetail();else renderList();
+   if("phones".equals(mode))renderPhones();else if("defaults".equals(mode))renderDefaults();else if("detail".equals(mode))renderDetail();else renderList();
    screen.scroll.post(()->{if(visible())screen.scroll.scrollTo(0,y);});
   }
   void register(String source){new TaskConnectionUI(activity,()->runtime.reload((state,error)->done(state,error,"连接已保存。")),source).show();}
@@ -50,9 +51,9 @@ final class AgentConnectionsPage {
   void pairingCard(){
    LinearLayout card=AgentUI.card(activity,screen.body);
    if(snapshot.device.isEmpty()){
-    card.addView(AgentUI.text(activity,"手机配对",17,AgentUI.INK));
-    card.addView(AgentUI.text(activity,"在电脑上运行 device.mjs pair-phone 得到配对码，输入一次即可；之后电脑上的 Agent 会话会自动出现在这里，无需再导入登记文件。",14,AgentUI.MUTED));
-    AgentUI.button(activity,card,"输入配对码",true,this::askCode);
+    card.addView(AgentUI.text(activity,"恢复账号连接",17,AgentUI.INK));
+    card.addView(AgentUI.text(activity,"换手机时，在已配对电脑上生成一次性恢复码。恢复同账号的 Agent 与默认工作区，无需逐个重绑。",14,AgentUI.MUTED));
+    AgentUI.button(activity,card,"输入恢复码",true,this::askCode);
    }else{
     // One compact row: who is paired and until when, with unpairing as a quiet link rather than a full-width button.
     String[] lines=snapshot.device.split("\n",2);LinearLayout row=new LinearLayout(activity);row.setGravity(Gravity.CENTER_VERTICAL);LinearLayout who=new LinearLayout(activity);who.setOrientation(LinearLayout.VERTICAL);
@@ -61,15 +62,23 @@ final class AgentConnectionsPage {
     if(!snapshot.pairing.isEmpty())card.addView(AgentUI.text(activity,snapshot.pairing.equals("PAIRING_REVOKED")||snapshot.pairing.equals("PAIRING_EXPIRED")?"配对已失效，请在电脑上生成新的配对码后重新配对":"配对同步暂时失败："+TaskWorkspace.label(snapshot.pairing),14,AgentUI.ACCENT));
     unpair.setOnClickListener(v->AgentUI.confirm(activity,"解除这台手机的配对？","服务器会作废这台手机的凭据，自动出现的会话连接会暂停；已有任务和回复记录继续保留。",()->{busy=true;runtime.unpairDevice((state,error)->done(state,error,"已解除配对。"));}));
    }
+   if(!"phones".equals(mode))AgentUI.button(activity,card,"手机与换机",false,()->phones(activity));
    AgentUI.gap(activity,screen.body,12);
+  }
+  void renderPhones(){
+   pairingCard();screen.body.addView(AgentUI.text(activity,"仅主手机自动向眼镜投送问题、提醒与待办。其他手机保留资料，不会重复投送。",14,AgentUI.MUTED));
+   PhonePresence p=snapshot.phone;if(p==null){screen.body.addView(AgentUI.text(activity,snapshot.device.isEmpty()?"让已配对电脑上的 Agent 生成手机恢复码，10 分钟内有效。":"正在核对主手机状态，请稍候或重新打开此页。",14,AgentUI.MUTED));return;}
+   AgentUI.gap(activity,screen.body,16);LinearLayout list=AgentUI.card(activity,screen.body);for(PhonePresence.Phone phone:p.phones){if(phone.revoked)continue;AgentUI.row(activity,list,phone.label,phone.id.equals(p.device)?"这台手机":"已授权手机",phone.id.equals(p.primary)?"主手机":"",null);AgentUI.divider(activity,list);}
+   if(!p.primary.equals(p.device)){TextView button=AgentUI.button(activity,screen.dock,"设为主手机",true,()->AgentUI.confirm(activity,"将这台设为主手机？","旧手机停止自动投送，已有资料和电脑配对保留。切换最多等待 20 秒。",()->{busy=true;feedback="正在切换主手机…";render();runtime.makePrimary(p.revision,(state,error)->done(state,error,"已保存主手机选择，旧手机退出后自动接手。"));}));button.setEnabled(!busy);}
+   else screen.body.addView(AgentUI.text(activity,p.waitMillis>0?"正在切换，旧手机退出后自动接手（最多 20 秒）。":"这台手机接收眼镜投送。换机不改变默认 Agent 与工作区。",14,AgentUI.ACCENT));
   }
   void askCode(){
    android.widget.EditText edit=AgentUI.input(activity);edit.setHint("XXXXX-XXXXX");edit.setSingleLine(true);
    // Visible-password variation keeps Chinese IMEs in plain ASCII mode (pinyin composition ate the code).
    edit.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);edit.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.AllCaps(),new android.text.InputFilter.LengthFilter(16)});
-   AgentUI.alert(activity).setTitle("输入配对码").setMessage("配对码 10 分钟内有效，只能用一次。").setView(edit).setNegativeButton("取消",null)
-    .setPositiveButton("配对",(dialog,which)->{String code=edit.getText().toString();try{TaskDevice.code(code);}catch(IllegalArgumentException invalid){feedback="配对码格式不对，应为 10 位字母数字";redraw();return;}
-     busy=true;feedback="正在配对…";redraw();runtime.pair(code,(state,error)->done(state,error,"配对成功。电脑上的 Agent 会话会自动出现在这里。"));}).show();
+   AgentUI.alert(activity).setTitle("输入手机恢复码").setMessage("由已配对电脑生成，10 分钟内有效。恢复当前账号的连接，不会逐个重新绑定 Agent。").setView(edit).setNegativeButton("取消",null)
+    .setPositiveButton("恢复连接",(dialog,which)->{String code=edit.getText().toString();try{TaskDevice.code(code);}catch(IllegalArgumentException invalid){feedback="配对码格式不对，应为 10 位字母数字";redraw();return;}
+     busy=true;feedback="正在恢复连接…";redraw();runtime.pair(code,(state,error)->done(state,error,"已恢复同账号连接。请在“手机与换机”中将这台设为主手机。"));}).show();
   }
   /** Sessions grouped by whether they can take work now: online first, offline and expired folded. */
   void renderList(){

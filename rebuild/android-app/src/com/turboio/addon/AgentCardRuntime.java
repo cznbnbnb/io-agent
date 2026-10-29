@@ -75,7 +75,7 @@ final class AgentCardRuntime {
  }
  static boolean voiceHandoffReady(String binding,String request){
   main();AgentCardRuntime r=instance;
-  return r!=null&&r.phoneFocus.contains(focusKey(binding,request))&&!r.fetching&&!r.checkingShow&&!r.answerBusy&&!r.pumping&&r.preflight==null&&!r.localLease&&r.queued.get()==0&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&(!r.session.cardMayExist()||r.session.closure()!=null)&&HeadGestureRuntime.voiceHandoffReady();
+  return TaskRuntime.glassesAllowed()&&r!=null&&r.phoneFocus.contains(focusKey(binding,request))&&!r.fetching&&!r.checkingShow&&!r.answerBusy&&!r.pumping&&r.preflight==null&&!r.localLease&&r.queued.get()==0&&r.session.healthy()&&!r.session.pending()&&!r.session.working()&&(!r.session.cardMayExist()||r.session.closure()!=null)&&HeadGestureRuntime.voiceHandoffReady();
  }
  /** Shows a finished glasses-started dictation for confirmation; failure leaves saving on the phone. */
  static boolean offerConfirm(Activity host,String binding,String request,long revision,String text){main();AgentCardRuntime r=instance;if(r==null)return false;if(host!=null)r.activity=new WeakReference<>(host);return r.offer(binding,request,revision,true,text);}
@@ -85,7 +85,7 @@ final class AgentCardRuntime {
  private boolean visible(){return !foreground.isEmpty();}
  /** The App is on screen, or the wearer allowed answering with the screen off / App in background. */
  private boolean attended(){return visible()||TaskAttention.background();}
- private boolean usable(){return attended()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending();}
+ private boolean usable(){return TaskRuntime.glassesAllowed()&&attended()&&Host107Login.loggedIn()&&!FirmwareQueue.busy()&&!Fixed60OfficialRuntime.pending();}
  private TaskHub.View context(){AgentCardRequest r=session.request();return snapshot==null||r==null?null:snapshot.context(r.binding);}
  private boolean current(){AgentCardRequest r=session.request();TaskHub.View c=context();return r!=null&&c!=null&&c.profile.enabled&&r.matches(c.item("request",r.requestId),c.item("task",r.taskId),System.currentTimeMillis())&&(!hasAnswer(c,r.requestId,r.revision,r.operation())||session.hasSelection());}
  private static boolean hasAnswer(TaskHub.View c,String id,long revision,String except){
@@ -132,6 +132,7 @@ final class AgentCardRuntime {
  private void maybeNotice(){
   if(TaskAttention.active()||NewsTele.active()||NativeTransfer.busy())return;
   List<TaskNotice> candidates=TaskNoticeQueue.collect(snapshot.contexts);
+  if(snapshot.phone!=null)candidates.removeIf(n->n.sequence<=snapshot.phone.noticeAfter);
   long at=System.currentTimeMillis();TaskNotice notice=noticeQueue.select(candidates,offered,at);
   if(notice==null||NativeTransfer.connected().isEmpty()||!noticeQueue.claim(notice,at))return;
   nextAuto=now()+10000;
@@ -153,6 +154,7 @@ final class AgentCardRuntime {
  }
  /** Ordinary phone notification, mirrored to the lens by the host and dismissed there on its own (no long press). */
  private boolean postNotice(String title,String body,String tag,long timeout){
+  if(!TaskRuntime.glassesAllowed())return false;
   try{
    NotificationManager manager=app.getSystemService(NotificationManager.class);if(manager==null||!manager.areNotificationsEnabled())return false;
    if(manager.getNotificationChannel(NOTICE_CHANNEL)==null){NotificationChannel channel=new NotificationChannel(NOTICE_CHANNEL,"Agent 进度与提醒",NotificationManager.IMPORTANCE_DEFAULT);channel.setSound(null,null);channel.enableVibration(false);manager.createNotificationChannel(channel);}
@@ -189,13 +191,13 @@ final class AgentCardRuntime {
   NewsTele.cancelTask(owner.did);return false;
  }
  private boolean noticeAllowed(TaskPrompterNotice owner){
-  if(!enabled()||!attended()||cancelledPrompters.contains(owner.did))return false;
+  if(!TaskRuntime.glassesAllowed()||!enabled()||!attended()||cancelledPrompters.contains(owner.did))return false;
   if(owner.binding==null||snapshot==null)return true;TaskHub.View c=snapshot.context(owner.binding);
   return c!=null&&c.profile.enabled&&c.profile.connection.expiresAt>System.currentTimeMillis();
  }
  private TaskPrompterOwner prompter(){return TaskPrompterOwner.read(prefs.getString("prompter_owner","{}"));}
  private boolean prompterAllowed(TaskPrompterOwner owner,TaskRuntime.Snapshot state){
-  if(owner==null||cancelledPrompters.contains(owner.did)||state==null||!enabled()||!attended())return false;TaskHub.View c=state.context(owner.binding);if(c==null)return false;
+  if(!TaskRuntime.glassesAllowed()||owner==null||cancelledPrompters.contains(owner.did)||state==null||!enabled()||!attended())return false;TaskHub.View c=state.context(owner.binding);if(c==null)return false;
   Map<String,Object> request=c.item("request",owner.id),parent=request==null?null:c.item("task",(String)TaskWire.body(request).get("task_id"));
   return owner.allows(c.profile.connection,c.profile.enabled,request,parent,phoneFocus.contains(focusKey(owner.binding,owner.id)),hasAnswer(c,owner.id,owner.revision,null),System.currentTimeMillis());
  }
@@ -244,7 +246,7 @@ final class AgentCardRuntime {
    return new NewsTele.Adoption(null,notice.remaining(NativeTransfer.connected(),noticeAllowed(notice),System.currentTimeMillis()));
   }
   TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||!owner.peer.isEmpty()&&!owner.peer.equals(NativeTransfer.connected()))return null;
-  boolean live=!cancelledPrompters.contains(did)&&owner.live(System.currentTimeMillis())&&!owner.peer.isEmpty()&&enabled()&&attended()&&(snapshot==null||prompterAllowed(owner,snapshot));
+  boolean live=TaskRuntime.glassesAllowed()&&!cancelledPrompters.contains(did)&&owner.live(System.currentTimeMillis())&&!owner.peer.isEmpty()&&enabled()&&attended()&&(snapshot==null||prompterAllowed(owner,snapshot));
   message=live?"已接回重启前的眼镜提词器；退出后重新核对原问题":"正在清理重启前已失效的提词器";refresh();
   return new NewsTele.Adoption(live?()->openPrompterVoice(did):null,live?owner.until-System.currentTimeMillis():0);
  }
@@ -312,7 +314,7 @@ final class AgentCardRuntime {
  }
  private void pump(){
   main();if(pumping)return;pumping=true;
-  try{checkPrompter();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
+  try{if(!TaskRuntime.glassesAllowed()&&(session.pending()||preflight!=null))withdraw("当前手机没有投送许可，原问题保留在手机");checkPrompter();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
    if(preflight!=null){preflight.tick(link.peer,link.generation,now(),attended());if(preflight.phase().equals("READY")&&!preflight.working()){
      preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump),nodConfirm()&&session.request()!=null&&session.request().confirm!=null);if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
     }else if(!preflight.working()){message="眼镜状态检查未通过，请在手机回答";preflight=null;releaseLocal();session.cancelUnshown();}

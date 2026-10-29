@@ -111,3 +111,13 @@ node cz-iot-cli.mjs connector init --directory /absolute/private/connector
 工具权限由手机/眼镜选择“仅允许本次”或“拒绝本次”，不自动选择永久授权。通用 ACP 取消尚不能证明所有后台工作已停止，因此保持“停止未确认”，不承诺通用继续。本机 WorkBuddy 5.8.3 的内置 CLI 未完成 ACP 握手；官方独立 CodeBuddy CLI 2.177.0 已握手，创建会话需要登录，尚未完成真实执行。WorkBuddy 官方云端 ACP 另需要第三方应用授权，不包含在本包已验的本地 stdio 路径中。ACP 连接器已在 macOS 验证；Windows/Linux 端执行仍需分别验收。
 
 受管会话的每轮手机任务都会获得 `IO_AGENT_CLI_ARGS`，直接运行 `notify / ask / wait / status`。命令固定绑定原 task、route 和 native turn，不创建替代任务，不再依赖 Python。工具沙箱内只写本地工作区 `.io-agent-cli` 邮箱，常驻连接器负责联网；不扩大 Agent 网络/文件权限。已结束轮次的命令会拒绝，等待同一 request 不重复投题。Agent 仍自行决定是否按任务调用 CLI，未执行命令不能算已投送；服务器保存也不等于镜片实际显示。
+
+### 换手机恢复
+
+在已经配对的电脑上运行：
+
+```sh
+printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
+```
+
+新手机登录原账号，在「设置 → 手机与换机 → 输入恢复码」输入返回的一次性代码，然后选择「设为主手机」。代码10分钟有效，只能用一次；不用重绑每个Agent，不会撤销旧手机或改默认工作区。切换最多等20秒，旧进度不重播。此命令不需要当前session或Python；未配对电脑须先完成原有扫码/粘贴电脑配对。

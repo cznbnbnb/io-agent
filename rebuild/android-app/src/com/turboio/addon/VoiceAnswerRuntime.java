@@ -76,7 +76,7 @@ final class VoiceAnswerRuntime {
  private long begin(Result result){mainThread();if(action){android.util.Log.i("TurboIOVoice","runtime busy: earlier operation still open");if(result!=null)result.done(value,"VOICE_BUSY");return 0;}action=true;return ++actionId;}
  private static String error(Throwable e){String code=e.getMessage();return code!=null&&code.matches("[A-Z][A-Z0-9_]{1,63}")?code:"VOICE_RUNTIME_FAILED";}
  private void work(Attempt owner,Work work,Result result,long operation){io.execute(()->{String failure="";try{TaskWire.require(owner==active,"VOICE_TARGET_CHANGED");work.run();}catch(Exception e){failure=error(e);owner.note=failure;}refresh(owner,null);finish(operation,result,failure);});}
- private boolean handoff(Attempt a){return attended()&&Host107Login.loggedIn()&&AgentCardRuntime.voiceHandoffReady(a.binding,a.request)&&HeadGestureRuntime.voiceHandoffReady();}
+ private boolean handoff(Attempt a){return TaskRuntime.glassesAllowed()&&attended()&&Host107Login.loggedIn()&&AgentCardRuntime.voiceHandoffReady(a.binding,a.request)&&HeadGestureRuntime.voiceHandoffReady();}
  private boolean owns(Attempt a){return active==a;}
  private static String id(){return UUID.randomUUID().toString().replace("-","");}
  private File safe(String relative)throws IOException{
@@ -268,7 +268,7 @@ final class VoiceAnswerRuntime {
   }
  }
  private void closeUnstarted(Attempt a){try{if(a.engine!=null)releaseOwnedEngine(a,a.engine,a.decoder);else if(a.decoder!=null){a.decoder.close();a.releasedDecoder=a.decoder;}}catch(Exception ignored){}try{if(a.archive!=null)a.archive.close();}catch(Exception ignored){}}
- private void tick(Attempt a,VoiceAnswerCoordinator c){main.postDelayed(()->{if(!owns(a)||a.coordinator!=c||c.snapshot().released||(a.recovery&&a.releasedEngine==a.engine&&(a.decoder==null||a.releasedDecoder==a.decoder)))return;c.tick();tick(a,c);},500);}
+ private void tick(Attempt a,VoiceAnswerCoordinator c){main.postDelayed(()->{if(!owns(a)||a.coordinator!=c||c.snapshot().released||(a.recovery&&a.releasedEngine==a.engine&&(a.decoder==null||a.releasedDecoder==a.decoder)))return;if(!TaskRuntime.glassesAllowed())c.stop(false);c.tick();tick(a,c);},500);}
  private VoiceAnswerCoordinator.Device device(Attempt a){final Host107Recording owner=a.recording;final String token=a.token,peerHash=FixedPeerHash.of(a.peer);final long generation=a.generation;return new VoiceAnswerCoordinator.Device(){
   private void post(Work work){main.post(()->{if(!owns(a)||a.recovery||a.recording!=owner)return;try{work.run();}catch(Exception e){VoiceAnswerCoordinator c=a.coordinator;if(c!=null)c.fault(error(e));}});}
   public void begin(){post(()->{TaskWire.require(!a.abort&&handoff(a),"VOICE_START_NOT_READY");owner.begin();});}
