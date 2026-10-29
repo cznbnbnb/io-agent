@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "date": "2026-10-28",
+  "status": "code_complete_dev156_pending_device_connection",
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/phone-presence-release-1793244555268387394",
+    "source_sha256": {
+      "store.mjs": "c62946d153c22b643bac7061c5656a8fa6eb05c4de310c8d739d98c0747afeae",
+      "http.mjs": "432a09f79593518c937096083b7ba5dc18dfa1044ea39acca214366cc1325b38",
+      "devices.mjs": "46ff655266d31bd57241fca5f957f8c5f32759eaf99548badfe6c07b53208b48",
+      "todo-suggestions.mjs": "609ebd2be7a28e15fbc801ce3690de22d4562281ec670bdda977ce836d75307f",
+      "phone-presence.mjs": "76430963c483130fae8a3806807c4a068eeccf1a4479f8ab6527ca5069595282"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "5ed3f3e"
+  },
+  "installed_new_phone": {
+    "version": "0.5.3-dev155",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
+      "candidate_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+      "apk_bytes": 435075689,
+      "delta_bytes": 1958905,
+      "commands": 8141,
+      "delta_sha256": "57488f801852c9432fe313d522958fa0a5595a989c76a7673aa090a0899a0914",
+      "reconstruction_hash_verified": true
+    },
+    "installed_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+    "rollback": "0.5.3-dev154"
+  },
+  "candidate": {
+    "version": "0.5.3-dev156",
+    "version_code": 10578,
+    "sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+    "bytes": 435075689
+  },
+  "dev156_delta": {
+    "baseline_sha256": "71564f4943e336dc0b874873f1a33d4c4f9b87edd3a1de82fcc76727122bc194",
+    "candidate_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+    "apk_bytes": 435075689,
+    "delta_bytes": 1958905,
+    "commands": 8141,
+    "delta_sha256": "b114d86f6df0a2e4d1a8358b8a8dd65ca0d4cc6c800b583d39a364bbae4991d2",
+    "reconstruction_hash_verified": true
+  },
+  "device_checks": {
+    "same_owner_recovery_via_normal_app": true,
+    "phone_registrations_restored": 8,
+    "online_agents": [
+      "Codex",
+      "Claude Code"
+    ],
+    "prior_default_codex_restored": true,
+    "new_phone_primary_selected": true,
+    "old_phone_authorization_preserved": true,
+    "old_phone_usb_unavailable": true,
+    "old_phone_still_dev154": true,
+    "old_phone_cached_display_fence_not_verified": true,
+    "dev156_installed": false
+  },
+  "history": {
+    "dev155_actual_error": "LIFELOG_CALENDAR_COVERAGE_INCOMPLETE",
+    "actual_month": "2026-09",
+    "verified_months": 1,
+    "months": 12,
+    "known_dates": 9,
+    "loaded_before_fix": 0,
+    "fix": "independent per-month retry; schema1 migration; keep incomplete months unknown; continue known dates",
+    "local_assertions": 365,
+    "device_after_fix_verified": false,
+    "range": "recent 12 months plus explicitly browsed older months",
+    "capacity": "256 records / 4 MiB; pause with saved cursor; no eviction",
+    "timezone": "Asia/Shanghai calendar contract only",
+    "upload_transcripts_or_audio": false
+  },
+  "tests": {
+    "server_regression_tests": 42,
+    "device_parser_checks": 50,
+    "native_todo_runtime_checks": 131,
+    "card_assertions": 843,
+    "wire_hot_assertions": 50,
+    "wire_concurrent_cases": 8000,
+    "prompter_checks": 169,
+    "voice_assertions": 1960,
+    "navigation": "SDK29/33/36",
+    "portable_cli_recovery_without_session_or_python": true
+  },
+  "scope": {
+    "cloud_grants_changed": false,
+    "default_agent_changed": false,
+    "global_desktop_launcher_changed": false,
+    "user_materials_deleted": false,
+    "native_recording_commands_sent": false,
+    "old_phone_revoked": false,
+    "material_sync_settings_migrated": false,
+    "lens_observation_claimed": false
+  },
+  "cli_delivery": {
+    "source_commit": "a3239a7b7491936f6ad1c01880127d16cfc0fefe",
+    "zip_sha256": "10f90536738e6e83aecddb0988cf4f2cc7279f6d5311d9aa686a7f573e232efa",
+    "zip_bytes": 182189,
+    "zip_files": 50,
+    "installed_runtime_files_updated": 3,
+    "installed_command_help_verified": true,
+    "formal_services_restarted": false,
+    "payload_hashes_verified": 49
+  }
+}
