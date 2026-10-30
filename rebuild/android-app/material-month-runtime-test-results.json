@@ -1,20 +1,20 @@
 {
   "schema": 1,
-  "at": "2026-10-29T03:58:45.229Z",
+  "at": "2026-10-30T02:06:30.854Z",
   "scope": "Real history scheduler/runtime, account-local library, frontend priority and reading latency; synthetic Android/network/upload boundaries",
   "device": false,
   "network": false,
   "real_queue_or_server_tested": false,
   "passed": true,
-  "checks": 365,
+  "checks": 405,
   "sources": [
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "91a245135a3dc2ff2481181889c128190fd58a07b75160f85d5a59acb5688973"
+      "sha256": "14cc323b7c8fc08d9a465c9feef057b71ab565ba119ff61b11c8a7177aa815cc"
     },
     {
       "path": "src/com/turboio/addon/MaterialHistorySchedule.java",
-      "sha256": "b3806876c076ed2b3791afa6fd51e83c2c331ce3a676ddd275224e886cb86a6b"
+      "sha256": "406140454370cbaa8a9bab23c69167ba9dffd6e2a4c3774573bca9138d2edf54"
     },
     {
       "path": "src/com/turboio/addon/MaterialVisibility.java",
@@ -38,11 +38,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
-      "sha256": "d66d68f91844faf159051d39bcabaf3dd580477b46ce09bf4c4094bc4dc673e0"
+      "sha256": "22440b2c7bc8d3f75dcf8ee40cc6671614f83a7fc5bbed50660bac5a6f3398ae"
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "5e74d290c55c3808e0c4731c54ba687f6140b389e6e8e5c500dc7b6b3d8cf50d"
+      "sha256": "9b5d3701f04fd483416ac19cec9d394a6205de8f55fe413c94203331876a8162"
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
@@ -186,7 +186,7 @@
     },
     {
       "path": "../../tools/android/MaterialMonthRuntimeTest.java",
-      "sha256": "4fe832d0a573631268eb6d31d78565cafc1b4b23eac63feec856a96d521c0699"
+      "sha256": "28d4dc18c4bca8912947c0d95df812ec9a535aaf8b896da5bd5d1f05fc3aa8cf"
     },
     {
       "path": "../../tools/android/test-material-month-runtime.mjs",

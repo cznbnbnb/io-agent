@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "dev157_signed_candidate_device_install_waiting_for_normal_user_unlock",
+  "requirement": {
+    "background_body_window": "latest 3 source dates with lifelog data, skipping blank dates, across gaps and months",
+    "older_dates": "light calendar index only; body read on explicit date selection",
+    "calendar_index_range": "recent 12 months plus browsed older months; incomplete source months remain unverified",
+    "known_cached_history_retained": true,
+    "source_timezone_contract": "Asia/Shanghai; no silent rezone"
+  },
+  "cache": {
+    "index_schema": 2,
+    "history_schema": 3,
+    "body_files": "one immutable page per date/timezone; selected-day loading",
+    "legacy_v1_preserved_byte_for_byte": true,
+    "body_budget_per_date": {
+      "records": 256,
+      "original_bytes": 4194304
+    },
+    "old_account_wide_capacity_pause_migrated": true,
+    "oversized_day_does_not_block_other_dates_or_calendar": true
+  },
+  "candidate": {
+    "version": "0.5.3-dev157",
+    "version_code": 10579,
+    "sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+    "bytes": 435079785,
+    "signature_v2": true,
+    "signature_v3": true,
+    "installed": false
+  },
+  "delta": {
+    "baseline_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+    "candidate_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+    "apk_bytes": 435079785,
+    "delta_bytes": 1963001,
+    "commands": 8141,
+    "delta_sha256": "67047c8e91bd7ced8b8827d28344ad0fadeb766e60dec503bcac8b796b778910",
+    "reconstruction_hash_verified": true
+  },
+  "tests": {
+    "real_history_runtime_file_checks": 405,
+    "catalog_document_checks": 35,
+    "local_library_checks": 46,
+    "total_numeric_checks": 486,
+    "navigation": "existing SDK29/33/36 shared back/callback cleanup and swipe regression passed; not a claim of device week-strip verification",
+    "java_d8_source_count": 266,
+    "candidate_source_hashes_verified": true,
+    "official_host_dex_and_signature_audits": "passed",
+    "physical_device_test_passed": false,
+    "coverage": [
+      "sparse positive dates across months",
+      "empty authoritative day does not occupy a preload slot",
+      "oversized date does not block other dates",
+      "old schema2 capacity latch clears",
+      "v1 original/revisions retained after migration",
+      "300 cached records across three dates",
+      "selected date does not read unrelated corrupt cold body",
+      "explicit older cached day loads without HTTP"
+    ],
+    "runtime_test_evidence": "material-month-runtime-test-results.json",
+    "test_log_hashes": {
+      "io-three-day-library-tests.log": "2d530ba5ad666a9604771d9dbbaf155d8af13cfe42e0e2c5345f50877a5588c1",
+      "io-three-day-nav-tests.log": "be0fa132fa173ac5118742147e8ef2b3d0863da27829e54d219340367c4ab514"
+    }
+  },
+  "device": {
+    "wireless_identity_verified": true,
+    "installed_version": "0.5.3-dev156",
+    "installed_baseline_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+    "dev157_product_install_attempted": false,
+    "delta_transferred": false,
+    "normal_wake_and_dismiss_could_not_unlock": true,
+    "keyguard_showing": true,
+    "unlock_ui": [
+      "fingerprint",
+      "password"
+    ],
+    "own_probe_install_result": "INSTALL_FAILED_ABORTED: User rejected permissions",
+    "probe_installed": false,
+    "pending": [
+      "normal user unlock",
+      "delta install and final installed SHA",
+      "real v1 migration and history persistence",
+      "latest-positive-three background status",
+      "normal calendar dots, older day selection and preserved browse position"
+    ]
+  },
+  "scope": {
+    "cloud_grants_changed": false,
+    "default_agent_changed": false,
+    "desktop_launcher_changed": false,
+    "server_upload_scope_changed": false,
+    "audio_or_transcript_upload_added": false,
+    "agent_remote_phone_file_channel_added": false,
+    "user_materials_deleted": false,
+    "recording_commands_sent": false,
+    "untracked_delegate_sources_excluded_and_restored": true,
+    "other_agent_checkout_modified": false
+  },
+  "collaboration": {
+    "branch": "codex/agent-workspace-ui",
+    "claude_latest": "520ad23",
+    "claude_commits_already_contained": true
+  },
+  "retention": {
+    "candidate": "0.5.3-dev157",
+    "installed_new_phone": "0.5.3-dev156",
+    "old_phone_and_rollback": "0.5.3-dev154",
+    "temporary_three_apks_have_distinct_purposes": true,
+    "remove_dev156_only_after_successful_dev157_device_verification": true
+  },
+  "cleanup": {
+    "own_progress_watch_disabled": true,
+    "device_lock_released": true,
+    "remote_probe_apk_removed": true,
+    "formal_services_preserved": true
+  },
+  "progress": {
+    "checkpoint_key": "codex-dev157-three-nonempty-days-candidate-ready",
+    "message_id": "notice-9dfb301787366920366e3ed310ce44bd40f844382c4c338e698a804cfbef6e3e",
+    "server_stored": true,
+    "glasses_display_confirmed": false
+  }
+}

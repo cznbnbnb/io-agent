@@ -12,7 +12,9 @@ final class MaterialRuntime {
   final MaterialConfig config;final MaterialCatalog catalog;final MaterialLocalLibrary.Snapshot local;final String uploadError,autoError;
   /** Official summaries/outlines/trails; null when the local copy is unreadable. */
   final LifelogInsightStore.Snapshot insights;
-  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;this.insights=insights;}
+  final String date,timezone;
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights){this(config,catalog,local,uploadError,autoError,insights,"","");}
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights,String date,String timezone){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;this.insights=insights;this.date=date;this.timezone=timezone;}
  }
  static final class MonthSelection {
   final OfficialLifelogMonthDiscovery.Snapshot source;final String configFingerprint;private final long owner;
@@ -37,7 +39,7 @@ final class MaterialRuntime {
  }
  static synchronized MaterialRuntime get(Activity activity){if(instance==null)instance=new MaterialRuntime(activity);instance.foreground.add(activity);instance.visible=true;instance.prewarm();return instance;}
  static synchronized MaterialRuntime boot(Context context){if(instance==null)instance=new MaterialRuntime(context,null);return instance;}
- private void prewarm(){synchronized(guard){if(recentCatalog!=null||prewarming||foregroundCatalogs.get()>0)return;prewarming=true;}catalog((value,error)->{List<CatalogResult> waiting=new ArrayList<>(prewarmWaiters);prewarmWaiters.clear();synchronized(guard){prewarming=false;}for(CatalogResult waiter:waiting)waiter.done(value,error);});}
+ private void prewarm(){synchronized(guard){if(recentCatalog!=null||prewarming||foregroundCatalogs.get()>0)return;prewarming=true;}catalog(java.time.LocalDate.now().toString(),java.time.ZoneId.systemDefault().getId(),(value,error)->{List<CatalogResult> waiting=new ArrayList<>(prewarmWaiters);prewarmWaiters.clear();synchronized(guard){prewarming=false;}for(CatalogResult waiter:waiting)waiter.done(value,error);});}
  private final Runnable autoTick=new Runnable(){public void run(){wakeAuto(false);wakeHistory(false);main.postDelayed(this,30000);}};
  /** Calendar discovery has a verified China-time contract. Other zones keep
   * ordinary selected-day reads rather than silently shifting source dates. */
@@ -50,8 +52,9 @@ final class MaterialRuntime {
  String historyStatus(String account){
   if(!MaterialHistorySchedule.ZONE.equals(java.time.ZoneId.systemDefault().getId()))return "历史索引暂只支持中国时区，其他日期仍可点选读取。";
   if(account.equals(historyAccount)&&!historyError.isEmpty())return "历史资料暂缓加载，已保存内容保留，稍后自动重试。";
-  MaterialHistorySchedule.Status status=historyStatus;return status!=null&&status.account.equals(account)?status.message+" 范围：最近 12 个月及已浏览月份。":"历史资料将自动补齐最近 12 个月，仅保存到本机。";
+  MaterialHistorySchedule.Status status=historyStatus;return status!=null&&status.account.equals(account)?status.message+" 日历范围：最近 12 个月及已浏览月份。":"仅预载最近有智记的 3 天；更早日期显示标记，点选后加载。";
  }
+ Set<java.time.LocalDate> historyDates(String account){MaterialHistorySchedule.Status status=historyStatus;return MaterialHistorySchedule.ZONE.equals(java.time.ZoneId.systemDefault().getId())&&status!=null&&status.account.equals(account)?status.dates:Collections.emptySet();}
  void wakeHistory(boolean networkRecovered){
   final long observed;synchronized(guard){if(historyQueued)return;historyQueued=true;observed=generation;}
   io.execute(()->{try{historyRound(observed,networkRecovered,System.currentTimeMillis());}finally{synchronized(guard){historyQueued=false;}}});
@@ -71,9 +74,9 @@ final class MaterialRuntime {
      OfficialLifelogMonthDiscovery.Snapshot index=OfficialLifelogMonthDiscovery.read(login.binding,OfficialLifelogCalendarRequest.month(plan.month),MaterialHistorySchedule.ZONE,()->account(owner),()->check(owner),official::calendar);
      synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");schedule.indexed(plan,index,Math.max(now,System.currentTimeMillis()));}
     }else{
-     boolean retained;synchronized(guard){check(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),login.binding)){MaterialLocalLibrary.DayRead read=library.snapshot().day(plan.date,MaterialHistorySchedule.ZONE);retained=read!=null&&(!plan.date.equals(java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.of(MaterialHistorySchedule.ZONE)).toLocalDate().toString())||now>=read.readAt&&now-read.readAt<3600000);}}
-     if(!retained){OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(OfficialLifelogInventory.Request.day(plan.date,MaterialHistorySchedule.ZONE)),()->account(owner),official);retainDay(plan.date,MaterialHistorySchedule.ZONE,fresh,login,owner);recentCatalog=null;}
-     synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");schedule.loaded(plan,Math.max(now,System.currentTimeMillis()));}
+     boolean retained;synchronized(guard){check(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),login.binding)){MaterialLocalLibrary.DayRead read=library.day(plan.date,MaterialHistorySchedule.ZONE);retained=read!=null&&read.sourceCount>0&&(!plan.date.equals(java.time.Instant.ofEpochMilli(now).atZone(java.time.ZoneId.of(MaterialHistorySchedule.ZONE)).toLocalDate().toString())||now>=read.readAt&&now-read.readAt<3600000);}}
+     boolean hasData=retained;if(!retained){OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(OfficialLifelogInventory.Request.day(plan.date,MaterialHistorySchedule.ZONE)),()->account(owner),official);retainDay(plan.date,MaterialHistorySchedule.ZONE,fresh,login,owner);hasData=!fresh.sources.isEmpty();recentCatalog=null;}
+     synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");if(hasData)schedule.loaded(plan,Math.max(now,System.currentTimeMillis()));else schedule.empty(plan,Math.max(now,System.currentTimeMillis()));}
     }
    }catch(Exception failed){String code=safe(failed);if(owner==generation&&login.same(Host107Login.account()))schedule.failed(plan,Math.max(now,System.currentTimeMillis()),code);
    }finally{if(official!=null){official.close();synchronized(guard){if(officialTransport==official)officialTransport=null;}}historyStatus=schedule.status();synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}
@@ -128,7 +131,8 @@ final class MaterialRuntime {
  /** Browsing belongs to the official signed-in account, independently of an
   * optional remote upload connection. Read-only catalogs use the view lane;
   * source refreshes, uploads and configuration writes remain on serial IO. */
- private CatalogSnapshot loadCatalog(long owner)throws Exception{
+ private CatalogSnapshot loadCatalog(long owner)throws Exception{return loadCatalog(owner,"","");}
+ private CatalogSnapshot loadCatalog(long owner,String date,String timezone)throws Exception{
   checkView(owner);OfficialAccountBinding current=account(owner);MaterialConfig saved=null;String uploadError="";java.time.ZoneId zone=java.time.ZoneId.systemDefault();
   // Upload settings/receipts are optional views. Their failure must not hide
   // verified local records; account checks and local-library failures remain fatal.
@@ -138,13 +142,14 @@ final class MaterialRuntime {
   if(saved!=null&&!saved.account.equals(current.binding))saved=null;
   MaterialCatalog uploaded=MaterialCatalog.empty(current.binding,zone);
   if(saved!=null)try(MaterialOutbox outbox=new MaterialOutbox(MaterialStorage.prepare(app.getFilesDir(),saved),saved.connection)){uploaded=MaterialCatalog.fromRows(saved.account,saved.connection.producer,outbox.all(),zone);}catch(Exception failed){uploadError=safe(failed);uploaded=MaterialCatalog.empty(current.binding,zone);}
-  MaterialLocalLibrary.Snapshot local;synchronized(guard){checkView(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=library.snapshot();}}
+  MaterialLocalLibrary.Snapshot local;synchronized(guard){checkView(owner);try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),current.binding)){local=date.isEmpty()?library.snapshot():library.snapshot(date,timezone);}}
   // Insights only decorate the transcript list; a damaged copy never hides it.
   LifelogInsightStore.Snapshot insights=null;try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),current.binding)){insights=store.snapshot();}catch(Exception unreadable){insights=null;}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
   MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
-  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights);
+  Set<java.time.LocalDate> dates=new TreeSet<>(historyDates(current.binding));for(MaterialLocalLibrary.DayRead day:local.days)if(day.sourceCount>0&&day.timezone.equals(zone.getId()))dates.add(java.time.LocalDate.parse(day.date));catalog=MaterialCatalog.withDates(catalog,dates);
+  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
@@ -165,7 +170,8 @@ final class MaterialRuntime {
   CatalogCall(CatalogResult result,boolean takeOwnership){this.result=result;foregroundCatalogs.incrementAndGet();owner=takeOwnership?invalidate():generation;}
   public void done(CatalogSnapshot value,String error){if(!finished.compareAndSet(false,true))return;try{result.done(value,error);}finally{foregroundCatalogs.decrementAndGet();}}
  }
- void catalog(CatalogResult result){CatalogCall call;synchronized(guard){call=new CatalogCall(result,backgroundOwner==generation);}long owner=call.owner;viewIO.execute(()->{CatalogSnapshot found=null;String error="";try{found=loadCatalog(owner);}catch(Exception failed){error=safe(failed);}deliverCatalog(owner,found,error,call);});}
+ void catalog(CatalogResult result){catalog("","",result);}
+ void catalog(String date,String timezone,CatalogResult result){if(!date.isEmpty())OfficialLifelogInventory.Request.day(date,timezone);CatalogCall call;synchronized(guard){call=new CatalogCall(result,backgroundOwner==generation);}long owner=call.owner;viewIO.execute(()->{CatalogSnapshot found=null;String error="";try{found=loadCatalog(owner,date,timezone);}catch(Exception failed){error=safe(failed);}deliverCatalog(owner,found,error,call);});}
  /** A short-lived, immutable reading view. Revalidate the official account on
   * an independent lane so an HTTP request cannot hold an already-loaded page.
   * Settings, export and task admission keep using fresh state and their guards. */
@@ -173,6 +179,7 @@ final class MaterialRuntime {
   if(cached==null&&prewarming){prewarmWaiters.add(result);return;}if(cached==null||age<0||age>=60000||!cached.catalog.zone.equals(java.time.ZoneId.systemDefault())){catalog(result);return;}
   verifyCatalog(cached,result);
  }
+ void browse(String date,String timezone,CatalogResult result){CatalogSnapshot cached=recentCatalog;long age=android.os.SystemClock.elapsedRealtime()-recentCatalogAt;if(cached==null||!cached.date.equals(date)||!cached.timezone.equals(timezone)||age<0||age>=60000){catalog(date,timezone,result);return;}verifyCatalog(cached,result);}
  void verifyCatalog(CatalogSnapshot snapshot,CatalogResult result){CatalogCall call=new CatalogCall(result,false);long owner=call.owner;
   if(snapshot==null){call.done(null,"MATERIAL_UNAVAILABLE");return;}deliverCatalog(owner,snapshot,"",call);
  }
@@ -185,11 +192,11 @@ final class MaterialRuntime {
    official=new Host107LifelogHttp(app,login,()->check(owner),timezone);synchronized(guard){check(owner);officialTransport=official;}
    OfficialLifelogDiscovery.Snapshot fresh=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),official);
    retainDay(date,timezone,fresh,expected,owner);
-   found=loadCatalog(owner);
+   found=loadCatalog(owner,date,timezone);
   }catch(Exception failed){error=safe(failed);
    // A failed source refresh retains the previous verified snapshot. A changed
    // account/cancelled owner may never receive the previous account's content.
-   if(login!=null&&!"OFFICIAL_ACCOUNT_CHANGED".equals(error))try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");found=loadCatalog(owner);}catch(Exception stale){error=safe(stale);found=null;}
+   if(login!=null&&!"OFFICIAL_ACCOUNT_CHANGED".equals(error))try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");found=loadCatalog(owner,date,timezone);}catch(Exception stale){error=safe(stale);found=null;}
   }finally{if(official!=null){official.close();synchronized(guard){if(officialTransport==official)officialTransport=null;}}}
   deliverCatalog(owner,found,error,call);
  });return owner;}
@@ -208,7 +215,7 @@ final class MaterialRuntime {
    Map<String,Object> response=WireJson.map(WireJson.read(OfficialLifelogJson.read(http.deleteEvent(event.id)).canonical));MaterialWire.require(Long.valueOf(0).equals(response.get("code")),"LIFELOG_DELETE_REJECTED");MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
    // Re-read the complete selected day after the acknowledgement. A source may
    // belong to another event; deleting one event must never tombstone that source.
-   OfficialLifelogDiscovery.Snapshot after=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),http);retainDay(date,timezone,after,login,owner);recentCatalog=null;found=loadCatalog(owner);
+   OfficialLifelogDiscovery.Snapshot after=OfficialLifelogDiscovery.read(login.binding,Collections.singletonList(day),()->account(owner),http);retainDay(date,timezone,after,login,owner);recentCatalog=null;found=loadCatalog(owner,date,timezone);
   }catch(Exception failed){error=safe(failed);}finally{if(http!=null){http.close();synchronized(guard){if(officialTransport==http)officialTransport=null;}}}deliverCatalog(owner,found,error,call);});}
  /** A closed older page must never invalidate a newer read or sync owner. */
  void cancelRead(long owner){synchronized(guard){if(owner==generation)invalidate();}}

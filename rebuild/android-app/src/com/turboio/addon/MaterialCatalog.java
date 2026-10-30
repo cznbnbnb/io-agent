@@ -36,11 +36,13 @@ final class MaterialCatalog {
  final String account;final ZoneId zone;final List<Entry> entries;final Set<LocalDate> dates;
  final int stored,pending,attention,localOnly;final long lastStoredAt;private final Set<String> deleted;
  private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt){this(account,zone,entries,lastStoredAt,Collections.emptySet());}
- private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt,Set<String> deleted){
+ private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt,Set<String> deleted){this(account,zone,entries,lastStoredAt,deleted,Collections.emptySet());}
+ private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt,Set<String> deleted,Set<LocalDate> hints){
   this.account=account;this.zone=zone;this.entries=Collections.unmodifiableList(entries);this.lastStoredAt=lastStoredAt;
-  this.deleted=Collections.unmodifiableSet(new HashSet<>(deleted));Set<LocalDate> dates=new TreeSet<>();int stored=0,pending=0,attention=0,localOnly=0;for(Entry e:entries){dates.addAll(e.dates);if(e.state.equals("server_stored"))stored++;else if(e.state.equals("local_only")||e.state.equals("local_updated"))localOnly++;else if(e.state.equals("blocked")||e.state.equals("expired")||e.state.equals("reconcile"))attention++;else pending++;}
+  this.deleted=Collections.unmodifiableSet(new HashSet<>(deleted));Set<LocalDate> dates=new TreeSet<>(hints);int stored=0,pending=0,attention=0,localOnly=0;for(Entry e:entries){dates.addAll(e.dates);if(e.state.equals("server_stored"))stored++;else if(e.state.equals("local_only")||e.state.equals("local_updated"))localOnly++;else if(e.state.equals("blocked")||e.state.equals("expired")||e.state.equals("reconcile"))attention++;else pending++;}
   this.dates=Collections.unmodifiableSet(dates);this.stored=stored;this.pending=pending;this.attention=attention;this.localOnly=localOnly;
  }
+ static MaterialCatalog withDates(MaterialCatalog source,Set<LocalDate> dates){return new MaterialCatalog(source.account,source.zone,source.entries,source.lastStoredAt,source.deleted,dates);}
  static MaterialCatalog visible(MaterialCatalog source,MaterialVisibility visibility){MaterialWire.require(source.account.equals(visibility.account),"OFFICIAL_ACCOUNT_CHANGED");List<Entry> entries=new ArrayList<>();for(Entry entry:source.entries){Set<LocalDate> dates=visibility.visible(entry);if(!dates.isEmpty())entries.add(new Entry(entry,entry.title,dates));}return new MaterialCatalog(source.account,source.zone,entries,source.lastStoredAt,source.deleted);}
  static MaterialCatalog empty(String account,ZoneId zone){return new MaterialCatalog(account,zone,new ArrayList<>(),0);}
  static MaterialCatalog fromRows(String account,String producer,List<Object> rows,ZoneId zone){
