@@ -33,6 +33,22 @@ public final class UiPerformanceProbe extends Instrumentation {
   while(keys.hasNext()){String id=keys.next();JSONObject row=after.getJSONObject(id),old=before.optJSONObject(id);if(old==null)continue;long delta=row.getLong("ticks")-old.getLong("ticks");if(delta>0)rows.add(new JSONObject().put("tid",id).put("name",row.getString("name")).put("cpu_ticks",delta));}
   rows.sort((left,right)->Long.compare(right.optLong("cpu_ticks"),left.optLong("cpu_ticks")));JSONArray result=new JSONArray();for(int index=0;index<Math.min(30,rows.size());index++)result.put(rows.get(index));return result;
  }
+ private static Object field(Object owner,String name)throws Exception{Class<?> type=owner instanceof Class?(Class<?>)owner:owner.getClass();java.lang.reflect.Field field=type.getDeclaredField(name);field.setAccessible(true);return field.get(owner instanceof Class?null:owner);}
+ // Exact host 1.0.10 read-only ownership metadata. No coordinates, account data,
+ // callbacks, start/stop methods or network operations are accessed.
+ private JSONObject hostState(Context context){JSONObject result=new JSONObject();try{
+  ClassLoader loader=context.getClassLoader();Class<?> transfer=loader.loadClass("com.turboio.addon.NativeTransfer");java.lang.reflect.Method connected=transfer.getDeclaredMethod("connected");connected.setAccessible(true);result.put("glasses_connected",!((String)connected.invoke(null)).isEmpty());
+  Object engine=field(loader.loadClass("u9.e"),"b"),registry=field(engine,"d");Map<?,?> plugins=(Map<?,?>)field(registry,"a");Object plugin=plugins.get(loader.loadClass("L8.w2"));result.put("map_plugin_present",plugin!=null);
+  if(plugin!=null){Object service=field(plugin,"d");result.put("location_service_present",service!=null);if(service!=null){Object owner=field(service,"n");result.put("location_service_disposed",field(service,"j")).put("continuous_committed",field(owner,"i")).put("continuous_preparing",field(owner,"j")).put("pending_operations",((Map<?,?>)field(owner,"t")).size());
+   Object settings=field(owner,"q");if(settings!=null){JSONObject values=new JSONObject();for(String key:new String[]{"a","b","c","d","e"})values.put(key,field(settings,key));result.put("continuous_settings",values);}
+   Object oneShot=field(service,"m"),handle=field(oneShot,"h");result.put("oneshot_generation",field(oneShot,"m")).put("oneshot_force_fresh",field(oneShot,"l")).put("oneshot_waiters",((List<?>)field(oneShot,"i")).size()).put("oneshot_busy",field(oneShot,"n")).put("oneshot_handle",handle==null?"":handle.getClass().getName());
+   Object provider=field(owner,"h");if(provider==null&&handle!=null&&(handle.getClass().getName().equals("L8.M1$a")||handle.getClass().getName().equals("L8.M1$i")))provider=field(handle,"a");result.put("provider",provider==null?"":provider.getClass().getName());if(provider!=null&&provider.getClass().getName().equals("L8.m")){result.put("amap_continuous",field(provider,"k")).put("amap_oneshot_waiters",((List<?>)field(provider,"p")).size()).put("amap_oneshot_client",field(provider,"q")!=null);
+    Object location=field(provider,"o"),client=field(provider,"q");if(client!=null){Object manager=field(client,"b");Object latest=field(manager,"a");if(latest!=null)location=latest;}if(location!=null)result.put("amap_last_error",location.getClass().getMethod("getErrorCode").invoke(location));
+   }
+   Map<?,?> cache=(Map<?,?>)field(field(oneShot,"a"),"b");result.put("cache_present",cache!=null);if(cache!=null)result.put("cache_age_ms",System.currentTimeMillis()-((Number)cache.get("timestamp")).longValue());
+  }}
+  result.put("read_completed",true);
+ }catch(Exception unavailable){try{result.put("read_completed",false).put("failure_class",unavailable.getClass().getSimpleName());}catch(JSONException impossible){throw new IllegalStateException(impossible);}}return result;}
  @Override public void onStart(){Bundle done=new Bundle();try{
   String nonce=arguments.getString("probe_id","");if(!nonce.matches("[a-f0-9]{32}"))throw new IllegalArgumentException("PROBE_ID_INVALID");
   int seconds=Integer.parseInt(arguments.getString("seconds","15"));if(seconds<5||seconds>45)throw new IllegalArgumentException("PROBE_DURATION_INVALID");
@@ -41,10 +57,13 @@ public final class UiPerformanceProbe extends Instrumentation {
   // The runner also explicitly foregrounds the activity via adb. No timeout or
   // system setting changes; this process and its window end with instrumentation.
   SystemClock.sleep(15000);
+  if("true".equals(arguments.getString("background","false"))){Intent home=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);context.startActivity(home);SystemClock.sleep(3000);}
   Handler main=new Handler(Looper.getMainLooper());Thread mainThread=Looper.getMainLooper().getThread();AtomicBoolean waiting=new AtomicBoolean();
   List<Long> delays=Collections.synchronizedList(new ArrayList<>());Map<String,Integer> stacks=new HashMap<>();JSONObject before=counters();
+  JSONArray hostStates=new JSONArray();long nextHostState=0;boolean captureHost="true".equals(arguments.getString("host_state","false"));
   long started=SystemClock.elapsedRealtime(),cpuStarted=android.os.Process.getElapsedCpuTime();int samples=0,mainWaiting=0,mainRunnable=0,foregroundSamples=0;
   while(SystemClock.elapsedRealtime()-started<seconds*1000L){
+   if(captureHost&&SystemClock.elapsedRealtime()>=nextHostState){runOnMainSync(()->hostStates.put(hostState(context)));nextHostState=SystemClock.elapsedRealtime()+5000;}
    if(waiting.compareAndSet(false,true)){long sent=SystemClock.elapsedRealtime();main.post(()->{delays.add(SystemClock.elapsedRealtime()-sent);waiting.set(false);});}
    Map<Thread,StackTraceElement[]> all=Thread.getAllStackTraces();samples++;if(foreground)foregroundSamples++;
    for(Map.Entry<Thread,StackTraceElement[]> entry:all.entrySet()){
@@ -63,6 +82,7 @@ public final class UiPerformanceProbe extends Instrumentation {
   List<Map.Entry<String,Integer>> ordered=new ArrayList<>(stacks.entrySet());ordered.sort((left,right)->Integer.compare(right.getValue(),left.getValue()));JSONArray stackRows=new JSONArray();for(int index=0;index<Math.min(80,ordered.size());index++)stackRows.put(new JSONObject().put("samples",ordered.get(index).getValue()).put("stack",ordered.get(index).getKey()));
   List<Long> latency; synchronized(delays){latency=new ArrayList<>(delays);}Collections.sort(latency);JSONArray delayRows=new JSONArray();for(Long delay:latency)delayRows.put(delay);
   JSONObject report=new JSONObject().put("schema",2).put("probe_id",nonce).put("version",context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName).put("pid",android.os.Process.myPid()).put("elapsed_ms",elapsed).put("cpu_ms",cpu).put("samples",samples).put("foreground_samples",foregroundSamples).put("main_runnable_samples",mainRunnable).put("main_waiting_samples",mainWaiting).put("main_ping_delays_ms",delayRows).put("cpu_threads",hottest(before,after)).put("stacks",stackRows).put("probe_network_requests",0).put("probe_product_data_modified",false);
+  if(captureHost){report.put("host_states",hostStates);}if(captureHost)runOnMainSync(()->{try{report.put("host_state",hostState(context));}catch(JSONException impossible){throw new IllegalStateException(impossible);}});
   File destination=new File(context.getExternalFilesDir(null),"io-agent-ui-performance-"+nonce+".json");try(FileOutputStream stream=new FileOutputStream(destination)){stream.write(report.toString(1).getBytes(StandardCharsets.UTF_8));}
   done.putString("report",destination.getAbsolutePath());done.putLong("elapsed_ms",elapsed);done.putLong("cpu_ms",cpu);done.putInt("samples",samples);finish(Activity.RESULT_OK,done);
  }catch(Throwable failure){done.putString("error",failure.getClass().getSimpleName());finish(Activity.RESULT_CANCELED,done);}}

@@ -1,0 +1,452 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "baseline_commit": "d4d72b4",
+  "baseline_version": "0.5.3-dev159",
+  "candidate_version": "0.5.3-dev160",
+  "user_report": {
+    "total_mah_approx": 3300,
+    "background_mah_approx": 2900,
+    "glasses_not_connected_all_day": true
+  },
+  "baseline_observed": {
+    "elapsed_runtime_approx_hours": 9.88,
+    "process_cpu_user_ms": 9803790,
+    "process_cpu_kernel_ms": 1765530,
+    "bluetooth_scan_actual_ms": 12299954,
+    "bluetooth_scan_count": 1744,
+    "gps_sensor_approx_hours": 5.93,
+    "gps_sensor_count": 4409,
+    "partial_wakelock_actual_approx_seconds": 155,
+    "live_hot_worker_percent_range": [
+      15,
+      47.3
+    ]
+  },
+  "probe_before": {
+    "version": "0.5.3-dev159",
+    "elapsed_ms": 35028,
+    "cpu_ms": 12220,
+    "samples": 339,
+    "foreground_samples": 0,
+    "cpu_threads": [
+      {
+        "tid": "12000",
+        "name": "pool-21-thread-",
+        "cpu_ticks": 488
+      },
+      {
+        "tid": "11814",
+        "name": "HeapTaskDaemon",
+        "cpu_ticks": 226
+      },
+      {
+        "tid": "11809",
+        "name": "ayneo.venus.pub",
+        "cpu_ticks": 201
+      },
+      {
+        "tid": "11834",
+        "name": "erformanceProbe",
+        "cpu_ticks": 105
+      },
+      {
+        "tid": "11815",
+        "name": "ReferenceQueueD",
+        "cpu_ticks": 69
+      },
+      {
+        "tid": "12011",
+        "name": "pool-23-thread-",
+        "cpu_ticks": 25
+      },
+      {
+        "tid": "12181",
+        "name": "process-memory",
+        "cpu_ticks": 18
+      },
+      {
+        "tid": "11959",
+        "name": "estorage.worker",
+        "cpu_ticks": 15
+      },
+      {
+        "tid": "11940",
+        "name": "dart:io EventHa",
+        "cpu_ticks": 8
+      },
+      {
+        "tid": "12065",
+        "name": "RMonitor_Monito",
+        "cpu_ticks": 8
+      },
+      {
+        "tid": "11813",
+        "name": "Jit thread pool",
+        "cpu_ticks": 7
+      },
+      {
+        "tid": "12444",
+        "name": "LocationSchedul",
+        "cpu_ticks": 6
+      },
+      {
+        "tid": "12003",
+        "name": "pool-28-thread-",
+        "cpu_ticks": 4
+      },
+      {
+        "tid": "11997",
+        "name": "pool-14-thread-",
+        "cpu_ticks": 3
+      },
+      {
+        "tid": "12435",
+        "name": "UpTunnelWorkThr",
+        "cpu_ticks": 3
+      },
+      {
+        "tid": "11988",
+        "name": "DefaultDispatch",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "11993",
+        "name": "DefaultDispatch",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "12433",
+        "name": "LocationThreadP",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "12715",
+        "name": "pool-22-thread-",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "11816",
+        "name": "FinalizerDaemon",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "11863",
+        "name": "queued-work-loo",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "11933",
+        "name": "flutter-worker-",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "12194",
+        "name": "ck_dispatch",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "12353",
+        "name": "amap-global-thr",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "12355",
+        "name": "amap-global-thr",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "12413",
+        "name": "alocmain",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "12454",
+        "name": "SignalAync",
+        "cpu_ticks": 1
+      }
+    ]
+  },
+  "method": {
+    "instrumentation_package": "com.turboio.performance.codex",
+    "seconds": 35,
+    "background": true,
+    "same_probe_before_after": true,
+    "probe_adds_sampling_cpu": true,
+    "phone_charging": true,
+    "battery_statistics_reset": false,
+    "recording_started": false,
+    "connected_glasses_tested": false,
+    "mah_savings_measured": false
+  },
+  "confirmed_cpu_paths": [
+    "TaskMailbox copy/pending/objects/claim JSON encode/parse of whole ledger",
+    "TaskNoticeQueue.collect revalidates history every idle timer",
+    "AgentCardRuntime checks login on idle quarter-second timer"
+  ],
+  "changes": [
+    "Detach validated ledger containers directly; copy only requested collection/item on reads",
+    "Skip automatic question/notice history scan without a connected peer",
+    "Reuse parsed notice candidates for the same task snapshot, retaining time/offer checks",
+    "Check phone delivery permission on active card work rather than every empty timer"
+  ],
+  "remaining": [
+    "Repeated vendor one-shot location observed while background and glasses disconnected; caller/retry trigger and Bluetooth scanning policy still under investigation",
+    "Connected-glasses matched measurement and normal-day energy use not yet validated"
+  ],
+  "tests": [
+    "Agent cards/notice policies: 843 assertions",
+    "Wire hot paths: 50 assertions plus 8000 concurrent cases",
+    "Task contexts: 63",
+    "Task status: 41",
+    "Task controls: 98",
+    "Task mailbox restart/receipt/expiry/isolation + nested copy-mutation regressions passed"
+  ],
+  "artifact": {
+    "schema": 1,
+    "product": "iO Agent Android",
+    "version": "0.5.3-dev160",
+    "version_code": 10582,
+    "revision": "io-agent-background-ledger-energy",
+    "host_version": "1.0.10",
+    "host_code": 258,
+    "signed": "2026-10-30T11:35:09.479Z",
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev160.apk",
+    "bytes": 435083881,
+    "sha256": "997ab80e2b0ce2c1bca7785dbcb55b27914036c54fdc74701d7fc32960807641",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "native_library_zip_page_alignment": 16384,
+    "general_zip_alignment": 4,
+    "audit": {
+      "original_entries_preserved": 4028,
+      "replaced": [
+        "AndroidManifest.xml",
+        "classes2.dex",
+        "classes3.dex",
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "added_dex": "classes5.dex",
+      "public_assets": 40,
+      "original_resources_and_native_libraries_preserved": false,
+      "original_resources_preserved": true,
+      "all_other_original_native_libraries_preserved": true,
+      "native_source_route": {
+        "member": "lib/arm64-v8a/libapp.so",
+        "input_sha256": "363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c",
+        "output_sha256": "a60b405791a3f1ab3110a7f27a3ab06f95bf5277d63de0ad58ac8bfcae742511",
+        "bytes": 45089712,
+        "only_two_serialized_urls_changed": true,
+        "all_slots_in_readonly_nonexecuting_segments": true,
+        "instructions_changed": false
+      },
+      "source_dex_count": 4,
+      "device_installed": false
+    },
+    "dex_audit": {
+      "schema": 1,
+      "host_dex_integrity": "passed",
+      "host_classes_retained": 20951,
+      "original_members_retained": 193212,
+      "explicit_wrappers": 9,
+      "runtime_tested": false
+    },
+    "installed": true,
+    "phone_disconnected_by_user": false,
+    "one_minute_card_passed": false,
+    "release_gate_passed": false,
+    "installed_via": "verified 1,967,097-byte wireless ADB delta; user biometric confirmation",
+    "installed_sha256": "997ab80e2b0ce2c1bca7785dbcb55b27914036c54fdc74701d7fc32960807641",
+    "installed_confirmed_at": "2026-10-30T11:43:03.016820+00:00"
+  },
+  "installation": "installed_full_sha_verified",
+  "source_sha256": {
+    "TaskMailbox.java": "33dc7765d107975fc1dcdc5716a0d8d3d2b807ca7cd84fda43e49d52f301958b",
+    "AgentCardRuntime.java": "9bd42a3b657bf6090539637992c631b9e0cd8b90b8a6d8437310a49c5fb17cef"
+  },
+  "probe_after": {
+    "version": "0.5.3-dev160",
+    "elapsed_ms": 35044,
+    "cpu_ms": 4531,
+    "samples": 338,
+    "foreground_samples": 0,
+    "cpu_threads": [
+      {
+        "tid": "17427",
+        "name": "erformanceProbe",
+        "cpu_ticks": 117
+      },
+      {
+        "tid": "17404",
+        "name": "ayneo.venus.pub",
+        "cpu_ticks": 92
+      },
+      {
+        "tid": "17408",
+        "name": "HeapTaskDaemon",
+        "cpu_ticks": 78
+      },
+      {
+        "tid": "17527",
+        "name": "pool-22-thread-",
+        "cpu_ticks": 57
+      },
+      {
+        "tid": "17617",
+        "name": "process-memory",
+        "cpu_ticks": 18
+      },
+      {
+        "tid": "17458",
+        "name": "dart:io EventHa",
+        "cpu_ticks": 9
+      },
+      {
+        "tid": "17584",
+        "name": "RMonitor_Monito",
+        "cpu_ticks": 7
+      },
+      {
+        "tid": "17407",
+        "name": "Jit thread pool",
+        "cpu_ticks": 6
+      },
+      {
+        "tid": "17472",
+        "name": "estorage.worker",
+        "cpu_ticks": 6
+      },
+      {
+        "tid": "17840",
+        "name": "LocationSchedul",
+        "cpu_ticks": 5
+      },
+      {
+        "tid": "17515",
+        "name": "pool-14-thread-",
+        "cpu_ticks": 4
+      },
+      {
+        "tid": "17530",
+        "name": "pool-29-thread-",
+        "cpu_ticks": 4
+      },
+      {
+        "tid": "17826",
+        "name": "UpTunnelWorkThr",
+        "cpu_ticks": 4
+      },
+      {
+        "tid": "17780",
+        "name": "amap-global-thr",
+        "cpu_ticks": 3
+      },
+      {
+        "tid": "17784",
+        "name": "amap-global-thr",
+        "cpu_ticks": 3
+      },
+      {
+        "tid": "17410",
+        "name": "ReferenceQueueD",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17503",
+        "name": "DefaultDispatch",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17510",
+        "name": "DefaultDispatch",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17778",
+        "name": "amap-global-thr",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17783",
+        "name": "amap-global-thr",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17818",
+        "name": "alocmain",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17821",
+        "name": "LocationThreadP",
+        "cpu_ticks": 2
+      },
+      {
+        "tid": "17416",
+        "name": "Profile Saver",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17422",
+        "name": "binder:17404_4",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17429",
+        "name": "queued-work-loo",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17508",
+        "name": "DefaultDispatch",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17511",
+        "name": "ConnectivityThr",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17529",
+        "name": "pool-27-thread-",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17546",
+        "name": "work_thread",
+        "cpu_ticks": 1
+      },
+      {
+        "tid": "17667",
+        "name": "binder:17404_7",
+        "cpu_ticks": 1
+      }
+    ]
+  },
+  "probe_cpu_reduction_percent": 62.9,
+  "host_location_observation": {
+    "glasses_connected": false,
+    "map_plugin_present": true,
+    "location_service_present": true,
+    "location_service_disposed": false,
+    "continuous_committed": false,
+    "continuous_preparing": false,
+    "pending_operations": 0,
+    "continuous_settings": {
+      "a": 30000,
+      "b": 30000,
+      "c": 30000,
+      "d": 30000,
+      "e": 0
+    },
+    "oneshot_waiters": 1,
+    "oneshot_busy": false,
+    "oneshot_handle": "L8.M1$i",
+    "provider": "L8.m",
+    "amap_continuous": false,
+    "amap_oneshot_waiters": 1,
+    "amap_oneshot_client": true,
+    "read_completed": true
+  }
+}

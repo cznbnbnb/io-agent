@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-28T09:53:15.261Z",
+  "at": "2026-10-30T11:34:20.153Z",
   "assertions": 843,
   "sources": [
     {
@@ -45,15 +45,15 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
+      "sha256": "58aad7d32cb98087b77a2ca52ca3264fbe28ae33c457ad9017a6e5a5446a804b"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "52b43f32b4089981645fe7b7bfaab5d711b3178740169d8c91f283f8c42afdc8"
+      "sha256": "33dc7765d107975fc1dcdc5716a0d8d3d2b807ca7cd84fda43e49d52f301958b"
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
+      "sha256": "bc08acefb84cd3297913eae8699a0195c60cb345a12c7c53080a4e45c96edc00"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
@@ -89,7 +89,7 @@
     },
     {
       "path": "../../tools/android/TaskMailboxTest.java",
-      "sha256": "883829de7471c94ac652056d9c5a01ead99a08c7f394ad35c3038da511dc8ef3"
+      "sha256": "3aef1c7a8ac4f3267488897bdf009d399435b58045971806879935ff17fa026b"
     },
     {
       "path": "../../tools/android/WireHotPathTest.java",

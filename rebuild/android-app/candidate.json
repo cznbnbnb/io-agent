@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev159",
-  "version_code": 10581,
-  "revision": "io-agent-shared-inbox-notifications",
+  "version": "0.5.3-dev160",
+  "version_code": 10582,
+  "revision": "io-agent-background-ledger-energy",
   "host_version": "1.0.10",
   "host_code": 258,
-  "signed": "2026-10-30T09:35:51.786Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev159.apk",
+  "signed": "2026-10-30T11:35:09.479Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev160.apk",
   "bytes": 435083881,
-  "sha256": "5d2f3d465a207e0197099fa96b7b251d1ff4553973e45eacfd50a6e9de8c2226",
+  "sha256": "997ab80e2b0ce2c1bca7785dbcb55b27914036c54fdc74701d7fc32960807641",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -38,7 +38,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": true
+    "device_installed": false
   },
   "dex_audit": {
     "schema": 1,
@@ -52,5 +52,7 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "phone_install_evidence": "shared-inbox-dev159-2026-10-30.json"
+  "installed_via": "verified 1,967,097-byte wireless ADB delta; user biometric confirmation",
+  "installed_sha256": "997ab80e2b0ce2c1bca7785dbcb55b27914036c54fdc74701d7fc32960807641",
+  "installed_confirmed_at": "2026-10-30T11:43:03.016820+00:00"
 }

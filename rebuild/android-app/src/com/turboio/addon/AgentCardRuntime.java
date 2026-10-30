@@ -19,7 +19,7 @@ final class AgentCardRuntime {
  private final Set<String> phoneFocus=new HashSet<>(),offered=new HashSet<>();
  private final String lease="agent-card-preflight-"+UUID.randomUUID();
  private final AtomicDocument document;private final AgentCardSession session;private final TaskNoticeQueue noticeQueue;
- private TaskRuntime.Snapshot snapshot;private MinuteCardSession preflight;
+ private TaskRuntime.Snapshot snapshot,noticeSnapshot;private List<TaskNotice> noticeCandidates=Collections.emptyList();private MinuteCardSession preflight;
  private WeakReference<Activity> activity;private volatile long observedGeneration=Long.MIN_VALUE;
  private boolean localLease,fetching,checkingShow,answerBusy,headStarted,restoreStarted,pumping;
  // Questions whose interrupted dictation was closed after a restart; offered again once.
@@ -121,7 +121,7 @@ final class AgentCardRuntime {
   if(!enabled()||fetching||preflight!=null||!session.canPrepare()||HeadGestureRuntime.pending()||snapshot==null||now()<nextAuto)return;
   // The 250ms timer serves live device deadlines. An empty inbox must also
   // back off, before login IO, instead of rescanning all history four times/s.
-  nextAuto=now()+1000;if(!usable())return;long wallNow=System.currentTimeMillis();
+  nextAuto=now()+1000;if(NativeTransfer.connected().isEmpty()||!usable())return;long wallNow=System.currentTimeMillis();
   for(TaskHub.View c:snapshot.contexts)if(c.profile.enabled&&c.profile.connection.expiresAt>wallNow)for(Object raw:c.objects){Map<String,Object> item=WireJson.map(WireJson.map(raw).get("item"));if(!"request".equals(item.get("kind"))||!("pending".equals(item.get("state"))||"presented".equals(item.get("state"))))continue;Map<String,Object> b=TaskWire.body(item);if(!TaskWire.canAnswer(item,c.item("task",(String)b.get("task_id")),wallNow))continue;String id=(String)item.get("object_id");long revision=TaskWire.positive(item.get("revision"));if(phoneFocus.contains(focusKey(c.binding,id))||hasAnswer(c,id,revision,null))continue;
    if(reoffer.remove(c.binding+"\n"+id)){forget(prompterKey(c.binding,item));try{forget(AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis()).owner);}catch(RuntimeException prompterOnly){}}
    try{AgentCardRequest r=AgentCardRequest.prepare(c.profile.connection,item,c.item("task",(String)b.get("task_id")),System.currentTimeMillis());if(offered.contains(r.owner))continue;nextAuto=now()+10000;offer(c.binding,id,revision,true);return;}
@@ -131,8 +131,10 @@ final class AgentCardRuntime {
  }
  private void maybeNotice(){
   if(TaskAttention.active()||NewsTele.active()||NativeTransfer.busy())return;
-  List<TaskNotice> candidates=TaskNoticeQueue.collect(snapshot.contexts);
-  if(snapshot.phone!=null)candidates.removeIf(n->n.sequence<=snapshot.phone.noticeAfter);
+  // Snapshot-owned input is unchanged between device timer ticks. Expiry and
+  // already-offered checks still run below against the current time and queue.
+  if(noticeSnapshot!=snapshot){noticeCandidates=TaskNoticeQueue.collect(snapshot.contexts);if(snapshot.phone!=null)noticeCandidates.removeIf(n->n.sequence<=snapshot.phone.noticeAfter);noticeSnapshot=snapshot;}
+  List<TaskNotice> candidates=noticeCandidates;
   long at=System.currentTimeMillis();TaskNotice notice=noticeQueue.select(candidates,offered,at);
   if(notice==null||NativeTransfer.connected().isEmpty()||!noticeQueue.claim(notice,at))return;
   nextAuto=now()+10000;
@@ -314,7 +316,7 @@ final class AgentCardRuntime {
  }
  private void pump(){
   main();if(pumping)return;pumping=true;
-  try{if(!TaskRuntime.glassesAllowed()&&(session.pending()||preflight!=null))withdraw("当前手机没有投送许可，原问题保留在手机");checkPrompter();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
+  try{if((session.pending()||preflight!=null)&&!TaskRuntime.glassesAllowed())withdraw("当前手机没有投送许可，原问题保留在手机");checkPrompter();Fixed60Session.Link link=Host107Ota.link();observedGeneration=link.generation;
    if(preflight!=null){preflight.tick(link.peer,link.generation,now(),attended());if(preflight.phase().equals("READY")&&!preflight.working()){
      preflight=null;releaseLocal();headStarted=HeadGestureRuntime.begin(session.owner(),(ready,phase)->main.post(this::pump),nodConfirm()&&session.request()!=null&&session.request().confirm!=null);if(!headStarted){session.cancelUnshown();message="交互保护尚未就绪，请在手机回答";}else message="正在准备眼镜交互保护";
     }else if(!preflight.working()){message="眼镜状态检查未通过，请在手机回答";preflight=null;releaseLocal();session.cancelUnshown();}

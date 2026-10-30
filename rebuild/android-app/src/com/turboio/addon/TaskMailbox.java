@@ -25,7 +25,14 @@ final class TaskMailbox implements AutoCloseable {
   }catch(IOException|RuntimeException error){disk.close();throw error;}
  }
  private static List<Object> rows(Map<String,Object> state,String key){return WireJson.list(state.get(key));}
- private Map<String,Object> copy(){return WireJson.map(WireJson.copy(state));}
+ // The ledger is validated when loaded/published. Detach containers in memory;
+ // serializing the whole task history on every idle read wastes CPU and GC.
+ private static Object detached(Object value){
+  if(value instanceof Map){Map<String,Object> result=new TreeMap<>();for(Map.Entry<String,Object> e:WireJson.map(value).entrySet())result.put(e.getKey(),detached(e.getValue()));return result;}
+  if(value instanceof List){List<Object> result=new ArrayList<>(WireJson.list(value).size());for(Object item:WireJson.list(value))result.add(detached(item));return result;}
+  return value instanceof Integer?Long.valueOf(((Integer)value).longValue()):value;
+ }
+ private Map<String,Object> copy(){return WireJson.map(detached(state));}
  private void validate(Map<String,Object> s){
   TaskWire.require(TaskWire.positive(s.get("schema"))==1&&binding.equals(s.get("binding")),"TASK_STORE_BINDING");TaskWire.text(s.get("cursor"),4096,true);
   List<Object> outbox=rows(s,"outbox"),objects=rows(s,"objects");TaskWire.require(outbox.size()<=300&&objects.size()<=500,"TASK_STORE_FULL");Set<String> operations=new HashSet<>(),events=new HashSet<>(),ids=new HashSet<>();int sending=0;
@@ -46,9 +53,9 @@ final class TaskMailbox implements AutoCloseable {
  }
  private void publish(Map<String,Object> next)throws IOException{validate(next);disk.save(next);state=next;}
  synchronized String cursor(){return (String)state.get("cursor");}
- synchronized List<Object> pending(){return rows(copy(),"outbox");}
- synchronized List<Object> objects(){return rows(copy(),"objects");}
- synchronized Map<String,Object> cached(String kind,String id){return find(rows(copy(),"objects"),kind,id);}
+ synchronized List<Object> pending(){return WireJson.list(detached(rows(state,"outbox")));}
+ synchronized List<Object> objects(){return WireJson.list(detached(rows(state,"objects")));}
+ synchronized Map<String,Object> cached(String kind,String id){Map<String,Object> found=find(rows(state,"objects"),kind,id);return found==null?null:WireJson.map(detached(found));}
  /** Inbox cursors advance over immutable events, not answers/receipts on an old request.
   * Recheck one oldest unresolved request in this route; an expired copy needs one final read. */
  synchronized String staleRequest(long now){

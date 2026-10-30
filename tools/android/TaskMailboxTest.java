@@ -35,6 +35,17 @@ public final class TaskMailboxTest {
    WireJson.map(WireJson.list(TaskWire.body(otherRequest).get("options")).get(0)).put("label","保留换行\n完整选项");
    box.acceptPage(WireJson.object("items",Arrays.asList(task,request,message,otherTask,otherRequest),"has_more",false,"next_cursor","cursor-1","server_time",TaskWire.now(now),"fresh_until",TaskWire.now(now)),"");
    check(box.cached("task",otherTaskId)!=null&&box.cached("request",otherRequestId)!=null);
+   // Public reads are detached down to nested containers, without copying unrelated history.
+   List<Object> detachedObjects=box.objects(),detachedPending=box.pending();
+   WireJson.map(WireJson.list(TaskWire.body(WireJson.map(WireJson.map(detachedObjects.get(4)).get("item"))).get("options")).get(0)).put("label","mutated copy");
+   WireJson.map(detachedPending.get(0)).put("state","blocked");detachedObjects.clear();detachedPending.clear();
+   Map<String,Object> detachedCached=box.cached("request",otherRequestId);TaskWire.body(WireJson.map(detachedCached.get("item"))).put("question","mutated copy");
+   check(box.objects().size()==5&&box.pending().size()==1);
+   check("server_stored".equals(WireJson.map(box.pending().get(0)).get("state")));
+   Map<String,Object> reread=TaskWire.body(WireJson.map(box.cached("request",otherRequestId).get("item")));
+   check(!"mutated copy".equals(reread.get("question")));
+   check("保留换行\n完整选项".equals(WireJson.map(WireJson.list(reread.get("options")).get(0)).get("label")));
+   check(box.cached("task","missing")==null);
    rejects(()->box.draftAnswer("wrong-route",otherRequestId,1,null,"不能回答另一个会话",now));
    check(TaskWire.text(String.join("",Collections.nCopies(512,"😀")),512,false).codePointCount(0,1024)==512);
    rejects(()->TaskWire.text(String.join("",Collections.nCopies(513,"😀")),512,false));
