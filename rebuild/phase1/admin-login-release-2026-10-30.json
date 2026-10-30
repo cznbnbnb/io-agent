@@ -1,0 +1,51 @@
+{
+  "deployed": true,
+  "backup": "/var/lib/turboio-material/admin-login-release-1793347076260692886",
+  "source_sha256": {
+    "store.mjs": "f643e886483ce6efc2246d5dac04a66c9c53ebd5922f15e912bf8dc268c9e6af",
+    "http.mjs": "b98fd6231d811bc5088339e97910b455fbda7e3cc1cebfa95b750e3ceb4c2e00",
+    "cli.mjs": "0677ebe74f8ca5f26fa0bdc0a2fa43d3d41febce5159a497563b4f07739a3adc",
+    "admin-auth.mjs": "02d51690a3c3313d5eb7e8c4b544dccc5a01dd4f6d9624bb0b35332cd20f0b78",
+    "admin/index.html": "ecfb4a376051ff9aafdf85c9d51b424e81545cb7671738108eaf16049dbf6276",
+    "admin/app.js": "d235ad95e427a3780240ee4f54acd65bf83729f90c805bb04e7b052d47280a51",
+    "admin/style.css": "b66da5b2ac4fff4d798330b292927c32d687922d54eda7cd09d733f1a2eb71ba"
+  },
+  "grants_changed": false,
+  "snapshot_checked": true,
+  "production_runtime_smoke_passed": true,
+  "source_commit": "d133b96",
+  "public_verification": {
+    "public_https_login": true,
+    "username": "cznbnb",
+    "first_change_required": true,
+    "session_read": true,
+    "cookie_secure": true,
+    "summary_blocked_before_change": true,
+    "logout_invalidated": true,
+    "password_logged": false
+  },
+  "public_assets_match": true,
+  "tests": {
+    "admin_auth": 6,
+    "operations": 7,
+    "device_material_pairing_presence": 11,
+    "total": 24,
+    "passed": 24
+  },
+  "browser_checks": [
+    "wrong_password_message",
+    "mandatory_initial_password_change",
+    "dashboard_after_change",
+    "reload_keeps_session",
+    "logout_and_reload_return_login",
+    "390px_login_layout",
+    "public_login_page"
+  ],
+  "app_version_unchanged": "dev158",
+  "temporary_accounts_on_production": 0,
+  "personal_password_set_by_user": false,
+  "checkpoint_server_stored": true,
+  "glasses_display_confirmed": false,
+  "own_watch_enabled": false,
+  "device_lock": "free"
+}
