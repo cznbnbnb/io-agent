@@ -11,7 +11,7 @@ PROFILES={
  'console':['store.mjs','http.mjs','devices.mjs','agent-sessions.mjs','phone-presence.mjs','traffic.mjs','admin-console.mjs','admin/index.html','admin/app.js','admin/console.js','admin/style.css']
 }
 REMOTE=r'''
-import base64,hashlib,json,os,pathlib,sqlite3,subprocess,time,urllib.request
+import base64,hashlib,json,os,pathlib,sqlite3,subprocess,time,urllib.request,shutil
 root=pathlib.Path('/opt/turboio/rebuild/material-server');service='turboio-material.service';node='/opt/turboio/node22/bin/node'
 for name,item in data.items():
  p=root/name
@@ -28,10 +28,11 @@ os.chmod(backup/'before.sqlite',0o600)
 for name in data:
  if (root/name).exists():
   (backup/name).parent.mkdir(parents=True,exist_ok=True);(backup/name).write_bytes((root/name).read_bytes())
+switched=False
 try:
- subprocess.run(['systemctl','stop',service],check=True,timeout=30)
+ stage=backup/'verify';shutil.copytree(root,stage,ignore=shutil.ignore_patterns('node_modules'));(stage/'node_modules').symlink_to(root/'node_modules',target_is_directory=True)
  for name,item in data.items():
-  p=root/name;p.write_bytes(base64.b64decode(item['body']));os.chmod(p,0o644)
+  p=stage/name;p.write_bytes(base64.b64decode(item['body']));os.chmod(p,0o644)
   if p.suffix in ['.js','.mjs']:subprocess.run([node,'--check',str(p)],check=True,capture_output=True,timeout=20)
  smoke="""import assert from 'node:assert/strict';import {MaterialStore} from './store.mjs';const s=new MaterialStore(':memory:');
  s.mint({owner:'caller601-admin-codex',producer:'qa',scopes:['operations:read']});await s.admin.enroll({username:'qa.admin',owner:'caller601-admin-codex',password:'synthetic-initial-password'});
@@ -43,9 +44,14 @@ try:
  s.admin.logout(second.token);assert.throws(()=>s.admin.session(second.token));s.close();"""
  if profile=='notifications':
   smoke=smoke.replace('s.close();', """const {listen}=await import('./http.mjs');const device=s.devices.enroll({owner:'caller601-admin-codex',role:'agent',label:'QA notification'});const http=await listen(s,0);const url='http://127.0.0.1:'+http.address().port+'/v1/inbox/watch',headers={Authorization:'Bearer '+device.token};
-  const first=await(await fetch(url,{headers})).json();const pending=fetch(url+'?version='+first.version,{headers,signal:AbortSignal.timeout(2000)});for(let n=0;n<100&&!s.inboxWaiters.size;n++)await new Promise(r=>setTimeout(r,5));assert.equal(s.inboxWaiters.size,1);s.devices.revoke(device.device_id);assert.equal((await pending).status,401);http.closeAllConnections();await new Promise(r=>http.close(r));s.close();""")
- subprocess.run([node,'--input-type=module','-e',smoke],cwd=root,check=True,capture_output=True,timeout=30)
+  const marker=await(await fetch(url,{headers})).json();const pending=fetch(url+'?version='+marker.version,{headers,signal:AbortSignal.timeout(2000)});for(let n=0;n<100&&!s.inboxWaiters.size;n++)await new Promise(r=>setTimeout(r,5));assert.equal(s.inboxWaiters.size,1);s.devices.revoke(device.device_id);assert.equal((await pending).status,401);http.closeAllConnections();await new Promise(r=>http.close(r));s.close();""")
+ checked=subprocess.run([node,'--input-type=module','-e',smoke],cwd=stage,capture_output=True,text=True,timeout=30)
+ if checked.returncode:raise RuntimeError('ISOLATED_SMOKE_FAILED: '+checked.stderr[-3000:])
+ switched=True;subprocess.run(['systemctl','stop',service],check=True,timeout=30)
+ for name,item in data.items():
+  p=root/name;p.write_bytes(base64.b64decode(item['body']));os.chmod(p,0o644)
  subprocess.run(['systemctl','start',service],check=True,timeout=30)
+ shutil.rmtree(stage)
  for attempt in range(30):
   try:
    with urllib.request.urlopen('http://127.0.0.1:3401/health',timeout=2) as r:assert r.status==200
@@ -56,6 +62,8 @@ try:
  assert subprocess.check_output(['systemctl','is-active',service],text=True).strip()=='active'
  print(json.dumps({'deployed':True,'backup':str(backup),'source_sha256':{n:v['after'] for n,v in data.items()},'grants_changed':False,'snapshot_checked':True,'production_runtime_smoke_passed':True}))
 except Exception:
+ if not switched:
+  shutil.rmtree(stage,ignore_errors=True);raise
  subprocess.run(['systemctl','stop',service],check=True,timeout=30)
  for name,item in data.items():
   if item['before'] is None:(root/name).unlink(missing_ok=True)
