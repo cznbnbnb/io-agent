@@ -32,6 +32,30 @@ try{
   t+='\n'+header+'\n    .locals 1\n'+body+'\n.end method\n';fs.writeFileSync(file,t);
  };
  if(mode!=='assemble'){
+  // The pinned host scans at LOW_LATENCY even when no screen is visible.
+  // Keep its scan filters/callbacks/reconnect schedule, changing only radio duty.
+  let scanner=fs.readFileSync(abi.scanner,'utf8').replace(/\r\n/g,'\n');
+  const scanMode='    invoke-virtual {p1, v2}, Landroid/bluetooth/le/ScanSettings$Builder;->setScanMode(I)Landroid/bluetooth/le/ScanSettings$Builder;';
+  const scanPolicy='    invoke-static {}, Lcom/turboio/addon/Host107Connection;->scanMode()I\n\n    move-result v2\n\n';
+  if(scanner.split(scanMode).length!==2||scanner.split(scanPolicy).length>2)throw new Error('Scanner mode hook ambiguous');
+  scanner=scanner.replace(scanPolicy,'').replace(scanMode,scanPolicy+scanMode);fs.writeFileSync(abi.scanner,scanner);
+  // Only cache misses with no in-flight request consume the retry budget.
+  // Returning null is the coordinator's existing "no location available" result.
+  const locationHeader='.method public final a(Lkotlin/jvm/functions/Function1;)V';
+  let location=fs.readFileSync(abi.location,'utf8').replace(/\r\n/g,'\n');
+  const locationStart=location.indexOf(locationHeader+'\n'),locationEnd=location.indexOf('.end method',locationStart);
+  if(locationStart<0||locationEnd<0)throw new Error('Location coordinator method missing');
+  let locationBody=location.slice(locationStart,locationEnd);
+  const locationPolicy='    # io_background_location_retry\n    invoke-virtual {v0}, Ljava/util/ArrayList;->isEmpty()Z\n    move-result v2\n    if-eqz v2, :io_location_allowed\n    invoke-static {}, Lcom/turboio/addon/Host107Connection;->allowLocationRetry()Z\n    move-result v2\n    if-nez v2, :io_location_allowed\n    const/4 v2, 0x0\n    invoke-interface {p1, v2}, Lkotlin/jvm/functions/Function1;->invoke(Ljava/lang/Object;)Ljava/lang/Object;\n    return-void\n    :io_location_allowed\n\n';
+  const locationMiss='    invoke-virtual {v0, p1}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z';
+  if(locationBody.split(locationMiss).length!==2||locationBody.split(locationPolicy).length>2)throw new Error('Location retry hook ambiguous');
+  locationBody=locationBody.replace(locationPolicy,'').replace(locationMiss,locationPolicy+locationMiss);
+  fs.writeFileSync(abi.location,location.slice(0,locationStart)+locationBody+location.slice(locationEnd));
+  let completion=fs.readFileSync(abi.locationResult,'utf8').replace(/\r\n/g,'\n');
+  const completionHeader='.method public final a(Ljava/util/Map;Z)V\n    .locals 10\n';
+  const completionPolicy='\n    invoke-static {p1, p2}, Lcom/turboio/addon/Host107Connection;->locationResult(Ljava/lang/Object;Z)V\n';
+  if(completion.split(completionHeader).length!==2||completion.split(completionPolicy).length>2)throw new Error('Location result hook ambiguous');
+  completion=completion.replace(completionPolicy,'').replace(completionHeader,completionHeader+completionPolicy);fs.writeFileSync(abi.locationResult,completion);
   for(const [name,signature,registers,callback] of [['onAsrResult','(Ljava/lang/String;ZLjava/lang/String;)V','p0 .. p3','dispatchAsr(Ljava/lang/Object;Ljava/lang/String;ZLjava/lang/String;)V'],['onNlpResult','(Lcom/rayneo/airuntime/controller/NlpResult;)V','p0 .. p1','dispatchNlp(Ljava/lang/Object;Ljava/lang/Object;)V'],['onResponseComplete','()V','p0 .. p0','dispatchComplete(Ljava/lang/Object;)V']])replaceMethod(abi.listener,name,signature,`    :io_try\n    invoke-static/range {${registers}}, Lcom/turboio/addon/TurboAddon;->${callback}\n    :io_end\n    return-void\n    :io_error\n    move-exception v0\n    invoke-virtual/range {${registers}}, ${HOST.listener}->turboioOriginal_${name}${signature}\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error`);
   // Observe a bounded copy, then call the original exactly once, including observer failures.
   replaceMethod(abi.audio,'c','(Ljava/lang/String;[B)V','    :io_try\n    invoke-static {p1, p2}, Lcom/turboio/addon/LifelogAudioObservationRuntime;->incoming(Ljava/lang/String;[B)V\n    :io_end\n    goto :io_original\n    :io_error\n    move-exception v0\n    :io_original\n    invoke-virtual {p0, p1, p2}, Lcom/rayneo/rayneo_venus_sdk_plugin/e;->turboioOriginal_c(Ljava/lang/String;[B)V\n    return-void\n    .catch Ljava/lang/Throwable; {:io_try .. :io_end} :io_error');

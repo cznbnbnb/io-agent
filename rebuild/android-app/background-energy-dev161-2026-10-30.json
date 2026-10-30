@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "baseline_commit": "789cc54",
+  "candidate": {
+    "schema": 1,
+    "product": "iO Agent Android",
+    "version": "0.5.3-dev161",
+    "version_code": 10583,
+    "revision": "io-agent-idle-radio-location-budget",
+    "host_version": "1.0.10",
+    "host_code": 258,
+    "signed": "2026-10-30T12:08:03.415Z",
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev161.apk",
+    "bytes": 435083881,
+    "sha256": "67ce5d412f5b7d220a59d1eebdc503c6056bb9d63fe89a4b2e32c243d6cd7641",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "native_library_zip_page_alignment": 16384,
+    "general_zip_alignment": 4,
+    "audit": {
+      "original_entries_preserved": 4028,
+      "replaced": [
+        "AndroidManifest.xml",
+        "classes2.dex",
+        "classes3.dex",
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "added_dex": "classes5.dex",
+      "public_assets": 40,
+      "original_resources_and_native_libraries_preserved": false,
+      "original_resources_preserved": true,
+      "all_other_original_native_libraries_preserved": true,
+      "native_source_route": {
+        "member": "lib/arm64-v8a/libapp.so",
+        "input_sha256": "363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c",
+        "output_sha256": "a60b405791a3f1ab3110a7f27a3ab06f95bf5277d63de0ad58ac8bfcae742511",
+        "bytes": 45089712,
+        "only_two_serialized_urls_changed": true,
+        "all_slots_in_readonly_nonexecuting_segments": true,
+        "instructions_changed": false
+      },
+      "source_dex_count": 4,
+      "device_installed": false
+    },
+    "dex_audit": {
+      "schema": 1,
+      "host_dex_integrity": "passed",
+      "host_classes_retained": 20951,
+      "original_members_retained": 193212,
+      "explicit_wrappers": 9,
+      "runtime_tested": false
+    },
+    "installed": true,
+    "phone_disconnected_by_user": false,
+    "one_minute_card_passed": false,
+    "release_gate_passed": false,
+    "installed_sha256": "67ce5d412f5b7d220a59d1eebdc503c6056bb9d63fe89a4b2e32c243d6cd7641",
+    "installed_via": "verified 9830631-byte wireless ADB delta from dev160",
+    "installed_confirmed_at": "2026-10-30T12:11:46.336326+00:00"
+  },
+  "scope": [
+    "Retains dev160 shared CPU/history fix",
+    "Background BLE discovery uses LOW_POWER; visible App discovery retains LOW_LATENCY",
+    "Background one-shot location failures retry after 60s then 300s; success resets, cancellation ignored",
+    "Existing cache hits, in-flight request merging, foreground requests and continuous navigation are unchanged"
+  ],
+  "tradeoffs": [
+    "Background rediscovery may be slower",
+    "A failed background fix may wait up to five minutes after signal recovery"
+  ],
+  "before_background": {
+    "version": "0.5.3-dev160",
+    "elapsed_ms": 45040,
+    "foreground_samples": 0,
+    "samples": 435,
+    "oneshot_generations": [
+      8,
+      10,
+      10,
+      11,
+      11,
+      15,
+      16,
+      17,
+      21,
+      21
+    ],
+    "oneshot_waiters": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    "cached_fix_present": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "glasses_connected": false,
+    "metadata_read_completed": true
+  },
+  "after_background": {
+    "version": "0.5.3-dev161",
+    "elapsed_ms": 45037,
+    "foreground_samples": 0,
+    "samples": 435,
+    "oneshot_generations": [
+      8,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "oneshot_waiters": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "cached_fix_present": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "glasses_connected": false,
+    "metadata_read_completed": true
+  },
+  "background_then_foreground": {
+    "version": "0.5.3-dev161",
+    "elapsed_ms": 45065,
+    "foreground_samples": 187,
+    "samples": 435,
+    "oneshot_generations": [
+      8,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      12,
+      13,
+      14
+    ],
+    "oneshot_waiters": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "cached_fix_present": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "glasses_connected": false,
+    "metadata_read_completed": true
+  },
+  "bluetooth_system_counters": {
+    "idle": {
+      "opportunistic": 0,
+      "low_power": 5,
+      "balanced": 0,
+      "low_latency": 2865,
+      "ambient": 0
+    },
+    "after_foreground_resume": {
+      "opportunistic": 0,
+      "low_power": 6,
+      "balanced": 0,
+      "low_latency": 2866,
+      "ambient": 0
+    }
+  },
+  "installation": {
+    "delta_bytes": 9830631,
+    "baseline_sha256": "997ab80e2b0ce2c1bca7785dbcb55b27914036c54fdc74701d7fc32960807641",
+    "reconstructed_and_installed_sha256": "67ce5d412f5b7d220a59d1eebdc503c6056bb9d63fe89a4b2e32c243d6cd7641"
+  },
+  "tests": [
+    "BackgroundLocationRetryTest: 15 assertions, including threshold, cancellation, foreground bypass and reset",
+    "Exact descriptor resolution and all 237 pinned upstream sources: 2 tests passed",
+    "Pinned DEX hook checks: single scan override, location budget after cache/before request, completion observation once",
+    "Java8/D8, both host DEX assemblies, signature, source provenance and APK audit passed",
+    "Phone exit history: instrumentation exits and package update; no new crash observed"
+  ],
+  "limits": [
+    "CPU sampling is not an mAh measurement; phone charging",
+    "Connected glasses and normal-day battery use remain unmeasured",
+    "Original location failure reason and recurring Dart caller not yet isolated; this fix bounds the observed failed background retry loop",
+    "No fresh successful position available during these indoor runs; success reset covered by unit test, not a live successful fix"
+  ],
+  "protected": [
+    "No battery-stat reset, system permission changes or recording",
+    "Formal connections/defaults retained",
+    "Claude untracked Delegate sources excluded from build and restored by SHA"
+  ],
+  "cleanup": {
+    "probe_uninstalled": true,
+    "own_remote_temp_files_removed": true,
+    "normal_app_started_and_agent_entry_present": true,
+    "phone_returned_home": true,
+    "current": "dev161",
+    "rollback": "dev160",
+    "old_phone_baseline_exception": "dev154",
+    "old_artifacts_removed": [
+      "dev158",
+      "dev159"
+    ]
+  }
+}

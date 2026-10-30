@@ -15,23 +15,29 @@ public final class Host107Connection implements GlassesConnection {
  private static final String PLUGIN="com.rayneo.rayneo_venus_sdk_plugin.j",MANAGER="Y3.u",OWNER="com.rayneo.rayneo_venus_sdk_plugin.h";
  private static final String[] LANES={"a","b","c","e"},CALLBACKS={"H","I","K","J"};
  private static volatile Host107Connection instance;
+ private static final BackgroundLocationRetry locationRetry=new BackgroundLocationRetry();
  private final Context app;private final SharedPreferences prefs;private final Handler main=new Handler(Looper.getMainLooper());
  private final Set<Runnable> listeners=new LinkedHashSet<>();private final AtomicBoolean notificationPending=new AtomicBoolean();
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());
- private volatile Object plugin,stock;private Object manager,resolver,observer,savedResolver,savedObserver;private volatile boolean owned,scanning;private boolean leaseOwned,recoveringEnable;private volatile long scanGeneration;private String note="DEVICE_NOT_ENABLED";
+ private volatile Object plugin,stock;private Object manager,resolver,observer,savedResolver,savedObserver;private volatile boolean owned,scanning,visible;private boolean leaseOwned,recoveringEnable;private volatile long scanGeneration;private String note="DEVICE_NOT_ENABLED";
  private Host107Connection(Context context,Activity activity){
-  app=context.getApplicationContext();prefs=app.getSharedPreferences("io_agent_glasses_v1",0);if(activity!=null)foreground.add(activity);
+  app=context.getApplicationContext();prefs=app.getSharedPreferences("io_agent_glasses_v1",0);if(activity!=null)foreground.add(activity);visible=activity!=null;
   ((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
-   public void onActivityResumed(Activity a){foreground.add(a);if(prefs.getBoolean("enabled",false)&&!owned&&!FirmwareQueue.busy()&&!a.getClass().getName().equals("com.rayneo.venus.MainActivity"))try{enable();}catch(Exception failure){note=code(failure);}}
-   public void onActivityStopped(Activity a){foreground.remove(a);if(foreground.isEmpty()&&scanning)try{stopScan();}catch(Exception failure){note=code(failure);}}
-   public void onActivityDestroyed(Activity a){foreground.remove(a);}
+   public void onActivityResumed(Activity a){foreground.add(a);visible=true;if(prefs.getBoolean("enabled",false)&&!owned&&!FirmwareQueue.busy()&&!a.getClass().getName().equals("com.rayneo.venus.MainActivity"))try{enable();}catch(Exception failure){note=code(failure);}}
+   public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!visible&&scanning)try{stopScan();}catch(Exception failure){note=code(failure);}}
+   public void onActivityDestroyed(Activity a){foreground.remove(a);visible=!foreground.isEmpty();}
    public void onActivityCreated(Activity a,Bundle b){}public void onActivityStarted(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
   });
  }
  static synchronized Host107Connection get(Activity activity){if(instance==null)instance=new Host107Connection(activity,activity);return instance;}
+ /** Only discovery changes; established BLE/SPP links keep their original policy. */
+ public static int scanMode(){Host107Connection self=instance;return self!=null&&!self.visible?android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_POWER:android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY;}
+ /** Called on the host location coordinator's main thread, after its cache lookup. */
+ public static boolean allowLocationRetry(){Host107Connection self=instance;return self==null||locationRetry.allow(self.visible,SystemClock.elapsedRealtime());}
+ public static void locationResult(Object value,boolean cancelled){Host107Connection self=instance;if(self!=null)locationRetry.completed(value!=null,cancelled,self.visible,SystemClock.elapsedRealtime());}
  /** No screen yet (TurboAddon.boot): cards, dictation and OTA links read the shared stock connection. */
  static synchronized void boot(Context context){if(instance==null)instance=new Host107Connection(context,null);}
- static void attach(Activity activity){Host107Connection self=get(activity);if(activity.getClass().getName().equals("com.rayneo.venus.MainActivity")&&self.owned)try{handoff();}catch(Exception failure){self.note=code(failure);}}
+ static void attach(Activity activity){Host107Connection self=get(activity);self.foreground.add(activity);self.visible=true;if(activity.getClass().getName().equals("com.rayneo.venus.MainActivity")&&self.owned)try{handoff();}catch(Exception failure){self.note=code(failure);}}
  void listen(Runnable listener){mainThread();listeners.add(listener);}
  void unlisten(Runnable listener){mainThread();listeners.remove(listener);}
  private void changed(){if(notificationPending.compareAndSet(false,true))main.postDelayed(()->{notificationPending.set(false);for(Runnable listener:new ArrayList<>(listeners))try{listener.run();}catch(RuntimeException ignored){}},100);}

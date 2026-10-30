@@ -413,6 +413,10 @@
       "sha256": "927eb2183733e5d784a0ef28020754f00e7d9b95272d4d3feb6a556f731370e9"
     },
     {
+      "path": "src/com/turboio/addon/BackgroundLocationRetry.java",
+      "sha256": "73efd0290d0a6022086285b9bef323e9cf1b0c6af2d7fc452b7cf8610305ecec"
+    },
+    {
       "path": "src/com/turboio/addon/CaptureSession.java",
       "sha256": "4a14a59a3d1ffa7e163538a06b2dde84c9725ad1d0ffacadb6ff0eb8046cf2e1"
     },
@@ -518,7 +522,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Connection.java",
-      "sha256": "1e07273584ac5304b9eebe4666942f635fb07d9abcaeaee5f2421480b6ada664"
+      "sha256": "7044fbb44e1ac1b6b335753f01c7163fa12f181a1d6485685485da83c6e15a28"
     },
     {
       "path": "src/com/turboio/addon/Host107HeadSettings.java",
@@ -1066,14 +1070,14 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "3aa69219b4d19dc402869754e705249ca2ecc18898fea224f4267df8230f1b39"
+      "sha256": "4cd19d6d979d0153b187ef89460fdc3243e3ed62b308d0305a0d29672278be15"
     }
   ],
-  "product_sha256": "dcf5d8748a808cc6ef331138c4f1ed8bd77cb8886f096ce9225c130cad587598",
-  "addon_sha256": "14bc2d50463abd6e4a23e8d4eeeb795eeab728ed7b5f7c88925d4a0142aecaee",
+  "product_sha256": "aa20a3a95dda92ccf34f548db6b79f26eb1d5efde82b8e3ea4f617e3460d38b3",
+  "addon_sha256": "d7dfd0ab96593d44423412d27749f815f01ba42477b7f53a873ad976ea5e2f43",
   "host_dex_sha256": {
-    "classes2": "3f0b4328f8dac2b7c3f86ac1d999843dce2d71ba474087c48b8a49e76fda840f",
-    "classes3": "1095a1996ae8872420767bd2e9500447aa37ffac85bebd158126a8c3049e6a19"
+    "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
+    "classes3": "a4683a1fc05855eb8135da19c2c96b6418f74a367634bf533322e2dc8caf9de4"
   },
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",

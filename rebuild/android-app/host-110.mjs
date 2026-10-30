@@ -52,5 +52,10 @@ export function verifyHost(root){
  check('LO4/h;',['.method public abstract a()La5/w;','.method public abstract c(LO4/q;)V','.method public abstract d()[La5/H;']);
  check('LO4/m;',['.field public final i:Ljava/util/concurrent/CopyOnWriteArrayList;','.method public final f(La5/I;LO4/q;)V','    iget-object v0, v0, LO4/m;->i:Ljava/util/concurrent/CopyOnWriteArrayList;','    invoke-interface {v0, v15}, LO4/h;->c(LO4/q;)V']);
  check('LO4/q;',['.field public final a:Ljava/lang/String;','.field public final i:[B','.field public final p:La5/h;']);
- const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,proofs};
+ const scanner=check('LO4/D;',['.method public static j([La5/E;[Ljava/lang/String;LO4/S;)V','    invoke-virtual {p1, v2}, Landroid/bluetooth/le/ScanSettings$Builder;->setScanMode(I)Landroid/bluetooth/le/ScanSettings$Builder;']);
+ if(!path.relative(root,scanner).startsWith('smali_classes2'+path.sep))throw new Error('Unexpected scanner hook DEX');
+ const location=check('LL8/u1;',['.method public final a(Lkotlin/jvm/functions/Function1;)V','    invoke-virtual {v2, v3, v4}, LL8/D2;->a(J)Ljava/util/Map;','    invoke-virtual {v0, p1}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z']);
+ const locationResult=check('LL8/b1;',['.method public final a(Ljava/util/Map;Z)V','    iget-wide v0, p0, LL8/b1;->m:J']);
+ for(const file of [location,locationResult])if(!path.relative(root,file).startsWith('smali_classes3'+path.sep))throw new Error('Unexpected location hook DEX');
+ const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,scanner,location,locationResult,proofs};
 }
