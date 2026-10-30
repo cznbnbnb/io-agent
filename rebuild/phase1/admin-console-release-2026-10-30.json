@@ -1,0 +1,252 @@
+{
+  "deployed": true,
+  "backup": "/var/lib/turboio-material/admin-console-release-1793349889133179457",
+  "source_sha256": {
+    "store.mjs": "053bbaf7a7f445bf178072f8e032cfcafefbc675318f82ccb3938bc6d5fba7c3",
+    "http.mjs": "fd33fdec88a49afafdfa7f7e042a0596deed3760d4f1eb2021e1d5430bc1f7c9",
+    "devices.mjs": "58924bda6d4a6f02bd967406e64ed4ebf3872e5898b156b9f18cd33d17b05797",
+    "agent-sessions.mjs": "326b22c6b1af5bac14bfdd5b71d2504be4b23505f82228248d22389db4e74483",
+    "phone-presence.mjs": "0d9443ab994946e28e7d9c2aa27df8a7f2e689f57babb12534d9dc94b22ac957",
+    "traffic.mjs": "dca617c9c4ffd7f4bbac13a0f6b9fcda0e849f1b4148cdcc8609b8731080e271",
+    "admin-console.mjs": "7e1bbf7f563e511d86ebac5576d5e5dae1456a5afc2eefe246d5db8ac3c7e386",
+    "admin/index.html": "00f9a6535e884607fa8b151433afa26a3e992d21cb0e1da59e270a0fde44038e",
+    "admin/app.js": "32f11f717ff1be90edb471f5fbbfef1a5ba8115c390f6472c5945ac20bfbb23f",
+    "admin/console.js": "3e70320240b99bf22d5d21dc36285f86ecca81b1bd20b8d26a51cabf07eca060",
+    "admin/style.css": "e996c1396d58327236a98f3026cc53b31160ddd356e8e5dab27586c102bed57f"
+  },
+  "grants_changed": false,
+  "snapshot_checked": true,
+  "production_runtime_smoke_passed": true,
+  "source_commit": "248e8b5",
+  "profile": "console",
+  "public_checks": [
+    {
+      "asset": "admin",
+      "status": 200,
+      "sha256": "00f9a6535e884607fa8b151433afa26a3e992d21cb0e1da59e270a0fde44038e"
+    },
+    {
+      "asset": "admin/app.js",
+      "status": 200,
+      "sha256": "32f11f717ff1be90edb471f5fbbfef1a5ba8115c390f6472c5945ac20bfbb23f"
+    },
+    {
+      "asset": "admin/console.js",
+      "status": 200,
+      "sha256": "3e70320240b99bf22d5d21dc36285f86ecca81b1bd20b8d26a51cabf07eca060"
+    },
+    {
+      "asset": "admin/style.css",
+      "status": 200,
+      "sha256": "e996c1396d58327236a98f3026cc53b31160ddd356e8e5dab27586c102bed57f"
+    },
+    {
+      "anonymous": "overview",
+      "status": 401
+    },
+    {
+      "anonymous": "devices",
+      "status": 401
+    },
+    {
+      "anonymous": "sessions",
+      "status": 401
+    },
+    {
+      "anonymous": "tasks",
+      "status": 401
+    },
+    {
+      "anonymous": "daily",
+      "status": 401
+    },
+    {
+      "anonymous": "traffic",
+      "status": 401
+    },
+    {
+      "anonymous": "audit",
+      "status": 401
+    }
+  ],
+  "traffic_samples": {
+    "before": {
+      "from_ms": 1793349816802,
+      "to_ms": 1793349876802,
+      "seconds": 60,
+      "requests": 606,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 430
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 56
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 36
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 36
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "other",
+          "method": "GET",
+          "status": 200,
+          "requests": 12
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "other",
+          "method": "POST",
+          "status": 200,
+          "requests": 12
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "other",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "other",
+          "method": "GET",
+          "status": 200,
+          "requests": 6
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "other",
+          "method": "GET",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "other",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        }
+      ]
+    },
+    "after": {
+      "from_ms": 1793349904100,
+      "to_ms": 1793349964100,
+      "seconds": 60,
+      "requests": 244,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 118
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 29
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 26
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 26
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 11
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 11
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "phone-presence",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "todo-suggestions",
+          "method": "GET",
+          "status": 200,
+          "requests": 3
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 2
+        }
+      ]
+    },
+    "total_reduction_percent": 59.7,
+    "scope": "two observed 60s windows; same 3 active producers, no model call accounting"
+  },
+  "tests": {
+    "relevant_server_tests": 73,
+    "passed": 73,
+    "browser": "isolated owner; desktop 1440 and mobile 390; rename, pause/resume, default selection, task search/select/favorite/trash/restore, daily detail/export, error filter, collapsed workspaces and detail close",
+    "production_node22_isolated_smoke": true
+  },
+  "app_version_unchanged": "dev158",
+  "existing_user_password_reset": false,
+  "own_progress_watch": "off",
+  "device_lock": "free",
+  "qa_state": "local in-memory fixture only; no production QA account or device mutations"
+}
