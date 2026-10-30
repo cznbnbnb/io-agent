@@ -10,7 +10,8 @@ try{
   for(let i=0;i<args.length;i+=2){if(!args[i].startsWith('--')||!args[i+1]||Object.hasOwn(options,args[i]))throw new Error('INVALID_ARGUMENTS');options[args[i]]=args[i+1];}
   const allowed={serve:['--db','--port'],mint:['--db','--owner','--producer','--scopes','--ttl-ms','--out'],revoke:['--db','--token-id'],backup:['--db','--out'],
     'material-enroll':['--db','--owner','--producer','--account','--out'],'material-unpair':['--db','--pairing-id'],
-    enroll:['--db','--owner','--role','--label','--out'],devices:['--db','--owner'],unpair:['--db','--device-id']};
+    enroll:['--db','--owner','--role','--label','--out'],devices:['--db','--owner'],unpair:['--db','--device-id'],
+    'admin-create':['--db','--owner','--username','--password-file'],'admin-reset':['--db','--username','--password-file']};
   if(!allowed[action]||Object.keys(options).some(k=>!allowed[action].includes(k))||!options['--db']||!path.isAbsolute(options['--db']))throw new Error('EXPLICIT_ABSOLUTE_DB_REQUIRED');
   if(['mint','backup','enroll','material-enroll'].includes(action)&&(!options['--out']||!path.isAbsolute(options['--out'])))throw new Error('EXPLICIT_PRIVATE_OUTPUT_REQUIRED');
   fs.mkdirSync(path.dirname(options['--db']),{recursive:true,mode:0o700});
@@ -30,6 +31,12 @@ try{
       const audioExpiry=store.audio?setInterval(()=>{try{store.audio.prune();}catch{process.stderr.write(JSON.stringify({warning:'AUDIO_EXPIRY_UNAVAILABLE'})+'\n');}},60000):null;
       let closing=false;const stop=()=>{if(closing)return;closing=true;clearInterval(watchdog);clearInterval(audioExpiry);server.close(()=>{traffic?.close();store.close();process.exit(0);});};
       process.on('SIGINT',stop);process.on('SIGTERM',stop);
+    }else if(action==='admin-create'||action==='admin-reset'){
+      const file=options['--password-file'];if(!file||!path.isAbsolute(file))throw new Error('EXPLICIT_PASSWORD_FILE_REQUIRED');
+      const stat=fs.lstatSync(file);if(!stat.isFile()||stat.size>1024||(process.platform!=='win32'&&(stat.mode&0o077)))throw new Error('PRIVATE_PASSWORD_FILE_REQUIRED');
+      const input={username:options['--username'],password:fs.readFileSync(file,'utf8').replace(/\r?\n$/,'')};
+      if(action==='admin-create')input.owner=options['--owner'];
+      process.stdout.write(JSON.stringify(await store.admin.enroll(input,action==='admin-reset'))+'\n');store.close();
     }else if(action==='mint'){
       // O_EXCL prevents overwriting a previous credential. On Windows restrict
       // the output directory ACL separately; POSIX mode alone is not an ACL.

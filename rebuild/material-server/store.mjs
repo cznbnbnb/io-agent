@@ -12,6 +12,7 @@ import {AgentSessionDirectory} from './agent-sessions.mjs';
 import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from './material-transfer.mjs';
 import {AudioArchive} from './audio.mjs';
 import {TodoSuggestions} from './todo-suggestions.mjs';
+import {AdminAuth} from './admin-auth.mjs';
 
 const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
@@ -103,6 +104,7 @@ export class MaterialStore {
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
       this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
+      this.admin=new AdminAuth(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -151,12 +153,15 @@ export class MaterialStore {
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
-    const p=this.auth(token,'operations:read');
-    const queue=this.db.prepare('SELECT kind,state,COUNT(*) AS count FROM queue_heads WHERE owner=? GROUP BY kind,state ORDER BY kind,state').all(p.owner);
-    const receipts=this.db.prepare("SELECT json_extract(body,'$.stage') AS stage,COUNT(*) AS count FROM queue_revisions WHERE owner=? AND kind='receipt' GROUP BY stage ORDER BY stage").all(p.owner);
-    const materials=this.db.prepare('SELECT deleted,COUNT(*) AS count FROM materials WHERE owner=? GROUP BY deleted').all(p.owner);
-    const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(p.owner);
-    return {server_time:iso(this.clock()),owner_id:p.owner,queue,receipts,materials,recent};
+    return this.operationsForOwner(this.auth(token,'operations:read').owner);
+  }
+  // Both HTTP authentication boundaries supply a verified owner; never take it from a browser body.
+  operationsForOwner(owner){
+    const queue=this.db.prepare('SELECT kind,state,COUNT(*) AS count FROM queue_heads WHERE owner=? GROUP BY kind,state ORDER BY kind,state').all(owner);
+    const receipts=this.db.prepare("SELECT json_extract(body,'$.stage') AS stage,COUNT(*) AS count FROM queue_revisions WHERE owner=? AND kind='receipt' GROUP BY stage ORDER BY stage").all(owner);
+    const materials=this.db.prepare('SELECT deleted,COUNT(*) AS count FROM materials WHERE owner=? GROUP BY deleted').all(owner);
+    const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(owner);
+    return {server_time:iso(this.clock()),owner_id:owner,queue,receipts,materials,recent};
   }
   dailySummaryHead(token,input){
     const p=this.auth(token,'materials:write');

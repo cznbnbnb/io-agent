@@ -25,7 +25,7 @@ async function smallJson(req,observation,limit=8192){
 const QUEUE_PATHS=new Map([['/v1/tasks','task'],['/v1/requests','request'],['/v1/answers','answer'],['/v1/messages','message'],['/v1/receipts','receipt']]);
 const QUEUE_READS={tasks:'task',requests:'request',messages:'message'};
 
-export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
+export function createServer(store,{traffic=null,trafficUnavailable=false,adminOrigin='https://cznbnb.cn',adminCookiePath='/io-api/v1/admin'}={}){
   const telemetry={write_errors:0};
   const server=http.createServer(async(req,res)=>{
     const observation=trafficObservation(req);
@@ -36,16 +36,41 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
     try{
       if((req.url?.length??0)>8192)reject(414,'INVALID_QUERY');
       const url=new URL(req.url,'http://localhost');
+      if(req.method==='GET'&&url.pathname==='/v1/admin/'&&!url.search){res.writeHead(308,{Location:adminCookiePath,'Cache-Control':'no-store'});res.end();return;}
       if(req.method==='GET'&&ADMIN_ASSETS.has(url.pathname)){
         if(url.search)reject(400,'INVALID_QUERY');
         const asset=ADMIN_ASSETS.get(url.pathname);
         res.writeHead(200,{'Content-Type':asset.type,'Content-Length':asset.data.length,'Cache-Control':'no-store',
           'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
-          'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"});
+          'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"});
         res.end(asset.data);return;
       }
+      if(url.pathname.startsWith('/v1/admin/')){
+        if(url.search||req.headers.authorization)reject(400,'INVALID_ADMIN_INPUT');
+        const route=url.pathname.slice('/v1/admin/'.length),write=req.method==='POST';
+        if(!((write&&['login','logout','password'].includes(route))||(req.method==='GET'&&['session','summary'].includes(route))))reject(404,'NOT_FOUND');
+        if(write&&req.headers.origin!==adminOrigin)reject(403,'ADMIN_ORIGIN_REQUIRED');
+        const cookies=(req.headers.cookie??'').split(';').map(v=>v.trim()).filter(v=>v.startsWith('__Secure-io_admin='));
+        if(cookies.length>1)reject(401,'ADMIN_LOGIN_REQUIRED');
+        const token=cookies.length?cookies[0].slice('__Secure-io_admin='.length):null;
+        const setCookie=value=>res.setHeader('Set-Cookie',`__Secure-io_admin=${value??''}; Path=${adminCookiePath}; HttpOnly; Secure; SameSite=Strict; Max-Age=${value?604800:0}`);
+        if(route==='login'||route==='password'){
+          const input=await smallJson(req,observation,2048);
+          const result=route==='login'?await store.admin.login(input,token):await store.admin.change(token,input);
+          setCookie(result.token);send(200,result.profile);return;
+        }
+        if(route==='logout'){
+          const input=await smallJson(req,observation,64);if(!input||Array.isArray(input)||typeof input!=='object'||Object.keys(input).length)reject(400,'INVALID_ADMIN_INPUT');
+          store.admin.logout(token);setCookie(null);send(200,{logged_out:true});return;
+        }
+        const session=store.admin.session(token);
+        if(route==='session'){send(200,{username:session.username,must_change_password:!!session.must_change,expires_at:new Date(session.expires).toISOString()});return;}
+        if(session.must_change)reject(403,'ADMIN_PASSWORD_CHANGE_REQUIRED');
+        const summary=store.operationsForOwner(session.owner),flow=traffic?traffic.snapshot(session.owner,24):{available:false};
+        send(200,{...summary,traffic:{...flow,write_errors:telemetry.write_errors,initialization_failed:trafficUnavailable}});return;
+      }
       if(req.method==='GET'&&url.pathname==='/health'&&!url.search){send(200,{service:'turboio-materials',database_version:1});return;}
-      // One-time pairing code exchange: the only unauthenticated write (devices.mjs rate-limits it).
+      // One-time pairing exchange has its own rate limit, separate from admin login.
       if(req.method==='POST'&&url.pathname==='/v1/pair'){
         if(url.search||req.headers.authorization)reject(400,'INVALID_QUERY');observation.route='pair';
         send(200,store.devices.pair(await smallJson(req,observation,1024)));return;

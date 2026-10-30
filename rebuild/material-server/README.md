@@ -6,7 +6,7 @@
 
 首次部署后的服务器本机 HTTPS 实测（合成数据）：未认证 401、身份绑定、写入 201 且回执 `server_stored`、同事件重发 200 且值一致、原文精确读回＋来源引用、增量游标可见——证据 [server-live-verification.json](../../rebuild/phase1/server-live-verification.json)、[server-deployment-facts.json](../../rebuild/phase1/server-deployment-facts.json)。该历史记录自身不证明公网或手机同步；后续公网/手机单项分别列在下文。凭据 24 小时上限、无自动轮换；`probe-*`／`live-check-*` 为自检合成行。
 
-2026-10-12 只读管理后台、独立 API 流量账本与原命令期限元数据已随 `io-server-20261012-r1` 发布，见[实际发布与验证边界](../../docs/product/phase4-server-release-package-2026-10-12.md)。公网443已放行，HTTPS 页面和静态资源检查通过；[后台入口](https://cznbnb.cn/io-api/v1/admin)的统计仍需 operations:read 专用凭据。后续公网合成 owner 的认证统计 API 已验证，见[云端队列后验](../phase1/cloud-queue-verification-2026-10-13.json)；真实用户带权限后台 UI 仍待验收。
+2026-10-12 只读管理后台、独立 API 流量账本与原命令期限元数据已随 `io-server-20261012-r1` 发布，见[实际发布与验证边界](../../docs/product/phase4-server-release-package-2026-10-12.md)。公网443已放行，HTTPS 页面和静态资源检查通过；[后台入口](https://cznbnb.cn/io-api/v1/admin)的页面登录已改为后台账号密码（2026-10-30）；原 operations:read 仅保留程序化统计接口兼容。后续公网合成 owner 的认证统计 API 已验证，见[云端队列后验](../phase1/cloud-queue-verification-2026-10-13.json)；账号登录及浏览器验证见下方“后台账号”。
 
 2026-10-14 当前 r3 已生产激活：源码绑定 `a1cbf1900cc0513a98b9f106f2b6462598bd8f5b`，支持资料1.2的字典、更正、拆句来源及原音missing元数据。真实公网 HTTPS 与实际查询 CLI 合成后验17/17通过，见[发布记录](../../docs/product/phase2-speaker-server-release-preparation-2026-10-13.md)与[合成后验](../phase1/cloud-speaker-r3-20261014-0104-speaker-verification.json)。这些是独占合成owner的服务器/电脑证据，手机实际1.2同步与真实日常资料查询仍未验收。
 
@@ -50,7 +50,7 @@ node "$serviceRoot/cli.mjs" serve --db $databasePath --port 3401
 | GET `/v1/tasks/{id}`、`/v1/requests/{id}`、`/v1/messages/{id}` | tasks:read\|tasks:update、requests:read\|requests:write、messages:receive\|messages:write | 当前 state、最新修订及该对象/答案的回执阶梯 |
 | GET `/v1/inbox?limit=&cursor=` | 任一可读队列scope | 按提交序号投递 task/request/message；游标绑定可见类型 |
 | GET `/v1/operations/summary?hours=24` | operations:read | 同 owner 的状态/回执计数、最近修订与已认证 API 正文字节统计；已部署且公网合成认证API已验证，真实用户后台UI仍待验收 |
-| GET `/v1/admin` | 仅页面外壳公开 | 只读管理页已部署；业务统计仍需独立凭据 |
+| GET `/v1/admin` | 仅页面外壳公开 | 只读管理页已部署；账号密码登录，登录后只读统计 |
 
 Authorization 为 `Bearer <token>`，不接受查询参数凭据。由凭据推导 owner，producer必须与信封一致。未认证401，缺scope/冒充producer403，外owner的ID查不到。1.0事件原样保留其版本，不编造全文/转写覆盖；1.1原样保留 full_text/processing；1.2另保留资料内speakers字典及已校验的source_range。未知版本拒绝。
 
@@ -116,3 +116,21 @@ fresh_until等于server_time，只说明查询当时，未承诺未来无更新�
 测试使用实际临时SQLite、真实子进程硬退出与loopback HTTP；没有mock数据库。包含COMMIT前退出回滚、COMMIT后丢回复对账、并发去重、备份重开、重启游标、跨owner、撤销/过期、大文本分页和删除抑制。队列另有独立套件：P14 正常/重复/过期样例形状、真实 HTTP 决策闭环、两个独立进程争抢同一答案、状态机与 route 绑定、scope 分离、回执阶梯与去重、游标分页与可见性变更、v1→v2 迁移、复审三项反例与原任务期限保留。保存的0.1.39真机**合成**导出r1–r5也未经改字段按序验证。它证明载荷兼容，不是手机联网同步或真实日常对话的端到端验收。当前正式本机回归69/69：资料18＋队列14＋后台7＋问题收尾8＋查询11＋说话人11，查询11已包含在69中，不另累计。证据：[result.json](./verification/result.json)、[tests.tap](./verification/tests.tap)、[queue-tests.tap](./verification/queue-tests.tap)、[operations-tests.tap](./verification/operations-tests.tap)、[request-lifecycle-tests.tap](./verification/request-lifecycle-tests.tap)、[query-tests.tap](./verification/query-tests.tap)、[speaker-tests.tap](./verification/speaker-tests.tap)。
 
 腾讯云部署和服务器本机 HTTPS 已核实，2026-10-12 已按用户授权放通 TCP 443。手机较早1.1合成资料的真实 HTTPS 上传、修订/删除及断网后冷启动补传证据见[手机离线恢复](../../docs/product/phase3-phone-offline-recovery-2026-10-12.md)。`request_lifecycle_v1` 已随r2部署并完成公网合成问题收尾验证，见[发布记录](../../docs/product/phase4-lifecycle-release-2026-10-12.md)；电脑真实Hermes云端问答/继续/取消的受控验证见[云端联调](../../docs/product/phase4-cloud-hermes-2026-10-13.md)，其中手机角色由电脑合成driver代发。当前r3资料1.2的公网服务器与实际CLI查询后验见上文，手机1.2更正同步及真实用户日常资料查询仍待验证。生产身份和手机/眼镜任务完整云端闭环、完整恢复、原音、长期容量/磁盘故障、限流及凭据轮换仍未验收；完整 P30/P40 及 AC-QUERY、AC-ASK 不据上述单项关闭。
+
+
+## 后台账号（2026-10-30）
+
+入口仍是 https://cznbnb.cn/io-api/v1/admin 。后台账号独立于手机官方账号；由服务器管理员创建并绑定已有 owner，浏览器不能选择 owner 或公开注册。默认登录保留 7 天，刷新/重新打开页面沿用登录；可主动退出、修改密码。首次临时密码必须先更换才能读取统计，修改或管理员重置会使该账号所有旧登录失效。
+
+密码以独立随机盐和异步 scrypt（N=32768、r=8、p=3）保存，数据库不保存明文；随机会话令牌在数据库中也仅保存 SHA256。Cookie 为 HttpOnly / Secure / SameSite=Strict，限定后台路径。所有写请求校验同源 Origin，错误登录有全局并发/频率与持久化账号次数限制。浏览器登录不会生成 Agent/手机 API 授权；旧 Bearer operations:read 兼容接口继续只读。部署默认同域 cznbnb.cn，不信任客户端传入的代理主机头。
+
+创建/忘记密码仅在服务端 CLI 操作，不把密码写到命令行参数或日志。先将新随机密码保存到仅本人可读的绝对路径文件（权限 0600），运行后删除临时文件：
+
+```sh
+node cli.mjs admin-create --db /absolute/materials.sqlite --owner existing-owner --username admin.name --password-file /absolute/private-password
+node cli.mjs admin-reset --db /absolute/materials.sqlite --username admin.name --password-file /absolute/private-password
+```
+
+两种命令均要求下次登录改密。admin-reset 保留原 owner；不存在的账号不自动创建。后台目前只有状态/流量/回执，无资料正文、文件下载或删除按钮。
+
+校验：node --test rebuild/material-server/tests/admin-auth.test.mjs rebuild/material-server/tests/operations.test.mjs；相关配对/主手机回归分别位于 devices、material-pairings、phone-presence 测试。发布入口 tools/phase1/deploy-admin-login.py 默认只核对文件哈希，显式 --apply 才备份 SQLite、替换 7 文件、在生产 Node22 隔离 smoke 后重启自有服务；故障只回退代码，不用旧数据库覆盖新数据。
