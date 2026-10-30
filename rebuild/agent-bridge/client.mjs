@@ -113,7 +113,7 @@ export class BridgeClient{
     fail(code??'HTTP_ERROR',{status:response.status,permanent:true});
   }
   async identity(){return (await this.#send('GET','identity')).body;}
-  async watchInbox(version=null,{signal,waitSeconds=25}={}){
+  async watchInbox(version=null,{signal,waitSeconds=10}={}){
     if(version!==null&&!/^[a-f0-9]{64}$/.test(version)||!Number.isInteger(waitSeconds)||waitSeconds<1||waitSeconds>25)fail('INVALID_QUERY',{permanent:true});
     const query=new URLSearchParams({wait_seconds:String(waitSeconds)});if(version)query.set('version',version);
     const {body}=await this.#send('GET','inbox/watch?'+query,undefined,null,signal);

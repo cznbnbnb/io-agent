@@ -14,7 +14,7 @@ final class TaskInboxWatch implements AutoCloseable {
  boolean closed(){return closed;}
  private void run(){int failures=0;while(!closed){
   try{
-   TaskApi.Response response=transport.exchange("/inbox/watch?wait_seconds=25"+(version.isEmpty()?"":"&version="+version),null);
+   TaskApi.Response response=transport.exchange("/inbox/watch?wait_seconds=10"+(version.isEmpty()?"":"&version="+version),null);
    if(response.status!=200)throw new IOException(TaskApi.error(response));
    Map<String,Object> value=WireJson.map(WireJson.read(response.body));String next=TaskWire.text(value.get("version"),64,false);
    TaskWire.require("1.0".equals(value.get("schema_version"))&&device.owner.equals(value.get("owner_id"))&&device.server.equals(value.get("server_id"))&&device.producer.equals(value.get("producer_id"))&&next.matches("[a-f0-9]{64}"),"TASK_WATCH_IDENTITY_MISMATCH");
