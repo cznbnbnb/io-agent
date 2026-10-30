@@ -898,7 +898,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
+      "sha256": "bc08acefb84cd3297913eae8699a0195c60cb345a12c7c53080a4e45c96edc00"
     },
     {
       "path": "src/com/turboio/addon/TaskAttention.java",
@@ -930,11 +930,15 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHttp.java",
-      "sha256": "8a0640acf462426c5a9fa0c8616eb670dfa5c950b7968ad638badf54358d469d"
+      "sha256": "880e75dc79ce1dc65135648c114c0f0d15f2dd8f09fdf3c6ff337bec7f4f6a6e"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
+      "sha256": "58aad7d32cb98087b77a2ca52ca3264fbe28ae33c457ad9017a6e5a5446a804b"
+    },
+    {
+      "path": "src/com/turboio/addon/TaskInboxWatch.java",
+      "sha256": "c06413a609d436c9170a3821a6c87bf314ec70ebf7fa08c8f3c9196703789e66"
     },
     {
       "path": "src/com/turboio/addon/TaskLibrary.java",
@@ -978,7 +982,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "f4afe5bb435f64b976b89401528f28e77de604b37e2a7913926deab7e0ebfcb4"
+      "sha256": "9a279c6c669b6b522916adac51cec7c05366660891b1b79124a548840cd9dd84"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -1062,11 +1066,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "db817e48c6960abb8b9ae42ab5d9508b7aa66857d46e1ba3020b2f5a4a20dbf1"
+      "sha256": "4659c3b1cbeebcc57fa1b3ac4bb0e38ad53ae7178fdc282232e7d1d48f297109"
     }
   ],
-  "product_sha256": "ca2a50be1403fabfc0aa99362c28efce18836048809d5263517a712533eced7a",
-  "addon_sha256": "b4e0249430c250a4ef3f6c0e173b533a60d390c4856c7158acf988cbf08d4dd6",
+  "product_sha256": "d12a70b5ac12cb913899d7fca75bc460184b70bc5d85224ae391eb6494b52ff4",
+  "addon_sha256": "7c1765b15d11bf0211aec4d1258267d37a656fbda61c793922213a405728373e",
   "host_dex_sha256": {
     "classes2": "3f0b4328f8dac2b7c3f86ac1d999843dce2d71ba474087c48b8a49e76fda840f",
     "classes3": "1095a1996ae8872420767bd2e9500447aa37ffac85bebd158126a8c3049e6a19"

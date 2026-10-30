@@ -1,0 +1,439 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "source_commit": "bf71b14",
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/admin-notifications-release-1793352921820672839",
+    "source_sha256": {
+      "store.mjs": "f90bb14fe38beaaa35cd60c474fa50e6274d679768faf8f692c2f7751e1ad379",
+      "http.mjs": "8a05dbb33f5dff971db76c44f74a0bd168938d92bef3e06f47b606909aac0b0b",
+      "devices.mjs": "9daefb289ea67a99499da0dbfff99ea91f68bcea13ce4b25a2202d3ded91e9e4",
+      "phone-presence.mjs": "b25753c267298b5131ba4c5c6632b4f0c6386fa49cd6c1ad56ff2e29ba50bf03",
+      "admin-console.mjs": "8932cac8fbf6b13a355e322dd52397f6449d4d7f50e2c243cb4bbe46a76f1932"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "bf71b14",
+    "profile": "notifications"
+  },
+  "desktop": {
+    "at": "2026-10-30T09:32:44.551Z",
+    "backup": "/Users/cznbnb/.turboio/runtime-backups/shared-inbox-1793352758067",
+    "source_commit": "9167af3",
+    "updated": [
+      "bridge.mjs",
+      "client.mjs",
+      "connector.mjs",
+      "session-directory.mjs",
+      "inbox-signal.mjs"
+    ],
+    "native_sessions_preserved": {
+      "codex-phone": "01a17d09-d939-78b1-ac2e-d601a8f7a544",
+      "claude-code-phone": "fa422302-52d0-4e5a-bd56-71dc12009923"
+    },
+    "residents": [
+      {
+        "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d",
+        "before": {
+          "resident_live": true,
+          "cloud_online": true,
+          "can_execute": true,
+          "reason": null,
+          "pid": 45600,
+          "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+        },
+        "after": {
+          "resident_live": true,
+          "cloud_online": true,
+          "can_execute": true,
+          "reason": null,
+          "pid": 6366,
+          "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+        }
+      },
+      {
+        "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+        "before": {
+          "resident_live": true,
+          "cloud_online": true,
+          "can_execute": false,
+          "reason": "CODEX_SESSION_NOT_LOADED",
+          "pid": 48615,
+          "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+        },
+        "after": {
+          "resident_live": true,
+          "cloud_online": true,
+          "can_execute": false,
+          "reason": "CODEX_SESSION_NOT_LOADED",
+          "pid": 6435,
+          "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+        }
+      }
+    ]
+  },
+  "public_transport_probe": {
+    "at": "2026-10-30T09:36:28.537Z",
+    "owner": "caller600-20261030-codex",
+    "latency_ms": [
+      106,
+      119,
+      115
+    ],
+    "real_native_agents_invoked": false,
+    "glasses_invoked": false,
+    "idle_wait_ms": 10125,
+    "test_credentials_revoked": true
+  },
+  "traffic": {
+    "baseline": {
+      "from_ms": 1793352207625,
+      "to_ms": 1793352267625,
+      "seconds": 60,
+      "requests": 238,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 119
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 29
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 23
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 21
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 11
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 11
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "phone-presence",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 3
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "todo-suggestions",
+          "method": "GET",
+          "status": 200,
+          "requests": 3
+        }
+      ]
+    },
+    "desktop_only": {
+      "from_ms": 1793352954996,
+      "to_ms": 1793353014996,
+      "seconds": 60,
+      "requests": 104,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 29
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 27
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 12
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "phone-presence",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 9
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 7
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 3
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "todo-suggestions",
+          "method": "GET",
+          "status": 200,
+          "requests": 3
+        }
+      ]
+    },
+    "all_updated_early": {
+      "from_ms": 1793353242547,
+      "to_ms": 1793353302547,
+      "seconds": 60,
+      "requests": 75,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 15
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 12
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 12
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "phone-presence",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 9
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 7
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "todo-suggestions",
+          "method": "GET",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 2
+        }
+      ]
+    },
+    "all_updated_steady": {
+      "from_ms": 1793353295501,
+      "to_ms": 1793353355501,
+      "seconds": 60,
+      "requests": 66,
+      "errors": 0,
+      "rows": [
+        {
+          "producer": "agent-1fa50a71",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 11
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "identity",
+          "method": "GET",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "phone-presence",
+          "method": "POST",
+          "status": 200,
+          "requests": 10
+        },
+        {
+          "producer": "agent-1fa50a71",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 9
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 8
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "inbox",
+          "method": "GET",
+          "status": 200,
+          "requests": 7
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "todo-suggestions",
+          "method": "GET",
+          "status": 200,
+          "requests": 5
+        },
+        {
+          "producer": "agent-9eb7b990",
+          "route": "agent-sessions",
+          "method": "POST",
+          "status": 200,
+          "requests": 4
+        },
+        {
+          "producer": "phone-a3b3b4f3",
+          "route": "agent-sessions",
+          "method": "GET",
+          "status": 200,
+          "requests": 2
+        }
+      ]
+    },
+    "reduction_percent": 72.3,
+    "same_authenticated_producers": true,
+    "probe_owner_excluded": true
+  },
+  "phone": {
+    "version": "0.5.3-dev159",
+    "version_code": 10581,
+    "installed": true,
+    "baseline_and_installed_sha_verified": true,
+    "sha256": "5d2f3d465a207e0197099fa96b7b251d1ff4553973e45eacfd50a6e9de8c2226",
+    "delta": {
+      "baseline_sha256": "d34952f8124265247e5e646d9cb59e0f5c372e768a776d13e7bbb5ce7d70f0ac",
+      "candidate_sha256": "5d2f3d465a207e0197099fa96b7b251d1ff4553973e45eacfd50a6e9de8c2226",
+      "apk_bytes": 435083881,
+      "delta_bytes": 1967097,
+      "commands": 8141,
+      "delta_sha256": "1a4f159790dcdcc3da7d28e3907538fc4e2ba49bde609f558976c84cca339643",
+      "reconstruction_hash_verified": true
+    },
+    "one_inbox_watch_thread_observed": true,
+    "normal_launch_verified": true,
+    "own_process_crash_log_empty": true,
+    "ui_changed": false,
+    "user_active_in_other_apps_during_background_checks": true,
+    "new_real_agent_task_or_glasses_roundtrip": false
+  },
+  "portable_cli": {
+    "file": "outputs/cz-iot-cli.zip",
+    "sha256": "d561669824ebd72887282db8523b806e0270d884020293d400a4f3157694dc9e",
+    "unpacked_integration_passed": true
+  },
+  "checks": {
+    "node_baseline": 100,
+    "node_native_notifications_directory_service": 43,
+    "acp_transport_and_same_session": 4,
+    "gateway_followup": 5,
+    "android_directory_control_contexts_status": 326,
+    "android_device": 50,
+    "android_watch_reconnect_and_identity": true,
+    "signed_source_provenance_passed": true
+  },
+  "limits": [
+    "公网106–119ms为通知唤醒并读回合成任务的传输用时，不是模型或镜片端到端延迟。",
+    "当前桌面Codex原listener保持此前CODEX_SESSION_NOT_LOADED；没有借本次降频虚报该执行入口已修复。",
+    "不改UI、模型配置、配对、主手机或原网站网关；保留在线续租和主手机短租约。"
+  ]
+}
