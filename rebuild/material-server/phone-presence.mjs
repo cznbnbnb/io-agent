@@ -31,8 +31,7 @@ export class PhonePresence {
     row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(p.owner);
    }
    if(switching){
-    if(input.expected_revision!==row.revision)reject(409,'PRIMARY_PHONE_CHANGED');
-    if(row.device_id!==d.device_id){this.db.prepare('UPDATE primary_phones SET device_id=?,revision=revision+1,active_after=MAX(lease_until,?),lease_until=MAX(lease_until,?),notice_after_seq=? WHERE owner=?').run(d.device_id,now,now,this.store.queueCeiling(p.owner),p.owner);row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(p.owner);}
+    row=this.selectPrimary(p.owner,d.device_id,input.expected_revision,now);
    }
    const active=row.device_id===d.device_id&&now>=row.active_after;
    if(active){this.db.prepare('UPDATE primary_phones SET lease_until=? WHERE owner=?').run(now+PHONE_LEASE_MS,p.owner);row.lease_until=now+PHONE_LEASE_MS;}
@@ -40,6 +39,15 @@ export class PhonePresence {
    return {schema_version:'1.0',server_id:this.store.devices.serverId(),owner_id:p.owner,device_id:d.device_id,account_binding:input.account_binding,
     primary_device_id:row.device_id,revision:row.revision,notice_after_seq:row.notice_after_seq,lease_ms:active?PHONE_LEASE_MS:0,wait_ms:row.device_id===d.device_id?Math.max(0,row.active_after-now):0,phones};
   });
+ }
+ // Both the phone and the admin action use the same handover lease.
+ selectPrimary(owner,deviceId,expectedRevision,now=this.store.clock()){
+  const device=this.db.prepare("SELECT d.device_id FROM devices d JOIN phone_accounts a ON a.device_id=d.device_id AND a.owner=d.owner WHERE d.owner=? AND d.device_id=? AND d.role='phone' AND d.revoked_at IS NULL").get(owner,deviceId);
+  if(!device)reject(409,'PHONE_ACCOUNT_REQUIRED');
+  let row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(owner);
+  if(!row||expectedRevision!==row.revision)reject(409,'PRIMARY_PHONE_CHANGED');
+  if(row.device_id!==deviceId){this.db.prepare('UPDATE primary_phones SET device_id=?,revision=revision+1,active_after=MAX(lease_until,?),lease_until=MAX(lease_until,?),notice_after_seq=? WHERE owner=?').run(deviceId,now,now,this.store.queueCeiling(owner),owner);row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(owner);}
+  return row;
  }
  // Legacy phones cannot receive fresh request/message bodies after a switch.
  // Updated phones also check their elapsed-time lease before every UI emission.

@@ -2,6 +2,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {performance} from 'node:perf_hooks';
 import {reject} from './json.mjs';
 
+const iso=n=>new Date(n).toISOString();
 const HOUR=3600000,DAY=24*HOUR,APP_ID=0x694F5472;
 // 独立侧账本：不迁移主资料库，不保存正文、令牌、查询参数或原始 URL。
 export class TrafficLedger{
@@ -34,7 +35,7 @@ export class TrafficLedger{
   }
   record({owner,producer,route,method,status,request_bytes,response_bytes,duration_ms}){
     if(![owner,producer].every(value=>typeof value==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(value))||
-      !['identity','materials','changes','inbox','tasks','requests','answers','messages','receipts','events','other'].includes(route)||
+      !['identity','materials','changes','inbox','tasks','requests','answers','messages','receipts','events','other','agent-sessions','agent-default','phone-presence','watches','devices','pairings','credentials','todo-suggestions'].includes(route)||
       !['GET','POST','OTHER'].includes(method)||!Number.isInteger(status)||status<100||status>599||
       ![request_bytes,response_bytes,duration_ms].every(value=>Number.isSafeInteger(value)&&value>=0))throw new Error('TRAFFIC_RECORD_INVALID');
     const now=this.clock(),hour=Math.floor(now/HOUR)*HOUR;
@@ -57,6 +58,24 @@ export class TrafficLedger{
     const recent=this.db.prepare(`SELECT at,producer AS producer_id,route,method,status,request_bytes,response_bytes,duration_ms FROM recent WHERE owner=? AND at>=? ORDER BY seq DESC LIMIT 50`).all(owner,since);
     return {available:true,window_from:new Date(since).toISOString(),hours,producers,recent,
       totals:producers.reduce((sum,row)=>{for(const key of ['requests','request_bytes','response_bytes','errors'])sum[key]+=row[key];return sum;},{requests:0,request_bytes:0,response_bytes:0,errors:0})};
+  }
+  // Query values have already been normalized by the admin HTTP boundary.
+  inspect(owner,{hours,offset,producer,route,status}){
+    const now=this.clock(),since=(Math.floor(now/HOUR)-hours+1)*HOUR,args=[owner,since];
+    let where='owner=? AND hour>=?';
+    if(producer){where+=' AND producer=?';args.push(producer);}
+    if(route){where+=' AND route=?';args.push(route);}
+    if(status)where+=status==='error'?' AND status>=400':' AND status<400';
+    const totals=this.db.prepare(`SELECT COALESCE(SUM(requests),0) requests,COALESCE(SUM(request_bytes),0) request_bytes,COALESCE(SUM(response_bytes),0) response_bytes,COALESCE(SUM(CASE WHEN status>=400 THEN requests ELSE 0 END),0) errors FROM buckets WHERE ${where}`).get(...args);
+    const hourly=this.db.prepare(`SELECT hour,SUM(requests) requests,SUM(CASE WHEN status>=400 THEN requests ELSE 0 END) errors FROM buckets WHERE ${where} GROUP BY hour ORDER BY hour`).all(...args);
+    const routes=this.db.prepare(`SELECT route,method,SUM(requests) requests,SUM(CASE WHEN status>=400 THEN requests ELSE 0 END) errors,SUM(response_bytes) response_bytes FROM buckets WHERE ${where} GROUP BY route,method ORDER BY requests DESC`).all(...args);
+    const producers=this.db.prepare(`SELECT producer,SUM(requests) requests,SUM(request_bytes) request_bytes,SUM(response_bytes) response_bytes,SUM(CASE WHEN status>=400 THEN requests ELSE 0 END) errors FROM buckets WHERE ${where} GROUP BY producer ORDER BY requests DESC`).all(...args);
+    const recentWhere=where.replace('hour>=?','at>=?'),rows=this.db.prepare(`SELECT seq,at,producer,route,method,status,request_bytes,response_bytes,duration_ms FROM recent WHERE ${recentWhere} ORDER BY seq DESC LIMIT 51 OFFSET ?`).all(...args,offset);
+    const first=this.db.prepare('SELECT MIN(at) first FROM recent WHERE owner=?').get(owner).first;
+    const rateArgs=[owner,Math.max(now-60000,first??now),...args.slice(2)],coverage=Math.max(1,Math.min(60000,now-(first??now)));
+    const rate=this.db.prepare(`SELECT COUNT(*) requests,COALESCE(SUM(CASE WHEN status>=400 THEN 1 ELSE 0 END),0) errors,COALESCE(SUM(CASE WHEN route IN ('inbox','identity','agent-sessions','phone-presence') THEN 1 ELSE 0 END),0) polling FROM recent WHERE ${recentWhere}`).get(...rateArgs);
+    return {available:true,hours,window_from:iso(since),server_time:iso(now),totals,hourly,routes,producers,recent:rows.slice(0,50),has_more:rows.length>50,offset,
+      per_second:Number((rate.requests/(coverage/1000)).toFixed(2)),recent_rate:{...rate,seconds:Number((coverage/1000).toFixed(1))},recent_available_from:first===null?null:iso(first)};
   }
   close(){this.db.close();}
 }

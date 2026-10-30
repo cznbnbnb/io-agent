@@ -8,6 +8,7 @@ import {trafficObservation} from './traffic.mjs';
 const ADMIN_ASSETS=new Map([
   ['/v1/admin',['admin/index.html','text/html; charset=utf-8']],
   ['/v1/admin/app.js',['admin/app.js','text/javascript; charset=utf-8']],
+  ['/v1/admin/console.js',['admin/console.js','text/javascript; charset=utf-8']],
   ['/v1/admin/style.css',['admin/style.css','text/css; charset=utf-8']]
 ].map(([route,[file,type]])=>[route,{data:fs.readFileSync(new URL(file,import.meta.url)),type}]));
 
@@ -25,7 +26,7 @@ async function smallJson(req,observation,limit=8192){
 const QUEUE_PATHS=new Map([['/v1/tasks','task'],['/v1/requests','request'],['/v1/answers','answer'],['/v1/messages','message'],['/v1/receipts','receipt']]);
 const QUEUE_READS={tasks:'task',requests:'request',messages:'message'};
 
-export function createServer(store,{traffic=null,trafficUnavailable=false,adminOrigin='https://cznbnb.cn',adminCookiePath='/io-api/v1/admin'}={}){
+export function createServer(store,{traffic=null,trafficUnavailable=false,adminOrigin='https://cznbnb.cn',adminCookiePath='/io-api/v1/admin',idleInboxWaitMs=1000}={}){
   const telemetry={write_errors:0};
   const server=http.createServer(async(req,res)=>{
     const observation=trafficObservation(req);
@@ -46,9 +47,10 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
         res.end(asset.data);return;
       }
       if(url.pathname.startsWith('/v1/admin/')){
-        if(url.search||req.headers.authorization)reject(400,'INVALID_ADMIN_INPUT');
+        if(req.headers.authorization)reject(400,'INVALID_ADMIN_INPUT');
         const route=url.pathname.slice('/v1/admin/'.length),write=req.method==='POST';
-        if(!((write&&['login','logout','password'].includes(route))||(req.method==='GET'&&['session','summary'].includes(route))))reject(404,'NOT_FOUND');
+        if(!((write&&['login','logout','password','action'].includes(route))||(req.method==='GET'&&['session','summary','overview','devices','sessions','tasks','task','daily','daily-detail','traffic','audit'].includes(route))))reject(404,'NOT_FOUND');
+        if(url.search&&(write||['session','summary'].includes(route)))reject(400,'INVALID_ADMIN_INPUT');
         if(write&&req.headers.origin!==adminOrigin)reject(403,'ADMIN_ORIGIN_REQUIRED');
         const cookies=(req.headers.cookie??'').split(';').map(v=>v.trim()).filter(v=>v.startsWith('__Secure-io_admin='));
         if(cookies.length>1)reject(401,'ADMIN_LOGIN_REQUIRED');
@@ -66,6 +68,8 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
         const session=store.admin.session(token);
         if(route==='session'){send(200,{username:session.username,must_change_password:!!session.must_change,expires_at:new Date(session.expires).toISOString()});return;}
         if(session.must_change)reject(403,'ADMIN_PASSWORD_CHANGE_REQUIRED');
+        if(route==='action'){send(200,store.console.action(session,await smallJson(req,observation,16384)));return;}
+        if(route!=='summary'){const query={};for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_ADMIN_QUERY');query[key]=value;}send(200,store.console.read(session.owner,route==='daily-detail'?'summary':route,query,traffic));return;}
         const summary=store.operationsForOwner(session.owner),flow=traffic?traffic.snapshot(session.owner,24):{available:false};
         send(200,{...summary,traffic:{...flow,write_errors:telemetry.write_errors,initialization_failed:trafficUnavailable}});return;
       }
@@ -109,9 +113,9 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
         if(url.search)reject(400,'INVALID_QUERY');const input=await smallJson(req,observation,1024);
         send(200,url.pathname.endsWith('/preview')?store.sessionPairings.preview(token,input):store.sessionPairings.approve(token,input));return;
       }
-      const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices|agent-sessions|agent-default)(?:\/|$)/.exec(url.pathname)?.[1];
+      const route=/^\/v1\/(identity|materials|material-events|material-uploads|material-content|changes|inbox|tasks|requests|answers|messages|receipts|events|watches|pairings|credentials|devices|agent-sessions|agent-default|phone-presence|todo-suggestions)(?:\/|$)/.exec(url.pathname)?.[1];
       observation.route=['material-events','material-uploads','material-content'].includes(route)?'materials':
-        ['agent-sessions','agent-default'].includes(route)?'other':route??'other';
+        route??'other';
       for(const [key,value] of url.searchParams){if(Object.hasOwn(query,key))reject(400,'INVALID_QUERY');query[key]=value;}
       if(req.method==='GET'&&url.pathname==='/v1/operations/summary'){
         observation.principal=null; // 管理页面刷新不计入设备转发流量。
@@ -225,7 +229,17 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       if(req.method==='GET'&&(url.pathname==='/v1/materials'||url.pathname==='/v1/changes')){
         send(200,store.page(token,url.pathname.endsWith('changes')?'changes':'materials',query));return;
       }
-      if(req.method==='GET'&&url.pathname==='/v1/inbox'){send(200,store.inbox(token,query));return;}
+      if(req.method==='GET'&&url.pathname==='/v1/inbox'){
+        let page=store.inbox(token,query);
+        if(!page.items.length&&idleInboxWaitMs>0){
+          // Bounded empty-mailbox wait: existing clients use a 10s+ request timeout.
+          // Re-read identity/primary-phone/paused state after waiting; never return stale authority.
+          await new Promise(resolve=>setTimeout(resolve,idleInboxWaitMs));
+          if(res.destroyed)return;
+          page=store.inbox(token,query);
+        }
+        send(200,page);return;
+      }
       const queueObject=/^\/v1\/(tasks|requests|messages)\/([^/]+)$/.exec(url.pathname);
       if(req.method==='GET'&&queueObject){
         if(url.search)reject(400,'INVALID_QUERY');

@@ -149,16 +149,22 @@ export class AgentSessionDirectory {
       if(!fields(input,['request_id','expected_revision','route'])||!uuid(input.request_id)||!integer(input.expected_revision)||input.route!==null&&!routeValid(input.route))reject(400,'INVALID_AGENT_DEFAULT');
       if(p.sessionRoute&&input.route!==null&&canonical(input.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
       const replay=this.replay(p,d,'default',input);if(replay.response)return replay.response;
-      const current=this.defaultView(p.owner);
-      if(p.sessionRoute&&input.route===null&&current.route!==null&&canonical(current.route)!==p.sessionRoute)reject(403,'FORBIDDEN');
-      if(current.revision!==input.expected_revision||current.revision===Number.MAX_SAFE_INTEGER)reject(409,'DEFAULT_REVISION_CONFLICT',{current_revision:current.revision});
-      if(input.route!==null){
-        const target=this.row(p.owner,input.route);if(!target)reject(404,'AGENT_SESSION_NOT_FOUND');
-        const view=this.view(target,now);if(!view.online||!view.capabilities.can_execute)reject(409,'DEFAULT_SESSION_UNAVAILABLE');
-      }
-      this.db.prepare(`INSERT INTO agent_defaults VALUES (?,?,?,?) ON CONFLICT(owner) DO UPDATE SET revision=excluded.revision,route=excluded.route,updated_at=excluded.updated_at`)
-        .run(p.owner,current.revision+1,input.route===null?null:canonical(input.route),now);
+      if(p.sessionRoute&&input.route===null){const current=this.defaultView(p.owner);if(current.route!==null&&canonical(current.route)!==p.sessionRoute)reject(403,'FORBIDDEN');}
+      this.setOwnerDefault(p.owner,input.expected_revision,input.route,now);
       return this.saveReply(p,d,input,replay.digest,{...this.envelope(p.owner,now),default:this.defaultView(p.owner)});
     });
   }
+  setOwnerDefault(owner,expectedRevision,route,now=this.store.clock()){
+    const current=this.defaultView(owner);
+    if(current.revision!==expectedRevision||current.revision===Number.MAX_SAFE_INTEGER)reject(409,'DEFAULT_REVISION_CONFLICT',{current_revision:current.revision});
+    if(route!==null){
+      const target=this.row(owner,route);if(!target)reject(404,'AGENT_SESSION_NOT_FOUND');
+      const view=this.view(target,now);if(!view.online||!view.capabilities.can_execute)reject(409,'DEFAULT_SESSION_UNAVAILABLE');
+      if(this.store.console.deliveryPaused(owner,target.producer))reject(409,'DEVICE_DELIVERY_PAUSED');
+    }
+    this.db.prepare(`INSERT INTO agent_defaults VALUES (?,?,?,?) ON CONFLICT(owner) DO UPDATE SET revision=excluded.revision,route=excluded.route,updated_at=excluded.updated_at`)
+      .run(owner,current.revision+1,route===null?null:canonical(route),now);
+    return this.defaultView(owner);
+  }
+
 }

@@ -50,7 +50,7 @@ node "$serviceRoot/cli.mjs" serve --db $databasePath --port 3401
 | GET `/v1/tasks/{id}`、`/v1/requests/{id}`、`/v1/messages/{id}` | tasks:read\|tasks:update、requests:read\|requests:write、messages:receive\|messages:write | 当前 state、最新修订及该对象/答案的回执阶梯 |
 | GET `/v1/inbox?limit=&cursor=` | 任一可读队列scope | 按提交序号投递 task/request/message；游标绑定可见类型 |
 | GET `/v1/operations/summary?hours=24` | operations:read | 同 owner 的状态/回执计数、最近修订与已认证 API 正文字节统计；已部署且公网合成认证API已验证，真实用户后台UI仍待验收 |
-| GET `/v1/admin` | 仅页面外壳公开 | 只读管理页已部署；账号密码登录，登录后只读统计 |
+| GET `/v1/admin` | 仅页面外壳公开 | 账号密码登录；统一查看和管理当前账号设备、工作区、任务与每日总结 |
 
 Authorization 为 `Bearer <token>`，不接受查询参数凭据。由凭据推导 owner，producer必须与信封一致。未认证401，缺scope/冒充producer403，外owner的ID查不到。1.0事件原样保留其版本，不编造全文/转写覆盖；1.1原样保留 full_text/processing；1.2另保留资料内speakers字典及已校验的source_range。未知版本拒绝。
 
@@ -131,6 +131,16 @@ node cli.mjs admin-create --db /absolute/materials.sqlite --owner existing-owner
 node cli.mjs admin-reset --db /absolute/materials.sqlite --username admin.name --password-file /absolute/private-password
 ```
 
-两种命令均要求下次登录改密。admin-reset 保留原 owner；不存在的账号不自动创建。后台目前只有状态/流量/回执，无资料正文、文件下载或删除按钮。
+两种命令均要求下次登录改密。admin-reset 保留原 owner；不存在的账号不自动创建。后台支持设备改名、暂停/恢复新投送、主手机切换、解除配对、默认工作区、任务搜索/批量收藏/归档/可恢复回收站、每日 AI 总结查阅导出、API 诊断与管理操作记录。任务整理只改变后台视图，不删除手机/原生会话、不停止任务；运行中记录不可丢入回收站。解绑撤销该设备访问，保留资料。只展示当前账号的每日总结，不开放历史转写/原音或手机文件。
 
 校验：node --test rebuild/material-server/tests/admin-auth.test.mjs rebuild/material-server/tests/operations.test.mjs；相关配对/主手机回归分别位于 devices、material-pairings、phone-presence 测试。发布入口 tools/phase1/deploy-admin-login.py 默认只核对文件哈希，显式 --apply 才备份 SQLite、替换 7 文件、在生产 Node22 隔离 smoke 后重启自有服务；故障只回退代码，不用旧数据库覆盖新数据。
+
+## 统一管理与轮询（2026-10-30）
+
+- Cookie 登录后 GET `/v1/admin/{overview,devices,sessions,tasks,task,daily,daily-detail,traffic,audit}`；每日总结详情与任务详情用 `id`。任务最多50条/页、每日总结30条/页、日志/审计50条/页，offset翻页。详情最多100条相关消息、200条回执。
+- POST `/v1/admin/action` 按动作接收严格字段，owner 只能来自登录态。支持 rename、delivery、unpair、primary、default、mark。主手机/default沿用已有版本比较与可执行能力规则；批量整理最多50条，全部成功或全部回滚。成功变更同事务记审计。
+- 暂停投送只拦该设备后续 inbox，不撤销身份、不停止原生执行，恢复后继续读取未收消息。解除配对需要重新配对才能恢复。后台凭据不能用于Agent API。
+- 总览区分配对、近期通信、主手机投送租约、会话在线/可执行、各阶段真实回执。管理页面只在导航/操作/手动刷新时读取，不自行高频刷新。
+- 空收件箱最多等待1秒后重新检查，重新校验身份与主手机权限；已有可读消息立即返回。代价是等待期间新消息最多额外约1秒延迟，收益是降低250ms/1s客户端空轮询。没有改手机或桌面Agent进程。
+- `traffic` 支持小时范围1/6/24/168、设备/接口/成功失败过滤。最近请求速率按近60秒实际可用窗口估算；逐条最多10000条/2天，小时聚合30天。数字是已认证API请求，不代表模型调用或计费；后台自身读取不纳入。
+- 相关测试：admin-console、admin-auth、operations、agent-sessions、devices、phone-presence、queue、daily-summaries。部署复用 `tools/phase1/deploy-admin-login.py --profile console --baseline <线上提交> --source <新提交> --out <报告> [--apply]`，11文件哈希、SQLite快照、生产Node22隔离smoke与失败代码回退，保留账号密码和正式数据。

@@ -13,6 +13,7 @@ import {MaterialTransfer,materialWire,MAX_MATERIAL_BYTES,cancelMaterial} from '.
 import {AudioArchive} from './audio.mjs';
 import {TodoSuggestions} from './todo-suggestions.mjs';
 import {AdminAuth} from './admin-auth.mjs';
+import {AdminConsole} from './admin-console.mjs';
 
 const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
@@ -104,7 +105,7 @@ export class MaterialStore {
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
       this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
-      this.admin=new AdminAuth(this);
+      this.admin=new AdminAuth(this);this.console=new AdminConsole(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -556,6 +557,9 @@ export class MaterialStore {
     const limit=query.limit===undefined?20:Number(query.limit);
     if(!Number.isSafeInteger(limit)||limit<1||limit>50||!/^\d+$/.test(String(query.limit??20)))reject(400,'INVALID_QUERY');
     const hash=sha(canonical(p.sessionRoute?{kinds,route:p.sessionRoute}:{kinds})),state=this.cursor(query.cursor,p.owner,'inbox',hash,()=>this.queueCeiling(p.owner));
+    // Pause only fresh inbox delivery, without advancing its cursor or revoking credentials.
+    // Existing execution/answer reconciliation and the heartbeat remain available.
+    if(this.console.deliveryPaused(p.owner,p.producer))return {items:[],has_more:false,delivery_paused:true,next_cursor:this.signCursor({v:1,owner:p.owner,kind:'inbox',filter:hash,last:state.last,ceiling:null,expires:this.clock()+86400000}),server_time:iso(this.clock()),fresh_until:iso(this.clock())};
     const rows=this.db.prepare(`SELECT * FROM queue_revisions WHERE owner=? AND seq<=? AND kind IN (${kinds.map(()=>'?').join(',')}) AND seq>? ${p.sessionRoute?"AND json_extract(body,'$.route')=?":''} ORDER BY seq LIMIT ?`)
       .all(p.owner,state.ceiling,...kinds,state.last,...(p.sessionRoute?[p.sessionRoute]:[]),limit+1);
     const items=[];let bytes=8192,last=state.last;

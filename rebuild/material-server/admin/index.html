@@ -1,24 +1,22 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iO Agent · 管理后台</title><link rel="stylesheet" href="admin/style.css"><script src="admin/app.js" defer></script></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iO Agent · 管理后台</title><link rel="stylesheet" href="admin/style.css"><script src="admin/app.js" type="module"></script></head>
 <body><main>
 <header class="site-header"><a class="brand" href="./admin" aria-label="iO Agent 管理后台"><span class="brand-mark">iO</span><span>Agent <span class="brand-caption">管理后台</span></span></a><div class="status" id="connection" role="status">正在检查登录…</div></header>
 <div id="error" class="error" role="alert" hidden></div>
 <div id="notice" class="notice" role="status" hidden></div>
 <section class="login-layout" id="login-panel" hidden>
-<div class="login-intro"><h1>让每一次交互，<br>都有迹可循。</h1><p>查看手机、眼镜和电脑之间的任务流转，<br>确认消息到了哪一步。</p><div class="flow" aria-label="手机、眼镜与电脑相连"><span>手机与眼镜</span><span class="flow-line" aria-hidden="true">↔</span><span>电脑 Agent</span></div><p class="readonly-note">当前后台提供只读查看。</p></div>
+<div class="login-intro"><h1>让每一次交互，<br>都有迹可循。</h1><p>查看手机、眼镜和电脑之间的任务流转，<br>确认消息到了哪一步。</p><div class="flow" aria-label="手机、眼镜与电脑相连"><span>手机与眼镜</span><span class="flow-line" aria-hidden="true">↔</span><span>电脑 Agent</span></div><p class="readonly-note">管理自己的设备、任务与每日总结。</p></div>
 <form id="login-form" class="auth-panel"><h2>登录管理后台</h2><p class="muted">使用你的后台账号继续。</p><label for="username">账号</label><input id="username" name="username" autocomplete="username" required maxlength="64" placeholder="输入账号" autocapitalize="none" spellcheck="false"><label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="输入密码"><button id="login-submit" class="primary" type="submit">登录</button><p class="form-note">登录状态保留 7 天。公共设备使用后请退出。</p></form>
 </section>
 <section id="password-panel" class="password-layout" hidden>
 <form id="password-form" class="auth-panel"><h1 id="password-title">修改密码</h1><p id="password-description" class="muted">设置你自己的后台登录密码。</p><label for="current-password">当前密码</label><input id="current-password" type="password" autocomplete="current-password" required maxlength="128"><label for="new-password">新密码</label><input id="new-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" aria-describedby="password-hint"><p id="password-hint" class="hint">至少 12 个字符，可使用一段方便记住的短语。</p><label for="confirm-password">确认新密码</label><input id="confirm-password" type="password" autocomplete="new-password" required minlength="12" maxlength="128"><button class="primary" id="password-submit" type="submit">保存新密码</button><button class="secondary full" id="cancel-password" type="button">返回</button></form>
 </section>
-<section id="dashboard" hidden>
-<div class="dashboard-heading"><div><h1>流转管理</h1><p class="muted">查看任务状态、交互回执与最近的 API 流量。</p></div><div class="account-actions"><span id="account-name"></span><button class="secondary" id="refresh" type="button">刷新</button><button class="quiet" id="change-password" type="button">修改密码</button><button class="quiet" id="disconnect" type="button">退出登录</button></div></div>
-<section class="metrics" aria-label="API 流量"><article class="metric"><span>API 请求</span><strong id="requests">—</strong></article><article class="metric"><span>上传正文</span><strong id="upload">—</strong></article><article class="metric"><span>下发正文</span><strong id="download">—</strong></article><article class="metric"><span>失败请求</span><strong id="errors">—</strong></article></section>
-<p class="muted" id="scope">连接后显示最近 24 个小时分桶的已认证请求。字节数不含 HTTP 头、TLS 和其他网站流量。</p>
-<section class="card"><div class="section-heading"><h2>手机与电脑</h2><span>按发送主体区分</span></div><div class="table-wrap"><table><thead><tr><th>主体</th><th>请求</th><th>上传</th><th>下发</th><th>失败</th></tr></thead><tbody id="producers"><tr><td colspan="5">尚未读取</td></tr></tbody></table></div></section>
-<div class="columns"><section class="card"><h2>当前队列</h2><div class="table-wrap"><table><thead><tr><th>对象</th><th>状态</th><th>数量</th></tr></thead><tbody id="queue"></tbody></table></div></section><section class="card"><h2>回执事实</h2><div class="table-wrap"><table><thead><tr><th>阶段</th><th>数量</th></tr></thead><tbody id="receipts"></tbody></table></div><p class="muted">服务器存储、眼镜显示、用户回答、Agent 接收和任务完成分别记录。</p></section></div>
-<section class="card"><div class="section-heading"><h2>最近转发</h2><span>最多 50 条</span></div><div class="table-wrap"><table><thead><tr><th>时间</th><th>主体</th><th>接口</th><th>状态码</th><th>上传</th><th>下发</th><th>耗时</th></tr></thead><tbody id="recent"></tbody></table></div></section>
-<section class="card"><h2>最近队列修订</h2><div class="table-wrap"><table><thead><tr><th>时间</th><th>类型</th><th>ID</th><th>修订</th><th>当时状态</th></tr></thead><tbody id="events"></tbody></table></div></section>
-<footer class="dashboard-footer"><span id="updated">尚未读取</span><span>最近请求时间不等于设备在线状态</span></footer>
+<section id="dashboard" class="console-shell" hidden>
+<aside class="sidebar"><p class="nav-label">工作空间</p><nav id="navigation" aria-label="后台导航"></nav><div class="sidebar-foot"><span class="live-dot"></span><span>已连接你的资料空间</span><small>服务器只同步每日 AI 总结</small></div></aside>
+<div class="console-main"><header class="console-heading"><div><p id="page-kicker" class="eyebrow">iO Agent</p><h1 id="page-title">总览</h1><p id="page-subtitle"></p></div><div class="account-actions"><button id="refresh" type="button">刷新</button><button id="change-password" type="button">修改密码</button><button id="disconnect" type="button">退出</button><span id="account-name" hidden></span></div></header>
+<div id="workspace-content" aria-live="polite"></div><footer class="dashboard-footer"><span id="updated"></span><span>状态以最新服务器回执为准</span></footer></div>
 </section>
+<dialog id="detail-dialog" class="detail-drawer"><div id="detail-content"></div></dialog>
+<dialog id="action-dialog" class="action-dialog"><form id="action-form"><h2 id="action-title"></h2><p id="action-description"></p><div id="action-fields"></div><div class="dialog-actions"><button id="cancel-action" type="button">取消</button><button id="confirm-action" class="primary" type="submit">确认</button></div><p id="action-error" class="inline-error" role="alert" hidden></p></form></dialog>
+
 </main></body></html>
