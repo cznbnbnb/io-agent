@@ -3,7 +3,22 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {execFileSync} from 'node:child_process';
 import {nativeOwner,sameProcess,processIdentity,privateDirectory,privateRecord,residentKey,residentStatus} from '../hosts/resident-manager.mjs';
+
+test('actual process birth identity is identical across caller timezones and locale environments',()=>{
+  const script=`import {processIdentity} from ${JSON.stringify(new URL('../hosts/resident-manager.mjs',import.meta.url).href)};
+    import {readProcessTable} from ${JSON.stringify(new URL('../hosts/process-witness.mjs',import.meta.url).href)};
+    console.log(JSON.stringify({owner:processIdentity(${process.pid}),witness:(await readProcessTable()).get(${process.pid})}));`;
+  const samples=['America/Los_Angeles','Asia/Shanghai','UTC'].map(TZ=>JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',script],{
+    encoding:'utf8',env:{...process.env,TZ,LANG:'zh_CN.UTF-8',LC_ALL:'zh_CN.UTF-8'}})));
+  for(const value of samples){
+    assert.deepEqual(value.owner,samples[0].owner);
+    assert.equal(value.witness.started,samples[0].witness.started);
+    assert.equal(value.owner.started,value.witness.started);
+    assert(sameProcess(samples[0].owner,()=>value.owner));
+  }
+});
 
 test('resident owner follows actual parent birth identity without command arguments',()=>{
   const rows=new Map([[10,{pid:10,ppid:20,uid:process.getuid(),started:'one',executable:'zsh'}],

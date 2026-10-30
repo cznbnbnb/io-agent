@@ -9,7 +9,7 @@ const identity = row => `${row.pid}:${row.started}`;
 // permission and cancellation paths. Keep identities, never argv or output.
 export async function readProcessTable() {
   const {stdout} = await execute('/bin/ps', ['-axo', 'pid=,ppid=,pgid=,uid=,lstart=,stat=,comm='],
-    {encoding:'utf8', timeout:2000, maxBuffer:4*1024*1024});
+    {encoding:'utf8', timeout:2000, maxBuffer:4*1024*1024,env:{...process.env,TZ:'UTC',LC_ALL:'C'}});
   const rows = new Map();
   for (const line of stdout.trim().split('\n')) {
     const match = /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(.{24})\s+(\S+)\s+(.+)$/.exec(line);

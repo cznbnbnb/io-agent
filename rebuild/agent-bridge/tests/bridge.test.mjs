@@ -10,7 +10,7 @@ import {randomUUID} from 'node:crypto';
 import {MaterialStore} from '../../material-server/store.mjs';
 import {listen} from '../../material-server/http.mjs';
 import {AgentBridge} from '../bridge.mjs';
-import {BridgeError} from '../client.mjs';
+import {BridgeClient,BridgeError} from '../client.mjs';
 import {runtimeDigest,runtimeSource,runtimeAnswer} from '../runtime-events.mjs';
 
 const fixture=JSON.parse(fs.readFileSync(new URL('../../../docs/contracts/normal.json',import.meta.url)));
@@ -42,6 +42,21 @@ async function setup(t,{agentScopePatch=null}={}){
     async restart(){await new Promise(resolve=>server.close(resolve));await new Promise(resolve=>server.listen(this.port,'127.0.0.1',resolve));}};
 }
 const observeOnly={name:'observe',capabilities:{can_execute:false},onItem:()=>[],onAnswer:()=>[]};
+test('HTTP gateway/throttle bodies retry, while malformed success and forbidden replies stay permanent',async t=>{
+ const f=await setup(t);
+ for(const [status,type,body,code,retryable] of [
+  [502,'text/html','<h1>Bad Gateway</h1>','UNAVAILABLE',true],
+  [503,'text/plain','Service Unavailable','UNAVAILABLE',true],
+  [500,'application/json','{broken','UNAVAILABLE',true],
+  [429,'text/html','Too many requests','RATE_LIMITED',true],
+  [200,'application/json','{broken','INVALID_RESPONSE',false],
+  [200,'text/html','<h1>Unexpected</h1>','INVALID_RESPONSE',false],
+  [403,'application/json','{"error":{"code":"FORBIDDEN"}}','FORBIDDEN',false],
+ ]){
+  const client=new BridgeClient(f.config,{clock:()=>epoch,fetchImpl:async()=>new Response(body,{status,headers:{'Content-Type':type}})});
+  await assert.rejects(client.identity(),e=>e.code===code&&e.status===status&&e.retryable===retryable&&e.permanent===!retryable);
+ }
+});
 const submit=(f,kind,body,producer='phone-app',token=null)=>f.store.queueSubmit(token??(producer==='pc-agent'?f.agent.token:f.phone.token),
   envelope(kind,body,{producer}),kind);
 

@@ -22,7 +22,7 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
   const c=validateResidentConfig(privateRecord(configFile)),directory=privateDirectory(path.dirname(configFile));
   const key=residentKey(c.binding),worker=processIdentity(process.pid);
   const lease=BridgeRunLock.acquire({stateFile:path.join(directory,'resident-lock.json'),identity:{server_id:'session-resident-v1',owner_id:String(process.getuid()),computer_id:'local',agent_id:key}});
-  let bridge,adapter,broker,stopping=false,reason=null,syncError=null,lastReconnect=0;
+  let bridge,adapter,broker,stopping=false,reason=null,syncError=null,lastReconnect=0,exitReason='stopped';
   const halt=()=>{stopping=true;};process.once('SIGTERM',halt);process.once('SIGINT',halt);signal?.addEventListener('abort',halt,{once:true});
   const start=Date.now();
   async function connect(){
@@ -49,7 +49,7 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
   }
   try{
     while(!stopping&&(!maximumMs||Date.now()-start<maximumMs)){
-      lease.assertHeld();if(!sameProcess(c.owner))break;
+      lease.assertHeld();if(!sameProcess(c.owner)){exitReason='owner_process_changed';break;}
       if(!bridge)try{await connect();}catch(e){
         reason=code(e);try{await bridge?.stop();}catch(cleanup){process.stderr.write(JSON.stringify({cleanup_error:code(cleanup)})+'\n');}bridge=null;
         atomic(path.join(directory,'health.json'),{schema_version:1,binding_key:key,worker,at:new Date().toISOString(),cloud_online:false,can_execute:false,reason});
@@ -59,10 +59,10 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
       // for the next instance. Only a replaced conversation ends this helper; a closed one ends with
       // its native owner process above.
       if(broker?.lifecycle?.().ended){
-        if(['clear','resume','session_changed'].includes(broker.lifecycle().endReason))break;
+        if(['clear','resume','session_changed'].includes(broker.lifecycle().endReason)){exitReason=broker.lifecycle().endReason;break;}
         await bridge.stop();bridge=null;broker=null;continue;
       }
-      if(adapter.lifecycle().closed)break;
+      if(adapter.lifecycle().closed){exitReason='native_transport_closed';break;}
       try{
         for(const event of await adapter.pendingObservedTasks?.()??[])
           await bridge.client.post('task',{schema_version:'1.0',producer_id:c.agent.producer_id,...event});
@@ -85,7 +85,7 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
   }finally{
     stopping=true;try{await bridge?.stop();}finally{
       if(fs.existsSync(path.join(directory,'binding.json')))fs.unlinkSync(path.join(directory,'binding.json'));
-      atomic(path.join(directory,'health.json'),{schema_version:1,binding_key:key,worker,at:new Date().toISOString(),cloud_online:false,can_execute:false,reason:'SESSION_ENDED'});
+      atomic(path.join(directory,'health.json'),{schema_version:1,binding_key:key,worker,at:new Date().toISOString(),cloud_online:false,can_execute:false,reason:'SESSION_ENDED',exit_reason:exitReason});
       lease.release();process.removeListener('SIGTERM',halt);process.removeListener('SIGINT',halt);signal?.removeEventListener('abort',halt);
     }
   }

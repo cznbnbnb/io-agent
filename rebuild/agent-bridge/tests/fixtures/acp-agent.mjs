@@ -16,6 +16,7 @@ for await(const line of readline.createInterface({input:process.stdin})){
  }else if(m.method==='session/prompt'){
   const text=m.params.prompt.at(-1).text,s=state();s.prompts.push(text);save(s);active=m;
   if(text==='wait')continue;
+  if(text==='delayed')await new Promise(resolve=>setTimeout(resolve,1500));
   if(text==='glasses-roundtrip'){
    const prefix='IO_AGENT_CLI_ARGS=',line=m.params.prompt[0].text.split('\n').find(v=>v.startsWith(prefix)),argv=JSON.parse(line.slice(prefix.length));
    const cli=(action,input)=>{const r=spawnSync(argv[0],[...argv.slice(1),action],{input:JSON.stringify(input),encoding:'utf8',timeout:10000});if(r.status!==0)throw Error(r.stderr);return JSON.parse(r.stdout);};

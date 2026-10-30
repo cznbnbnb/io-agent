@@ -86,7 +86,9 @@ export class BridgeClient{
     }catch{fail('NETWORK_UNAVAILABLE',{retryable:true});}
     if(response.status>=300&&response.status<400)fail('REDIRECT_REFUSED',{status:response.status,permanent:true});
     if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(response.headers.get('content-type')??'')){
-      await response.body?.cancel();fail('INVALID_RESPONSE',{permanent:true});
+      await response.body?.cancel();
+      if(response.status>=500||response.status===429)fail(response.status===429?'RATE_LIMITED':'UNAVAILABLE',{status:response.status,retryable:true});
+      fail('INVALID_RESPONSE',{status:response.status,permanent:true});
     }
     let text;
     try{
@@ -97,7 +99,10 @@ export class BridgeClient{
       finally{reader.releaseLock();}
       text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));
     }catch(e){if(e instanceof BridgeError)throw e;fail('NETWORK_UNAVAILABLE',{retryable:true});}
-    let value;try{value=JSON.parse(text);}catch{fail('INVALID_RESPONSE',{permanent:true});}
+    let value;try{value=JSON.parse(text);}catch{
+      if(response.status>=500||response.status===429)fail(response.status===429?'RATE_LIMITED':'UNAVAILABLE',{status:response.status,retryable:true});
+      fail('INVALID_RESPONSE',{status:response.status,permanent:true});
+    }
     if(response.status>=200&&response.status<300)return {status:response.status,body:value,headers:response.headers};
     const error=value?.error,code=safeCode(error?.code),retryAfter=Number(error?.retry_after_ms);
     if(response.status===401)fail('AUTH_REQUIRED',{status:401,permanent:true});

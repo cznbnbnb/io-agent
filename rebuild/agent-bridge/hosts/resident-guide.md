@@ -67,3 +67,10 @@ node tools/collab/setup-session-control.mjs --rollback --apply
 ```
 
 此完整回滚还会撤下 Claude 插件；若只处理 Desktop，使用上面的 `--disable-codex --apply`。旧版本记录尚未停用时，完整回滚仍可恢复其原环境；已经标 disabled 的覆盖不会再恢复。保留会话数据和官方 daemon，不删除用户聊天、凭据或工作文件。
+
+## 掉线排查（2026-10-29）
+
+- owner/worker与停止观察的出生身份采用固定UTC/C语言的ps输出。时区、语言变化不代表进程重启；不更改系统或会话时区。升级前的本地日期记录需在原时区核对出生身份后重建监听，不能只认PID。
+- 手机显示的名称可能属于较早的session。Claude Desktop续接会产生新native ID，须以真实桌面映射核对当前会话；旧输入、旧问题和旧停止命令不搬到新ID。
+- 受管连接器的暂时网络/429/5xx错误在原进程内退避重试（1–15秒；明确重试等待最长30秒），保留ACP进程与持久队列。认证、身份、状态账本和成功响应的协议错误仍失败退出。日志以UTC记录connection_retry/connection_recovered及错误码，不写模型凭据。服务器60秒在线租约不变；实际长断网、睡眠或原生会话结束仍会离线。
+- 修复不需要更新APK或修改Desktop全局启动变量。当前正在运行的原生会话可只重建自有监听；受管服务更新须先核对无活动/结果不明轮次，再通过connector-service停止/启动，确认仍加载相同native session。

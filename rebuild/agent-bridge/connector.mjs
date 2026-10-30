@@ -9,7 +9,7 @@ import {runtimeDigest} from './runtime-events.mjs';
 import {atomic} from './session-pairing.mjs';
 import {sessionPair,sessionFile,computerDeviceFile} from './questions/session-pair-cli.mjs';
 import {privateDirectory,privateRecord} from './hosts/resident-manager.mjs';
-import {readPrivateJson} from './client.mjs';
+import {BridgeError,readPrivateJson} from './client.mjs';
 
 const need=(v,code)=>{if(!v)throw Object.assign(new Error(code),{code});};
 const uuid=v=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v);
@@ -47,7 +47,7 @@ export function connectorConfig(directory,{deviceFile}={}){
       ...(p.control_mode==='desktop'?{desktop:{session_id:privateRecord(path.join(directory,'acp.json'),64*1024*1024).session_id,state_file:'desktop.json'}}:
         {acp:{command:p.command,session_id:fs.existsSync(path.join(directory,'acp.json'))?privateRecord(path.join(directory,'acp.json'),64*1024*1024).session_id:null,state_file:'acp.json'}})}]}};
 }
-export async function runConnector(directory,{deviceFile,signal,maximumMs=0,onReady=()=>{}}={}){
+export async function runConnector(directory,{deviceFile,signal,maximumMs=0,onReady=()=>{},onStatus=()=>{}}={}){
   const config=connectorConfig(directory,{deviceFile}),adapter=createNativeBridgeAdapter(config,{configDirectory:directory});
   const runtime=config.agent_id==='io-current-codex'?'codex':config.agent_id.slice(3),legacy=id=>typeof id==='string'&&id.startsWith(runtime+'-task-');
   const onItem=adapter.onItem.bind(adapter),onAnswer=adapter.onAnswer.bind(adapter);
@@ -55,12 +55,26 @@ export async function runConnector(directory,{deviceFile,signal,maximumMs=0,onRe
   adapter.onAnswer=(input,context)=>legacy(input.request?.body?.task_id)?[]:onAnswer(input,context);
   const bridge=new AgentBridge({config,adapter,stateFile:path.join(directory,'bridge.json')});let stopped=false;
   const halt=()=>{stopped=true;};process.once('SIGTERM',halt);process.once('SIGINT',halt);signal?.addEventListener('abort',halt,{once:true});
-  const start=Date.now();
+  const start=Date.now();let failures=0;
   try{
-    await bridge.start();onReady({running:true,managed:true,session_id:config.native_runtime.sessions[0].route.session_id});
+    await bridge.start();onReady({running:true,managed:true,at:new Date().toISOString(),session_id:config.native_runtime.sessions[0].route.session_id});
     while(!stopped&&!signal?.aborted&&(!maximumMs||Date.now()-start<maximumMs)){
       if(adapter.lifecycle().closed)break;
-      await bridge.pollOnce();await new Promise(resolve=>setTimeout(resolve,250));
+      let delay=250;
+      try{
+        await bridge.pollOnce();
+        if(failures)onStatus({event:'connection_recovered',at:new Date().toISOString(),session_id:config.native_runtime.sessions[0].route.session_id});
+        failures=0;
+      }catch(error){
+        // Keep the native process, queued inputs and durable outbox through a
+        // transport outage. Identity/auth/journal/protocol failures still stop.
+        if(!(error instanceof BridgeError)||!error.retryable||bridge.blocked)throw error;
+        delay=Math.max(Math.min(15000,1000*2**Math.min(failures++,4)),Math.min(30000,error.detail??0));
+        onStatus({event:'connection_retry',at:new Date().toISOString(),session_id:config.native_runtime.sessions[0].route.session_id,error:safeCode(error),retry_ms:delay});
+      }
+      // SIGTERM and the bounded test deadline must not wait for a retry timer.
+      const until=Date.now()+delay;
+      while(!stopped&&!signal?.aborted&&Date.now()<until&&(!maximumMs||Date.now()-start<maximumMs))await new Promise(resolve=>setTimeout(resolve,Math.min(250,until-Date.now())));
     }
   }finally{
     try{await bridge.stop();}finally{process.removeListener('SIGTERM',halt);process.removeListener('SIGINT',halt);signal?.removeEventListener('abort',halt);}
@@ -83,7 +97,7 @@ export async function connectorMain(args){
   if(action==='pair'||action==='pair-status')return sessionPair(action,action==='pair'?{topic:p.label,workspace:p.workspace}:{},{runtime:p.runtime,session:p.route_session_id},p.workspace);
   if(action==='status')return{managed:true,session_id:p.route_session_id,workspace:p.workspace,
     ...new AgentBridge({config:connectorConfig(directory,{deviceFile:options.device}),stateFile:path.join(directory,'bridge.json')}).inspectLocalStatus()};
-  return runConnector(directory,{deviceFile:options.device,onReady:out=>process.stdout.write(JSON.stringify(out)+'\n')});
+  return runConnector(directory,{deviceFile:options.device,onReady:out=>process.stdout.write(JSON.stringify(out)+'\n'),onStatus:out=>process.stdout.write(JSON.stringify(out)+'\n')});
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   connectorMain(process.argv.slice(2)).then(result=>process.stdout.write(JSON.stringify(result)+'\n'),error=>{process.stderr.write(JSON.stringify({ok:false,error:safeCode(error)})+'\n');process.exitCode=1;});

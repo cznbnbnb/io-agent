@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-30T01:28:46.998Z",
+  "status": "live_desktop_claude_restored_phone_online",
+  "source_base": "c342a07",
+  "phone": {
+    "app": "dev156",
+    "apk_changed": false,
+    "wireless_identity_verified": true,
+    "normal_connection_detail_visible": true,
+    "display_name": "任务页 UI 重设计（续接）",
+    "can_receive_tasks": true
+  },
+  "target": {
+    "old_phone_alias_session": "1f833a38-12a6-4bb1-81f7-b2f5bb238bbb",
+    "current_native_session": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d",
+    "same_desktop_chat_mapping_verified": true,
+    "old_alias_remains_offline": true,
+    "old_inputs_moved": false
+  },
+  "root_cause": {
+    "same_live_process": true,
+    "stored_birth_timezone": "America/Los_Angeles",
+    "observed_birth_timezone": "Asia/Shanghai",
+    "difference_hours": 15,
+    "old_sameProcess_result": false,
+    "new_sameProcess_result": true,
+    "reader_timezone": "UTC",
+    "reader_locale": "C",
+    "system_timezone_changed": false
+  },
+  "stability": [
+    {
+      "at": "2026-10-30T01:25:18.562Z",
+      "online": true,
+      "can_execute": true,
+      "lease_expires_at": "2026-10-30T01:26:06.978Z",
+      "generation": 2,
+      "managed_online": true,
+      "managed_native_session_preserved": true
+    },
+    {
+      "at": "2026-10-30T01:25:38.692Z",
+      "online": true,
+      "can_execute": true,
+      "lease_expires_at": "2026-10-30T01:26:37.456Z",
+      "generation": 2,
+      "managed_online": true,
+      "managed_native_session_preserved": true
+    },
+    {
+      "at": "2026-10-30T01:25:58.825Z",
+      "online": true,
+      "can_execute": true,
+      "lease_expires_at": "2026-10-30T01:26:52.617Z",
+      "generation": 2,
+      "managed_online": true,
+      "managed_native_session_preserved": true
+    }
+  ],
+  "same_native_owner_and_worker_across_samples": true,
+  "managed_service": {
+    "route_session_id": "45943428-a960-45f3-8c6c-c1fd7a5e8e60",
+    "native_session_id": "fa422302-52d0-4e5a-bd56-71dc12009923",
+    "restarted_only_when_idle": true,
+    "original_native_session_preserved": true,
+    "active_operations_before": 0,
+    "source_files_updated": 5
+  },
+  "tests": {
+    "resident_and_witness": 10,
+    "related_suite_including_those": 140,
+    "acp_bridge": 4,
+    "real_timezone_regression_failed_before_fix": true,
+    "network_error_and_html_502_recover_without_replaying_prompt": true,
+    "permanent_forbidden_stops": true,
+    "lease_expiration_not_extended": true
+  },
+  "source_sha256": {
+    "rebuild/agent-bridge/hosts/resident-manager.mjs": "65c7f92e0899a45f4b3986fdaa9bb78d868f5e8f75787f96b9d0056490dc9844",
+    "rebuild/agent-bridge/hosts/process-witness.mjs": "0c6e1c60b56fe07c9ebce74ace28af5e5d63d55770288efa685f25ae1a551748",
+    "rebuild/agent-bridge/hosts/session-resident.mjs": "68510120bbdb6daadfa3cc8aebd9f5548660db98fd3e845b2d041120ab944d15",
+    "rebuild/agent-bridge/connector.mjs": "393de84b37980b3e4c09c7699cc4a7685f4bce0cd3db90d826029c747ed518b7",
+    "rebuild/agent-bridge/client.mjs": "cdcbd4d25b7d2a18144b127d84ac21ae18b03547e1506f9cbbf48340dcdc2083",
+    "tools/collab/connector-service-worker.mjs": "7f4dfab3b8a218909ff385d77d8d2d777e5668c073d4bd252761b1b80851eab5"
+  },
+  "default_route_changed": false,
+  "formal_pairing_revoked": false,
+  "desktop_launcher_changed": false,
+  "other_claude_checkout_changed": false,
+  "limits": [
+    "No new model prompt or voice recording was sent to the user’s real Claude chat in this repair. Online readiness and normal phone UI were verified; executing a fresh phone command was not separately tested.",
+    "Old alias points to an ended native session; restoration is the verified current continuation, not resurrection of its old ID.",
+    "Claude checkout remains untouched; its next development run should merge this branch before invoking its older source CLI.",
+    "Existing resident rejoin path is preserved to avoid a cross-checkout CALLER_PROJECT_MISMATCH.",
+    "Long disconnection, Mac sleep and genuine native session exit still go offline."
+  ]
+}

@@ -7,6 +7,6 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  const [action,key,directory,deviceKey,deviceFile,...extra]=process.argv.slice(2);
  const main=async()=>{if(action!=='run'||key!=='--directory'||deviceKey!=='--device'||!path.isAbsolute(directory??'')||!path.isAbsolute(deviceFile??'')||extra.length)throw Object.assign(new Error('CONNECTOR_SERVICE_ARGUMENT_INVALID'),{code:'CONNECTOR_SERVICE_ARGUMENT_INVALID'});
   Object.assign(process.env,serviceEnvironment(path.join(directory,'service-env.json')));
-  await runConnector(directory,{deviceFile,onReady:out=>process.stdout.write(JSON.stringify(out)+'\n')});return{stopped:true};};
- main().then(out=>console.log(JSON.stringify(out)),e=>{console.error(JSON.stringify({ok:false,error:/^[A-Z][A-Z0-9_]{0,100}$/.test(e.code??'')?e.code:'CONNECTOR_SERVICE_FAILED'}));process.exitCode=1;});
+  await runConnector(directory,{deviceFile,onReady:out=>process.stdout.write(JSON.stringify(out)+'\n'),onStatus:out=>process.stdout.write(JSON.stringify(out)+'\n')});return{stopped:true};};
+ main().then(out=>console.log(JSON.stringify(out)),e=>{console.error(JSON.stringify({ok:false,at:new Date().toISOString(),error:/^[A-Z][A-Z0-9_]{0,100}$/.test(e.code??'')?e.code:'CONNECTOR_SERVICE_FAILED'}));process.exitCode=1;});
 }

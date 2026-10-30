@@ -1,3 +1,14 @@
+## [codex] 2026-10-29 Claude掉线已修：固定进程身份时区，恢复原桌面续接会话
+
+用户明确指手机的“任务页 UI 重设计”，不是受管Claude Code。正常详情核对旧ID 1f833a38；Claude Desktop日志把它及5c822aff、0da32ee1、当前bfae0b25映射到同一桌面聊天。当前native owner确实还活着，但旧记录ps出生时间为LA、后台/当前默认为Shanghai，相差15小时，sameProcess=false误判退出。两处进程读取边界现固定TZ=UTC/LC_ALL=C，不改系统或用户时区；真实跨时区/中文locale回归先红后绿，仍拒PID复用。resident退出记录新增具体exit_reason。
+
+- **已恢复**：核对原时区出生身份、当前native ID后，仅重建bfae0b25的自有监听。原Claude进程未重启、未向它发模型指示/录音，也没搬旧输入。手机正常详情已见“任务页 UI 重设计（续接）/在线·可接收任务”，3次跨40秒服务器心跳租约推进，owner/helper/代次稳定；原默认Codex不变。旧1f833a38/5c822aff真实结束，继续离线，不冒充旧ID复活。
+- **共同网络问题**：受管connector过去NETWORK_UNAVAILABLE或网关非JSON响应就结束并关闭ACP。现临时网络/429/5xx按1–15秒退避（明确服务等待最长30秒），保留同ACP和队列；认证/身份/账本/成功响应协议错误仍退出，新增UTC故障/恢复日志。稳定runtime已核对旧源码基线、同步5文件并验SHA；只在确认闲置且无unknown后重启Claude Code受管服务，同native会话fa422302及5个旧操作保留。Codex正式服务未停，Desktop启动环境/配对/账号资料保留。
+- **验证**：相关140项+ACP4项通过，含真正本地HTTP 502、网络异常、活轮次跨断线继续并只执行一次、403仍失败。手机仍dev156，没有APK/UI改造。当前原桌面Claude已在线；没有另发真实手机命令冒充已验执行。源码与稳定runtime均有修复，便携ZIP随本批更新。
+- **协作边界**：Claude源工作区仍520ad23，本批没有写入其checkout/未跟踪Delegate。它下一次开发应先合入本codex分支，避免继续调用那份旧源码CLI。当前resident保留其原rejoin路径，防止跨checkout造成CALLER_PROJECT_MISMATCH；未来续接换ID/旧连接归并不是本批已经全量验完的承诺。真正休眠、断网超租约及native退出仍显示离线。
+
+[机器证据](../../rebuild/agent-bridge/hosts/claude-connection-reliability-2026-10-29.json)。下一项建议统一CLI升级入口并整理续接后的旧连接显示，减少旧会话造成的离线误解。完成checkpoint后只关当前Codex超时watch、释放设备锁；保留两条正式服务及恢复的桌面Claude监听。
+
 ## [codex] 2026-10-28 dev156已无线差异装机，后台历史保存已真机通过
 
 用户给新端口后，remote-adb核对同一荣耀新手机并保存私有配置；已从155差异安装156 /10578，补丁1,958,905字节，基线、手机重建及现装完整SHA均匹配 `2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b`。荣耀扫描及本次确认已自行完成，未选择推荐应用或改安全设置。266份候选源码仍匹配，没重编/重跑未变化的全部测试。

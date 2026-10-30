@@ -19,12 +19,13 @@ export function privateRecord(file,maxBytes=65536){
   const s=fs.lstatSync(file);need(s.isFile()&&!s.isSymbolicLink()&&s.uid===process.getuid?.()&&!(s.mode&0o077)&&s.size<=maxBytes,'RESIDENT_RECORD_UNTRUSTED');
   return JSON.parse(fs.readFileSync(file,'utf8'));
 }
-// Birth identity fences PID reuse. No command arguments, tokens or user prompt
-// are captured. The owner is found from the real CLI tool process ancestry.
+// Birth identity fences PID reuse. ps formats lstart using the caller's timezone
+// and locale; both must be fixed across the CLI and its clean-env worker.
+// No command arguments, tokens or user prompt are captured.
 export function processIdentity(pid){
   need(Number.isSafeInteger(pid)&&pid>1,'RESIDENT_PROCESS_INVALID');
   try{
-    const value=execFileSync('/bin/ps',['-p',String(pid),'-o','pid=,ppid=,uid=,lstart=,comm='],{encoding:'utf8',timeout:2000,stdio:['ignore','pipe','pipe']}).trim();
+    const value=execFileSync('/bin/ps',['-p',String(pid),'-o','pid=,ppid=,uid=,lstart=,comm='],{encoding:'utf8',timeout:2000,stdio:['ignore','pipe','pipe'],env:{...process.env,TZ:'UTC',LC_ALL:'C'}}).trim();
     const m=/^(\d+)\s+(\d+)\s+(\d+)\s+(.{24})\s+(.+)$/.exec(value);
     need(m&&Number(m[3])===process.getuid?.(),'RESIDENT_PROCESS_UNTRUSTED');
     return{pid:Number(m[1]),ppid:Number(m[2]),uid:Number(m[3]),started:m[4],executable:path.basename(m[5])};
