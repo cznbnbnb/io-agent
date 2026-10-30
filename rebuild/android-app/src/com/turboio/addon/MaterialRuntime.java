@@ -30,7 +30,7 @@ final class MaterialRuntime {
  private volatile MaterialHistorySchedule.Status historyStatus;private volatile String historyAccount="",historyError="";private boolean historyQueued;
  private final Set<String> historyMonths=ConcurrentHashMap.newKeySet();
  private final Set<Activity> foreground=Collections.newSetFromMap(new WeakHashMap<Activity,Boolean>());private volatile boolean visible;private volatile long generation,backgroundOwner=-1,lastUiAt,autoDeadline;private boolean autoQueued,networkWake;private final java.util.concurrent.atomic.AtomicInteger foregroundCatalogs=new java.util.concurrent.atomic.AtomicInteger();private volatile MaterialHttp transport;
- private volatile Host107LifelogHttp officialTransport;private MaterialConfig config;private MaterialSyncSession.Status status=new MaterialSyncSession.Status();private String note="unconfigured",autoError="",autoTarget="";private boolean prewarming;private final List<CatalogResult> prewarmWaiters=new ArrayList<>();
+ private volatile Host107LifelogHttp officialTransport;private volatile MaterialConfig config;private MaterialSyncSession.Status status=new MaterialSyncSession.Status();private String note="unconfigured",autoError="",autoTarget="";private volatile String recoveryError="";private long nextRecovery;private boolean prewarming;private final List<CatalogResult> prewarmWaiters=new ArrayList<>();
  private MaterialRuntime(Activity activity){this(activity,activity);}
  private MaterialRuntime(Context context,Activity activity){app=context.getApplicationContext();settings=new MaterialSettings(app);if(activity!=null){foreground.add(activity);visible=true;}((Application)app).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
   public void onActivityStarted(Activity a){foreground.add(a);visible=true;}public void onActivityStopped(Activity a){foreground.remove(a);visible=!foreground.isEmpty();if(!visible&&backgroundOwner!=generation)invalidate();}public void onActivityDestroyed(Activity a){foreground.remove(a);}public void onActivityCreated(Activity a,Bundle b){}public void onActivityResumed(Activity a){}public void onActivityPaused(Activity a){}public void onActivitySaveInstanceState(Activity a,Bundle b){}
@@ -88,7 +88,14 @@ final class MaterialRuntime {
  }
  private void autoSync(long observed,boolean networkRecovered){
   try{
-   config=settings.load();long now=System.currentTimeMillis();if(config==null||!config.enabled||observed!=generation||foregroundCatalogs.get()>0||visible&&now-lastUiAt<5000)return;
+   config=settings.load();long now=System.currentTimeMillis();if(observed!=generation||foregroundCatalogs.get()>0||visible&&now-lastUiAt<5000)return;
+   if(config==null){
+    if(now<nextRecovery&&!networkRecovered)return;nextRecovery=now+60000;TaskDevice phone=new TaskSettings(app).loadDevice();if(phone==null)return;
+    long owner;synchronized(guard){if(observed!=generation||foregroundCatalogs.get()>0)return;owner=invalidate();backgroundOwner=owner;autoDeadline=System.nanoTime()+120000000000L;}
+    try{recoverConnection(owner,phone);recoveryError="";}catch(Exception failed){recoveryError=safe(failed);return;}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}
+    observed=owner;
+   }
+   if(config==null||!config.enabled)return;
    OfficialAccountBinding login=Host107Login.account();if(login==null||!config.account.equals(login.binding))return;
    if(config.connection.paired()||config.connection.expiresAt>now)try(MaterialAutoSchedule schedule=new MaterialAutoSchedule(app.getFilesDir(),config,true)){
     MaterialAutoSchedule.Plan plan=schedule.begin(now,java.time.ZoneId.systemDefault().getId(),networkRecovered);if(plan!=null){
@@ -99,6 +106,29 @@ final class MaterialRuntime {
    // Audio/transcripts stay on the phone under the 2026-10-26 policy.
   }catch(Exception error){note=safe(error);}
  }
+ /** Recover the existing account space with this phone's own narrowly scoped
+  * material pairing. Persist the secret before the request so a lost reply is retryable. */
+ private void recoverConnection(long owner,TaskDevice phone)throws Exception{
+  check(owner);MaterialConfig saved=settings.load();if(saved!=null){config=saved;return;}
+  OfficialAccountBinding login=account(owner);MaterialWire.require(phone.expiresAt>System.currentTimeMillis(),"MATERIAL_PHONE_REQUIRED");
+  TaskSettings tasks=new TaskSettings(app);MaterialWire.require(login.binding.equals(tasks.phoneAccount(phone)),"OFFICIAL_ACCOUNT_CHANGED");
+  String identity=TaskWire.hash(WireJson.bytes(WireJson.object("base",phone.base,"server",phone.server,"owner",phone.owner,"device",phone.deviceId,"account",login.binding))),secret=settings.recoverySecret(identity);
+  Map<String,Object> values=WireJson.object("format",MaterialConnection.FORMAT,"base_url",phone.base,"owner_id",phone.owner,"producer_id",phone.producer,"server_id",phone.server,"token",phone.token,"token_id",phone.tokenId,"expires_at",phone.expires);
+  MaterialHttp http=new MaterialHttp(MaterialConnection.parse(WireJson.bytes(values),System.currentTimeMillis()));synchronized(guard){check(owner);transport=http;}
+  MaterialConnection restored;
+  try{MaterialApi.Response response=http.exchange("/material-pairing/recover",WireJson.bytes(WireJson.object("account_binding",login.binding,"refresh_secret",secret)));
+   if(response.status!=200)throw new IOException(response.status==404?"MATERIAL_SPACE_UNAVAILABLE":response.status==401||response.status==403?"MATERIAL_PAIRING_REVOKED":response.status==409?"MATERIAL_RECOVERY_CHANGED":"MATERIAL_RECOVERY_UNAVAILABLE");
+   Map<String,Object> issued=WireJson.map(WireJson.read(response.body,8192,100));BoundedJson.keys(issued,"owner_id","producer_id","server_id","pairing_id","account_binding","token","token_id","expires_at");
+   MaterialWire.require(phone.owner.equals(issued.get("owner_id"))&&phone.producer.equals(issued.get("producer_id"))&&phone.server.equals(issued.get("server_id"))&&login.binding.equals(issued.get("account_binding")),"MATERIAL_IDENTITY_MISMATCH");
+   values=new LinkedHashMap<>(issued);values.put("format","turboio-material-sync/2");values.put("base_url",phone.base);values.put("refresh_secret",secret);restored=MaterialConnection.parse(WireJson.bytes(values),System.currentTimeMillis());
+  }finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
+  MaterialHttp verify=new MaterialHttp(restored);synchronized(guard){check(owner);transport=verify;}
+  try{new MaterialApi(restored,verify).preflight(System.currentTimeMillis(),true);
+   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");TaskDevice current=tasks.loadDevice();MaterialWire.require(current!=null&&current.deviceId.equals(phone.deviceId)&&current.owner.equals(phone.owner)&&current.server.equals(phone.server),"MATERIAL_CONNECTION_CHANGED");MaterialWire.require(settings.load()==null,"MATERIAL_CONNECTION_CHANGED");settings.save(new MaterialConfig(restored,login.binding,true));config=settings.load();recentCatalog=null;recoveryError="";status=DailySummarySync.status(app.getFilesDir(),config);note="ready";}
+  }finally{verify.cancel();synchronized(guard){if(transport==verify)transport=null;}}
+ }
+ boolean hasConnection(String account){MaterialConfig current=config;return current!=null&&current.account.equals(account);}
+ void restore(Result result){long owner=invalidate();work(()->{TaskDevice phone=new TaskSettings(app).loadDevice();MaterialWire.require(phone!=null,"MATERIAL_PHONE_REQUIRED");recoverConnection(owner,phone);},result);}
  private void renewConnection(long owner,boolean force)throws Exception{
   check(owner);MaterialConfig old=config;if(old==null||!old.connection.paired()||!force&&!old.connection.renewDue(System.currentTimeMillis()))return;
   OfficialAccountBinding login=account(owner);MaterialWire.require(login.binding.equals(old.account),"OFFICIAL_ACCOUNT_CHANGED");
@@ -149,7 +179,7 @@ final class MaterialRuntime {
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
   MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
   Set<java.time.LocalDate> dates=new TreeSet<>(historyDates(current.binding));for(MaterialLocalLibrary.DayRead day:local.days)if(day.sourceCount>0&&day.timezone.equals(zone.getId()))dates.add(java.time.LocalDate.parse(day.date));catalog=MaterialCatalog.withDates(catalog,dates);
-  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved!=null&&saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone);
+  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved==null?recoveryError:saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{

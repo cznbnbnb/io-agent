@@ -183,6 +183,13 @@ final class MaterialOutbox implements AutoCloseable {
   else{row.put("state","blocked");row.put("needs_lookup",true);row.put("error",status==401?"AUTH_REQUIRED":status==403?"FORBIDDEN":status==409?"CONFLICT":"REJECTED");}
   save(next);return true;
  }
+ /** A real server receipt can import an immutable baseline into a new phone's
+  * queue. No source content or local predecessor is invented. */
+ synchronized void recordAcknowledgement(String eventId,byte[] raw)throws IOException{
+  MaterialWire.require(raw!=null&&raw.length<=16384,"MATERIAL_ACK_MISMATCH");Map<String,Object> ack=WireJson.map(WireJson.read(raw));List<Object> next=copy();
+  for(Object value:next){Map<String,Object> row=WireJson.map(value);if(!eventId.equals(row.get("event_id")))continue;MaterialWire.require(!"cancelled".equals(row.get("state")),"MATERIAL_EVENT_CANCELLED");MaterialWire.ack(ack,event(row));row.put("state","server_stored");row.put("ack",ack);row.put("cancellation",null);row.put("needs_lookup",false);row.put("error","");save(next);return;}
+  throw new IOException("MATERIAL_EVENT_UNKNOWN");
+ }
  synchronized int resumeBlocked()throws IOException{List<Object> next=copy();int n=0;for(Object v:next){Map<String,Object> row=WireJson.map(v);if(row.get("state").equals("blocked")){row.put("state","reconcile");row.put("needs_lookup",true);row.put("next_attempt_at",0);row.put("error","");n++;}}if(n>0)save(next);return n;}
  public synchronized void close()throws IOException{if(!closed){document.close();closed=true;}}
 }

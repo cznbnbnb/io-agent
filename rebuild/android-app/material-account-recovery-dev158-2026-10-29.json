@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "date": "2026-10-29",
+  "status": "server_deployed_app_dev158_signed_waiting_for_phone_debug_connection",
+  "problem": "New-phone Agent recovery omitted the separately encrypted material-space pairing.",
+  "implementation": {
+    "automatic_restore": "Only missing local material config; authorized phone + registered official account + same owner with an existing active material space",
+    "pairing": "separate material-only renewable/revocable credential; old phone need not be online",
+    "lost_response": "client recovery secret is encrypted and committed before the request; same device/secret reuses one pairing",
+    "respect_local_choice": "existing disabled or unpaired material config is not replaced or enabled",
+    "phone_unpair": "recovered material tokens and refresh secret revoked with the matching phone producer",
+    "summary_history": "fresh queue acknowledges real server head receipt and continues next revision; exact existing immutable body is not overwritten",
+    "ui": "existing MaterialReadingUI row and error styles; auto-recovery refreshes the stale unconnected view on the existing progress tick",
+    "upload_scope": "daily AI summaries only; no transcript/audio/location or Agent phone-file API"
+  },
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/material-recovery-release-1793333918201467604",
+    "source_sha256": {
+      "store.mjs": "dc612d172f8efb19c44ba782de6f3616cb646866c319ca217c598051f496065d",
+      "http.mjs": "b494c9b1620a0d355b8f7fef4adfe1501bcad1d15806f6a34dad85cde36b974d",
+      "devices.mjs": "1b6987959c06ff191a6c640a1328b842aab9f5839aef9a81c707558b334ab4bb",
+      "material-pairings.mjs": "30cfa52e4b850c36fa46c77934f16de5a205b425c46e0066ea078199f0c8e6cc"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "bf8c572"
+  },
+  "candidate": {
+    "version": "0.5.3-dev158",
+    "version_code": 10580,
+    "sha256": "d34952f8124265247e5e646d9cb59e0f5c372e768a776d13e7bbb5ce7d70f0ac",
+    "bytes": 435083881,
+    "signature_v2": true,
+    "signature_v3": true,
+    "installed": false
+  },
+  "delta": {
+    "baseline_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+    "candidate_sha256": "d34952f8124265247e5e646d9cb59e0f5c372e768a776d13e7bbb5ce7d70f0ac",
+    "apk_bytes": 435083881,
+    "delta_bytes": 1967097,
+    "commands": 8141,
+    "delta_sha256": "5f32677e78c734becff5cbb625a6b73355820a411ae8b3e232a82cec089be6fd",
+    "reconstruction_hash_verified": true
+  },
+  "tests": {
+    "server_http_sqlite_tests": 11,
+    "history_runtime_recovery_checks": 420,
+    "material_settings_aes_checks": 39,
+    "audio_settings_regression_checks": 35,
+    "daily_java_http_sqlite": "fresh second phone acknowledges revision 2, recovers lost acknowledgement without repeat POST, publishes revision 3; exactly three material revisions",
+    "source_count": 266,
+    "source_hashes_match": true,
+    "java_d8_signature_host_dex_audits": "passed",
+    "test_logs_sha256": {
+      "io-material-recovery-final-server-tests.log": "0bda76115511284bf17a90bf6fda77ffd07df45c5e2909b1d72a5e7fab0c7f7e",
+      "io-material-recovery-settings-tests.log": "e071ab9d9d089c71617eea443e2e5cfc2d2ef28e34932ba4a821a38000ac1b5d",
+      "io-daily-phone-recovery-tests.log": "7027a509b0e028e2419b67175b24f5615f01ebbd46b7f2d9ad8ed452215d2f16"
+    },
+    "physical_device_test_passed": false
+  },
+  "device": {
+    "current_installed_version": "0.5.3-dev157",
+    "endpoint_last_given": "100.73.124.63:38099",
+    "phone_tailscale_online": false,
+    "last_seen_utc": "2026-10-30T04:10:00.1Z",
+    "candidate_install_attempted": false,
+    "delta_transferred": false,
+    "pending": [
+      "remote connection and serial verification",
+      "delta installation and full installed SHA",
+      "automatic pairing shown on normal materials settings",
+      "real current-account daily AI summary upload and readback",
+      "toggle off/on and preservation across app restart"
+    ]
+  },
+  "scope": {
+    "existing_material_data_deleted": false,
+    "existing_pairings_revoked_during_deploy": false,
+    "desktop_launcher_changed": false,
+    "default_agent_changed": false,
+    "other_checkout_modified": false,
+    "untracked_delegate_sources_excluded_and_restored": true,
+    "cli_changed": false
+  },
+  "retention": {
+    "candidate": "dev158",
+    "current_phone": "dev157",
+    "old_phone_baseline": "dev154",
+    "three_temporary_apks_have_distinct_purposes": true,
+    "remove_dev157_only_after_successful_dev158_device_verification": true
+  },
+  "cleanup": {
+    "own_watch_disabled": true,
+    "device_lock_released": true,
+    "formal_services_preserved": true
+  },
+  "progress": {
+    "checkpoint_key": "codex-material-space-recovery-candidate-ready",
+    "message_id": "notice-eb4ca528bcb8674779e5b7c6aa47a591d2f45f3e7730eea9fa3a22be0739b26a",
+    "server_stored": true,
+    "glasses_display_confirmed": false,
+    "block_notice_id": "notice-eca61ee08cd503d16b0cff50512840e71d1d3c3b1331bd88bdf35bd4ee897f38"
+  }
+}

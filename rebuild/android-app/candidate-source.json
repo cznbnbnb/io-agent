@@ -318,7 +318,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "794f5b649d097991a82c395ef85f440363ab67560dac669b0d9d12bf44687f31"
+      "sha256": "877ca80201c08ada5c8de16178a0df1971476d06bfe2f23b7f4cd2cff8122960"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
@@ -426,7 +426,7 @@
     },
     {
       "path": "src/com/turboio/addon/DailySummarySync.java",
-      "sha256": "6f662e32f2edb1f9d5dbbffe8316b313577755751b87d35704be93d577680ff1"
+      "sha256": "6bb14f33f0e4c75167517341e751f567a8397c54f87b30cf1328ab495347f208"
     },
     {
       "path": "src/com/turboio/addon/ExportDestination.java",
@@ -702,7 +702,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialHttp.java",
-      "sha256": "2533b17320533dcd04f96abb2e5d6a04e1d17f1a9e32810c59328de552dbddde"
+      "sha256": "f3d10a522dc8e42ffe42ac8c58d37f464c6db9eb2cbc41167f3c1b53ed090c63"
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
@@ -714,7 +714,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialOutbox.java",
-      "sha256": "5b50e393624bff26788f74cf01e8b4c2fdf0f84256d788d298eaed53c23d814b"
+      "sha256": "1781dd160f275b82b9462d68592ab2a16fe5828a74029b8ad0387120ca49df2d"
     },
     {
       "path": "src/com/turboio/addon/MaterialReadingUI.java",
@@ -722,7 +722,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "14cc323b7c8fc08d9a465c9feef057b71ab565ba119ff61b11c8a7177aa815cc"
+      "sha256": "f7346d93878e354b981fb88cd4601474e201e22da397584cacf33824843e0d23"
     },
     {
       "path": "src/com/turboio/addon/MaterialSelect.java",
@@ -730,7 +730,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialSettings.java",
-      "sha256": "294c7551092cbf8038e5c11214c6c229e8ed7d528c45daf1bb7da9072ee54261"
+      "sha256": "3d864441398cfa3480440f0fb4531d114e34f81fd80c610ee87424e0f11a59d5"
     },
     {
       "path": "src/com/turboio/addon/MaterialSettingsState.java",
@@ -770,7 +770,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "b9183139183e8c232dedf75896c5b405e8fb461af7ed3a9519daba1391bd0010"
+      "sha256": "1987231bf0c5b71905280a9504cc513c114a788a5b036240dd597d273598ea7b"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -1062,11 +1062,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "37da78fa3f8025f7f048da5e2e460e4314ab2504f884360bb91e078e67d64bc5"
+      "sha256": "db817e48c6960abb8b9ae42ab5d9508b7aa66857d46e1ba3020b2f5a4a20dbf1"
     }
   ],
-  "product_sha256": "9c5064e3348fe5c2b348411f54b583b450b30a92f38d791a7a5b02af2511f61d",
-  "addon_sha256": "a18f4c642ce780e0ceaa2605ef239bd0ce4ff4ae0223849c4c749e1eaf25ed42",
+  "product_sha256": "ca2a50be1403fabfc0aa99362c28efce18836048809d5263517a712533eced7a",
+  "addon_sha256": "b4e0249430c250a4ef3f6c0e173b533a60d390c4856c7158acf988cbf08d4dd6",
   "host_dex_sha256": {
     "classes2": "3f0b4328f8dac2b7c3f86ac1d999843dce2d71ba474087c48b8a49e76fda840f",
     "classes3": "1095a1996ae8872420767bd2e9500447aa37ffac85bebd158126a8c3049e6a19"

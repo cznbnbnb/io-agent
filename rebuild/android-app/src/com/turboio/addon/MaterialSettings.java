@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;import java.security.*;import java.util
 final class MaterialSettings {
  private static final Object LOCK=new Object();private static final String ALIAS="io.agent.materials.config.v1",CURRENT="material_sealed_v2";
  private static final byte[] AAD="io-agent/material-connection/1".getBytes(StandardCharsets.UTF_8),CURRENT_AAD="io-agent/material-connection/2".getBytes(StandardCharsets.UTF_8);private final SharedPreferences prefs;
+ private static final String RECOVERY="material_recovery_v1";private static final byte[] RECOVERY_AAD="io-agent/material-recovery/1".getBytes(StandardCharsets.UTF_8);
  MaterialSettings(Context app){prefs=app.getSharedPreferences("io_agent_materials_v1",Context.MODE_PRIVATE);}
  private static SecretKey key(boolean create)throws Exception{KeyStore store=KeyStore.getInstance("AndroidKeyStore");store.load(null);if(store.containsAlias(ALIAS))return (SecretKey)store.getKey(ALIAS,null);if(!create)throw new IllegalStateException("MATERIAL_KEY_UNAVAILABLE");KeyGenerator gen=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore");gen.init(new KeyGenParameterSpec.Builder(ALIAS,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setRandomizedEncryptionRequired(true).build());return gen.generateKey();}
  private static byte[] open(String text,byte[] aad,int limit)throws Exception{
@@ -22,10 +23,15 @@ final class MaterialSettings {
    MaterialConfig config=MaterialConfig.decode(legacy);write(config);return config;
   }finally{if(legacy!=null)Arrays.fill(legacy,(byte)0);if(plain!=null)Arrays.fill(plain,(byte)0);}
  }}
+ String recoverySecret(String identity)throws Exception{synchronized(LOCK){
+  String saved=prefs.getString(RECOVERY,null);if(saved!=null){byte[] plain=open(saved,RECOVERY_AAD,1024);try{Map<String,Object> value=WireJson.map(WireJson.read(plain));BoundedJson.keys(value,"identity","secret");String secret=MaterialWire.text(value.get("secret"),43,false);MaterialWire.require(secret.matches("[A-Za-z0-9_-]{43}"),"MATERIAL_RECOVERY_INVALID");if(identity.equals(value.get("identity")))return secret;}finally{Arrays.fill(plain,(byte)0);}}
+  byte[] random=new byte[32];new SecureRandom().nextBytes(random);String secret=java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(random);Arrays.fill(random,(byte)0);
+  MaterialWire.require(prefs.edit().putString(RECOVERY,seal(WireJson.bytes(WireJson.object("identity",identity,"secret",secret)),RECOVERY_AAD)).commit(),"MATERIAL_CONFIG_SAVE_FAILED");return secret;
+ }}
  private void write(MaterialConfig config)throws Exception{
   byte[] plain=MaterialSettingsState.encode(config),legacy=MaterialSettingsState.legacy(config);
   try{
-   SharedPreferences.Editor edit=prefs.edit().putString(CURRENT,seal(plain,CURRENT_AAD)).putString("sealed",seal(legacy,AAD));
+   SharedPreferences.Editor edit=prefs.edit().putString(CURRENT,seal(plain,CURRENT_AAD)).putString("sealed",seal(legacy,AAD)).putString(RECOVERY,null);
    String old=prefs.getString("sealed",null);if(old!=null&&!prefs.contains("material_backup_v1"))edit.putString("material_backup_v1",old);
    if(!edit.commit())throw new IllegalStateException("MATERIAL_CONFIG_SAVE_FAILED");
    byte[] written=open(prefs.getString(CURRENT,null),CURRENT_AAD,16384),projection=open(prefs.getString("sealed",null),AAD,12288);

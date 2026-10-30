@@ -42,6 +42,7 @@ public final class MaterialSettingsTest {
   Map<String,Object> reply=new LinkedHashMap<>(paired);reply.remove("format");reply.remove("base_url");reply.remove("refresh_secret");reply.put("expires_at",TaskWire.now(now+86400000));
   MaterialConnection renewed=pc.renewed(WireJson.bytes(reply),now);yes(renewed.binding().equals(pc.binding())&&renewed.refreshSecret.equals(pc.refreshSecret)&&!renewed.renewDue(now));
   reply.put("owner_id","other");rejects(()->pc.renewed(WireJson.bytes(reply),now));reply.put("owner_id",pc.owner);reply.put("expires_at",TaskWire.now(now-1));rejects(()->pc.renewed(WireJson.bytes(reply),now));
+  App recoveryApp=new App();MaterialSettings recovery=new MaterialSettings(recoveryApp);String identity=TaskWire.hash("phone-account".getBytes("UTF-8")),secret=recovery.recoverySecret(identity);yes(secret.matches("[A-Za-z0-9_-]{43}"));yes(secret.equals(new MaterialSettings(recoveryApp).recoverySecret(identity)));yes(!recoveryApp.prefs.values.get("material_recovery_v1").contains(secret));yes(!secret.equals(recovery.recoverySecret(TaskWire.hash("other-phone-account".getBytes("UTF-8")))));recovery.save(config);yes(recoveryApp.prefs.getString("material_recovery_v1",null)==null);
   System.out.println("Material settings: "+checks+" assertions passed; real AES/GCM, atomic preference adapter, paused rollback projection and no tamper fallback");
  }
 }
