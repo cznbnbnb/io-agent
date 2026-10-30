@@ -94,5 +94,41 @@
     "Claude checkout remains untouched; its next development run should merge this branch before invoking its older source CLI.",
     "Existing resident rejoin path is preserved to avoid a cross-checkout CALLER_PROJECT_MISMATCH.",
     "Long disconnection, Mac sleep and genuine native session exit still go offline."
-  ]
+  ],
+  "delivered_source_commit": "090387f08c639838cec379dee801ae51afbd77a1",
+  "live_resident_status_across_timezones": [
+    {
+      "timezone": "America/Los_Angeles",
+      "resident_live": true,
+      "cloud_online": true,
+      "can_execute": true,
+      "reason": null,
+      "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+    },
+    {
+      "timezone": "Asia/Shanghai",
+      "resident_live": true,
+      "cloud_online": true,
+      "can_execute": true,
+      "reason": null,
+      "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+    }
+  ],
+  "portable_cli": {
+    "source_commit": "090387f08c639838cec379dee801ae51afbd77a1",
+    "bytes": 182701,
+    "items": 50,
+    "sha256": "1944bd24623b3f5ad8638ff6b56353ca0466ef8dc779f6232e28e92bb5f92fb5",
+    "payload_hashes_verified": 49,
+    "isolated_package_test_passed": true
+  },
+  "stable_runtime_files_sha_match_source": true,
+  "cleanup": {
+    "own_watch_disabled": true,
+    "temporary_phone_xml_removed": true,
+    "device_lock_released": true,
+    "restored_desktop_listener_kept": true,
+    "formal_connector_services_kept": true,
+    "untracked_delegate_files_preserved": true
+  }
 }

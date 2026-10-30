@@ -1,3 +1,7 @@
+## [codex] 2026-10-29 Claude连接修复已交付090387f，正式入口和便携包已同步
+
+090387f已推送。稳定runtime更新5文件，Claude Code受管服务仅闲置重启，同native ID及历史保留；真实桌面Claude续接监听继续在线。当前真实residentStatus分别在LA/Shanghai及中文locale的子进程里均报告resident_live/cloud_online/can_execute=true、同worker，手机正常详情已核对。相关140+ACP4测试及便携解包/安装/配对/问答/日总结/待办/恢复码隔离测试通过；ZIP182701字节、50项（49载荷SHA），SHA `1944bd24623b3f5ad8638ff6b56353ca0466ef8dc779f6232e28e92bb5f92fb5`，source090387f。无手机重装或新真实模型任务。Claude源checkout仍520ad23未改，下次开发先合本分支；当前监听及正式服务保留，不把旧结束ID变成在线。本批收尾只关自身watch、清临时XML并释放设备锁。
+
 ## [codex] 2026-10-29 Claude掉线已修：固定进程身份时区，恢复原桌面续接会话
 
 用户明确指手机的“任务页 UI 重设计”，不是受管Claude Code。正常详情核对旧ID 1f833a38；Claude Desktop日志把它及5c822aff、0da32ee1、当前bfae0b25映射到同一桌面聊天。当前native owner确实还活着，但旧记录ps出生时间为LA、后台/当前默认为Shanghai，相差15小时，sameProcess=false误判退出。两处进程读取边界现固定TZ=UTC/LC_ALL=C，不改系统或用户时区；真实跨时区/中文locale回归先红后绿，仍拒PID复用。resident退出记录新增具体exit_reason。
