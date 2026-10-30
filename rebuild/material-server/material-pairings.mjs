@@ -3,7 +3,8 @@ import {sha,reject} from './json.mjs';
 const DAY=86400000,iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
 // A separately revocable, account-bound material pairing. Only local authenticated administration
-// may enroll it. A phone's refresh secret never grants task, audio, or general API access.
+// may enroll it. An already authorized phone can recover its owner's existing
+// account space. A refresh secret never grants task, audio, or general API access.
 // Stable secret + deterministic current access token makes lost replies/retries safe, even after
 // weeks offline. Neither secret nor access token is stored plaintext in the database.
 export class MaterialPairings {
@@ -12,6 +13,20 @@ export class MaterialPairings {
  account TEXT NOT NULL,digest TEXT UNIQUE NOT NULL,created_at INTEGER NOT NULL,revoked_at INTEGER) STRICT;
  CREATE TABLE IF NOT EXISTS material_pairing_tokens(token_id TEXT PRIMARY KEY,pairing_id TEXT NOT NULL) STRICT;`);}
  get db(){return this.store.db;}
+ recover(token,input){
+  const principal=this.store.auth(token,'receipts:phone'),phone=this.store.devices.device(principal);
+  if(phone.role!=='phone'||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length!==2||
+   !/^[a-f0-9]{64}$/.test(input.account_binding??'')||typeof input.refresh_secret!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(input.refresh_secret))reject(400,'MATERIAL_RECOVERY_INVALID');
+  return this.store.tx(()=>{
+   const account=this.db.prepare('SELECT account FROM phone_accounts WHERE device_id=? AND owner=?').get(phone.device_id,phone.owner);
+   if(!account||account.account!==input.account_binding)reject(409,'PHONE_ACCOUNT_MISMATCH');
+   if(!this.db.prepare('SELECT 1 FROM material_pairings WHERE owner=? AND account=? AND revoked_at IS NULL').get(phone.owner,account.account))reject(404,'MATERIAL_SPACE_UNAVAILABLE');
+   let row=this.db.prepare('SELECT * FROM material_pairings WHERE owner=? AND producer=? AND account=? ORDER BY created_at DESC,rowid DESC LIMIT 1').get(phone.owner,phone.producer,account.account);
+   if(row){if(row.revoked_at!==null)reject(403,'MATERIAL_PAIRING_REVOKED');if(row.digest!==sha(input.refresh_secret))reject(409,'MATERIAL_RECOVERY_CHANGED');}
+   else{const pairing=randomUUID();this.db.prepare('INSERT INTO material_pairings VALUES (?,?,?,?,?,?,NULL)').run(pairing,phone.owner,phone.producer,account.account,sha(input.refresh_secret),this.store.clock());row=this.db.prepare('SELECT * FROM material_pairings WHERE pairing_id=?').get(pairing);}
+   return this.issue(row,input.refresh_secret);
+  });
+ }
  enroll({owner,producer,account}){
   if(!id(owner)||!id(producer)||typeof account!=='string'||! /^[a-f0-9]{64}$/.test(account))reject(400,'INVALID_MATERIAL_PAIRING');
   const secret=randomBytes(32).toString('base64url'),pairing=randomUUID();

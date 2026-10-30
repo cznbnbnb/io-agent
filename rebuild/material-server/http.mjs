@@ -67,6 +67,13 @@ export function createServer(store,{traffic=null,trafficUnavailable=false}={}){
         send(200,url.pathname.endsWith('/refresh')?store.materialPairings.refresh(token,input):store.materialPairings.revokeBy(token,input));return;
       }
       observation.principal=store.auth(token);
+      if(req.method==='POST'&&url.pathname==='/v1/daily-summary-head'){
+        if(url.search)reject(400,'INVALID_QUERY');observation.route='other';send(200,store.dailySummaryHead(token,await smallJson(req,observation,1024)));return;
+      }
+      if(req.method==='POST'&&url.pathname==='/v1/material-pairing/recover'){
+        if(url.search)reject(400,'INVALID_QUERY');observation.route='other';
+        send(200,store.materialPairings.recover(token,await smallJson(req,observation,1024)));return;
+      }
       // Session-paired callers may maintain only their own native directory
       // entry/default. The directory enforces the exact approved route; these
       // exceptions do not open unrelated device, material or pairing APIs.

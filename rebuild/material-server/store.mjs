@@ -158,6 +158,16 @@ export class MaterialStore {
     const recent=this.db.prepare('SELECT kind,object_id,revision,state,stored_at,seq FROM queue_revisions WHERE owner=? ORDER BY seq DESC LIMIT 50').all(p.owner);
     return {server_time:iso(this.clock()),owner_id:p.owner,queue,receipts,materials,recent};
   }
+  dailySummaryHead(token,input){
+    const p=this.auth(token,'materials:write');
+    if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length!==1||typeof input.material_id!=='string'||!/^daily-[a-f0-9]{64}$/.test(input.material_id))reject(400,'INVALID_DAILY_SUMMARY');
+    const head=this.db.prepare('SELECT revision,deleted FROM materials WHERE owner=? AND id=?').get(p.owner,input.material_id);
+    if(!head)return {material_id:input.material_id,body:null};
+    const row=this.db.prepare('SELECT body FROM revisions WHERE owner=? AND id=? AND revision=?').get(p.owner,input.material_id,head.revision),body=JSON.parse(row.body);
+    if(head.deleted)reject(410,'MATERIAL_DELETED');
+    if(body.source!=='agent_analysis'||body.utterances.length||body.audio.state!=='not_retained'||!/^# \d{4}-\d{2}-\d{2} 每日 AI 总结/.test(body.full_text?.text??''))reject(404,'NOT_FOUND');
+    return {material_id:input.material_id,body};
+  }
   cancelMaterial(token,value){return cancelMaterial(this,token,value);}
   submit(token,event){return this.#submit(token,event,MAX_BODY);}
   submitAssembled(token,event){return this.#submit(token,event,MAX_MATERIAL_BYTES);}
