@@ -38,7 +38,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": false
+    "device_installed": true
   },
   "dex_audit": {
     "schema": 1,
@@ -48,9 +48,8 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
+  "installed": true,
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false,
-  "install_blocked_reason": "DEVICE_SECURE_KEYGUARD"
+  "release_gate_passed": false
 }

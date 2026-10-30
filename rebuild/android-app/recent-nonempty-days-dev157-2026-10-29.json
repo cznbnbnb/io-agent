@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-29",
-  "status": "dev157_signed_candidate_device_install_waiting_for_normal_user_unlock",
+  "status": "dev157_installed_migration_and_three_nonempty_date_ui_verified",
   "requirement": {
     "background_body_window": "latest 3 source dates with lifelog data, skipping blank dates, across gaps and months",
     "older_dates": "light calendar index only; body read on explicit date selection",
@@ -28,7 +28,7 @@
     "bytes": 435079785,
     "signature_v2": true,
     "signature_v3": true,
-    "installed": false
+    "installed": true
   },
   "delta": {
     "baseline_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
@@ -48,7 +48,7 @@
     "java_d8_source_count": 266,
     "candidate_source_hashes_verified": true,
     "official_host_dex_and_signature_audits": "passed",
-    "physical_device_test_passed": false,
+    "physical_device_test_passed": true,
     "coverage": [
       "sparse positive dates across months",
       "empty authoritative day does not occupy a preload slot",
@@ -67,24 +67,101 @@
   },
   "device": {
     "wireless_identity_verified": true,
-    "installed_version": "0.5.3-dev156",
+    "installed_version": "0.5.3-dev157",
     "installed_baseline_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
-    "dev157_product_install_attempted": false,
-    "delta_transferred": false,
+    "dev157_product_install_attempted": true,
+    "delta_transferred": true,
     "normal_wake_and_dismiss_could_not_unlock": true,
-    "keyguard_showing": true,
+    "keyguard_showing": false,
     "unlock_ui": [
       "fingerprint",
       "password"
     ],
-    "own_probe_install_result": "INSTALL_FAILED_ABORTED: User rejected permissions",
+    "own_probe_install_result": "Installed after user unlock, Honor prompts handled, then uninstalled",
     "probe_installed": false,
-    "pending": [
-      "normal user unlock",
-      "delta install and final installed SHA",
-      "real v1 migration and history persistence",
-      "latest-positive-three background status",
-      "normal calendar dots, older day selection and preserved browse position"
+    "pending": [],
+    "installed_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+    "normal_user_unlock_confirmed": true,
+    "keyguard_showing_at_install": false,
+    "migration": {
+      "before_cache_schema": 1,
+      "after_cache_schema": 2,
+      "before_history_schema": 2,
+      "after_history_schema": 3,
+      "before_account_wide_pause": true,
+      "after_account_wide_pause": false,
+      "legacy_sha256_before": "d5a9b2bf45c7aad3ac3065354ce04d6385279fe4740ee26162a2923fddd71d3d",
+      "legacy_sha256_after": "d5a9b2bf45c7aad3ac3065354ce04d6385279fe4740ee26162a2923fddd71d3d",
+      "legacy_unchanged": true,
+      "cached_records_before": 151,
+      "cached_body_instances_after": 151,
+      "cached_dates_before": 11,
+      "cached_dates_after": 11
+    },
+    "history": {
+      "source_date_today": "2026-10-30",
+      "today_empty": true,
+      "latest_data_dates": [
+        "2026-10-29",
+        "2026-10-28",
+        "2026-10-27"
+      ],
+      "preloaded_count": 3,
+      "preload_basis": "existing positive-date bodies retained/migrated; no claim of three new network downloads",
+      "status_label": "最近有智记 3 天 · 已预载 3/3 天；更早日期点选加载。",
+      "incomplete_months_remain_unverified": true,
+      "older_calendar_dots": [
+        "2026-10-01",
+        "2026-10-10",
+        "2026-10-11",
+        "2026-10-23",
+        "2026-10-24",
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-27",
+        "2026-10-28",
+        "2026-10-29"
+      ],
+      "explicit_older_date": "2026-10-26",
+      "older_read_at_before": 1793231486347,
+      "older_read_at_after": 1793329925225,
+      "only_explicit_old_date_and_selected_empty_today_refreshed": true,
+      "one_week_swipe": {
+        "before": [
+          "2026-10-26",
+          "2026-10-27",
+          "2026-10-28",
+          "2026-10-29",
+          "2026-10-30",
+          "2026-10-31",
+          "2026-11-01"
+        ],
+        "after": [
+          "2026-11-02",
+          "2026-11-03",
+          "2026-11-04",
+          "2026-11-05",
+          "2026-11-06",
+          "2026-11-07",
+          "2026-11-08"
+        ],
+        "selected_header_unchanged": true,
+        "position_retained_across_15_second_progress_tick": true,
+        "reverse_restores_prior_week": true
+      },
+      "calendar_system_back_retains_selected_date": true,
+      "normal_page_restored": true
+    },
+    "settings": {
+      "connection_count": 8,
+      "primary_phone_status": "当前主手机",
+      "default_label": "Codex · 手机工作区",
+      "default_workspace_preserved": true,
+      "pairing_repeated": false
+    },
+    "previous_blockers": [
+      "secure keyguard: resolved by normal user unlock",
+      "Tailscale endpoint offline: same endpoint reconnected and serial verified"
     ]
   },
   "scope": {
@@ -105,22 +182,50 @@
     "claude_commits_already_contained": true
   },
   "retention": {
-    "candidate": "0.5.3-dev157",
-    "installed_new_phone": "0.5.3-dev156",
-    "old_phone_and_rollback": "0.5.3-dev154",
-    "temporary_three_apks_have_distinct_purposes": true,
-    "remove_dev156_only_after_successful_dev157_device_verification": true
+    "current": "0.5.3-dev157",
+    "rollback_and_old_phone_delta_baseline": "0.5.3-dev154",
+    "old_phone_still_offline_and_dev154": true,
+    "dev156_removed_after_dev157_installed_hash_and_device_verification": true,
+    "independent_signed_apks": 2
   },
   "cleanup": {
     "own_progress_watch_disabled": true,
     "device_lock_released": true,
     "remote_probe_apk_removed": true,
-    "formal_services_preserved": true
+    "formal_services_preserved": true,
+    "diagnostic_driver_uninstalled": true,
+    "diagnostic_build_removed": true,
+    "remote_delta_and_reconstructed_apk_removed": true,
+    "remote_ui_xml_removed": true
   },
   "progress": {
     "checkpoint_key": "codex-dev157-three-nonempty-days-candidate-ready",
     "message_id": "notice-9dfb301787366920366e3ed310ce44bd40f844382c4c338e698a804cfbef6e3e",
     "server_stored": true,
-    "glasses_display_confirmed": false
+    "glasses_display_confirmed": false,
+    "device_checkpoint": {
+      "checkpoint_key": "codex-dev157-device-verification-complete",
+      "message_id": "notice-977c1399495cc961529f4ab1702ebb73ae9f27e889f30059be9dce885cdda456",
+      "server_stored": true,
+      "glasses_display_confirmed": false
+    }
+  },
+  "installed": {
+    "version": "0.5.3-dev157",
+    "installed": true,
+    "data_cleared": false,
+    "delta": {
+      "baseline_sha256": "2662d2360c56fd4c6eaf716623abab1619b0578f515ed51ea886ef0618e62d1b",
+      "candidate_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+      "apk_bytes": 435079785,
+      "delta_bytes": 1963001,
+      "commands": 8141,
+      "delta_sha256": "67047c8e91bd7ced8b8827d28344ad0fadeb766e60dec503bcac8b796b778910",
+      "reconstruction_hash_verified": true
+    },
+    "own_honor_install_prompt_confirmed": true,
+    "installed_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+    "baseline": "0.5.3-dev156",
+    "rollback": "0.5.3-dev156"
   }
 }
