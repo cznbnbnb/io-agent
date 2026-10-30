@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "product": "iO Agent Android",
-  "version": "0.5.3-dev157",
-  "version_code": 10579,
-  "revision": "io-agent-recent-nonempty-days",
+  "version": "0.5.3-dev154",
+  "version_code": 10576,
+  "revision": "io-agent-prompter110",
   "host_version": "1.0.10",
   "host_code": 258,
-  "signed": "2026-10-30T02:11:19.616Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev157.apk",
-  "bytes": 435079785,
-  "sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
+  "signed": "2026-10-28T09:58:49.299Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev154.apk",
+  "bytes": 435067497,
+  "sha256": "ad6a3bff385d84057701699f0d9bcb5d1532b0668e88d885ce408b48cd59270d",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -38,7 +38,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": true
+    "device_installed": false
   },
   "dex_audit": {
     "schema": 1,

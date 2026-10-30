@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-10-29",
-  "status": "server_deployed_app_dev158_signed_waiting_for_phone_debug_connection",
+  "status": "installed_dev158_automatic_account_recovery_and_real_daily_sync_verified",
   "problem": "New-phone Agent recovery omitted the separately encrypted material-space pairing.",
   "implementation": {
     "automatic_restore": "Only missing local material config; authorized phone + registered official account + same owner with an existing active material space",
@@ -34,7 +34,7 @@
     "bytes": 435083881,
     "signature_v2": true,
     "signature_v3": true,
-    "installed": false
+    "installed": true
   },
   "delta": {
     "baseline_sha256": "1099a58ec33bbc0c325ee436c3c01663e79614f64f8cf2584d356cd14ce7c0d6",
@@ -59,22 +59,18 @@
       "io-material-recovery-settings-tests.log": "e071ab9d9d089c71617eea443e2e5cfc2d2ef28e34932ba4a821a38000ac1b5d",
       "io-daily-phone-recovery-tests.log": "7027a509b0e028e2419b67175b24f5615f01ebbd46b7f2d9ad8ed452215d2f16"
     },
-    "physical_device_test_passed": false
+    "physical_device_test_passed": true
   },
   "device": {
-    "current_installed_version": "0.5.3-dev157",
+    "current_installed_version": "0.5.3-dev158",
     "endpoint_last_given": "100.73.124.63:38099",
     "phone_tailscale_online": false,
     "last_seen_utc": "2026-10-30T04:10:00.1Z",
-    "candidate_install_attempted": false,
-    "delta_transferred": false,
-    "pending": [
-      "remote connection and serial verification",
-      "delta installation and full installed SHA",
-      "automatic pairing shown on normal materials settings",
-      "real current-account daily AI summary upload and readback",
-      "toggle off/on and preservation across app restart"
-    ]
+    "candidate_install_attempted": true,
+    "delta_transferred": true,
+    "pending": [],
+    "verification_transport": "explicit USB, same configured serial verified",
+    "wireless_status_note": "Previous offline status retained as historical; this verification used user-connected USB, not a new wireless validation."
   },
   "scope": {
     "existing_material_data_deleted": false,
@@ -86,22 +82,148 @@
     "cli_changed": false
   },
   "retention": {
-    "candidate": "dev158",
-    "current_phone": "dev157",
-    "old_phone_baseline": "dev154",
-    "three_temporary_apks_have_distinct_purposes": true,
-    "remove_dev157_only_after_successful_dev158_device_verification": true
+    "current": "dev158",
+    "old_phone_baseline_and_rollback": "dev154",
+    "dev157_removed_after_device_sha_and_sync_verified": true
   },
   "cleanup": {
     "own_watch_disabled": true,
     "device_lock_released": true,
-    "formal_services_preserved": true
+    "formal_services_preserved": true,
+    "diagnostic_uninstalled": true,
+    "diagnostic_build_removed": true,
+    "own_remote_temporary_files_removed": true,
+    "raw_ui_and_private_daily_response_removed": true
   },
   "progress": {
-    "checkpoint_key": "codex-material-space-recovery-candidate-ready",
-    "message_id": "notice-eb4ca528bcb8674779e5b7c6aa47a591d2f45f3e7730eea9fa3a22be0739b26a",
+    "checkpoint_key": "codex-dev158-material-recovery-verified",
+    "message_id": "notice-e7bbfe309e0d70cf33071925a82f9b84555cbbf4105b120d8840aba410c43279",
     "server_stored": true,
     "glasses_display_confirmed": false,
-    "block_notice_id": "notice-eca61ee08cd503d16b0cff50512840e71d1d3c3b1331bd88bdf35bd4ee897f38"
+    "block_notice_id": "notice-eca61ee08cd503d16b0cff50512840e71d1d3c3b1331bd88bdf35bd4ee897f38",
+    "installation_checkpoint_id": "notice-9527ca6cc1a38884c14c363f7bee36a3cf48a4326239d9f1ef66f2b11d19e15f"
+  },
+  "physical_verification": {
+    "automatic_restore_via_normal_app": true,
+    "manual_import_or_pairing_required": false,
+    "ui": {
+      "header": "每日总结自动同步",
+      "pairing": "已配对",
+      "renewal": "访问自动续期",
+      "daily_stored": 3,
+      "pending": 0,
+      "after_final_restart": true
+    },
+    "same_pairing_after_toggle_and_restart": true,
+    "pairing_sha256": "a37743a8313cd35b1051f17d6fd60f79956d7ed82ac08ebd853dd5d48e20f749",
+    "paused_survived_process_restart": true,
+    "final_enabled": true,
+    "separate_material_token": true,
+    "same_phone_owner": true,
+    "same_phone_producer": true,
+    "daily_acknowledgements": [
+      {
+        "date": "2026-10-27",
+        "revision": 2,
+        "state": "server_stored",
+        "error": "",
+        "created_at": "2026-10-30T05:52:55.344Z",
+        "summary_sha256": "6c5e56dc71962656a5118c4c76f0d343a1d26cc8d03cd32bb1609f42bda0d4e3",
+        "has_ack": true
+      },
+      {
+        "date": "2026-10-28",
+        "revision": 1,
+        "state": "server_stored",
+        "error": "",
+        "created_at": "2026-10-30T05:52:55.545Z",
+        "summary_sha256": "595b6fb3f914eb1826f993ff65178658ba8ef844bd5fc1b7e4e07d35ad9bdd97",
+        "has_ack": true
+      },
+      {
+        "date": "2026-10-29",
+        "revision": 1,
+        "state": "server_stored",
+        "error": "",
+        "created_at": "2026-10-30T05:52:55.737Z",
+        "summary_sha256": "8abc61a50c9b4976baf36fbf085e1fb05f05c0d6f8d58f11ab07a5b9d3451ab8",
+        "has_ack": true
+      }
+    ],
+    "server_readback": {
+      "retrieved_at": "2026-10-30T05:58:47.628Z",
+      "items": [
+        {
+          "date": "2026-10-23",
+          "revision": 1,
+          "stored_at": "2026-10-26T11:36:27.065Z",
+          "summary_sha256": "ea1a095b49a6780df04b17ac830a1b151bfda103398754560357e4aa08d1b694"
+        },
+        {
+          "date": "2026-10-24",
+          "revision": 1,
+          "stored_at": "2026-10-26T11:36:27.165Z",
+          "summary_sha256": "29beb4bc6ee56b08baaa4d2e8243be7c1cd470c77b0ffea1319b3bae38b94c84"
+        },
+        {
+          "date": "2026-10-25",
+          "revision": 1,
+          "stored_at": "2026-10-26T11:36:27.263Z",
+          "summary_sha256": "45cbf5e97bbb6468d0a4043dc447901413f93353023ab1cc984782f53d0cd2b2"
+        },
+        {
+          "date": "2026-10-26",
+          "revision": 2,
+          "stored_at": "2026-10-26T19:08:58.667Z",
+          "summary_sha256": "ea27c20d4d2e98c399b266fd4c94f11e03ccc77c404b52b5982e1a67ace6bb1b"
+        },
+        {
+          "date": "2026-10-27",
+          "revision": 2,
+          "stored_at": "2026-10-28T01:08:46.351Z",
+          "summary_sha256": "6c5e56dc71962656a5118c4c76f0d343a1d26cc8d03cd32bb1609f42bda0d4e3"
+        },
+        {
+          "date": "2026-10-28",
+          "revision": 1,
+          "stored_at": "2026-10-28T23:45:08.423Z",
+          "summary_sha256": "595b6fb3f914eb1826f993ff65178658ba8ef844bd5fc1b7e4e07d35ad9bdd97"
+        },
+        {
+          "date": "2026-10-29",
+          "revision": 1,
+          "stored_at": "2026-10-30T05:52:56.072Z",
+          "summary_sha256": "8abc61a50c9b4976baf36fbf085e1fb05f05c0d6f8d58f11ab07a5b9d3451ab8"
+        }
+      ],
+      "has_more": false,
+      "unchanged_after_toggle_restart": true
+    },
+    "new_summary_date": "2026-10-29",
+    "existing_revisions_unchanged": [
+      "2026-10-27",
+      "2026-10-28"
+    ],
+    "source_timezone": "Asia/Shanghai",
+    "no_new_glasses_test_or_recording": true,
+    "retained_cache_bodies": 151,
+    "retained_cache_dates": 11,
+    "legacy_cache_sha256": "d5a9b2bf45c7aad3ac3065354ce04d6385279fe4740ee26162a2923fddd71d3d",
+    "agent_profiles": 8,
+    "default_binding_unchanged": true,
+    "default_binding_sha256": "9c045a544e16efc71470ed07f6e88948fd034de33741eed89073e6a882e62c57",
+    "probe_limit": "Instrumentation reads stored metadata before the stock Flutter engine opens; its null live-login result is unavailable, not an account mismatch. Automatic normal App restore and server upload enforce live-account checks.",
+    "diagnostic_update_rejected": "Second diagnostic update was rejected by installer; existing installed read-only driver reused, then uninstalled. Product installation succeeded independently."
+  },
+  "proof_sha256": {
+    "io-phone-dev158-install-proof.json": "48d28428a5e31dc7b056f795f7132deaa03ab8f0b72d518f7b4c8543b77cad73",
+    "io-dev158-pairing-before.txt": "b45c9eea4da3ad9c60d1bc9ba2eae0041c495b64de7f83ea6819205796654434",
+    "io-dev158-pairing-paused.txt": "ff409d57f66f9bd51aab936ad795102f833528093884846e71fa20f77cfa090b",
+    "io-dev158-pairing-after.txt": "b1b65286cf952544430eb82bfa12d5bd4055b5bb27353b5258c99c0f96aa935f",
+    "io-dev158-ui-enabled.json": "b0337e0e080b6ad2a320927d7062cbd869f20db0af24d1d9beac718a6be41489",
+    "io-dev158-ui-paused-after-restart.json": "1080fda1334a6e70139458336d3d1214d17976d30cf1a68c9a3019b52dd4b85f",
+    "io-dev158-ui-reenabled.json": "b0337e0e080b6ad2a320927d7062cbd869f20db0af24d1d9beac718a6be41489",
+    "io-dev158-server-daily-after.json": "62653f32bb2e677947a0c2c56639c69bc1086b2e9a273966a3ed7723db5c11f6",
+    "io-dev158-cleanup-proof.json": "7187913fed5e0f5504bb9c05a14f1bdd69b116b17b31f83f97e054f759cfad33"
   }
 }
