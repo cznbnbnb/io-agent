@@ -6,6 +6,7 @@ import argparse,base64,hashlib,json,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 PROFILES={
+ 'notifications':['store.mjs','http.mjs','devices.mjs','phone-presence.mjs','admin-console.mjs'],
  'login':['store.mjs','http.mjs','cli.mjs','admin-auth.mjs','admin/index.html','admin/app.js','admin/style.css'],
  'console':['store.mjs','http.mjs','devices.mjs','agent-sessions.mjs','phone-presence.mjs','traffic.mjs','admin-console.mjs','admin/index.html','admin/app.js','admin/console.js','admin/style.css']
 }
@@ -40,6 +41,9 @@ try:
  assert.equal(s.console.read(session.owner,'devices',{},null).items.length,1);s.console.action(session,{action:'delivery',device_id:device.device_id,paused:true});assert.equal(s.inbox(device.token).delivery_paused,true);
  s.console.action(session,{action:'delivery',device_id:device.device_id,paused:false});assert.equal(s.console.read(session.owner,'audit',{},null).items.length,2);assert.equal(s.console.read(session.owner,'daily',{},null).total,0);}
  s.admin.logout(second.token);assert.throws(()=>s.admin.session(second.token));s.close();"""
+ if profile=='notifications':
+  smoke=smoke.replace('s.close();', """const {listen}=await import('./http.mjs');const device=s.devices.enroll({owner:'caller601-admin-codex',role:'agent',label:'QA notification'});const http=await listen(s,0);const url='http://127.0.0.1:'+http.address().port+'/v1/inbox/watch',headers={Authorization:'Bearer '+device.token};
+  const first=await(await fetch(url,{headers})).json();const pending=fetch(url+'?version='+first.version,{headers,signal:AbortSignal.timeout(2000)});for(let n=0;n<100&&!s.inboxWaiters.size;n++)await new Promise(r=>setTimeout(r,5));assert.equal(s.inboxWaiters.size,1);s.devices.revoke(device.device_id);assert.equal((await pending).status,401);http.closeAllConnections();await new Promise(r=>http.close(r));s.close();""")
  subprocess.run([node,'--input-type=module','-e',smoke],cwd=root,check=True,capture_output=True,timeout=30)
  subprocess.run(['systemctl','start',service],check=True,timeout=30)
  for attempt in range(30):

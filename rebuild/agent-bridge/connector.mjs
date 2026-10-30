@@ -53,7 +53,7 @@ export async function runConnector(directory,{deviceFile,signal,maximumMs=0,onRe
   const onItem=adapter.onItem.bind(adapter),onAnswer=adapter.onAnswer.bind(adapter);
   adapter.onItem=(item,context)=>legacy(item.body?.task_id)?[]:onItem(item,context);
   adapter.onAnswer=(input,context)=>legacy(input.request?.body?.task_id)?[]:onAnswer(input,context);
-  const bridge=new AgentBridge({config,adapter,stateFile:path.join(directory,'bridge.json')});let stopped=false;
+  const bridge=new AgentBridge({config,adapter,sharedInbox:true,stateFile:path.join(directory,'bridge.json')});let stopped=false;
   const halt=()=>{stopped=true;};process.once('SIGTERM',halt);process.once('SIGINT',halt);signal?.addEventListener('abort',halt,{once:true});
   const start=Date.now();let failures=0;
   try{

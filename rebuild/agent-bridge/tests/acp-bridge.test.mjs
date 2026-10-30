@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {randomUUID} from 'node:crypto';
+import {SharedInboxSignal} from '../inbox-signal.mjs';
 import {MaterialStore} from '../../material-server/store.mjs';import {listen} from '../../material-server/http.mjs';
 import {initializeConnector,connectorConfig,runConnector} from '../connector.mjs';
 const peer=fileURLToPath(new URL('./fixtures/acp-agent.mjs',import.meta.url));
@@ -46,10 +47,12 @@ test('a gateway outage retains the active native turn and resumes polling withou
  f.request('outage-turn','delayed');await wait(()=>f.task('outage-turn').state==='running');
  const read=()=>JSON.parse(fs.readFileSync(path.join(f.directory,'acp.json'))),before=read(),operation=Object.values(before.operations)[0];
  assert.equal(operation.status,'inProgress');outage=true;
- await wait(()=>statuses.find(e=>e.event==='connection_retry'));
- assert.equal(statuses[0].error,'UNAVAILABLE');assert.equal(read().session_id,before.session_id);
+ const observer=new SharedInboxSignal(connectorConfig(f.directory,{deviceFile:f.deviceFile}));
+ for(const wake of f.store.inboxWaiters)wake('synthetic-acp');
+ await wait(()=>observer.snapshot()?.error==='UNAVAILABLE');
+ assert.equal(observer.snapshot().healthy,false);assert.equal(read().session_id,before.session_id);
  assert.equal(Object.values(read().operations)[0].status,'inProgress');
- outage=false;await wait(()=>statuses.find(e=>e.event==='connection_recovered'));
+ outage=false;await wait(()=>observer.snapshot()?.healthy);
  await wait(()=>f.task('outage-turn').state==='completed');
  f.request('after-outage','after');await wait(()=>f.task('after-outage').state==='completed');
  assert.equal(read().session_id,before.session_id);
@@ -70,7 +73,7 @@ test('network exceptions retry but permanent authorization failure still ends th
  const failed=assert.rejects(running,{code:'FORBIDDEN'});
  await wait(()=>statuses.find(e=>e.event==='connection_retry'));assert.equal(statuses[0].error,'NETWORK_UNAVAILABLE');
  failure='';await wait(()=>statuses.find(e=>e.event==='connection_recovered'));
- failure='auth';await failed;
+ failure='auth';f.request('auth-recheck','must not execute');await failed;
 });
 
 test('new paired-computer session automatically gets a real CLI bound to the original phone task',async t=>{

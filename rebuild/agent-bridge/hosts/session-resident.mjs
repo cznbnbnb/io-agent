@@ -45,7 +45,7 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
       reason=c.runtime==='claude-code'?(Date.now()-start<15000?'CLAUDE_PLUGIN_CONNECTING':'CLAUDE_PLUGIN_RELOAD_REQUIRED'):reason||s.reason||'CODEX_SESSION_ENDPOINT_UNAVAILABLE';
       return pendingSnapshot(c,reason);
     };
-    bridge=new AgentBridge({config:native,adapter,stateFile:path.join(directory,'bridge.json')});await bridge.start();lastReconnect=Date.now();
+    bridge=new AgentBridge({config:native,adapter,sharedInbox:true,stateFile:path.join(directory,'bridge.json')});await bridge.start();lastReconnect=Date.now();
   }
   try{
     while(!stopping&&(!maximumMs||Date.now()-start<maximumMs)){

@@ -103,7 +103,7 @@ export class AdminConsole {
     const d=this.db.prepare('SELECT * FROM devices WHERE owner=? AND device_id=?').get(owner,input.device_id);if(!d)reject(404,'DEVICE_NOT_FOUND');
     if(d.revoked_at!==null&&action!=='unpair')reject(409,'DEVICE_REVOKED');target=d.label;
     if(action==='rename'){this.db.prepare('UPDATE devices SET label=? WHERE owner=? AND device_id=?').run(input.label,owner,d.device_id);detail=input.label;}
-    if(action==='delivery'){this.db.prepare('INSERT INTO admin_delivery VALUES (?,?,?,?) ON CONFLICT(owner,producer) DO UPDATE SET paused=excluded.paused,updated=excluded.updated').run(owner,d.producer,Number(input.paused),now);detail=input.paused?'paused':'resumed';}
+    if(action==='delivery'){this.db.prepare('INSERT INTO admin_delivery VALUES (?,?,?,?) ON CONFLICT(owner,producer) DO UPDATE SET paused=excluded.paused,updated=excluded.updated').run(owner,d.producer,Number(input.paused),now);detail=input.paused?'paused':'resumed';this.store.pendingInboxOwners.add(owner);}
     if(action==='unpair'){this.store.devices.revokeInTransaction(d.device_id);detail='revoked';}
     if(action==='primary'){this.store.phones.selectPrimary(owner,d.device_id,input.expected_revision,now);detail='primary';}
    }else if(action==='default'){

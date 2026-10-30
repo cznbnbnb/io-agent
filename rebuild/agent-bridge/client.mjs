@@ -69,7 +69,7 @@ export class BridgeClient{
       return body.token;
     }catch(e){if(e?.status===409)return this.token();if(Date.parse(credential.expires_at)>this.clock())return token;throw e;}
   }
-  async #send(method,path,payload,tokenSnapshot=null){
+  async #send(method,path,payload,tokenSnapshot=null,signal=null){
     const token=tokenSnapshot??await this.#renewed(),url=new URL(path,this.base);
     if(url.origin!==this.base.origin||!url.pathname.startsWith(this.base.pathname)||url.href.length>8192)fail('INVALID_QUERY',{permanent:true});
     if(path!=='identity'&&path!=='credentials/refresh'&&token!==this.#boundToken){
@@ -80,7 +80,8 @@ export class BridgeClient{
     }
     let response;
     try{
-      response=await this.fetch(url,{method,redirect:'manual',signal:AbortSignal.timeout(this.config.timeout_ms),
+      const timeout=AbortSignal.timeout(this.config.timeout_ms);
+      response=await this.fetch(url,{method,redirect:'manual',signal:signal?AbortSignal.any([timeout,signal]):timeout,
         headers:{Authorization:`Bearer ${token}`,Accept:'application/json',...(payload===undefined?{}:{'Content-Type':'application/json'})},
         ...(payload===undefined?{}:{body:payload})});
     }catch{fail('NETWORK_UNAVAILABLE',{retryable:true});}
@@ -112,6 +113,13 @@ export class BridgeClient{
     fail(code??'HTTP_ERROR',{status:response.status,permanent:true});
   }
   async identity(){return (await this.#send('GET','identity')).body;}
+  async watchInbox(version=null,{signal,waitSeconds=25}={}){
+    if(version!==null&&!/^[a-f0-9]{64}$/.test(version)||!Number.isInteger(waitSeconds)||waitSeconds<1||waitSeconds>25)fail('INVALID_QUERY',{permanent:true});
+    const query=new URLSearchParams({wait_seconds:String(waitSeconds)});if(version)query.set('version',version);
+    const {body}=await this.#send('GET','inbox/watch?'+query,undefined,null,signal);
+    if(body?.schema_version!=='1.0'||['owner_id','producer_id','server_id'].some(k=>body[k]!==this.config[k])||!stamp(body.server_time)||!/^[a-f0-9]{64}$/.test(body.version??'')||typeof body.changed!=='boolean')fail('INVALID_RESPONSE',{permanent:true});
+    return body;
+  }
   /** Read the account's synced daily AI summaries. This boundary owns CLI query validation;
    * it cannot select another owner, fetch transcripts/audio, or write materials. */
   async dailySummaries(input={}){

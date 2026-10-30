@@ -12,7 +12,7 @@ public final class TaskStatusTest {
  private static Map<String,Object> copy(Map<String,Object> value){return WireJson.map(WireJson.copy(value));}
  private static final class Peer implements TaskApi.Transport {
   final TaskConnection connection;final Map<String,Object> task,request;
-  int inboxCalls,requestReads;boolean first=true,failStatus,foreignStatus;List<Object> extra=Collections.emptyList();
+  int identityCalls,inboxCalls,requestReads;boolean first=true,failStatus,foreignStatus;List<Object> extra=Collections.emptyList();
   Peer(TaskConnection c)throws Exception{
    connection=c;Map<String,Object> fixture=WireJson.map(WireJson.read(Files.readAllBytes(Paths.get("docs/contracts/normal.json"))));
    Map<String,Object> t=null,r=null;for(Object raw:WireJson.list(fixture.get("events"))){Map<String,Object> e=WireJson.map(raw);if("task".equals(e.get("kind")))t=copy(TaskWire.body(e));if("request".equals(e.get("kind")))r=copy(TaskWire.body(e));}
@@ -21,7 +21,7 @@ public final class TaskStatusTest {
   TaskApi.Response ok(Object body){return new TaskApi.Response(200,WireJson.bytes(body),0);}
   public TaskApi.Response exchange(String path,byte[] body)throws IOException{
    if(body!=null)throw new AssertionError("Status reads must never write answers or tasks");
-   if(path.equals("/identity"))return ok(WireJson.object("schema_version","1.0","owner_id",connection.owner,"producer_id",connection.producer,"server_id",connection.server,"expires_at",connection.expires,"scopes",new ArrayList<>(TaskConnection.SCOPES)));
+   if(path.equals("/identity")){identityCalls++;return ok(WireJson.object("schema_version","1.0","owner_id",connection.owner,"producer_id",connection.producer,"server_id",connection.server,"expires_at",connection.expires,"scopes",new ArrayList<>(TaskConnection.SCOPES)));}
    if(path.startsWith("/inbox?")){inboxCalls++;List<Object> items=first?Arrays.asList(task,request):extra;first=false;extra=Collections.emptyList();return ok(WireJson.object("items",items,"has_more",false,"next_cursor","cursor-"+inboxCalls,"server_time",TaskWire.now(NOW),"fresh_until",TaskWire.now(NOW)));}
    if(path.startsWith("/requests/")){requestReads++;if(failStatus)throw new IOException("STATUS_UNAVAILABLE");Map<String,Object> result=copy(request);if(foreignStatus){Map<String,Object> route=copy(TaskWire.body(result));Map<String,Object> other=copy(connection.route());other.put("session_id","foreign");route.put("route",other);result.put("body",route);}return ok(result);}
    throw new AssertionError("Unexpected path "+path);
@@ -43,6 +43,18 @@ public final class TaskStatusTest {
    yes(api.pump(box,NOW+33000));yes(state(box,id).equals("answered"));yes(TaskWire.nonnegative(box.cached("request",id).get("detail_at"))==NOW+15000);
   }
   try(TaskMailbox restored=new TaskMailbox(dir,c)){yes(state(restored,id).equals("answered"));yes(restored.staleRequest(NOW+60000)==null);}
+  // Idle notification cycles do not hit identity/inbox; explicit operations still preflight,
+  // and a wake bypasses the last successful three-second polling cooldown.
+  Peer idle=new Peer(c);TaskApi cached=new TaskApi(c,idle);
+  try(TaskMailbox box=new TaskMailbox(Files.createTempDirectory("io-status-idle-").toFile(),c)){
+   yes(cached.pump(box,NOW));int reads=idle.identityCalls;
+   for(int n=1;n<=10;n++)cached.pump(box,NOW+n*3000,false);
+   yes(idle.inboxCalls==1);yes(idle.identityCalls==reads);
+   cached.preflight(NOW+31000);yes(idle.identityCalls==reads+1);
+   cached.pump(box,NOW+32000,true);int before=idle.inboxCalls;
+   cached.inboxChanged();cached.pump(box,NOW+32500,true);yes(idle.inboxCalls==before+1);
+   cached.pump(box,NOW+100000,false);yes(idle.identityCalls==reads+2);
+  }
   // A status request failure does not discard a received message, reset the cursor or retry every tick.
   Peer unavailable=new Peer(c);unavailable.failStatus=true;TaskApi retry=new TaskApi(c,unavailable);
   try(TaskMailbox box=new TaskMailbox(Files.createTempDirectory("io-status-retry-").toFile(),c)){

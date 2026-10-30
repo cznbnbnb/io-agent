@@ -10,18 +10,19 @@ final class TaskApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
  private final TaskConnection connection;private final Transport transport;
- private long nextCheck,nextStatusCheck;private boolean running,inboxCurrent,sessionControl,sessionDirectory;
+ private long nextCheck,nextStatusCheck,identityUntil;private boolean running,inboxCurrent,sessionControl,sessionDirectory;
  boolean inboxCurrent(){return inboxCurrent;}
  boolean sessionControl(){return sessionControl;}
  String note="paused";
  TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
  static String encode(String value){try{return URLEncoder.encode(value,"UTF-8").replace("+","%20");}catch(Exception impossible){throw new IllegalStateException(impossible);}}
  static String error(Response response){try{Map<String,Object> value=WireJson.map(WireJson.read(response.body)),e=WireJson.map(value.get("error"));String code=(String)e.get("code");if(code!=null&&code.matches("[A-Z][A-Z0-9_]{0,63}"))return code;}catch(RuntimeException ignored){}return response.status==401?"AUTH_REQUIRED":response.status==403?"FORBIDDEN":"TASK_UNAVAILABLE";}
- void preflight(long now)throws IOException{
-  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");Response result=transport.exchange("/identity",null);sessionControl=false;sessionDirectory=false;if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
+ void preflight(long now)throws IOException{preflight(now,false);}
+ private void preflight(long now,boolean idle)throws IOException{
+  TaskWire.require(connection.expiresAt>now,"TASK_IMPORT_EXPIRED");if(idle&&now<identityUntil)return;Response result=transport.exchange("/identity",null);sessionControl=false;sessionDirectory=false;if(result.status!=200)throw new IOException(error(result));connection.identity(result.body,now);
   Object capabilities=WireJson.map(WireJson.read(result.body)).get("capabilities");
   sessionControl=capabilities instanceof List&&WireJson.list(capabilities).contains("task_session_control_v1");
-  sessionDirectory=capabilities instanceof List&&WireJson.list(capabilities).contains(TaskSessionDirectory.CAPABILITY);
+  sessionDirectory=capabilities instanceof List&&WireJson.list(capabilities).contains(TaskSessionDirectory.CAPABILITY);identityUntil=Math.min(connection.expiresAt,now+60000);
  }
  synchronized TaskSessionDirectory directory(long now)throws IOException{preflight(now);return readDirectory();}
  private TaskSessionDirectory readDirectory()throws IOException{
@@ -44,10 +45,12 @@ final class TaskApi {
   preflight(now);Map<String,Object> item=detail(kind,id);mailbox.acceptDetail(item,now);
   if(kind.equals("request")){Map<String,Object> parent=detail("task",(String)TaskWire.body(item).get("task_id"));mailbox.acceptDetail(parent,now);}return item;
  }
- synchronized boolean pump(TaskMailbox mailbox,long now)throws IOException{
+ synchronized void inboxChanged(){if(inboxCurrent)nextCheck=0;}
+ boolean pump(TaskMailbox mailbox,long now)throws IOException{return pump(mailbox,now,true);}
+ synchronized boolean pump(TaskMailbox mailbox,long now,boolean readInbox)throws IOException{
   if(running||now<nextCheck)return false;running=true;TaskMailbox.Claim claim=null;boolean requestStarted=false;
   try{
-   note="checking";preflight(now);
+   note="checking";preflight(now,!TaskProfiles.unsent(mailbox.pending()));
    for(Object raw:mailbox.pending()){
     Map<String,Object> row=WireJson.map(raw);if(!row.get("state").equals("awaiting_refresh"))continue;
     Map<String,Object> e=WireJson.map(WireJson.read(((String)row.get("payload")).getBytes(StandardCharsets.UTF_8))),answer=TaskWire.body(e);
@@ -88,9 +91,9 @@ final class TaskApi {
      mailbox.finish(claim,response.status,response.body,now,response.retryAfter);claim=null;
     }
    }
-   String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
+   if(readInbox||!inboxCurrent){String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
    if(inbox.status!=200){String code=error(inbox);if(inbox.status==410&&code.equals("CURSOR_RESET_REQUIRED"))mailbox.resetCursor(cursor);throw new IOException(code);}
-   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);inboxCurrent=!Boolean.TRUE.equals(page.get("has_more"));note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);
+   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);inboxCurrent=!Boolean.TRUE.equals(page.get("has_more"));note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);}
    // One bounded status read per pump, after queue delivery/inbox work. Failure cannot undo a saved
    // answer or starve incoming tasks; each route keeps its own cursor and status cooldown.
    if(now>=nextStatusCheck){String request=mailbox.staleRequest(now);if(request!=null){
@@ -100,7 +103,7 @@ final class TaskApi {
    }}
    return true;
   }catch(IOException|RuntimeException error){
-   inboxCurrent=false;
+   inboxCurrent=false;identityUntil=0;
    if(claim!=null){mailbox.finish(claim,0,new byte[0],now,0);note=requestStarted?"TRANSPORT_UNKNOWN":"REFRESH_UNAVAILABLE";}
    else note=safeError(error);
    nextCheck=now+5000;throw error;

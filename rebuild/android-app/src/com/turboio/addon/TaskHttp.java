@@ -7,18 +7,19 @@ import javax.net.ssl.HttpsURLConnection;
 
 /** Bounded HTTPS transport. Default TLS trust, no redirect/cookie/credential logs. */
 final class TaskHttp implements TaskApi.Transport {
- private final TaskConnection connection;private volatile HttpsURLConnection active;
+ private final String base,token;private volatile HttpsURLConnection active;
  private volatile boolean disabled;
- TaskHttp(TaskConnection connection){this.connection=connection;}
+ TaskHttp(TaskConnection connection){base=connection.base;token=connection.token();}
+ TaskHttp(TaskDevice device){base=device.base.substring(0,device.base.length()-1);token=device.token;}
  public TaskApi.Response exchange(String path,byte[] payload)throws IOException{
   if(disabled)throw new IOException("TASK_PAUSED");
   if(!path.startsWith("/")||path.startsWith("//")||path.indexOf('#')>=0||path.indexOf('\r')>=0||path.indexOf('\n')>=0)throw new IOException("TASK_PATH_INVALID");
   if(payload!=null&&payload.length>262144)throw new IOException("TASK_EVENT_BUDGET");
-  HttpsURLConnection request=(HttpsURLConnection)new URL(connection.base+path).openConnection();active=request;
+  HttpsURLConnection request=(HttpsURLConnection)new URL(base+path).openConnection();active=request;
   try{
    if(disabled)throw new IOException("TASK_PAUSED");
-   request.setInstanceFollowRedirects(false);request.setUseCaches(false);request.setConnectTimeout(5000);request.setReadTimeout(10000);
-   request.setRequestMethod(payload==null?"GET":"POST");request.setRequestProperty("Authorization","Bearer "+connection.token());request.setRequestProperty("Accept","application/json");request.setRequestProperty("Accept-Encoding","identity");
+   request.setInstanceFollowRedirects(false);request.setUseCaches(false);request.setConnectTimeout(5000);request.setReadTimeout(path.startsWith("/inbox/watch?")?30000:10000);
+   request.setRequestMethod(payload==null?"GET":"POST");request.setRequestProperty("Authorization","Bearer "+token);request.setRequestProperty("Accept","application/json");request.setRequestProperty("Accept-Encoding","identity");
    if(payload!=null){request.setDoOutput(true);request.setRequestProperty("Content-Type","application/json");request.setFixedLengthStreamingMode(payload.length);try(OutputStream out=request.getOutputStream()){out.write(payload);}}
    int status=request.getResponseCode();String content=request.getContentType();
    if(content==null||!content.matches("(?i)application/json(?:\\s*;\\s*charset=utf-8)?"))throw new IOException("TASK_RESPONSE_INVALID");

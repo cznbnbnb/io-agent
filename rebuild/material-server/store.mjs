@@ -59,6 +59,7 @@ const QUEUE_READ={task:['tasks:read','tasks:update'],request:['requests:read','r
 const QUEUE_MISSING={task:'TASK_NOT_FOUND',request:'REQUEST_NOT_FOUND',message:'MESSAGE_NOT_FOUND'};
 
 export class MaterialStore {
+  inboxWaiters=new Set();pendingInboxOwners=new Set();
   constructor(path,{clock=Date.now}={}){
     this.clock=clock;this.validate=createValidator();this.validateQueue=createQueueValidator();this.db=new DatabaseSync(path);
     try{
@@ -130,7 +131,12 @@ export class MaterialStore {
       return {database_version:1,verified:true};
     }finally{fs.unlinkSync(temporary);}
   }
-  tx(fn){this.db.exec('BEGIN IMMEDIATE');try{const value=fn();this.db.exec('COMMIT');return value;}catch(e){try{this.db.exec('ROLLBACK');}catch{}throw e;}}
+  tx(fn){this.db.exec('BEGIN IMMEDIATE');this.pendingInboxOwners.clear();let value;
+    try{value=fn();this.db.exec('COMMIT');}catch(e){this.pendingInboxOwners.clear();try{this.db.exec('ROLLBACK');}catch{}throw e;}
+    const owners=[...this.pendingInboxOwners];this.pendingInboxOwners.clear();
+    for(const owner of owners)for(const wake of this.inboxWaiters)wake(owner);
+    return value;
+  }
   mint({owner,producer,scopes,ttlMs=3600000}){
     if(!id(owner)||!id(producer)||!Array.isArray(scopes)||!scopes.length||scopes.some(s=>!SCOPES.has(s))||
       !Number.isSafeInteger(ttlMs)||ttlMs<=0||ttlMs>86400000)reject(400,'INVALID_CREDENTIAL_CONFIG');
@@ -150,7 +156,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1','primary_phone_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['inbox_watch_v1','request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1','primary_phone_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -481,6 +487,7 @@ export class MaterialStore {
     const rowState=kind==='task'||kind==='request'?b.state:'recorded';
     this.db.prepare('INSERT INTO queue_counters VALUES (?,1) ON CONFLICT(owner) DO UPDATE SET seq=seq+1').run(owner);
     const seq=this.queueCeiling(owner),storedAt=iso(now);
+    this.pendingInboxOwners.add(owner);
     this.db.prepare('INSERT INTO queue_revisions VALUES (?,?,?,?,?,?,?,?,?,?,?,?)').run(owner,kind,objectId,revision,canonical(b),
       event.schema_version,sha(canonical(b)),seq,storedAt,event.event_id,Date.parse(event.expires_at),rowState);
     const headState=kind==='answer'?'answered':rowState;
@@ -547,6 +554,13 @@ export class MaterialStore {
       }
       return {schema_version:'1.0',changed,reason,server_time:iso(now),item:this.queueGet(token,'request',requestId)};
     });
+  }
+  inboxVersion(token){
+    const p=this.auth(token),scopes=new Set(JSON.parse(p.scopes));
+    if(!Object.values(QUEUE_READ).some(required=>required.some(scope=>scopes.has(scope))))reject(403,'FORBIDDEN');
+    const primary=this.db.prepare('SELECT revision FROM primary_phones WHERE owner=?').get(p.owner);
+    return {schema_version:'1.0',server_id:this.devices.serverId(),owner_id:p.owner,producer_id:p.producer,
+      version:sha(canonical([p.owner,p.producer,p.sessionRoute??null,p.scopes,this.queueCeiling(p.owner),this.console.deliveryPaused(p.owner,p.producer),primary?.revision??0])),server_time:iso(this.clock())};
   }
   inbox(token,query={}){
     const p=this.auth(token),scopes=new Set(JSON.parse(p.scopes));

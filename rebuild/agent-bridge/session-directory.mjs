@@ -96,7 +96,8 @@ export class SessionDirectoryPublisher{
         if(key!==undefined){seen.add(key);sessions.delete(key);}invalid=code(e);
       }
     }
-    const directory=validateDirectory(await this.#client.agentSessions(),this.#client.config);if(epoch!==this.#epoch)return;this.#error=invalid;
+    const needsDirectory=[...sessions.keys()].some(key=>!this.#leases.has(key)||this.#pending.has(key)||this.#leases.get(key).until<=this.#clock()+15000);
+    const directory=needsDirectory?validateDirectory(await this.#client.agentSessions(),this.#client.config):null;if(epoch!==this.#epoch)return;this.#error=invalid;
     await parallel([...sessions.values()],async s=>{
       if(epoch!==this.#epoch)return;
       const key=runtimeDigest(s.route);try{

@@ -229,6 +229,21 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       if(req.method==='GET'&&(url.pathname==='/v1/materials'||url.pathname==='/v1/changes')){
         send(200,store.page(token,url.pathname.endsWith('changes')?'changes':'materials',query));return;
       }
+      if(req.method==='GET'&&url.pathname==='/v1/inbox/watch'){
+        if(Object.keys(query).some(k=>!['version','wait_seconds'].includes(k))||query.version!==undefined&&!/^[a-f0-9]{64}$/.test(query.version)||!/^([1-9]|1[0-9]|2[0-5])$/.test(query.wait_seconds??'25'))reject(400,'INVALID_QUERY');
+        let state=store.inboxVersion(token);
+        if(query.version===state.version){
+          await new Promise(resolve=>{
+            const done=()=>{clearTimeout(timer);store.inboxWaiters.delete(wake);res.removeListener('close',done);resolve();};
+            const wake=owner=>{if(owner===state.owner_id)done();};
+            const timer=setTimeout(done,Number(query.wait_seconds??25)*1000);
+            store.inboxWaiters.add(wake);res.once('close',done);
+          });
+          if(res.destroyed)return;
+          state=store.inboxVersion(token);
+        }
+        send(200,{...state,changed:query.version!==state.version});return;
+      }
       if(req.method==='GET'&&url.pathname==='/v1/inbox'){
         let page=store.inbox(token,query);
         if(!page.items.length&&idleInboxWaitMs>0){

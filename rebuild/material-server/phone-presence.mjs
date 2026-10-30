@@ -47,7 +47,7 @@ export class PhonePresence {
   let row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(owner);
   if(!row||expectedRevision!==row.revision)reject(409,'PRIMARY_PHONE_CHANGED');
   if(row.device_id!==deviceId){this.db.prepare('UPDATE primary_phones SET device_id=?,revision=revision+1,active_after=MAX(lease_until,?),lease_until=MAX(lease_until,?),notice_after_seq=? WHERE owner=?').run(deviceId,now,now,this.store.queueCeiling(owner),owner);row=this.db.prepare('SELECT * FROM primary_phones WHERE owner=?').get(owner);}
-  return row;
+  this.store.pendingInboxOwners.add(owner);return row;
  }
  // Legacy phones cannot receive fresh request/message bodies after a switch.
  // Updated phones also check their elapsed-time lease before every UI emission.

@@ -4,6 +4,7 @@ import {BridgeState} from './state.mjs';
 import {BridgeRunLock} from './run-lock.mjs';
 import {runtimeEventBatch,runtimeDigest,runtimeSource,runtimeAnswer} from './runtime-events.mjs';
 import {SessionDirectoryPublisher} from './session-directory.mjs';
+import {SharedInboxSignal} from './inbox-signal.mjs';
 
 // P41 connection program: outbound-only. It polls the durable inbox, hands items to
 // a runtime adapter and writes only what that adapter really accepted. Every write
@@ -23,10 +24,12 @@ export class AgentBridge{
   #client;#state=null;#adapter;#clock;#blocked=null;#lastSyncAt=null;#observed=new Set();#stateFile;
   #lease=null;#operation=null;#stopping=false;#stopPromise=null;#adapterStarted=false;
   #requestLifecycle=false;#taskBinding=null;#sessionControl=false;#directory=null;
-  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch,taskBinding=null}={}){
+  #sharedInbox;#signal=null;#signalKey=null;#moreInbox=true;#nextInbox=0;#lastInboxAt=0;#nextRequests=0;
+  constructor({config,adapter=null,stateFile=null,clock=Date.now,fetchImpl=globalThis.fetch,taskBinding=null,sharedInbox=false}={}){
     this.#client=new BridgeClient(config,{clock,fetchImpl});
     this.#adapter=adapter??{name:'observe-only',capabilities:{can_execute:false},onItem:()=>[],onAnswer:()=>[]};
     this.#clock=clock;this.#stateFile=stateFile??config?.state_file;
+    this.#sharedInbox=sharedInbox;
     // An existing CLI caller may only narrow the shared device inbox to its verified original task.
     if(taskBinding!==null){
       if(typeof taskBinding.task_id!=='string'||!taskBinding.task_id||!taskBinding.route||
@@ -68,9 +71,10 @@ export class AgentBridge{
     if(this.#stopPromise)return this.#stopPromise;
     this.#stopping=true;
     const directoryStop=this.#directory?.stop();this.#directory=null;
+    const signalStop=this.#signal?.stop();this.#signal=null;
     this.#stopPromise=(async()=>{
       try{
-        await Promise.all([this.#operation?.catch(()=>{}),directoryStop]);
+        await Promise.all([this.#operation?.catch(()=>{}),directoryStop,signalStop]);
         if(this.#adapterStarted&&typeof this.#adapter.stop==='function')await this.#adapter.stop();
         this.#adapterStarted=false;this.#state=null;this.#lease?.release();this.#lease=null;
       }finally{this.#stopping=false;this.#stopPromise=null;}
@@ -135,6 +139,9 @@ export class AgentBridge{
         }};
         this.#directory=new SessionDirectoryPublisher({client:this.#client,adapter:readiness,clock:this.#clock});this.#directory.start();
       }
+      if(this.#sharedInbox&&identity.capabilities?.includes('inbox_watch_v1')){
+        this.#signal=new SharedInboxSignal(this.#client.config);this.#signal.start();this.#moreInbox=true;this.#signalKey=null;
+      }
       return this.status();
     }catch(error){
       this.#state=null;
@@ -156,13 +163,17 @@ export class AgentBridge{
     if(this.#adapter.capabilities?.unavailable)throw new BridgeError('ADAPTER_EXITED',{permanent:true});
     if(this.#adapter.capabilities?.can_execute===true&&['computer_id','agent_id'].some(k=>typeof this.#client.config[k]!=='string'||!this.#client.config[k]))
       throw new BridgeError('ROUTE_BINDING_REQUIRED',{permanent:true});
-    const page=await this.#client.inbox(this.#state.cursor,20);
+    const signal=this.#signal?.snapshot(),now=this.#clock();
+    if(signal&&['AUTH_REQUIRED','FORBIDDEN','IDENTITY_MISMATCH'].includes(signal.error))throw new BridgeError(signal.error,{permanent:true});
+    const fetchInbox=!this.#signal||this.#moreInbox||signal?.healthy&&signal.key!==this.#signalKey||now>=this.#nextInbox||!signal?.healthy&&now-this.#lastInboxAt>=15000;
+    const page=fetchInbox?await this.#client.inbox(this.#state.cursor,20):null;
+    if(page){this.#lastInboxAt=now;this.#moreInbox=page.has_more;this.#signalKey=signal?.key??null;this.#nextInbox=now+(signal?.healthy?60000:15000);}
     if(this.#adapter.capabilities?.can_execute!==true){
-      for(const item of page.items)if(item.kind==='task')this.#observed.add(item.object_id);
-      return {items:page.items.length,handled:0,pending:Object.keys(this.#state.outbox()).length,blocked:this.#blocked};
+      for(const item of page?.items??[])if(item.kind==='task')this.#observed.add(item.object_id);
+      return {items:page?.items.length??0,handled:0,pending:Object.keys(this.#state.outbox()).length,blocked:this.#blocked};
     }
     const handled=[];
-    for(const item of page.items){
+    for(const item of page?.items??[]){
       const key=`${item.kind}:${item.object_id}:${item.revision}`;
       if(this.#state.handled(key))continue;
       if(!this.#matchesRoute(item))continue;
@@ -171,13 +182,12 @@ export class AgentBridge{
       handled.push(key);
     }
     await this.#flush();
-    await this.#pollRequests();
+    if(page||now>=this.#nextRequests){await this.#pollRequests();this.#nextRequests=now+(this.#signal?15000:0);}
     await this.#pollRuntimeEvents();
     // Actions produced while delivering an answer go out in the same cycle.
     await this.#flush();
-    this.#state.cursor=page.next_cursor;this.#state.save();
-    this.#lastSyncAt=new Date(this.#clock()).toISOString();
-    return {items:page.items.length,handled:handled.length,pending:Object.keys(this.#state.outbox()).length,blocked:this.#blocked};
+    if(page){this.#state.cursor=page.next_cursor;this.#state.save();this.#lastSyncAt=new Date(this.#clock()).toISOString();}
+    return {items:page?.items.length??0,handled:handled.length,pending:Object.keys(this.#state.outbox()).length,blocked:this.#blocked};
   }
   // The inbox only carries revisions, so a question that was answered without a new
   // revision is discovered by re-reading the requests this program is waiting on.

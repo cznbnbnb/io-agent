@@ -106,6 +106,7 @@ export class DeviceRegistry {
       if(d.revoked_at===null)this.db.prepare('UPDATE devices SET revoked_at=? WHERE device_id=?').run(this.now(),deviceId);
       this.db.prepare('UPDATE credentials SET revoked=1 WHERE token_id IN (SELECT token_id FROM device_tokens WHERE device_id=?)').run(deviceId);
       if(d.role==='phone'){this.db.prepare('UPDATE credentials SET revoked=1 WHERE token_id IN (SELECT t.token_id FROM material_pairing_tokens t JOIN material_pairings p ON p.pairing_id=t.pairing_id WHERE p.owner=? AND p.producer=?)').run(d.owner,d.producer);this.db.prepare('UPDATE material_pairings SET revoked_at=COALESCE(revoked_at,?) WHERE owner=? AND producer=?').run(this.now(),d.owner,d.producer);}
+      this.store.pendingInboxOwners.add(d.owner);
       return this.view(this.db.prepare('SELECT * FROM devices WHERE device_id=?').get(deviceId));
   }
 }
