@@ -49,7 +49,70 @@
     },
     "javascript_errors": []
   },
-  "production_deployment": "pending",
+  "production_deployment": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/admin-appearance-release-1793590088320806053",
+    "source_sha256": {
+      "admin/index.html": "ace042eedc19144defc41215ef25ad43b7dd968fb015add0ff80180e4c41ed71",
+      "admin/console.js": "c0a0d97c1b7e768fc8ebad1d7e7160ba7c5657140a239761e36ada31e657a91a",
+      "admin/style.css": "30009959e7fdedf975eb1f83418320796e7d28712dc65d8b309365dc1d071ae3"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "d5138d8",
+    "profile": "appearance"
+  },
   "mobile_app_changed": false,
-  "pairing_changed": false
+  "pairing_changed": false,
+  "public_checks": [
+    {
+      "asset": "admin/index.html",
+      "status": 200,
+      "sha256": "ace042eedc19144defc41215ef25ad43b7dd968fb015add0ff80180e4c41ed71"
+    },
+    {
+      "asset": "admin/console.js",
+      "status": 200,
+      "sha256": "c0a0d97c1b7e768fc8ebad1d7e7160ba7c5657140a239761e36ada31e657a91a"
+    },
+    {
+      "asset": "admin/style.css",
+      "status": 200,
+      "sha256": "30009959e7fdedf975eb1f83418320796e7d28712dc65d8b309365dc1d071ae3"
+    },
+    {
+      "anonymous": "overview",
+      "status": 401
+    },
+    {
+      "anonymous": "devices",
+      "status": 401
+    },
+    {
+      "anonymous": "sessions",
+      "status": 401
+    },
+    {
+      "anonymous": "tasks",
+      "status": 401
+    },
+    {
+      "anonymous": "daily",
+      "status": 401
+    },
+    {
+      "anonymous": "traffic",
+      "status": 401
+    },
+    {
+      "anonymous": "audit",
+      "status": 401
+    }
+  ],
+  "progress": {
+    "server_stored": true,
+    "glasses_display": "off",
+    "server_watch": "off"
+  }
 }
