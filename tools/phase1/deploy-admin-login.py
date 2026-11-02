@@ -6,6 +6,7 @@ import argparse,base64,hashlib,json,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 PROFILES={
+ 'appearance':['admin/index.html','admin/console.js','admin/style.css'],
  'notifications':['store.mjs','http.mjs','devices.mjs','phone-presence.mjs','admin-console.mjs'],
  'login':['store.mjs','http.mjs','cli.mjs','admin-auth.mjs','admin/index.html','admin/app.js','admin/style.css'],
  'console':['store.mjs','http.mjs','devices.mjs','agent-sessions.mjs','phone-presence.mjs','traffic.mjs','admin-console.mjs','admin/index.html','admin/app.js','admin/console.js','admin/style.css']

@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-01",
+  "scope": "admin appearance only",
+  "baseline_commit": "5908b41",
+  "daily_default": "list",
+  "daily_views": [
+    "list",
+    "cards"
+  ],
+  "preference": "browser localStorage; mode only; no summary text stored",
+  "switch_network_requests": 0,
+  "unit_regression": {
+    "admin_auth": 6,
+    "admin_console": 8,
+    "passed": 14
+  },
+  "browser": {
+    "data": "isolated synthetic fixture",
+    "daily_total": 32,
+    "pagination": [
+      30,
+      2
+    ],
+    "search": true,
+    "date_filter": true,
+    "filters_preserved_when_switching": true,
+    "view_persists_on_reload": true,
+    "export_full_text": {
+      "characters": 754,
+      "repeated_sentences": 80,
+      "verified": true
+    },
+    "detail_title": "source topic without repeated generic heading",
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "complete_visible_list_rows": 8,
+      "row_height_px": 67.796875,
+      "sections_checked": 8,
+      "horizontal_page_overflow": false
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "sections_checked": 8,
+      "list_and_cards": true,
+      "horizontal_page_overflow": false,
+      "detail_close": true
+    },
+    "javascript_errors": []
+  },
+  "production_deployment": "pending",
+  "mobile_app_changed": false,
+  "pairing_changed": false
+}
