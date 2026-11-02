@@ -103,7 +103,76 @@
     "device_actions_available_on_mobile": true,
     "action_notice_does_not_move_list": true
   },
-  "production_deployment": "pending",
+  "production_deployment": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/admin-appearance-release-1793592165688713231",
+    "source_sha256": {
+      "admin/index.html": "ace042eedc19144defc41215ef25ad43b7dd968fb015add0ff80180e4c41ed71",
+      "admin/console.js": "69a6ae1fbd3e18c964b9d9d8a3a17871ccb9b9a9a157377a34ede7e92005bc34",
+      "admin/style.css": "5327ab710c6bb8e3dfa66eecf73ad9e5d6169f069311ecd527d35a78acaec66e"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "5421ceb",
+    "profile": "appearance"
+  },
   "mobile_app_changed": false,
-  "pairings_changed": false
+  "pairings_changed": false,
+  "public_checks": [
+    {
+      "asset": "admin/index.html",
+      "status": 200,
+      "sha256": "ace042eedc19144defc41215ef25ad43b7dd968fb015add0ff80180e4c41ed71"
+    },
+    {
+      "asset": "admin/console.js",
+      "status": 200,
+      "sha256": "69a6ae1fbd3e18c964b9d9d8a3a17871ccb9b9a9a157377a34ede7e92005bc34"
+    },
+    {
+      "asset": "admin/style.css",
+      "status": 200,
+      "sha256": "5327ab710c6bb8e3dfa66eecf73ad9e5d6169f069311ecd527d35a78acaec66e"
+    },
+    {
+      "anonymous": "overview",
+      "status": 401
+    },
+    {
+      "anonymous": "devices",
+      "status": 401
+    },
+    {
+      "anonymous": "sessions",
+      "status": 401
+    },
+    {
+      "anonymous": "tasks",
+      "status": 401
+    },
+    {
+      "anonymous": "daily",
+      "status": 401
+    },
+    {
+      "anonymous": "traffic",
+      "status": 401
+    },
+    {
+      "anonymous": "audit",
+      "status": 401
+    }
+  ],
+  "production_browser": {
+    "fresh_load": true,
+    "nav_official_icons": 8,
+    "login_flow_official_icon": "exchange",
+    "authenticated_data_read": "not attempted; current QA browser is logged out"
+  },
+  "progress": {
+    "server_stored": true,
+    "glasses_display": "off",
+    "server_watch": "off"
+  }
 }
