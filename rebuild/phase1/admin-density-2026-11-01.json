@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-01",
+  "baseline_commit": "b15a7aa",
+  "scope": "complete admin inventory density and official icon integration",
+  "icons": {
+    "version": "1.66.0",
+    "url": "https://registry.npmjs.org/lucide-static/-/lucide-static-1.66.0.tgz",
+    "integrity": "sha512-j8Bjf/f21PtlD8p0wx1lRxyOrs98WZ1QEImkWmfskuJ8mOCwTN7Dwc6EHUzJDSzh79aB+Bo7SWcoTCM2zEjnJg==",
+    "selected_icons": 33,
+    "delivery": "selected geometry bundled in console.js; no CDN, icon font or new dependency",
+    "license": "ISC and Feather MIT notices retained in distributed JS and admin/LUCIDE-LICENSE.txt",
+    "registry_sha512_verified": true
+  },
+  "browser_fixture": {
+    "data": "isolated synthetic owner; no production data writes",
+    "devices": 18,
+    "sessions": 12,
+    "tasks": 55
+  },
+  "comparison": {
+    "devices": {
+      "before": {
+        "firstItemHeight": 257.875,
+        "firstItemY": 269.3828125,
+        "fullyVisible": 4,
+        "viewport": [
+          1440,
+          900
+        ]
+      },
+      "after": {
+        "firstItemHeight": 54,
+        "firstItemY": 220.0859375,
+        "fullyVisible": 12,
+        "viewport": [
+          1440,
+          900
+        ]
+      }
+    },
+    "sessions": {
+      "before": {
+        "defaultHeight": 111.1875,
+        "firstItemY": 436.0703125,
+        "tableHeaders": 6,
+        "viewport": [
+          1440,
+          900
+        ]
+      },
+      "after": {
+        "defaultHeight": 40,
+        "firstItemY": 303.0859375,
+        "rowHeight": 53.6953125,
+        "tableHeaders": 1,
+        "viewport": [
+          1440,
+          900
+        ]
+      }
+    },
+    "tasks": {
+      "before": {
+        "alwaysVisibleBulk": true,
+        "firstItemY": 429.3828125,
+        "rowHeight": 67.2890625,
+        "viewport": [
+          1440,
+          900
+        ]
+      },
+      "after": {
+        "alwaysVisibleBulk": false,
+        "firstItemY": 297.8828125,
+        "overflow": false,
+        "rowHeight": 53.6953125,
+        "viewport": [
+          1440,
+          900
+        ]
+      }
+    }
+  },
+  "checks": {
+    "server_regression_tests": 14,
+    "all_passed": true,
+    "desktop_sections": 8,
+    "mobile_sections": 8,
+    "mobile_viewport": [
+      390,
+      844
+    ],
+    "page_horizontal_overflow": false,
+    "js_errors": [],
+    "device_rename": true,
+    "pause_resume": true,
+    "unpair_cancel": true,
+    "device_search_and_status_filter": true,
+    "session_group_collapse": true,
+    "set_default_session": true,
+    "task_select_all_and_unselect": true,
+    "bulk_favorite": true,
+    "device_actions_available_on_mobile": true,
+    "action_notice_does_not_move_list": true
+  },
+  "production_deployment": "pending",
+  "mobile_app_changed": false,
+  "pairings_changed": false
+}
