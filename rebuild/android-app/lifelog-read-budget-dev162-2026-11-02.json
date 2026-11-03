@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "at": "2026-11-03T03:14:36.267135+00:00",
+  "source_date": "2026-11-02",
+  "source_timezone": "Asia/Shanghai",
+  "root_cause": "Original event aggregates exceeded the 1 MiB HTTP response budget; daily AI summary upload had already succeeded.",
+  "diagnostic": {
+    "day_list_bytes": 10761,
+    "event_response_bytes": [
+      24734,
+      1449140,
+      26476
+    ],
+    "raw_aggregate_sources": [
+      3,
+      12,
+      1
+    ],
+    "large_event_clips": 4657,
+    "max_single_source_bytes": 461742,
+    "credentials_or_text_exported": false
+  },
+  "fix": {
+    "full_event_get_max_bytes": 4194304,
+    "ordinary_response_max_bytes": 1048576,
+    "discovery_round_max_bytes": 8388608,
+    "background_frequency_changed": false,
+    "transcript_audio_upload_added": false
+  },
+  "tests": {
+    "inventory": 41,
+    "discovery_and_cache_reopen": 60,
+    "official_json": 26,
+    "http_adapter": 74,
+    "refresh": 24,
+    "insight": 20,
+    "total_assertions": 245,
+    "regression_failed_before_fix": true
+  },
+  "device": {
+    "version": "0.5.3-dev162",
+    "version_code": 10584,
+    "sha256": "940dd293e1c5120edcf62075bdbd96967478e3993fc07d583095ff90f548e8e1",
+    "signature_v2": true,
+    "signature_v3": true,
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "delta": {
+      "baseline_sha256": "67ce5d412f5b7d220a59d1eebdc503c6056bb9d63fe89a4b2e32c243d6cd7641",
+      "candidate_sha256": "940dd293e1c5120edcf62075bdbd96967478e3993fc07d583095ff90f548e8e1",
+      "apk_bytes": 435087977,
+      "delta_bytes": 1971180,
+      "commands": 8141,
+      "delta_sha256": "c91cfb50c095facb8217e57f4c7c318b9eda7fb36636ecdccb3955a8389dd4ec",
+      "reconstruction_hash_verified": true
+    },
+    "installed_hash_verified": true,
+    "normal_ui_refresh": {
+      "before_records": 11,
+      "after_records": 14,
+      "error_before": "OFFICIAL_RESPONSE_BUDGET",
+      "error_after": "",
+      "read_at_phone": "2026-11-03 11:11 Asia/Shanghai",
+      "latest_detail_opened": "2026-11-02 20:39–21:08",
+      "detail_error": false,
+      "selection_preserved_on_back": true
+    },
+    "account_pairing_default_or_permissions_changed": false,
+    "diagnostic_uninstalled": true
+  },
+  "server": {
+    "daily_summary_revision_before": 2,
+    "daily_summary_revision_after": 2,
+    "stored_at_unchanged": true,
+    "full_text_sha_unchanged": true,
+    "materials_reuploaded": false
+  },
+  "limitations": [
+    "No change to the per-day 4 MiB local retention budget or the 4 MiB full-event cap; larger records are still reported without truncation."
+  ]
+}

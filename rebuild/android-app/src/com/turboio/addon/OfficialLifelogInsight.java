@@ -41,7 +41,7 @@ final class OfficialLifelogInsight {
  }
  /** `/lifelog/api/v1/events/:id/full`, already canonicalised by the transcript reader. */
  static Event full(String eventId,byte[] canonical){
-  try{Event e=event(data(WireJson.read(canonical)));return e!=null&&e.id.equals(eventId)?e:null;}catch(RuntimeException unrecognised){return null;}
+  try{Event e=event(data(WireJson.read(canonical,OfficialLifelogJson.MAX_EVENT_BYTES,100000)));return e!=null&&e.id.equals(eventId)?e:null;}catch(RuntimeException unrecognised){return null;}
  }
  private static Map<String,Object> data(Object root){Map<String,Object> response=WireJson.map(root);MaterialWire.require(Long.valueOf(0).equals(response.get("code")),"LIFELOG_RESPONSE_REJECTED");return WireJson.map(response.get("data"));}
  private static Event event(Object raw){

@@ -15,7 +15,7 @@ final class OfficialLifelogDiscovery {
  }
  private static void require(boolean ok,String code){MaterialWire.require(ok,code);}
  private static void admit(String account,Login login,long deadline)throws Exception{OfficialAccountBinding current=login.current();require(current!=null&&account.equals(current.binding),"OFFICIAL_ACCOUNT_CHANGED");if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("MATERIAL_PAUSED");if(System.nanoTime()>deadline)throw new IOException("OFFICIAL_SOURCE_TIMEOUT");}
- private static long budget(byte[] response,long used){require(response!=null&&response.length<=1048576&&used+response.length<=8388608,"LIFELOG_DISCOVERY_BUDGET");return used+response.length;}
+ private static long budget(byte[] response,long used){require(response!=null&&response.length<=OfficialLifelogJson.MAX_EVENT_BYTES&&used+response.length<=8388608,"LIFELOG_DISCOVERY_BUDGET");return used+response.length;}
  static Snapshot read(String account,List<OfficialLifelogInventory.Request> days,Login login,Transport transport)throws Exception{
   require(account!=null&&account.matches("[a-f0-9]{64}")&&days!=null&&!days.isEmpty()&&days.size()<=7,"LIFELOG_DISCOVERY_BUDGET");long deadline=System.nanoTime()+90000000000L,bytes=0;admit(account,login,deadline);
   Set<String> unique=new HashSet<>();for(OfficialLifelogInventory.Request day:days)require(day!=null&&day.timezone!=null&&unique.add(day.path),"LIFELOG_DISCOVERY_DAYS_INVALID");
@@ -25,7 +25,7 @@ final class OfficialLifelogDiscovery {
    for(Map.Entry<String,Set<String>> event:page.events.entrySet()){Set<String> prior=events.put(event.getKey(),event.getValue());require(prior==null||prior.equals(event.getValue()),"LIFELOG_INVENTORY_CHANGED");}require(events.size()<=16,"LIFELOG_DISCOVERY_BUDGET");
   }
   Map<String,List<OfficialLifelogSnapshot.Source>> found=new TreeMap<>();
-  for(Map.Entry<String,Set<String>> event:events.entrySet()){admit(account,login,deadline);byte[] raw=transport.full(event.getKey());requests++;bytes=budget(raw,bytes);admit(account,login,deadline);byte[] canonical=OfficialLifelogJson.read(raw).canonical;List<OfficialLifelogSnapshot.Source> sources=OfficialLifelogSnapshot.read(event.getKey(),canonical);OfficialLifelogInsight.Event insight=OfficialLifelogInsight.full(event.getKey(),canonical);if(insight!=null)detailed.put(insight.id,insight);Set<String> actual=new TreeSet<>();
+  for(Map.Entry<String,Set<String>> event:events.entrySet()){admit(account,login,deadline);byte[] raw=transport.full(event.getKey());requests++;bytes=budget(raw,bytes);admit(account,login,deadline);byte[] canonical=OfficialLifelogJson.read(raw,OfficialLifelogJson.MAX_EVENT_BYTES).canonical;List<OfficialLifelogSnapshot.Source> sources=OfficialLifelogSnapshot.read(event.getKey(),canonical);OfficialLifelogInsight.Event insight=OfficialLifelogInsight.full(event.getKey(),canonical);if(insight!=null)detailed.put(insight.id,insight);Set<String> actual=new TreeSet<>();
    for(OfficialLifelogSnapshot.Source source:sources){String key=source.sourceType+"/"+source.sourceId;actual.add(key);found.computeIfAbsent(key,k->new ArrayList<>()).add(source);require(found.size()<=256,"LIFELOG_DISCOVERY_BUDGET");}
    require(event.getValue().equals(actual),"LIFELOG_INVENTORY_CHANGED");
   }

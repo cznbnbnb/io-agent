@@ -28,6 +28,7 @@ public final class Host107LifelogCalendarHttpTest {
  static Host107LifelogHttp adapter(MaterialSyncSession.Guard guard)throws Exception{
   Host107LifelogHttp adapter=new Host107LifelogHttp(new Context(),OWNER,guard);Field inputs=Host107LifelogHttp.class.getDeclaredField("inputs");inputs.setAccessible(true);inputs.set(adapter,new String[]{APP,KEY});return adapter;
  }
+ public static final class Signer {public Map<String,String> genSign(String app,String key,String verb,String path){Map<String,String> h=new HashMap<>();for(String k:Arrays.asList("xtcl-app","xtcl-nonce","xtcl-timestamp","xtcl-authorization"))h.put(k,"synthetic");return h;}public void close(){}}
  static final class Fake extends HttpsURLConnection {
   final ByteArrayOutputStream sent=new ByteArrayOutputStream();final CountDownLatch entered=new CountDownLatch(1),disconnected=new CountDownLatch(1);
   byte[] response="{\"code\":0,\"data\":{}}".getBytes(StandardCharsets.UTF_8);String content="application/json; charset=utf-8",encoding;long length=-1;int status=200,outputCalls,responseCalls,readCalls;boolean stallConnect,zeroRead;Runnable outputHook=()->{},readHook=()->{};
@@ -40,7 +41,7 @@ public final class Host107LifelogCalendarHttpTest {
   int fixedLength(){return fixedContentLength;}
  }
  public static void main(String[] args)throws Exception{
-  URL.setURLStreamHandlerFactory(protocol->"https".equals(protocol)?new URLStreamHandler(){protected URLConnection openConnection(URL url){opens++;if(!"https://xr-api-p.rayneo.cn/lifelog/api/v1/calendar".equals(url.toString()))throw new AssertionError("non-calendar URL");opened.run();return next;}}:null);
+  URL.setURLStreamHandlerFactory(protocol->"https".equals(protocol)?new URLStreamHandler(){protected URLConnection openConnection(URL url){opens++;if(!url.toString().startsWith("https://xr-api-p.rayneo.cn/lifelog/api/v1/"))throw new AssertionError("non-calendar URL");opened.run();return next;}}:null);
   Fake f=fresh();Host107LifelogHttp a=adapter();OfficialLifelogCalendarRequest request=month();byte[] exposed=request.body();Arrays.fill(exposed,(byte)'x');byte[] result=a.calendar(request);
   yes(Arrays.equals(result,f.response));yes(opens==1&&f.outputCalls==1&&f.responseCalls==1);yes(f.disconnected.getCount()==0);
   yes("POST".equals(f.getRequestMethod())&&f.getDoOutput()&&!f.getUseCaches()&&!f.getInstanceFollowRedirects());yes(f.getConnectTimeout()==5000&&f.getReadTimeout()>0&&f.getReadTimeout()<=10000);yes(f.fixedLength()==request.body().length);yes(Arrays.equals(f.sent.toByteArray(),request.body()));
@@ -65,6 +66,13 @@ public final class Host107LifelogCalendarHttpTest {
   f=fresh();f.response=new byte[1048577];final Host107LifelogHttp largeBody=adapter();fails("OFFICIAL_RESPONSE_BUDGET",()->largeBody.calendar(month()));yes(f.disconnected.getCount()==0);
   f=fresh();f.zeroRead=true;final Host107LifelogHttp stalled=adapter();fails("OFFICIAL_RESPONSE_READ_STALLED",()->stalled.calendar(month()));yes(f.readCalls==1);
   f=fresh();final Host107LifelogHttp nullRequest=adapter();fails("LIFELOG_CALENDAR_REQUEST_REQUIRED",()->nullRequest.calendar(null));yes(opens==0);
+  // Full aggregates can exceed 1 MiB; ordinary journal and mutation replies cannot.
+  f=fresh();f.response=new byte[1300000];f.length=f.response.length;a=adapter();yes(a.full("synthetic-event").length==1300000&&f.disconnected.getCount()==0);
+  f=fresh();f.response=new byte[1300000];a=adapter();yes(a.full("synthetic-event").length==1300000);
+  f=fresh();f.length=4194305;final Host107LifelogHttp eventHeader=adapter();fails("OFFICIAL_RESPONSE_BUDGET",()->eventHeader.full("synthetic-event"));yes(f.readCalls==0);
+  f=fresh();f.response=new byte[4194305];final Host107LifelogHttp eventBody=adapter();fails("OFFICIAL_RESPONSE_BUDGET",()->eventBody.full("synthetic-event"));yes(f.disconnected.getCount()==0);
+  f=fresh();f.length=1048577;final Host107LifelogHttp journalHeader=adapter();fails("OFFICIAL_RESPONSE_BUDGET",()->journalHeader.latestJournals());yes(f.readCalls==0);
+  f=fresh();f.length=1048577;final Host107LifelogHttp deleteHeader=adapter();fails("OFFICIAL_RESPONSE_BUDGET",()->deleteHeader.deleteEvent("synthetic-event"));yes(f.readCalls==0);
   // Cancelling a blocked connection requires no request worker progress.
   f=fresh();f.stallConnect=true;final Fake blocked=f;final Host107LifelogHttp blocking=adapter();AtomicReference<Throwable> failure=new AtomicReference<>();Thread worker=new Thread(()->{try{blocking.calendar(month());}catch(Throwable error){failure.set(error);}},"calendar-test-blocked");worker.start();yes(blocked.entered.await(2,TimeUnit.SECONDS));blocking.cancel();worker.join(2000);yes(!worker.isAlive()&&failure.get()!=null&&"MATERIAL_PAUSED".equals(failure.get().getMessage()));yes(blocked.sent.size()==0);
   // The real 30-second scheduled disconnect releases a worker held inside
@@ -82,4 +90,4 @@ final class MaterialSyncSession{interface Guard{void check()throws IOException;}
 final class OfficialLifelogRefresh{interface Transport{byte[] fetch(String id)throws Exception;}}
 final class OfficialLifelogDiscovery{interface Transport{byte[] full(String id)throws Exception;byte[] list(OfficialLifelogInventory.Request request)throws Exception;}}
 final class OfficialLifelogInventory{static final class Request{String date,timezone,path;static Request day(String date,String zone){throw new UnsupportedOperationException("not a calendar dependency");}}}
-final class NavReflect{static Class<?> type(String name){throw new UnsupportedOperationException("not a calendar dependency");}}
+final class NavReflect{static Class<?> type(String name){return Host107LifelogCalendarHttpTest.Signer.class;}}

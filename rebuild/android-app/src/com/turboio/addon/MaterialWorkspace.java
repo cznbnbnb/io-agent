@@ -45,6 +45,7 @@ final class MaterialWorkspace {
   case "OFFICIAL_SOURCE_UNAVAILABLE":case "OFFICIAL_SOURCE_TIMEOUT":return "暂时无法读取官方最新正文，已保留本机队列，请稍后重试";
   case "LIFELOG_SOURCE_COVERAGE_CHANGED":return "\u672c\u6b21\u53ea\u8bfb\u5230\u90e8\u5206\u65f6\u95f4\u6bb5\uff0c\u5df2\u4fdd\u7559\u5b8c\u6574\u6b63\u6587\uff0c\u8bf7\u9009\u62e9\u5b8c\u6574\u65e5\u671f\u540e\u91cd\u8bd5";
   case "LIFELOG_FRESH_SOURCE_CONFLICT":case "LIFELOG_FRESH_SOURCE_UNOWNED":return "官方正文或记录归属正在变化，本次未发送，请稍后重试";
+  case "OFFICIAL_RESPONSE_BUDGET":case "OFFICIAL_JSON_BUDGET":case "LIFELOG_REFRESH_BUDGET":return "原厂智记内容超出本次读取上限；已保存资料不受影响，每日总结上传单独进行";
   case "OFFICIAL_HOST_UNSUPPORTED":return "当前原厂版本尚未适配正文刷新，资料保留";
   case "FORBIDDEN":case "MATERIAL_WRITE_SCOPE_REQUIRED":return "资料连接缺少写入权限";case "MATERIAL_IDENTITY_MISMATCH":case "MATERIAL_EXPIRY_MISMATCH":return "服务器返回身份与登记文件不一致";
   case "MATERIAL_SCHEMA_UNSUPPORTED":return "服务器暂不支持当前资料格式";case "MATERIAL_CONFIG_SAVE_FAILED":return "连接保存失败，请重试";

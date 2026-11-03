@@ -5,10 +5,13 @@ import java.nio.charset.StandardCharsets;import java.util.*;
  * different values are ambiguous and rejected. Task/material wire parsing stays
  * strict. Never choose an arbitrary first/last value from an official response. */
 final class OfficialLifelogJson {
+ // A full event aggregates many recordings; day lists and journals keep 1 MiB.
+ static final int MAX_EVENT_BYTES=4194304;
  static final class Result {final byte[] canonical;final int identicalDuplicates;Result(Object value,int duplicates){canonical=WireJson.bytes(value);identicalDuplicates=duplicates;}}
  private final String input;private int at,nodes,duplicates;
- private OfficialLifelogJson(byte[] bytes){WireJson.require(bytes!=null&&bytes.length<=1048576,"OFFICIAL_JSON_BUDGET");input=BoundedJson.utf8(bytes);}
- static Result read(byte[] bytes){OfficialLifelogJson parser=new OfficialLifelogJson(bytes);Object value=parser.value(0);parser.space();WireJson.require(parser.at==parser.input.length(),"OFFICIAL_JSON_TRAILING");return new Result(value,parser.duplicates);}
+ private OfficialLifelogJson(byte[] bytes,int maxBytes){WireJson.require(bytes!=null&&bytes.length<=maxBytes,"OFFICIAL_JSON_BUDGET");input=BoundedJson.utf8(bytes);}
+ static Result read(byte[] bytes){return read(bytes,1048576);}
+ static Result read(byte[] bytes,int maxBytes){OfficialLifelogJson parser=new OfficialLifelogJson(bytes,maxBytes);Object value=parser.value(0);parser.space();WireJson.require(parser.at==parser.input.length(),"OFFICIAL_JSON_TRAILING");return new Result(value,parser.duplicates);}
  private void space(){while(at<input.length()&&" \r\n\t".indexOf(input.charAt(at))>=0)at++;}
  private char next(){WireJson.require(at<input.length(),"OFFICIAL_JSON_INCOMPLETE");return input.charAt(at++);}
  private String string(){int start=at;WireJson.require(next()=='"',"OFFICIAL_JSON_KEY");boolean escaped=false;while(true){char c=next();if(!escaped&&c=='"')break;if(!escaped&&c=='\\')escaped=true;else escaped=false;}return (String)WireJson.read(input.substring(start,at).getBytes(StandardCharsets.UTF_8));}
