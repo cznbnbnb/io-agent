@@ -2,7 +2,7 @@
   "date": "2026-11-03",
   "device_version": "0.5.3-dev163",
   "timezone": "Asia/Shanghai",
-  "source": "Android dumpsys location; original host 1.0.10 pinned smali; no coordinate or audio export",
+  "source": "Read-only Android dumpsys location and same-signature metadata probe; pinned host 1.0.10 smali; no coordinates, audio or diary content in this evidence",
   "gps_observations": {
     "foreground_request_interval_ms": 5000,
     "foreground_delivery_intervals_seconds_observed": [
@@ -37,12 +37,185 @@
     "existing_dev161_policy": "Only failed background one-shot retries: 60 seconds then 300 seconds; cache/in-flight/foreground/continuous unchanged",
     "lifelog_text_sync_starts_location": false
   },
-  "status": "INVESTIGATION_PENDING_SYSTEM_FINGERPRINT",
+  "status": "CONNECTED_BACKGROUND_GPS_CONFIRMED_NORMAL_APP",
   "diagnostic_apk": "com.turboio.performance.codex",
   "product_location_policy_changed": false,
   "limits": [
-    "No per-day battery saving inferred from request intervals or short samples.",
-    "One background burst does not establish a fixed schedule or exclude another continuous-owner path.",
-    "Need read-only provider/owner states to attribute continuous versus one-shot behavior; installation pending user fingerprint."
-  ]
+    "Current connected observations establish high-frequency background GPS activity, not its share of the reported 2900mAh or daily battery savings.",
+    "No new unconnected-glasses battery test was performed; earlier dev161 retry evidence remains separate.",
+    "No product location policy was changed. Next work must establish the lifelog/navigation ownership boundary before applying a lower-power lifelog policy."
+  ],
+  "diagnostic_installation_confirmed_by_user": true,
+  "probes": {
+    "foreground": {
+      "version": "0.5.3-dev163",
+      "elapsed_ms": 30059,
+      "samples": 287,
+      "foreground_samples": 287,
+      "glasses_connected": true,
+      "oneshot_generations": [
+        2
+      ],
+      "force_fresh": false,
+      "settings": {
+        "a": 30000,
+        "b": 5000,
+        "c": 0,
+        "d": 30000,
+        "e": 0
+      },
+      "continuous_committed_samples": 0,
+      "amap_continuous_samples": 0,
+      "cache_age_ms_when_committed": [],
+      "final_state": {
+        "glasses_connected": true,
+        "map_plugin_present": true,
+        "location_service_present": true,
+        "location_service_disposed": false,
+        "continuous_committed": false,
+        "continuous_preparing": true,
+        "pending_operations": 0,
+        "continuous_settings": {
+          "a": 30000,
+          "b": 5000,
+          "c": 0,
+          "d": 30000,
+          "e": 0
+        },
+        "oneshot_generation": 2,
+        "oneshot_force_fresh": false,
+        "oneshot_waiters": 0,
+        "oneshot_disposed": false,
+        "oneshot_handle": "",
+        "provider": "",
+        "cache_present": false,
+        "read_completed": true
+      },
+      "probe_network_requests": 0,
+      "probe_product_data_modified": false
+    },
+    "background": {
+      "version": "0.5.3-dev163",
+      "elapsed_ms": 45072,
+      "samples": 432,
+      "foreground_samples": 0,
+      "glasses_connected": true,
+      "oneshot_generations": [
+        2
+      ],
+      "force_fresh": false,
+      "settings": {
+        "a": 30000,
+        "b": 5000,
+        "c": 0,
+        "d": 30000,
+        "e": 0
+      },
+      "continuous_committed_samples": 4,
+      "amap_continuous_samples": 4,
+      "cache_age_ms_when_committed": [
+        2424,
+        431,
+        440,
+        453
+      ],
+      "final_state": {
+        "glasses_connected": true,
+        "map_plugin_present": true,
+        "location_service_present": true,
+        "location_service_disposed": false,
+        "continuous_committed": true,
+        "continuous_preparing": true,
+        "pending_operations": 0,
+        "continuous_settings": {
+          "a": 30000,
+          "b": 5000,
+          "c": 0,
+          "d": 30000,
+          "e": 0
+        },
+        "oneshot_generation": 2,
+        "oneshot_force_fresh": false,
+        "oneshot_waiters": 0,
+        "oneshot_disposed": false,
+        "oneshot_handle": "",
+        "provider": "L8.m",
+        "amap_continuous": true,
+        "amap_oneshot_waiters": 0,
+        "amap_oneshot_client": false,
+        "amap_last_error": 0,
+        "cache_present": true,
+        "cache_age_ms": 5390,
+        "read_completed": true
+      },
+      "probe_network_requests": 0,
+      "probe_product_data_modified": false
+    }
+  },
+  "findings": [
+    "Normal dev164 cold start followed by Home retains a 5-second HIGH_ACCURACY GPS request and receives GPS locations through the observation window; this is not merely network/cache updates or an instrumentation-only effect.",
+    "Warm background run stopped GPS for the sampled 90 seconds, but a later registration was observed. Background GPS cannot be described as either always off or always on.",
+    "Connected background instrumentation recorded zero foreground samples, committed AMap continuous updates, and a roughly five-second fresh cache; one-shot generation stayed at 2 with no waiters or active one-shot client.",
+    "Runtime configuration uses 30-second logical/summary intervals but 5-second source intervals and no delivery throttling. The native AMap builder uses sourceIntervalMillis with Hight_Accuracy and GPS-first.",
+    "Existing dev161 backoff only limits failed one-shot retries; it does not regulate successful continuous location. New lifelog text upload code does not start location.",
+    "Original LifeLogLocation and GlassesNavigationLocation runtimes share the native location API; its settings argument has no caller-purpose field. Blanket background stop/interval change could degrade navigation and is not applied."
+  ],
+  "device_versions": [
+    "0.5.3-dev163",
+    "0.5.3-dev164"
+  ],
+  "normal_app_checks": {
+    "warm_background": {
+      "version": "dev164",
+      "instrumentation": false,
+      "home_at": "19:18:29.508",
+      "gps_unregistered_at": "19:18:29.508",
+      "observation_seconds": 90,
+      "gps_restart_or_delivery_in_window": false,
+      "later_restart_seen_at": "19:21:43.278",
+      "later_ui_state_not_sampled": true
+    },
+    "cold_background": {
+      "version": "dev164",
+      "instrumentation": false,
+      "start_at": "19:24:19",
+      "home_at": "19:24:37",
+      "observation_seconds": 90,
+      "gps_request_interval_ms": 5000,
+      "gps_request_accuracy": "HIGH_ACCURACY",
+      "gps_registration_at": "19:24:21.264",
+      "gps_unregistered_at": "19:25:57.386",
+      "gps_registered_again_at": "19:26:03.172",
+      "gps_deliveries_after_home_observed": true,
+      "sample_delivery_times": [
+        "19:24:47.432",
+        "19:24:57.431",
+        "19:25:02.432",
+        "19:25:12.429",
+        "19:25:22.431",
+        "19:25:32.431",
+        "19:25:42.434",
+        "19:25:52.434",
+        "19:26:03.734",
+        "19:26:08.427"
+      ],
+      "followup_top_activity": "another app",
+      "followup_gps_request_interval_ms": 5000
+    },
+    "observation_limits": [
+      "UI was not continuously sampled during the normal background run; Home was explicitly sent, and another app was foreground at follow-up. Instrumentation independently recorded zero foreground samples.",
+      "Android event wall times vary by about one millisecond between dumps; repeated snapshots are not summed as request counts.",
+      "Normal warm and cold results differ; an async startup race is not yet proven."
+    ]
+  },
+  "probe_field_correction": "Legacy continuous_preparing reports M1.j (requested continuous state), not proof of a stuck startup. Diagnostic source now names it continuous_requested; raw report fields retained for traceability.",
+  "diagnostic_cleanup": {
+    "package_uninstalled": false,
+    "phone_reports_removed": false,
+    "probe_runs_finished": true,
+    "pending_reason": "ADB offline; reconnect timeout",
+    "relabelled_probe_compiled": true,
+    "relabelled_probe_not_installed": true,
+    "local_raw_system_dumps_removed": true
+  }
 }

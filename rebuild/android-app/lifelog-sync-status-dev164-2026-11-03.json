@@ -7,7 +7,7 @@
     "sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
     "bytes": 435087977,
     "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
-    "installed": false
+    "installed": true
   },
   "scope": [
     "Use phone-original labels without falsely claiming server status from obsolete outbox",
@@ -29,5 +29,33 @@
     "sha256": "39d9dab9ee68625b327402b1c794e506bd423587baca2a1844c1d96450c68f39",
     "local_reconstruction_verified": true
   },
-  "pending": "No overlapping install while read-only performance probe awaits system fingerprint; UI live verification pending."
+  "pending": null,
+  "installed_confirmed_at": "2026-11-03T11:20:01.091338+00:00",
+  "device_checks": {
+    "baseline_sha_verified": true,
+    "reconstructed_sha_verified": true,
+    "installed_sha_verified": true,
+    "normal_app_start": true,
+    "existing_online_sessions": 3,
+    "paired_material_space": true,
+    "list_phone_original_label": true,
+    "stored_count_unit": "份",
+    "pending_count_unit": "项",
+    "seven_day_picker_and_cancel": true,
+    "latest_data_days_preloaded": "3/3",
+    "original_recordings_changed_by_test": false
+  },
+  "cleanup": {
+    "diagnostic_package_uninstalled": false,
+    "phone_delta_and_rebuilt_apk_removed": false,
+    "diagnostic_reports_removed_from_phone": false,
+    "pending_reason": "ADB became offline after completed installation/UI/normal-GPS verification; one reconnect timed out, no USB. Probe runs had already finished.",
+    "retained_apks": [
+      "dev164 current",
+      "dev163 rollback",
+      "dev154 offline phone delta exception"
+    ],
+    "dev162_removed_after_sha_check": true,
+    "formal_pairings_unchanged": true
+  }
 }

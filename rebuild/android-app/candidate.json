@@ -38,7 +38,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": false
+    "device_installed": true
   },
   "dex_audit": {
     "schema": 1,
@@ -46,11 +46,13 @@
     "host_classes_retained": 20951,
     "original_members_retained": 193212,
     "explicit_wrappers": 9,
-    "runtime_tested": false
+    "runtime_tested": true
   },
-  "installed": false,
+  "installed": true,
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "pending_install_reason": "Own performance probe awaits system fingerprint; do not overlap package installation"
+  "installed_confirmed_at": "2026-11-03T11:20:01.091338+00:00",
+  "installed_sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
+  "installed_via": "Verified 1971180-byte wireless ADB delta from dev163"
 }
