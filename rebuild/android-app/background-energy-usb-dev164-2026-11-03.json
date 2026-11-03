@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-03",
+  "version_at_read": "0.5.3-dev164",
+  "installed_sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
+  "device_model": "BRT-AN00",
+  "source": "Honor Settings battery usage UI and read-only dumpsys; no reset, force-stop, recording, power-mode or permission changes",
+  "captured_at": "2026-11-03T12:49:49.350996+00:00",
+  "timezone": "Asia/Shanghai",
+  "honor_battery_ui": {
+    "selected_period": "past 24 hours",
+    "displayed_bucket_range": "2026-11-02 21:30 - 2026-11-03 21:00",
+    "foreground_mah": 115.63,
+    "background_mah": 623.22,
+    "total_mah": 738.85,
+    "background_share_percent": 84.35,
+    "foreground_occupied_duration_display": "23m57s",
+    "background_occupied_duration_display": "1h53m15s",
+    "ranking_display_percent": 13,
+    "warning": "后台频繁刷新，耗电过快，建议结束运行",
+    "is_oem_estimate_not_external_power_measurement": true,
+    "version_is_current_package_label_not_version_isolated_window": true
+  },
+  "framework_activity_window": {
+    "start": "2026-11-03 08:00:00",
+    "on_battery": "12h43m25.967s",
+    "screen_off": "3h33m42.933s",
+    "app_foreground_activity": "22m21.834s",
+    "app_foreground_service": "12h20m37.851s",
+    "app_cpu_user_ms": 3408400,
+    "app_cpu_kernel_ms": 1154110,
+    "app_gps_active": "6h5m38.896s",
+    "app_gps_count": 239,
+    "ble_scan_actual": "55m30.911s",
+    "ble_scan_count": 510,
+    "wifi_received_mb": 89.08,
+    "wifi_sent_mb": 391.85,
+    "mobile_received_mb": 29.94,
+    "mobile_sent_mb": 77.85,
+    "mobile_radio_active": "1h16m14.969s",
+    "bluetooth_received_mb": 112.37,
+    "sensor_handles": [
+      172,
+      182,
+      191,
+      292,
+      302
+    ],
+    "sensor_types": [
+      "significant motion",
+      "step detector",
+      "step counter",
+      "stationary detect",
+      "motion detect"
+    ],
+    "sensor_activity_not_evidence_of_high_rate_raw_imu_sampling": true
+  },
+  "battery_at_read": {
+    "usb_powered": true,
+    "level_percent": 38,
+    "temperature_celsius": 35.0
+  },
+  "framework_power_estimate_limit": {
+    "uid_total_mah": 120,
+    "gnss_mah": 88,
+    "gnss_duration": "31m18.783s",
+    "cpu_network_components_absent": true,
+    "inconsistent_with_activity_duration": true,
+    "not_used_as_app_total_or_oem_component_breakdown": true
+  },
+  "interpretation": [
+    "OEM app energy is about 739mAh in its displayed rolling window, mostly background. This window spans earlier versions, dev164 installation, and diagnostics; no same-condition reduction percentage is claimed.",
+    "Activity counters use a separate since-08:00 window. Foreground-service classification is not visible app usage; foreground services may run while the user uses another app.",
+    "GPS is the highest-priority confirmed unresolved behavior; exact mAh by GPS/CPU/network/Bluetooth remains unmeasured.",
+    "Network byte counters belong to the entire UID; audio or specific sync ownership is not inferred from volume alone."
+  ],
+  "cleanup": {
+    "diagnostic_package_uninstalled": true,
+    "old_phone_probe_reports_removed": true,
+    "old_delta_and_rebuilt_apk_removed": true,
+    "own_ui_dump_removed": true,
+    "formal_pairings_unchanged": true,
+    "phone_left_on": "iO Agent battery detail page"
+  },
+  "next": "Isolate lifelog location from navigation, then compare screen-off power under matched connected/disconnected conditions."
+}
