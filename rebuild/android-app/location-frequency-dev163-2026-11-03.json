@@ -210,12 +210,13 @@
   },
   "probe_field_correction": "Legacy continuous_preparing reports M1.j (requested continuous state), not proof of a stuck startup. Diagnostic source now names it continuous_requested; raw report fields retained for traceability.",
   "diagnostic_cleanup": {
-    "package_uninstalled": false,
-    "phone_reports_removed": false,
+    "package_uninstalled": true,
+    "phone_reports_removed": true,
     "probe_runs_finished": true,
-    "pending_reason": "ADB offline; reconnect timeout",
+    "pending_reason": null,
     "relabelled_probe_compiled": true,
     "relabelled_probe_not_installed": true,
-    "local_raw_system_dumps_removed": true
+    "local_raw_system_dumps_removed": true,
+    "completed_via": "USB 2026-11-03"
   }
 }

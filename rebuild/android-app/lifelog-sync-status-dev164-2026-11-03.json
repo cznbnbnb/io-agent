@@ -46,16 +46,17 @@
     "original_recordings_changed_by_test": false
   },
   "cleanup": {
-    "diagnostic_package_uninstalled": false,
-    "phone_delta_and_rebuilt_apk_removed": false,
-    "diagnostic_reports_removed_from_phone": false,
-    "pending_reason": "ADB became offline after completed installation/UI/normal-GPS verification; one reconnect timed out, no USB. Probe runs had already finished.",
+    "diagnostic_package_uninstalled": true,
+    "phone_delta_and_rebuilt_apk_removed": true,
+    "diagnostic_reports_removed_from_phone": true,
+    "pending_reason": null,
     "retained_apks": [
       "dev164 current",
       "dev163 rollback",
       "dev154 offline phone delta exception"
     ],
     "dev162_removed_after_sha_check": true,
-    "formal_pairings_unchanged": true
+    "formal_pairings_unchanged": true,
+    "completed_via": "USB 2026-11-03"
   }
 }
