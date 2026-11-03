@@ -1,6 +1,6 @@
 # cz-iot-cli
 
-每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。只读服务端已同步的每日总结，不读转写、音频或手机文件；空结果不代表当天没有活动。分页按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。读取服务端已同步的总结、分段智记和逐字转写；不读音频或手机文件；空结果不代表当天没有活动。指定日期自动取全，显式分页时按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
 需要 Node.js 22.18 或更新的 22.x、Python 3.10+（含标准库 sqlite3）。不需要 npm install、pip install、Hermes、ADB、手机 USB 或同一 Wi-Fi。眼镜需连接手机，手机 App 和电脑均能联网。双入口需要手机 dev109 或后续版本；扫码/粘贴已接入同一确认流程，Windows 与 WorkBuddy 原会话仍需实际验证。
@@ -121,3 +121,6 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 ```
 
 新手机登录原账号，在「设置 → 手机与换机 → 输入恢复码」输入返回的一次性代码，然后选择「设为主手机」。代码10分钟有效，只能用一次；不用重绑每个Agent，不会撤销旧手机或改默认工作区。切换最多等20秒，旧进度不重播。此命令不需要当前session或Python；未配对电脑须先完成原有扫码/粘贴电脑配对。
+
+
+2026-11-02：`daily` 已升级为已同步智记文字查询，指定日期自动收齐总结、分段与转写。新增 `daily-correct`、`daily-note`、`daily-history`、`daily-revert`；订正在服务器单独保存，不回写手机。原音仍不上传。以 `help` 和 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md` 为准。

@@ -29,7 +29,7 @@ export class AdminConsole {
     account_bound:!!this.db.prepare('SELECT 1 FROM phone_accounts WHERE owner=? AND device_id=?').get(owner,d.device_id),sessions:sessions.filter(s=>s.device_id===d.device_id).length,executable_sessions:sessions.filter(s=>s.device_id===d.device_id&&s.online&&s.capabilities.can_execute&&!s.delivery_paused).length}))};
  }
  read(owner,section,query,traffic){
-  const allowed={overview:[],devices:[],sessions:['q','status'],tasks:['q','state','group','workspace','offset'],task:['id'],daily:['q','from','to','offset'],summary:['id'],traffic:['hours','producer','route','status','offset'],audit:['offset']};
+  const allowed={overview:[],devices:[],sessions:['q','status'],tasks:['q','state','group','workspace','offset'],task:['id'],daily:['q','from','to','kind','offset'],summary:['id'],history:['id','before'],traffic:['hours','producer','route','status','offset'],audit:['offset']};
   if(!Object.hasOwn(allowed,section)||Object.keys(query).some(k=>!allowed[section].includes(k))||Object.values(query).some(v=>typeof v!=='string'||v.length>512))reject(400,'INVALID_ADMIN_QUERY');
   const offset=Number(query.offset??0);if(!/^(0|[1-9]\d*)$/.test(query.offset??'0')||!Number.isSafeInteger(offset)||offset>100000)reject(400,'INVALID_ADMIN_QUERY');
   const now=this.store.clock();
@@ -76,20 +76,24 @@ export class AdminConsole {
    const receipts=this.db.prepare("SELECT body,stored_at FROM queue_revisions WHERE owner=? AND kind='receipt' AND ((json_extract(body,'$.subject_kind')='task' AND json_extract(body,'$.subject_id')=?) OR EXISTS (SELECT 1 FROM queue_revisions child WHERE child.owner=? AND json_extract(child.body,'$.task_id')=? AND child.kind=json_extract(queue_revisions.body,'$.subject_kind') AND child.object_id=json_extract(queue_revisions.body,'$.subject_id'))) ORDER BY seq DESC LIMIT 201").all(owner,query.id,owner,query.id);
    return {task,children:children.slice(0,100).map(r=>({...r,body:JSON.parse(r.body)})),receipts:receipts.slice(0,200).map(r=>({...JSON.parse(r.body),stored_at:r.stored_at})),truncated:children.length>100||receipts.length>200,marks:this.db.prepare('SELECT favorite,archived,trashed FROM admin_task_marks WHERE owner=? AND id=?').get(owner,query.id)??{favorite:0,archived:0,trashed:0},sessions:this.sessions(owner).items};
   }
-  if(section==='daily'||section==='summary'){
-   const args=[owner];let where=`WHERE r.owner=? AND m.deleted=0 AND r.deleted=0 AND ${DAILY}`;
-   if(section==='summary'){if(!id(query.id))reject(400,'INVALID_ADMIN_QUERY');where+=' AND r.id=?';args.push(query.id);}
-   for(const [key,op] of [['from','>='],['to','<=']])if(query[key]){if(!/^\d{4}-\d\d-\d\d$/.test(query[key])||!Number.isFinite(Date.parse(query[key]+'T00:00:00Z'))||new Date(query[key]+'T00:00:00Z').toISOString().slice(0,10)!==query[key])reject(400,'INVALID_ADMIN_QUERY');where+=` AND substr(json_extract(r.body,'$.full_text.text'),3,10)${op}?`;args.push(query[key]);}
-   if(query.from&&query.to&&query.from>query.to)reject(400,'INVALID_ADMIN_QUERY');
-   if(query.q){where+=" AND instr(lower(json_extract(r.body,'$.full_text.text')),?)>0";args.push(query.q.toLowerCase());}
-   const from='FROM materials m JOIN revisions r ON r.owner=m.owner AND r.id=m.id AND r.revision=m.revision';
-   const rows=this.db.prepare(`SELECT r.id,r.revision,r.stored_at,substr(json_extract(r.body,'$.full_text.text'),3,10) date,${section==='summary'?"json_extract(r.body,'$.full_text.text')":"substr(json_extract(r.body,'$.full_text.text'),1,240)"} text ${from} ${where} ORDER BY date DESC,r.id LIMIT 31 OFFSET ?`).all(...args,offset);
-   if(section==='summary'){if(!rows.length)reject(404,'MATERIAL_NOT_FOUND');return {...rows[0],content_role:'source_data'};}
-   const total=this.db.prepare(`SELECT COUNT(*) count ${from} ${where}`).get(...args).count;
-   return {items:rows.slice(0,30),total,offset,has_more:rows.length>30,coverage:'server_stored_daily_ai_summaries'};
+  if(section==='history')return this.store.lifelog.history(owner,{material_id:query.id,...(query.before?{before:Number(query.before)}:{})});
+  if(section==='daily'){
+   const result=this.store.lifelog.query(owner,{...(query.from?{from:query.from}:{}),...(query.to?{to:query.to}:{}),...(query.q?{keyword:query.q}:{}),kind:query.kind||'summary',limit:30},{offset,preview:true,descending:true});
+   return {...result,items:result.items.map(s=>({...s,id:s.material_id})),offset};
   }
+  if(section==='summary'){
+   if(!id(query.id))reject(400,'INVALID_ADMIN_QUERY');const sources=this.store.lifelog.sources(owner),source=sources.find(s=>s.id===query.id);if(!source)reject(404,'MATERIAL_NOT_FOUND');
+   const edits=this.store.lifelog.edits(owner);return {...this.store.lifelog.effective(owner,source,edits.get(source.id),sources,edits),id:source.id};
+  }
+
  }
  action(session,input){
+  if(input?.action==='lifelog-revert'){
+   if(!fields(input,['action','correction'])||!input.correction||input.correction.edits!==undefined||input.correction.note!==undefined)reject(400,'INVALID_ADMIN_INPUT');
+   const result=this.store.lifelog.change(session.owner,'admin:'+session.username,{...input.correction,agent:session.username});
+   this.db.prepare('INSERT INTO admin_audit(owner,username,action,target,detail,at) VALUES (?,?,?,?,?,?)').run(session.owner,session.username,'lifelog-revert',result.material_id,'correction:'+result.correction_revision,this.store.clock());return {ok:true,result};
+  }
+
   const keys={rename:['action','device_id','label'],delivery:['action','device_id','paused'],unpair:['action','device_id'],primary:['action','device_id','expected_revision'],default:['action','key','expected_revision'],mark:['action','ids','field','value']};
   if(!input||!Object.hasOwn(keys,input.action)||!fields(input,keys[input.action]))reject(400,'INVALID_ADMIN_INPUT');
   const {owner,username}=session,now=this.store.clock(),action=input.action;

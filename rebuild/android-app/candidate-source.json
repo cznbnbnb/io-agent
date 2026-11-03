@@ -318,7 +318,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "877ca80201c08ada5c8de16178a0df1971476d06bfe2f23b7f4cd2cff8122960"
+      "sha256": "cca0d72b5533a1ab3b16190c79acf54e0e541cb5006e024f5e3944141096f5fc"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
@@ -653,6 +653,10 @@
       "sha256": "0d4a8582d6fbcebbc3c4e3e8bd1afd98c5a62ed300f54e6cbb099c481a28f2f3"
     },
     {
+      "path": "src/com/turboio/addon/LifelogTextSync.java",
+      "sha256": "0ee564c703639292e8273a4b1bedc8856da6dfd61cbe2210ced7fda09b497ed7"
+    },
+    {
       "path": "src/com/turboio/addon/LifelogTrace.java",
       "sha256": "83c411f8fa44ce484e05f763791f21f131cc05fc051cae2bb120638927e0a1c1"
     },
@@ -674,7 +678,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialBatch.java",
-      "sha256": "bd4b4a24bd276dd908eca6b50bed2582e19661481730c5342d07b4370ddf50f4"
+      "sha256": "1c18e7ab9a0abbb547d9410e6cbbb98de99aeabed334a4dd9e1398c6a43cfb18"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
@@ -706,11 +710,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialHttp.java",
-      "sha256": "f3d10a522dc8e42ffe42ac8c58d37f464c6db9eb2cbc41167f3c1b53ed090c63"
+      "sha256": "e4765c5bb743ef1c68a8008c1a8cde23b987de678809910c5f5bf9949b237b41"
     },
     {
       "path": "src/com/turboio/addon/MaterialLocalLibrary.java",
-      "sha256": "9b5d3701f04fd483416ac19cec9d394a6205de8f55fe413c94203331876a8162"
+      "sha256": "be2484c3be3a1795d28fb61aa587d3a08e57dfd4294deca0d5486ce98156e485"
     },
     {
       "path": "src/com/turboio/addon/MaterialMonthWorkspace.java",
@@ -726,7 +730,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "be84b2bd185f694e832dd5e3feff2a5a9e1017ce10bb02faa0080d252d6a8350"
+      "sha256": "e6002d835683f5dfaf161509e9e7991d237e15a17de8bad94562d343088c8277"
     },
     {
       "path": "src/com/turboio/addon/MaterialSelect.java",
@@ -762,7 +766,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialVisibility.java",
-      "sha256": "ad8fce0c4026918b5f6667917a9def4d21c5d3d37daceebba4c64cabc8a52036"
+      "sha256": "f356bca44d6d57b2e0c372b3c22a09bf28b78407d052d736d65b84b847235a66"
     },
     {
       "path": "src/com/turboio/addon/MaterialWeekStrip.java",
@@ -774,7 +778,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialWorkspace.java",
-      "sha256": "3ffa41607edcc806ffb1e9c1cd0bea299ec7a57e9b90882078e5f97f720f0c4a"
+      "sha256": "fe01806c597b498fab4ec07ef43910cfad6d40960928ff777687c23808974b00"
     },
     {
       "path": "src/com/turboio/addon/MinuteCardRuntime.java",
@@ -826,7 +830,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogInsight.java",
-      "sha256": "281c6b7038977dabf449833ace5b94cc06fc920731d3503933d247b7b5bcc6d2"
+      "sha256": "529914c4a6d9c0ea8fdb628dcdaa8bf0f67e3e7a213c8ddb3731ffce5a544957"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogInventory.java",
@@ -1066,15 +1070,15 @@
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "469e84a61284d39cb68300ad1b4ea3625b7df5ba3c11ba05debf1ea156d5dedd"
+      "sha256": "025fe8d7458ade8498d625e7441bc89e71b9e47148eee19263885f16dbd52597"
     }
   ],
-  "product_sha256": "9aa9be56342ec4eb82f770ee51789fd42128c62a6839736c7fb52fc968905957",
-  "addon_sha256": "ee98b1516d013635bb737c94303d4fa12eb6e05a20783f6ea35e615d0a316422",
+  "product_sha256": "c27c09f20384c9785cced4f60ce5db17038f88f68e9582b0a3adb0494b7edff2",
+  "addon_sha256": "9505749d3f1b3b2d1e7c1ed42cf6b6dc464b3bdcb83c85657a357b905c29161b",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "a4683a1fc05855eb8135da19c2c96b6418f74a367634bf533322e2dc8caf9de4"

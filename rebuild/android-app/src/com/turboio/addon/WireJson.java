@@ -44,7 +44,7 @@ final class WireJson {
  }
  private static void unicode(String value){for(int i=0;i<value.length();i++){char c=value.charAt(i);if(Character.isHighSurrogate(c))require(++i<value.length()&&Character.isLowSurrogate(value.charAt(i)),"WIRE_SURROGATE");else require(!Character.isLowSurrogate(c),"WIRE_SURROGATE");}}
  private static void quote(String value,StringBuilder out){
-  unicode(value);out.append('"');for(int i=0;i<value.length();i++){char c=value.charAt(i);switch(c){case '"':out.append("\\\"");break;case '\\':out.append("\\\\");break;case '\n':out.append("\\n");break;case '\r':out.append("\\r");break;case '\t':out.append("\\t");break;default:if(c<32)out.append(String.format(Locale.ROOT,"\\u%04x",(int)c));else out.append(c);}}out.append('"');
+  unicode(value);out.append('"');for(int i=0;i<value.length();i++){char c=value.charAt(i);switch(c){case '"':out.append("\\\"");break;case '\\':out.append("\\\\");break;case '\n':out.append("\\n");break;case '\r':out.append("\\r");break;case '\t':out.append("\\t");break;case '\b':out.append("\\b");break;case '\f':out.append("\\f");break;default:if(c<32)out.append(String.format(Locale.ROOT,"\\u%04x",(int)c));else out.append(c);}}out.append('"');
  }
  private static void write(Object value,StringBuilder out,int depth){
   require(depth<=32,"WIRE_COMPLEXITY");

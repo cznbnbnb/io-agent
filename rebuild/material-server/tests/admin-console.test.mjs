@@ -83,3 +83,14 @@ test('empty inbox wait picks up a new task and rechecks revoked credentials befo
  const reading=fetch(url,{headers});await new Promise(r=>setTimeout(r,35));f.addTask('qa-delayed','等待期间新增任务');const reply=await reading;assert.equal(reply.status,200);const page=await reply.json();assert(page.items.some(i=>i.object_id==='qa-delayed'));
  const waiting=fetch(f.base+'/v1/inbox?cursor='+encodeURIComponent(page.next_cursor),{headers});await new Promise(r=>setTimeout(r,35));f.store.devices.revoke(f.agent.device_id);assert.equal((await waiting).status,401);
 });
+test('lifelog detail and history show effective text, while audited undo restores only the chosen change',async t=>{
+ const f=await setup(t),source={id:'text-'+'a'.repeat(64),date:'2026-11-02',timezone:'Asia/Shanghai',kind:'transcript',started_at:'2026-11-02T01:00:00Z',ended_at:'2026-11-02T02:00:00Z',blocks:[{id:'clip',kind:'utterance',text:'CK023 样机'}],related_ids:[]};
+ const writer=f.store.mint({owner:f.owner,producer:'qa-text',scopes:['materials:write']});f.store.lifelog.upload(writer.token,{base_revision:0,source});
+ f.store.lifelog.correction(f.agent.token,{request_id:'admin-test-edit',material_id:source.id,expected_source_revision:1,expected_revision:0,agent:'Codex',reason:'核对型号',evidence:['BOM'],edits:[{block_id:'clip',text:'S-CK023 样机'}]});
+ const list=(await f.call('daily?kind=transcript')).body;assert.equal(list.items[0].text,'S-CK023 样机');assert.equal(list.items[0].blocks,undefined);
+ const detail=(await f.call('daily-detail?id='+source.id)).body;assert.equal(detail.correction_revision,1);
+ const history=(await f.call('history?id='+source.id)).body;assert.equal(history.original.blocks[0].text,'CK023 样机');
+ const undo={action:'lifelog-revert',correction:{request_id:'admin-test-undo',material_id:source.id,expected_source_revision:1,expected_revision:1,agent:'label',reason:'手动撤销',evidence:['人工核对'],revert_revision:1}};
+ assert.equal((await f.call('action',undo)).status,200);assert.equal((await f.call('daily-detail?id='+source.id)).body.text,'CK023 样机');assert.equal((await f.call('audit')).body.items[0].action,'lifelog-revert');
+ assert.equal((await f.call('action',{...undo,correction:{...undo.correction,request_id:'stale'}})).status,409);
+});

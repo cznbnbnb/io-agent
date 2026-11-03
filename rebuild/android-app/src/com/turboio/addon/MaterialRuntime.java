@@ -103,7 +103,7 @@ final class MaterialRuntime {
      boolean success=false,progressed=false;try{performSync(owner,null,null,null,null,false,null);success=status.selectedComplete;progressed=status.progressed;autoError="";autoTarget=config.fingerprint();}catch(Exception error){if(owner==generation){note=safe(error);autoError=note;autoTarget=config.fingerprint();}}finally{try{schedule.finish(plan,System.currentTimeMillis(),success,progressed);}finally{synchronized(guard){if(backgroundOwner==owner)backgroundOwner=-1;}}}
     }
    }catch(Exception error){note=safe(error);}
-   // Audio/transcripts stay on the phone under the 2026-10-26 policy.
+   // Audio stays on the phone; already loaded text uses the independent text ledger.
   }catch(Exception error){note=safe(error);}
  }
  /** Recover the existing account space with this phone's own narrowly scoped
@@ -124,7 +124,7 @@ final class MaterialRuntime {
   }finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
   MaterialHttp verify=new MaterialHttp(restored);synchronized(guard){check(owner);transport=verify;}
   try{new MaterialApi(restored,verify).preflight(System.currentTimeMillis(),true);
-   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");TaskDevice current=tasks.loadDevice();MaterialWire.require(current!=null&&current.deviceId.equals(phone.deviceId)&&current.owner.equals(phone.owner)&&current.server.equals(phone.server),"MATERIAL_CONNECTION_CHANGED");MaterialWire.require(settings.load()==null,"MATERIAL_CONNECTION_CHANGED");settings.save(new MaterialConfig(restored,login.binding,true));config=settings.load();recentCatalog=null;recoveryError="";status=DailySummarySync.status(app.getFilesDir(),config);note="ready";}
+   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");TaskDevice current=tasks.loadDevice();MaterialWire.require(current!=null&&current.deviceId.equals(phone.deviceId)&&current.owner.equals(phone.owner)&&current.server.equals(phone.server),"MATERIAL_CONNECTION_CHANGED");MaterialWire.require(settings.load()==null,"MATERIAL_CONNECTION_CHANGED");settings.save(new MaterialConfig(restored,login.binding,true));config=settings.load();recentCatalog=null;recoveryError="";status=LifelogTextSync.status(app.getFilesDir(),config);note="ready";}
   }finally{verify.cancel();synchronized(guard){if(transport==verify)transport=null;}}
  }
  boolean hasConnection(String account){MaterialConfig current=config;return current!=null&&current.account.equals(account);}
@@ -155,7 +155,7 @@ final class MaterialRuntime {
  private OfficialAccountBinding account(long owner)throws Exception{check(owner);OfficialAccountBinding account=Host107Login.account();MaterialWire.require(account!=null,"OFFICIAL_LOGIN_REQUIRED");check(owner);return account;}
  private interface Work {void run()throws Exception;}
  private static String safe(Exception error){String code=error.getMessage();return code!=null&&code.matches("[A-Z_]{3,80}")?code:"MATERIAL_UNAVAILABLE";}
- private void counts()throws IOException{MaterialSyncSession.Status next=DailySummarySync.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
+ private void counts()throws IOException{MaterialSyncSession.Status next=LifelogTextSync.status(app.getFilesDir(),config);next.added=status.added;next.conflicts=status.conflicts;next.unowned=status.unowned;next.invalid=status.invalid;next.discovered=status.discovered;next.days=status.days;next.recordings=status.recordings;next.otherEntries=status.otherEntries;next.tooLarge=status.tooLarge;status=next;}
  private void work(Work action,Result result){io.execute(()->{String error="";try{config=settings.load();action.run();}catch(Exception failed){error=safe(failed);note=error;try{counts();}catch(Exception ignored){}}Snapshot snapshot=new Snapshot(config,status,note);String code=error;main.post(()->result.done(snapshot,code));});}
  void read(Result result){work(()->{counts();if(config==null)note="unconfigured";else if(!config.enabled)note="paused";else if(note.equals("unconfigured")||note.equals("paused"))note=status.note;if(config!=null){OfficialAccountBinding current=Host107Login.account();if(current==null||!current.binding.equals(config.account))note="OFFICIAL_ACCOUNT_CHANGED";else if(!config.connection.paired()&&config.connection.expiresAt<=System.currentTimeMillis())note="MATERIAL_IMPORT_EXPIRED";}},result);}
  /** Browsing belongs to the official signed-in account, independently of an
@@ -260,9 +260,9 @@ final class MaterialRuntime {
   MaterialApi api=new MaterialApi(next,new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(source.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}return http.exchange(path,body);}public void cancel(){http.cancel();}});
   api.preflight(System.currentTimeMillis(),true);
   synchronized(guard){check(owner);MaterialWire.require(source.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");settings.save(candidate);config=candidate;}
-  status=DailySummarySync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+  status=LifelogTextSync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  }finally{Arrays.fill(input,(byte)0);}},result);}
- void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=DailySummarySync.status(app.getFilesDir(),config);note="paused";},result);}
+ void pause(Result result){invalidate();work(()->{if(config!=null){settings.save(config.enabled(false));config=settings.load();}status=LifelogTextSync.status(app.getFilesDir(),config);note="paused";},result);}
  /** Toggle only the configuration the caller actually saw. Never re-import
   * credentials from a stale UI snapshot after another registration was saved. */
  void setEnabled(String expectedFingerprint,boolean enabled,Result result){long owner=invalidate();work(()->{
@@ -272,7 +272,7 @@ final class MaterialRuntime {
    try{new MaterialApi(original.connection,http).preflight(System.currentTimeMillis(),true);}finally{http.cancel();synchronized(guard){if(transport==http)transport=null;}}
   }
   synchronized(guard){check(owner);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialConfig latest=settings.load();MaterialWire.require(latest!=null&&latest.fingerprint().equals(savingFingerprint),"MATERIAL_CONNECTION_CHANGED");settings.save(latest.enabled(enabled));config=settings.load();}
-  status=DailySummarySync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
+  status=LifelogTextSync.status(app.getFilesDir(),config);note=enabled?"ready":"paused";
  },result);}
  void discoverMonth(String month,MonthResult result){long owner=invalidate();io.execute(()->{
   MonthSelection found=null;String error="";Host107LifelogHttp official=null;
@@ -304,7 +304,11 @@ final class MaterialRuntime {
    Set<String> selectedDates=null;if(selectedDays!=null){selectedDates=new HashSet<>();for(OfficialLifelogInventory.Request request:selectedDays)selectedDates.add(request.date);}
    List<DailySummary> summaries=DailySummary.latest(official.latestJournals());MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
    MaterialApi.Transport guarded=new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialApi.Response response=http.exchange(path,body);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");return response;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}}public void cancel(){http.cancel();}};
-   note="syncing";status=DailySummarySync.run(app.getFilesDir(),target,summaries,selectedDates,()->check(owner),guarded);note=status.note;
+   note="syncing";MaterialSyncSession.Status textStatus=LifelogTextSync.run(app.getFilesDir(),target,selectedDates,()->check(owner),guarded);
+   boolean hasSummary=false;for(DailySummary summary:summaries)if(selectedDates==null||selectedDates.contains(summary.date))hasSummary=true;
+   status=hasSummary?DailySummarySync.run(app.getFilesDir(),target,summaries,selectedDates,()->check(owner),guarded):new MaterialSyncSession.Status();
+   if(!hasSummary)status.selectedComplete=true;status.stored+=textStatus.stored;status.queued+=textStatus.queued;status.added+=textStatus.added;status.progressed|=textStatus.progressed;status.selectedComplete&=textStatus.selectedComplete;
+   note=status.note=!textStatus.selectedComplete&&textStatus.queued==0?"LIFELOG_TEXT_NOT_LOADED":textStatus.queued>0?"LIFELOG_TEXT_PENDING":!hasSummary?"LIFELOG_TEXT_ONLY":status.note;
   }finally{official.close();http.cancel();synchronized(guard){if(officialTransport==official)officialTransport=null;if(transport==http)transport=null;}}
  }
  private static AudioSyncSession.Status emptyAudio(){return new AudioSyncSession.Status(Collections.emptyList(),"",0,0,false);}

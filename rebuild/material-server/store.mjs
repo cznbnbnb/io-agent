@@ -14,8 +14,9 @@ import {AudioArchive} from './audio.mjs';
 import {TodoSuggestions} from './todo-suggestions.mjs';
 import {AdminAuth} from './admin-auth.mjs';
 import {AdminConsole} from './admin-console.mjs';
+import {LifelogText} from './lifelog-text.mjs';
 
-const SCOPES=new Set(['audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
+const SCOPES=new Set(['lifelog:read','lifelog:correct','audio:write','audio:read','materials:write','materials:read','changes:read','daily-summaries:read','tasks:write','tasks:read','tasks:update',
   'requests:write','requests:read','answers:write','messages:receive','messages:write','receipts:phone','receipts:agent','receipts:storage','operations:read','devices:pair']);
 const iso=n=>new Date(n).toISOString();
 const id=s=>typeof s==='string'&&/^[A-Za-z0-9_.:-]{1,128}$/.test(s);
@@ -106,7 +107,7 @@ export class MaterialStore {
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
       this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
-      this.admin=new AdminAuth(this);this.console=new AdminConsole(this);
+      this.lifelog=new LifelogText(this);this.admin=new AdminAuth(this);this.console=new AdminConsole(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}
       catch{this.audio?.close();this.audio=null;this.audioUnavailable=true;}
@@ -156,7 +157,7 @@ export class MaterialStore {
   }
   identity(token){
     const p=this.auth(token);return {schema_version:'1.0',server_id:this.db.prepare('SELECT value FROM meta WHERE key=?').get('server_id').value,
-      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['inbox_watch_v1','request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1','primary_phone_v1',...(this.audio?['audio_archive_v1']:[])],
+      owner_id:p.owner,producer_id:p.producer,scopes:JSON.parse(p.scopes),expires_at:iso(p.expires),capabilities:['lifelog_text_v1','inbox_watch_v1','request_lifecycle_v1','task_session_control_v1','agent_session_directory_v1','daily_summaries_v1','todo_suggestions_v1','material_transfer_v1','material_cancel_v1','primary_phone_v1',...(this.audio?['audio_archive_v1']:[])],
       material_schema_versions:['1.0','1.1','1.2']};
   }
   operations(token){
@@ -621,6 +622,7 @@ export class MaterialStore {
       if(typeof query[k]!=='string'||!query[k]||query[k].length>512)reject(400,'INVALID_QUERY');filters[k]=query[k];
     }
     if(summaries){
+      if(this.db.prepare('SELECT 1 FROM lifelog_edits WHERE owner=? LIMIT 1').get(p.owner))reject(409,'LIFELOG_READER_UPGRADE_REQUIRED');
       for(const day of [filters.from,filters.to].filter(Boolean))if(!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)reject(400,'INVALID_QUERY');
       if(filters.from&&filters.to&&filters.to<filters.from)reject(400,'INVALID_QUERY');
     }else if((filters.from&&!timestamp(filters.from))||(filters.to&&!timestamp(filters.to))||

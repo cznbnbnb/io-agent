@@ -6,9 +6,9 @@ import java.util.*;
 /** Official AI summary, per-time outline and day location trail, read from the
  * same day list and event/full responses the transcript pipeline already uses.
  * Best effort: a shape this adapter does not recognise yields no insight and
- * never fails the transcript read. Local reading only; never uploaded. */
+ * never fails the transcript read. Text is projected for sync; location and raw responses stay on the phone. */
 final class OfficialLifelogInsight {
- static final int MAX_SUMMARY=8000,MAX_TOPIC=500,MAX_TOPICS=100,MAX_EVENTS=64,MAX_POINTS=2000;
+ static final int MAX_SUMMARY=262144,MAX_TOPIC=262144,MAX_TOPICS=100,MAX_EVENTS=64,MAX_POINTS=2000;
  static final class Topic {
   final long at;final String text;
   Topic(long at,String text){this.at=at;this.text=text;}
@@ -57,7 +57,7 @@ final class OfficialLifelogInsight {
   if(at<=0||lat==null||lng==null||Math.abs(lat)>90||Math.abs(lng)>180)return null;Double radius=decimal(v.get("stayRadius")),accuracy=decimal(v.get("accuracy"));String event=string(v.get("sourceEventId"),80);
   return new Point(at,(int)Math.round(lat*1e6),(int)Math.round(lng*1e6),string(v.get("pointType"),20),epoch(v.get("stayStartTime")),epoch(v.get("stayEndTime")),radius==null?0:(int)Math.min(100000,Math.max(0,Math.round(radius))),accuracy==null?0:(int)Math.min(100000,Math.max(0,Math.round(accuracy))),event.matches("[A-Za-z0-9_-]*")?event:"");
  }
- private static String string(Object v,int max){if(!(v instanceof String))return "";String s=(String)v;return s.codePointCount(0,s.length())<=max?s:s.substring(0,s.offsetByCodePoints(0,max));}
+ private static String string(Object v,int max){if(!(v instanceof String))return "";String s=(String)v;MaterialWire.require(s.length()<=max,"LIFELOG_INSIGHT_BUDGET");return s;}
  private static Double decimal(Object v){if(v instanceof Long||v instanceof Integer)return ((Number)v).doubleValue();if(v instanceof BigDecimal)return ((BigDecimal)v).doubleValue();return null;}
  /** Official times are epoch milliseconds, as a number or 13-digit string. */
  private static long epoch(Object v){if(v instanceof Long){long n=(Long)v;return n>=1000000000000L&&n<=9999999999999L?n:0;}if(v instanceof String&&((String)v).matches("[0-9]{13}"))return Long.parseLong((String)v);return 0;}

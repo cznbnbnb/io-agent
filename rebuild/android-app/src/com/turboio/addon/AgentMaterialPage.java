@@ -45,7 +45,7 @@ final class AgentMaterialPage {
  private static long minutes(long start,long end){return Math.max(1,(end-start+59999)/60000);}
  private static String shortSync(MaterialCatalog.Entry e){return "文字仅本机";}
  private static String firstText(MaterialCatalog.Entry e){for(MaterialCatalog.Segment s:e.segments)if(!s.text.trim().isEmpty())return s.text.trim();return e.fullText.trim();}
- private String syncSummary(){MaterialConfig config=snapshot.config;MaterialCatalog catalog=snapshot.catalog;if(!snapshot.uploadError.isEmpty()||!snapshot.autoError.isEmpty())return "同步需处理";if(config==null)return "未连接资料空间";if(!config.enabled)return "资料同步已关闭";if(!config.connection.paired()&&config.connection.expiresAt<=System.currentTimeMillis())return "资料连接已到期";return "每日总结自动同步";}
+ private String syncSummary(){MaterialConfig config=snapshot.config;MaterialCatalog catalog=snapshot.catalog;if(!snapshot.uploadError.isEmpty()||!snapshot.autoError.isEmpty())return "同步需处理";if(config==null)return "未连接资料空间";if(!config.enabled)return "资料同步已关闭";if(!config.connection.paired()&&config.connection.expiresAt<=System.currentTimeMillis())return "资料连接已到期";return "智记文字自动同步";}
  private String dayStatus(int retained){if(reading)return retained>0?"正在检查原厂更新 · 先显示本机已存 "+retained+" 条":"正在从原厂读取这一天的智记…";if(!readError.isEmpty())return "本次读取未完成："+MaterialWorkspace.label(readError)+" · 已读取内容保留";MaterialLocalLibrary.DayRead read=dayRead();return read==null?"尚未读取这一天":"原厂读取于 "+stamp(read.readAt);}
  /** One recycled list row: a section label, a stand-alone card, a group head or one part of a group. */
  private static final class Row {
@@ -98,7 +98,7 @@ final class AgentMaterialPage {
     for(int i=0;i<parts.size();i++){MaterialCatalog.Entry part=parts.get(i);Row r=new Row(Row.PART);r.entry=part;r.number=item.parts.indexOf(part)+1;r.last=i==parts.size()-1;r.title=part.title;r.start=clock(MaterialTimeline.start(part),zone);r.end=clock(MaterialTimeline.end(part),zone);r.preview=firstText(part);r.description="第 "+r.number+" 段，"+part.title+"，"+r.start+"到"+r.end;rows.add(r);}
    }
   }
-  Row footer=new Row(Row.FOOTER);footer.title="日期按手机时区："+zone.getId()+"。服务器仅同步每日 AI 总结。转写、原音和位置保留在手机。资料卡右滑导出，左滑多选或删除；长按也可进入多选。";rows.add(footer);adapter.notifyDataSetChanged();
+  Row footer=new Row(Row.FOOTER);footer.title="日期按手机时区："+zone.getId()+"。已读取的智记文字和每日总结自动同步；原音和位置留在手机。资料卡右滑导出，左滑多选或删除；长按也可进入多选。";rows.add(footer);adapter.notifyDataSetChanged();
  }
  private boolean hasTrail(long start,long end){return snapshot.insights!=null&&!snapshot.insights.trail(start,end).isEmpty();}
  /** Header (month, week, day title) is a small fixed view; the records below are recycled rows. */
@@ -145,7 +145,7 @@ final class AgentMaterialPage {
   LinearLayout syncing=MaterialReadingUI.group(a,b,"同步");
   if(config!=null){LinearLayout toggleRow=MaterialReadingUI.row(a,syncing,"允许资料同步","关闭后停止自动和手动上传，已保存内容和待同步队列保留",null,AgentUI.INK,null);MaterialReadingUI.Toggle toggle=new MaterialReadingUI.Toggle(a);toggle.set(config.enabled);toggleRow.addView(toggle,new LinearLayout.LayoutParams(AgentUI.dp(a,54),AgentUI.dp(a,36)));toggleRow.setBackground(MaterialReadingUI.pressable(a,null));toggleRow.setFocusable(true);toggleRow.setContentDescription("允许资料同步，"+(config.enabled?"已开启":"已关闭"));
    boolean[] busy={false};toggleRow.setOnClickListener(v->{if(busy[0])return;busy[0]=true;toggle.set(!config.enabled);runtime.setEnabled(config.fingerprint(),!config.enabled,(st,error)->{if(closed||!screen.dialog.isShowing())return;if(!error.isEmpty())AgentUI.notice(activity,MaterialWorkspace.label(error));reloadSync(screen);});});
-   if(config.enabled)MaterialReadingUI.row(a,syncing,"按日期同步",null,"近 3 天",AgentUI.INK,()->MaterialBatch.syncDay(a,zone,config.connection.preview().split("\n")[0],date->runtime.syncDay(date.toString(),zone.getId(),(st,error)->{if(closed)return;AgentUI.notice(activity,error.isEmpty()?date.getMonthValue()+"月"+date.getDayOfMonth()+"日的每日总结已同步":MaterialWorkspace.label(error));reload.run();})));}
+   if(config.enabled)MaterialReadingUI.row(a,syncing,"按日期同步",null,"近 3 天",AgentUI.INK,()->MaterialBatch.syncDay(a,zone,config.connection.preview().split("\n")[0],date->runtime.syncDay(date.toString(),zone.getId(),(st,error)->{if(closed)return;AgentUI.notice(activity,error.isEmpty()?date.getMonthValue()+"月"+date.getDayOfMonth()+"日的智记文字同步已处理":MaterialWorkspace.label(error));reload.run();})));}
   if(config==null)MaterialReadingUI.row(a,syncing,"恢复账号资料空间","沿用当前手机账号的长期授权",null,AgentUI.INK,()->runtime.restore((st,error)->{if(!error.isEmpty())AgentUI.notice(a,MaterialWorkspace.label(error));reload.run();}));
   MaterialReadingUI.row(a,syncing,"资料连接设置",null,config==null?"未连接":"更换登记文件",AgentUI.INK,()->MaterialWorkspace.configure(a,runtime,config,reload));
   MaterialReadingUI.row(a,syncing,"详细同步状态",null,null,AgentUI.INK,()->MaterialWorkspace.show(a,reload));
@@ -153,7 +153,7 @@ final class AgentMaterialPage {
   MaterialReadingUI.row(a,exports,"导出文件夹",null,ExportDestination.label(a),AgentUI.INK,()->ExportDestination.settings(a,reload));
   MaterialReadingUI.row(a,exports,"原音与导出",null,"只存在手机",AgentUI.INK,()->AudioWorkspace.show(a,reload));
   if(paired){LinearLayout danger=MaterialReadingUI.group(a,b,null);MaterialReadingUI.row(a,danger,"解除资料配对","停止同步并撤销本机的服务器访问",null,MaterialReadingUI.CORAL_TEXT,()->MaterialReadingUI.confirm(a,"解除资料配对？","停止同步并撤销本机资料连接。手机资料、导出文件和服务器已保存内容都会保留。","解除配对",true,()->runtime.unpair(config.fingerprint(),(st,error)->{if(!error.isEmpty())AgentUI.notice(activity,MaterialWorkspace.label(error));reloadSync(screen);})));}
-  TextView foot=AgentUI.text(a,"服务器只同步每日 AI 总结。转写、原音和位置只留在手机，可在资料页右滑或多选后导出。原厂通常只保留最近 3 天的日报，尚未生成的日期会继续等待。",12,AgentUI.MUTED);foot.setLineSpacing(AgentUI.dp(a,3),1);foot.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,14),AgentUI.dp(a,4),0);b.addView(foot);
+  TextView foot=AgentUI.text(a,"服务器同步已读取的分段智记、逐字转写和每日总结。原音和位置不上传。Agent 的服务器订正不回传手机；更早日期打开后按需同步。",12,AgentUI.MUTED);foot.setLineSpacing(AgentUI.dp(a,3),1);foot.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,14),AgentUI.dp(a,4),0);b.addView(foot);
  }
  private void reloadSync(AgentUI.Screen screen){if(closed||suspended)return;long request=++syncRevision;runtime.catalog(selected.toString(),ZoneId.systemDefault().getId(),(value,error)->{if(closed||suspended||request!=syncRevision||!screen.dialog.isShowing())return;if(!error.isEmpty()){invalidateContent(MaterialWorkspace.label(error));screen.body.removeAllViews();screen.body.addView(AgentUI.text(activity,MaterialWorkspace.label(error),16,AgentUI.MUTED));AgentUI.button(activity,screen.body,"重新读取",false,()->reloadSync(screen));return;}snapshot=value;if(browsing)render();renderSync(screen);});}
  private void calendar(){if(snapshot==null)return;MaterialCatalog catalog=snapshot.catalog;YearMonth[] shown={YearMonth.from(browsedWeek)};LinearLayout layout=AgentUI.column(activity);layout.setPadding(AgentUI.dp(activity,12),AgentUI.dp(activity,12),AgentUI.dp(activity,12),AgentUI.dp(activity,16));layout.setBackgroundColor(AgentUI.SURFACE);AlertDialog dialog=AgentUI.alert(activity).setView(layout).setNegativeButton("返回",null).create();Runnable[] draw={null};draw[0]=()->{

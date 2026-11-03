@@ -1,0 +1,88 @@
+{
+  "date": "2026-11-02",
+  "base": "582f237",
+  "claude_tip": "520ad23",
+  "scope": {
+    "segment_and_transcript_upload": true,
+    "audio_upload": false,
+    "position_upload": false,
+    "corrections_to_phone": false,
+    "full_day_default": true,
+    "old_outbox_replayed": false
+  },
+  "server": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/admin-lifelog-text-release-1793691696016886015",
+    "source_sha256": {
+      "store.mjs": "5f7870791c7a04aa622976950d03e13dfff0faeda36444ee98a1a696e789585f",
+      "http.mjs": "222643a09f3a302ec862dbd800b37cd72f6f8a176f2a76d68774e2c48c45ad78",
+      "devices.mjs": "a2c3da3743dab296ef8d28cb55c724074c099b296f2e891727da2c4582b9cbde",
+      "lifelog-text.mjs": "6386263fcee3d1c9c2b9386dc6e844cee85e7190e491c444459012e421a10ec9",
+      "admin-console.mjs": "a7a47ec7fe896cf0b72fc7211a8ea92e9e6a6dc0f316061fd26aa48968cc627c",
+      "admin/index.html": "ca825151b75081baf4bc55f4e55cd6cb7ec4a9e65ac91aa7c71feb96a50ba028",
+      "admin/console.js": "db7a22ab89c40d7bde266e423396f00cc35dcd20296983d35b4843ddeaedb93a",
+      "admin/style.css": "e93fe8128475e1f723605ca24a336b4117bb246d0ed4347afdf6ab164dd4b947"
+    },
+    "grants_changed": 0,
+    "single_session_grants_unchanged": true,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "initial_release_grants_changed": 1,
+    "initial_backup": "/var/lib/turboio-material/admin-lifelog-text-release-1793691391324217779"
+  },
+  "gateway": {
+    "source_limit": "5m",
+    "correction_limit": "1m",
+    "other_routes": "300k",
+    "450k_unauth_source_http": 401,
+    "450k_unauth_correction_http": 401,
+    "450k_legacy_event_http": 413
+  },
+  "cli": {
+    "installed_runtime_updated": true,
+    "portable_correction_read_undo_passed": true,
+    "actual_account_daily_complete": true,
+    "actual_account_text_kinds": [
+      "summary"
+    ],
+    "native_session_replaced": false,
+    "formal_sessions_online_and_executable": true,
+    "service_pids": {
+      "codex": 55249,
+      "claude": 55262
+    }
+  },
+  "tests": {
+    "lifelog_server_cases": 7,
+    "admin_cases": 9,
+    "text_sync_checks": 18,
+    "insight_checks": 20,
+    "source_checks": 240,
+    "browser_synthetic_history_and_undo_passed": true
+  },
+  "device": {
+    "version": "0.5.3-dev163",
+    "code": 10585,
+    "signed": true,
+    "sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
+    "installed": false,
+    "last_installed": "dev162",
+    "blocker": "No USB device; 100.73.124.63:39527 connect timed out; requested current address",
+    "delta": {
+      "baseline_sha256": "940dd293e1c5120edcf62075bdbd96967478e3993fc07d583095ff90f548e8e1",
+      "candidate_sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
+      "apk_bytes": 435087977,
+      "delta_bytes": 1971180,
+      "commands": 8141,
+      "delta_sha256": "c6ba00cfa84ba96ee371be98bd5481c10292cd6f4448297a98d121f7564cf461",
+      "reconstruction_hash_verified": true
+    }
+  },
+  "limitations": [
+    "Real phone text upload not yet verified.",
+    "Old cached insight summary fields may retain prior truncation until the source day is refreshed.",
+    "Only cached/read days are uploaded; no surprise historical full fetch.",
+    "Corrected dependencies invalidate old summaries; regeneration needs an Agent explicit edit, not automatic model billing.",
+    "Historical text is retained; this release adds no authoritative deletion sync."
+  ]
+}

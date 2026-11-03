@@ -5,7 +5,7 @@ const bytes=n=>n>=1048576?(n/1048576).toFixed(1)+' MiB':n>=1024?(n/1024).toFixed
 const labels={queued:'排队中',agent_received:'Agent 已接收',running:'执行中',waiting_answer:'等待回答',completed:'已完成',cancelled:'已取消',failed:'失败',expired:'已过期',execution_unknown:'执行状态待确认',stop_requested:'正在请求停止',stop_unconfirmed:'尚未确认停止',stopped:'已停止',resume_requested:'请求继续',cancel_requested:'请求取消',pending:'待回答',presented:'已展示',answered:'已回答',withdrawn:'已撤回',server_stored:'服务器已保存',phone_received:'手机已接收',glasses_displayed:'眼镜已显示',user_answered:'用户已回答',task_resumed:'原任务继续',task_completed:'任务完成',inbox:'新消息检查',identity:'身份检查','agent-sessions':'会话心跳与目录','agent-default':'默认工作区','phone-presence':'主手机心跳',tasks:'任务',requests:'问题',answers:'回答',messages:'消息',receipts:'回执',materials:'资料',watches:'进度提醒',devices:'设备',pairings:'配对',credentials:'访问续期','todo-suggestions':'待办建议',other:'其他 / 旧版归类',rename:'设备改名',delivery:'投送开关',unpair:'解除配对',primary:'切换主手机',default:'默认工作区',mark:'整理后台记录',paused:'暂停',resumed:'恢复',revoked:'已解绑','favorite:true':'已收藏','favorite:false':'已取消收藏','archived:true':'已归档','archived:false':'已取消归档','trashed:true':'已移入回收站','trashed:false':'已恢复',claude:'Claude Code',codex:'Codex',acp:'ACP Agent'};
 const label=v=>labels[v]??v??'—';
 const issues={codex_session_not_loaded:'原生会话未加载',CODEX_SESSION_NOT_LOADED:'原生会话未加载',claude_plugin_reload_required:'等待插件重载',CLAUDE_PLUGIN_RELOAD_REQUIRED:'等待插件重载',lease_expired:'在线心跳已超时',lease_released:'会话已结束',device_revoked:'设备已解绑',native_disconnected:'原生连接已断开'};
-const pages={overview:['总览','掌握设备、任务和交互的当前状态。'],devices:['设备与连接','查看配对关系、主手机和最近通信。'],sessions:['工作区与会话','在线不等于可执行；只有已接通的会话能接收指令。'],tasks:['任务与问答','按工作区整理任务，查看问题、回答和回执。'],daily:['每日总结','查看已同步的每日 AI 总结，按日期查找你的日常。'],traffic:['API 与流量','把后台轮询与实际任务交互分开看。'],audit:['操作记录','追溯在此后台完成的管理操作。'],settings:['账号与设置','账号、登录和当前数据范围。']};
+const pages={overview:['总览','掌握设备、任务和交互的当前状态。'],devices:['设备与连接','查看配对关系、主手机和最近通信。'],sessions:['工作区与会话','在线不等于可执行；只有已接通的会话能接收指令。'],tasks:['任务与问答','按工作区整理任务，查看问题、回答和回执。'],daily:['日常智记','按日期查看总结、分段智记与转写，追溯订正。'],traffic:['API 与流量','把后台轮询与实际任务交互分开看。'],audit:['操作记录','追溯在此后台完成的管理操作。'],settings:['账号与设置','账号、登录和当前数据范围。']};
 /* Lucide Static 1.66.0; selected official SVG geometry.
 Source: https://registry.npmjs.org/lucide-static/-/lucide-static-1.66.0.tgz
 ISC License
@@ -84,7 +84,7 @@ function dailyContent(text,date){
  return{title,body,preview:body.replace(/^#{1,6}\s+|^[-*]\s+/gm,'').replace(/\s+/g,' ').trim()};
 }
 function summaryText(text){return el('div',{class:'summary-prose'},text.split('\n').map(line=>line.startsWith('# ')?el('h2',{},line.slice(2)):line.startsWith('## ')?el('h3',{},line.slice(3)):line.startsWith('### ')?el('h4',{},line.slice(4)):el('p',{},line||'\u00a0')));}
-const errorText=e=>({INVALID_ADMIN_QUERY:'筛选条件无效，请重置后重试。',ADMIN_TASK_ACTIVE:'所选任务仍在执行，不能移入回收站。可以先归档。',DEVICE_REVOKED:'设备已解绑，请刷新列表。',DEFAULT_SESSION_UNAVAILABLE:'这个会话暂时不能执行，请选择已接通的会话。',DEVICE_DELIVERY_PAUSED:'该设备暂停了投送，请先恢复。',DEFAULT_REVISION_CONFLICT:'默认工作区已在另一端更新，请刷新后重试。',PRIMARY_PHONE_CHANGED:'主手机已在另一端切换，请刷新后重试。',PHONE_ACCOUNT_REQUIRED:'这台手机尚未完成账号绑定，无法设为主手机。',TASK_NOT_FOUND:'任务已不可用，请刷新列表。',DEVICE_NOT_FOUND:'设备已不可用，请刷新列表。'}[e.code]??e.message);
+const errorText=e=>({CORRECTION_CONFLICT:'资料已更新，请关闭详情并刷新后核对。',CORRECTION_REVERT_CONFLICT:'同一段已有后续修改，不能直接撤销，请查看订正历史。',CORRECTION_REVERT_NOT_EDIT:'撤销记录不能再次撤销，请提交新的订正。',INVALID_ADMIN_QUERY:'筛选条件无效，请重置后重试。',ADMIN_TASK_ACTIVE:'所选任务仍在执行，不能移入回收站。可以先归档。',DEVICE_REVOKED:'设备已解绑，请刷新列表。',DEFAULT_SESSION_UNAVAILABLE:'这个会话暂时不能执行，请选择已接通的会话。',DEVICE_DELIVERY_PAUSED:'该设备暂停了投送，请先恢复。',DEFAULT_REVISION_CONFLICT:'默认工作区已在另一端更新，请刷新后重试。',PRIMARY_PHONE_CHANGED:'主手机已在另一端切换，请刷新后重试。',PHONE_ACCOUNT_REQUIRED:'这台手机尚未完成账号绑定，无法设为主手机。',TASK_NOT_FOUND:'任务已不可用，请刷新列表。',DEVICE_NOT_FOUND:'设备已不可用，请刷新列表。'}[e.code]??e.message);
 
 export class AdminView{
  constructor({api,error}){this.api=api;this.error=error;this.page='overview';this.filters={};this.expandedTasks=new Map();this.expandedSessions=new Map();this.deviceFilter={q:'',state:'all'};this.selected=new Set();this.ticket=0;this.ready=false;this.data=null;this.dailyView=localStorage.getItem('io-admin-daily-view')==='cards'?'cards':'list';
@@ -107,7 +107,7 @@ export class AdminView{
   finally{if(ticket===this.ticket){$('refresh').disabled=false;$('workspace-content').removeAttribute('aria-busy');}}
  }
  filter(key,value){this.filters[this.page]={...this.filters[this.page],[key]:value,offset:0};this.selected.clear();void this.refresh();}
- toolbar({search=true,extra=[]}={}){const filter=this.filters[this.page]??{},form=el('form',{class:'toolbar',onsubmit:event=>{event.preventDefault();this.filter('q',form.querySelector('input').value.trim());}});if(search){const field=el('input',{type:'search',placeholder:this.page==='daily'?'搜索每日总结':this.page==='sessions'?'搜索会话或工作区':'搜索任务内容或 ID','aria-label':'搜索',value:filter.q??''});form.append(el('div',{class:'search-field'},field,el('button',{type:'submit','aria-label':'搜索'},icon('search'))));}form.append(...extra);return form;}
+ toolbar({search=true,extra=[]}={}){const filter=this.filters[this.page]??{},form=el('form',{class:'toolbar',onsubmit:event=>{event.preventDefault();this.filter('q',form.querySelector('input').value.trim());}});if(search){const field=el('input',{type:'search',placeholder:this.page==='daily'?'搜索当前类型的智记':this.page==='sessions'?'搜索会话或工作区':'搜索任务内容或 ID','aria-label':'搜索',value:filter.q??''});form.append(el('div',{class:'search-field'},field,el('button',{type:'submit','aria-label':'搜索'},icon('search'))));}form.append(...extra);return form;}
  selectFilter(key,items){const select=el('select',{'aria-label':key==='state'?'任务状态':key==='hours'?'统计范围':key==='producer'?'请求设备':key==='route'?'请求类型':key==='workspace'?'工作区':key==='status'?'结果筛选':'筛选',onchange:event=>this.filter(key,event.target.value)},items.map(([v,l])=>option(v,l)));select.value=String(this.filters[this.page]?.[key]??items[0][0]);return select;}
  pager(data,size){const offset=Number(this.filters[this.page]?.offset??0);return el('div',{class:'pager'},el('span',{},data.total!==undefined?`共 ${num(data.total)} 条 · 第 ${Math.floor(offset/size)+1} 页`:`第 ${Math.floor(offset/size)+1} 页`),el('div',{},button('上一页',()=>{this.filters[this.page]={...this.filters[this.page],offset:Math.max(0,offset-size)};void this.refresh();},{disabled:offset===0}),button('下一页',()=>{this.filters[this.page]={...this.filters[this.page],offset:offset+size};void this.refresh();},{disabled:!data.has_more})));}
  async exportDaily(id){downloadDaily(await this.api('daily-detail',undefined,{id}));}
@@ -124,8 +124,25 @@ export class AdminView{
  }
  async detail(kind,id){const ticket=this.ticket,dialog=$('detail-dialog');$('detail-content').replaceChildren(el('div',{class:'drawer-heading'},el('h2',{},'正在读取…'),button('关闭',()=>dialog.close())));dialog.showModal();
   try{const data=await this.api(kind==='task'?'task':'daily-detail',undefined,{id});if(ticket!==this.ticket||!dialog.open)return;
-   const body=$('detail-content');body.replaceChildren(el('div',{class:'drawer-heading'},el('span',{class:'eyebrow'},kind==='task'?'任务详情':'每日 AI 总结'),button('关闭',()=>dialog.close())));
-   if(kind==='daily'){const summary=dailyContent(data.text,data.date);body.append(el('h1',{},summary.title),el('p',{class:'muted'},`${data.date} · 版本 ${data.revision} · 同步于 ${time(data.stored_at)}`),button('导出总结文档',()=>downloadDaily(data),{class:'secondary'}),summaryText(summary.body));return;}
+   const body=$('detail-content');body.replaceChildren(el('div',{class:'drawer-heading'},el('span',{class:'eyebrow'},kind==='task'?'任务详情':'智记详情'),button('关闭',()=>dialog.close())));
+   if(kind==='daily'){
+    const summary=dailyContent(data.text,data.date);body.append(el('h1',{},data.summary_stale?'总结待重新订正':summary.title),el('p',{class:'muted'},`${data.date} · 原文 v${data.revision} / 订正 v${data.correction_revision} · ${time(data.stored_at)}`));
+    if(data.summary_stale)body.append(el('p',{class:'footnote'},'关联转写已经订正，旧总结暂不作为查询结果。Agent 可根据最新全文重新订正总结。'));
+    if(data.needs_review)body.append(el('p',{class:'footnote'},'手机原文在订正后发生变化。当前仍保留订正版，请核对历史。'));
+    body.append(button('导出当前文字',()=>downloadDaily(data),{class:'secondary'}),summaryText(summary.body));
+    for(const note of data.notes)body.append(el('blockquote',{},note.text,el('small',{class:'cell-note'},`${note.agent} · ${time(note.at)} · 补充记录`)));
+    const history=el('section',{class:'correction-history'});body.append(history);
+    const loadHistory=async before=>{const h=await this.api('history',undefined,{id,...(before?{before}: {})});if(!dialog.open||ticket!==this.ticket)return;
+     if(!before)history.append(el('details',{class:'technical'},el('summary',{},'查看手机原文（不含订正）'),summaryText(h.original.blocks.map(b=>b.text).join('\n'))),el('h3',{},'订正记录'));
+     if(!h.items.length)history.append(el('p',{class:'muted'},'还没有订正。'));
+     for(const entry of h.items){const details=el('details',{class:'technical'},el('summary',{},`v${entry.revision} · ${entry.agent} · ${time(entry.at)}`),el('p',{},entry.reason),el('p',{class:'muted'},'依据：'+entry.evidence.join('；')));
+      for(const [key,change] of Object.entries(entry.changes.blocks))details.append(el('small',{class:'cell-note'},key),el('del',{},change.before?.text??change.after?.base_text??'原文'),el('ins',{},change.after?.text??'恢复原文'));
+      for(const note of entry.changes.notes)details.append(el('p',{},note.text));
+      if(entry.operation!=='revert')details.append(button('撤销这次修改',()=>this.confirm('撤销这次修改','仅撤销所选修改；其他修改会保留。若同一段已被再次修改，会提示刷新核对。',{action:'lifelog-revert',correction:{request_id:crypto.randomUUID(),material_id:id,expected_source_revision:data.revision,expected_revision:data.correction_revision,agent:'admin',reason:'用户在管理后台撤销订正',evidence:['后台核对订正记录 v'+entry.revision],revert_revision:entry.revision}},{danger:true}),{class:'text-button'}));history.append(details);
+     }
+     if(h.has_more)history.append(button('更早的订正',event=>{event.currentTarget.remove();void loadHistory(h.next_before).catch(this.error);},{class:'text-button'}));
+    };body.append(button('原文与订正历史',event=>{event.currentTarget.remove();void loadHistory().catch(this.error);},{class:'secondary'}));return;
+   }
    const task=data.task,session=data.sessions.find(s=>JSON.stringify(s.route)===JSON.stringify(task.body.route)||s.route.session_id===task.body.route.session_id);
    body.append(el('h1',{},task.body.command),el('div',{class:'detail-meta'},badge(label(task.state),task.state==='completed'?'good':'muted'),el('span',{},session?.label??task.body.route.agent_id)),el('p',{class:'muted'},`更新于 ${time(task.stored_at)} · 版本 ${task.revision}`));
    body.append(el('div',{class:'inline-note'},'下方分别记录服务器保存、设备接收、眼镜显示和用户回答；收到服务器回执不代表已在眼镜上看到。'));
@@ -188,20 +205,20 @@ export class AdminView{
   }
   if(this.page==='daily'){
    const filters=this.filters.daily??{},from=el('input',{type:'date',value:filters.from??'','aria-label':'开始日期',onchange:event=>this.filter('from',event.target.value)}),to=el('input',{type:'date',value:filters.to??'','aria-label':'结束日期',onchange:event=>this.filter('to',event.target.value)});
-   add(this.toolbar({extra:[el('div',{class:'date-range'},el('span',{class:'filter-label'},'日期'),from,el('span',{},'至'),to),...(filters.q||filters.from||filters.to?[button('清除筛选',()=>{this.filters.daily={};void this.refresh();},{class:'text-button'})]:[])]}));
-   const switcher=el('div',{class:'view-switch',role:'group','aria-label':'总结展示形式'},[['list','列表'],['cards','卡片']].map(([mode,name])=>button([icon(mode),name],()=>{
+   add(this.toolbar({extra:[this.selectFilter('kind',[['summary','每日总结'],['segment','分段智记'],['transcript','逐字转写']]),el('div',{class:'date-range'},el('span',{class:'filter-label'},'日期'),from,el('span',{},'至'),to),...(filters.q||filters.from||filters.to?[button('清除筛选',()=>{this.filters.daily={};void this.refresh();},{class:'text-button'})]:[])]}));
+   const switcher=el('div',{class:'view-switch',role:'group','aria-label':'智记展示形式'},[['list','列表'],['cards','卡片']].map(([mode,name])=>button([icon(mode),name],()=>{
     this.dailyView=mode;localStorage.setItem('io-admin-daily-view',mode);this.render(data);content.querySelector('[data-view="'+mode+'"]').focus();
    },{'aria-pressed':String(this.dailyView===mode),'data-view':mode})));
-   add(el('div',{class:'result-heading'},el('div',{},el('strong',{},'总结记录'),el('span',{class:'result-count'},num(data.total)+' 份')),switcher));
-   const items=data.items.map(d=>({...d,...dailyContent(d.text,d.date)}));
-   if(!items.length)add(el('div',{class:'data-panel'},empty('这个范围还没有总结','试试其他日期或关键词；若缺少近期记录，请确认手机已完成总结同步。')));
+   add(el('div',{class:'result-heading'},el('div',{},el('strong',{},'智记记录'),el('span',{class:'result-count'},num(data.total)+' 份')),switcher));
+   const items=data.items.map(d=>({...d,...dailyContent(d.text,d.date),...(d.summary_stale?{title:'总结待重新订正',preview:'关联转写已经更新，旧总结暂不展示。'}:{})}));
+   if(!items.length)add(el('div',{class:'data-panel'},empty('这个范围还没有已同步文字','试试其他日期或关键词；若缺少近期记录，请确认手机已完成总结同步。')));
    else if(this.dailyView==='cards'){
-    add(el('div',{class:'daily-grid'},items.map(d=>el('article',{class:'daily-card'},el('header',{},el('time',{class:'date-label',datetime:d.date},d.date),el('span',{class:'sync-state'},'已同步')),button(d.title,()=>void this.detail('daily',d.id),{class:'daily-title'}),el('p',{},d.preview.slice(0,220)),el('footer',{},el('span',{},'版本 '+d.revision),el('time',{title:time(d.stored_at)},shortTime(d.stored_at)),button('导出',()=>void this.exportDaily(d.id).catch(this.error),{class:'text-button','aria-label':'导出 '+d.date+' 总结'}))))));
+    add(el('div',{class:'daily-grid'},items.map(d=>el('article',{class:'daily-card'},el('header',{},el('time',{class:'date-label',datetime:d.date},d.date),el('span',{class:'sync-state'},d.summary_stale?'待更新':d.needs_review?'需核对':d.corrected?'已订正':'已同步')),button(d.title,()=>void this.detail('daily',d.id),{class:'daily-title'}),el('p',{},d.preview.slice(0,220)),el('footer',{},el('span',{},'版本 '+d.revision),el('time',{title:time(d.stored_at)},shortTime(d.stored_at)),button('导出',()=>void this.exportDaily(d.id).catch(this.error),{class:'text-button','aria-label':'导出 '+d.date+' 智记'}))))));
    }else{
-    const rows=items.map(d=>[el('div',{class:'daily-date'},el('time',{datetime:d.date},d.date),el('span',{class:'sync-state'},'已同步')),el('div',{class:'daily-topic'},button(d.title,()=>void this.detail('daily',d.id),{class:'daily-title'}),el('p',{title:d.preview.slice(0,250)},d.preview)),el('span',{class:'revision'},'v'+d.revision),el('time',{title:time(d.stored_at)},shortTime(d.stored_at)),el('div',{class:'row-actions'},button('查看',()=>void this.detail('daily',d.id),{class:'text-button','aria-label':'查看 '+d.date+' 总结'}),button('导出',()=>void this.exportDaily(d.id).catch(this.error),{class:'text-button','aria-label':'导出 '+d.date+' 总结'}))]);
-    add(el('section',{class:'data-panel daily-list','aria-label':'每日总结列表'},table(['日期','主题与摘要','版本','同步时间','操作'],rows)));
+    const rows=items.map(d=>[el('div',{class:'daily-date'},el('time',{datetime:d.date},d.date),el('span',{class:'sync-state'},d.summary_stale?'待更新':d.needs_review?'需核对':d.corrected?'已订正':'已同步')),el('div',{class:'daily-topic'},button(d.title,()=>void this.detail('daily',d.id),{class:'daily-title'}),el('p',{title:d.preview.slice(0,250)},d.preview)),el('span',{class:'revision'},'v'+d.revision),el('time',{title:time(d.stored_at)},shortTime(d.stored_at)),el('div',{class:'row-actions'},button('查看',()=>void this.detail('daily',d.id),{class:'text-button','aria-label':'查看 '+d.date+' 智记'}),button('导出',()=>void this.exportDaily(d.id).catch(this.error),{class:'text-button','aria-label':'导出 '+d.date+' 智记'}))]);
+    add(el('section',{class:'data-panel daily-list','aria-label':'日常智记列表'},table(['日期','主题与摘要','版本','同步时间','操作'],rows)));
    }
-   add(this.pager(data,30),el('p',{class:'footnote daily-scope'},'只展示已同步的每日 AI 总结，日期沿用原总结。原音与逐字转写在手机 App 内导出。'));return;
+   add(this.pager(data,30),el('p',{class:'footnote daily-scope'},'默认展示当前订正版。原文和订正历史可在详情查看；音频只保留在手机。'));return;
   }
   if(this.page==='traffic'){
    if(!data.available){add(empty('流量采集暂不可用','任务、连接和每日总结仍可独立查看。'));return;}

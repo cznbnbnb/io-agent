@@ -4,6 +4,8 @@ import android.app.*;import android.widget.*;import java.io.*;import java.util.*
 /** Normal material sync entry. Shows server receipts separately from local queue. */
 final class MaterialWorkspace {
  static String label(String code){switch(code){
+  case "LIFELOG_TEXT_NOT_LOADED":return "所选日期文字尚未读取，打开该日期后会自动同步";
+   case "LIFELOG_TEXT_PENDING":return "已同步部分文字，其余已读取日期会在后台继续";case "LIFELOG_TEXT_ONLY":return "已读取文字已同步，每日总结尚未生成";case "LIFELOG_TEXT_HEAD_UNAVAILABLE":case "LIFELOG_TEXT_UPLOAD_FAILED":return "文字同步暂未完成，原文保留，联网后自动重试";case "LIFELOG_TEXT_TOO_LARGE":return "这段文字超出上传大小上限，未截断，原文保留";
   case "DAILY_SUMMARY_NOT_READY":return "原厂近期日报中尚无所选日期的 AI 总结，请稍后再试";case "DAILY_SUMMARY_PARTIAL":return "已有日报已同步，部分所选日期尚无可用日报";case "DAILY_SUMMARY_RANGE_UNSUPPORTED":return "原厂日报日期格式发生变化，未上传";case "DAILY_SUMMARY_CHANGED_PENDING":return "日报已更新，正在核对旧版本的同步结果";case "AUDIO_PHONE_ONLY":return "原音只保存在手机，可从资料页导出";
   case "MATERIAL_PHONE_REQUIRED":return "请先在手机与换机中恢复账号授权";case "MATERIAL_SPACE_UNAVAILABLE":return "此账号尚无可恢复的资料空间，请先完成资料配对";case "MATERIAL_RECOVERY_CHANGED":return "资料恢复信息已变化，请核对手机账号";case "MATERIAL_RECOVERY_UNAVAILABLE":return "资料空间暂时无法恢复，联网后会自动重试";
   case "MATERIAL_PAIRING_REVOKED":return "资料配对已撤销，请重新连接账号";case "MATERIAL_PAIRING_REMOVED":return "资料配对已解除，已有资料保留";
@@ -12,7 +14,7 @@ final class MaterialWorkspace {
   case "OFFICIAL_DELETION_PENDING":return "正在等待原厂完成删除，稍后自动同步";
   case "OFFICIAL_DELETION_HISTORY_UNSUPPORTED":return "这条原厂批量删除记录需要核对，已暂缓同步";
   case "OFFICIAL_DELETION_CHANGED":case "OFFICIAL_DELETION_UNAVAILABLE":case "OFFICIAL_DELETION_STORE_UNAVAILABLE":return "原厂删除状态暂不可用，稍后重试";
-  case "syncing":return "正在同步每日 AI 总结…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
+  case "syncing":return "正在同步智记文字…";case "server_stored":return "服务器已确认保存";case "queued":return "资料已保存在本机，等待后续同步";case "no_loaded_sources":return "暂未发现可同步正文，请先在原厂智记中打开记录";
   case "no_day_sources":return "所选日期暂未发现可同步的智记正文";
   case "MATERIAL_AUTO_DEADLINE":return "本轮同步时间较长，队列已保留，稍后自动继续";
   case "MATERIAL_AUTO_UNCERTAIN":case "MATERIAL_AUTO_INVALID":return "自动同步计划需要核对，已有资料保留";
@@ -60,7 +62,7 @@ final class MaterialWorkspace {
  static void show(Activity activity){show(activity,()->{});}
  static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
   MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(AgentUI.text(activity,label(error.isEmpty()?state.note:error),20,AgentUI.INK));
-   body.addView(AgentUI.text(activity,"开启后自动检查原厂近期每日 AI 总结，有更新时同步。当前可读取原厂最近 3 天的日报；音频、逐字转写和位置只留在手机，可在资料页导出。",14,AgentUI.MUTED));
+   body.addView(AgentUI.text(activity,"自动同步已读取的分段智记、逐字转写及每日 AI 总结。后台仍只预载最近有数据的三天，更早日期按需读取。原音和位置不上传；服务器订正不会改动手机原文。",14,AgentUI.MUTED));
    if(state.config!=null)body.addView(AgentUI.text(activity,state.config.connection.preview(),13,AgentUI.MUTED));
    MaterialSyncSession.Status s=state.status;body.addView(AgentUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,AgentUI.INK));
    if(s.days>0)body.addView(AgentUI.text(activity,"本次读取每日总结 "+s.discovered+" 份；发现数量不代表服务器已保存数量。",14,AgentUI.MUTED));
@@ -78,7 +80,7 @@ final class MaterialWorkspace {
   ZoneId zone=ZoneId.systemDefault();LocalDate today=LocalDate.now(zone);String timezone=zone.getId();
   DatePickerDialog picker=new DatePickerDialog(activity,(view,year,month,day)->{
    if(activity.isDestroyed())return;String date=LocalDate.of(year,month+1,day).toString();
-   AgentUI.alert(activity).setTitle("按日期同步每日总结").setMessage("日期："+date+"\n时区："+timezone+"\n\n将该日可读取的 AI 总结同步至已配置资料空间：\n"+target.connection.preview()+"\n\n仅限原厂近期日报中可用的日期；音频和转写不会上传。")
+   AgentUI.alert(activity).setTitle("按日期同步智记文字").setMessage("日期："+date+"\n时区："+timezone+"\n\n将该日已读取的智记文字及可用每日总结同步至资料空间：\n"+target.connection.preview()+"\n\n更早日期需先在资料页打开加载。原音和位置不会上传。")
     .setNegativeButton("取消",null).setPositiveButton("开始同步",(dialog,which)->{
      if(activity.isDestroyed())return;starting.run();runtime.syncDay(date,timezone,(done,code)->{if(!activity.isDestroyed())renderResult(activity,code,refresh);});
     }).show();
@@ -91,7 +93,7 @@ final class MaterialWorkspace {
   AgentUI.button(activity,screen.body,"选择资料登记文件",false,()->TaskFilePicker.pick(activity,uri->{if(closed[0])return;try{InputStream in=activity.getContentResolver().openInputStream(uri);if(in==null)throw new IOException();preview.accept(read(in));}catch(Exception failure){info.setText("无法读取登记文件，请重新选择。");}}));
   AgentUI.button(activity,screen.body,"读取电脑登记文件",false,()->{try{File internal=new File(activity.getFilesDir(),"connection-import/material-connection.json"),external=activity.getExternalFilesDir(null),file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/material-connection.json");if(file==null)throw new IOException();preview.accept(read(new FileInputStream(file)));}catch(Exception missing){info.setText(label("MATERIAL_IMPORT_UNAVAILABLE"));}});
   if(saved!=null)AgentUI.button(activity,screen.body,"读取已保存连接",false,()->preview.accept(saved.connection.encode()));
-  CheckBox enabled=new CheckBox(activity);enabled.setText("允许将当前账号的每日 AI 总结同步到此服务器");enabled.setTextColor(AgentUI.INK);screen.body.addView(enabled);
+  CheckBox enabled=new CheckBox(activity);enabled.setText("允许将当前账号的智记文字和每日总结同步到此服务器");enabled.setTextColor(AgentUI.INK);screen.body.addView(enabled);
   AgentUI.button(activity,screen.body,"核对并保存",true,()->{if(candidate[0]==null){info.setText("请先读取资料登记文件。");return;}info.setText("正在核对服务器身份…");runtime.configure(candidate[0].encode(),enabled.isChecked(),(state,error)->{refresh.run();if(closed[0])return;if(error.isEmpty()){screen.dialog.dismiss();}else info.setText(label(error));});});
   screen.dialog.setOnDismissListener(dialog->{closed[0]=true;candidate[0]=null;runtime.cancelPending();});
  }

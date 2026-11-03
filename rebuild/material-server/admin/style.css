@@ -38,3 +38,5 @@ body:has(.console-shell:not([hidden])) main{max-width:none;padding:0 28px}.conso
 
 /* Action feedback stays out of document flow so a successful edit does not move the list. */
 #notice{position:fixed;right:24px;bottom:24px;z-index:4;display:flex;align-items:center;gap:16px;max-width:calc(100vw - 48px);margin:0;padding:9px 12px;box-shadow:0 4px 18px #213b3312}#notice button{padding:2px;border:0;background:transparent;min-height:24px;color:var(--accent)}#notice button .icon{width:14px;height:14px}
+
+.correction-history{margin-top:24px;border-top:1px solid var(--line)}.correction-history del,.correction-history ins{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;padding:8px 12px;border-radius:6px;text-decoration:none}.correction-history del{background:#fff0ed;color:#985043}.correction-history ins{background:#e6f3ed;color:#176a56}

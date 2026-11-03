@@ -49,7 +49,7 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       if(url.pathname.startsWith('/v1/admin/')){
         if(req.headers.authorization)reject(400,'INVALID_ADMIN_INPUT');
         const route=url.pathname.slice('/v1/admin/'.length),write=req.method==='POST';
-        if(!((write&&['login','logout','password','action'].includes(route))||(req.method==='GET'&&['session','summary','overview','devices','sessions','tasks','task','daily','daily-detail','traffic','audit'].includes(route))))reject(404,'NOT_FOUND');
+        if(!((write&&['login','logout','password','action'].includes(route))||(req.method==='GET'&&['session','summary','overview','devices','sessions','tasks','task','daily','daily-detail','history','traffic','audit'].includes(route))))reject(404,'NOT_FOUND');
         if(url.search&&(write||['session','summary'].includes(route)))reject(400,'INVALID_ADMIN_INPUT');
         if(write&&req.headers.origin!==adminOrigin)reject(403,'ADMIN_ORIGIN_REQUIRED');
         const cookies=(req.headers.cookie??'').split(';').map(v=>v.trim()).filter(v=>v.startsWith('__Secure-io_admin='));
@@ -127,6 +127,17 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       }
       if(req.method==='GET'&&url.pathname==='/v1/identity'){
         if(url.search)reject(400,'INVALID_QUERY');send(200,store.identity(token));return;
+      }
+      if(url.pathname.startsWith('/v1/lifelog-text')){
+        observation.route='materials';
+        if(req.method==='GET'&&url.pathname==='/v1/lifelog-text'){send(200,store.lifelog.read(token,query));return;}
+        if(req.method==='POST'&&!url.search){
+          if(url.pathname==='/v1/lifelog-text/head'){send(200,store.lifelog.head(token,await smallJson(req,observation)));return;}
+          if(url.pathname==='/v1/lifelog-text/source'){send(200,store.lifelog.upload(token,await smallJson(req,observation,4*1048576+4096)));return;}
+          if(url.pathname==='/v1/lifelog-text/correct'){send(200,store.lifelog.correction(token,await smallJson(req,observation,1048576)));return;}
+          if(url.pathname==='/v1/lifelog-text/history'){const p=store.auth(token,'lifelog:read');send(200,store.lifelog.history(p.owner,await smallJson(req,observation)));return;}
+        }
+        reject(404,'NOT_FOUND');
       }
       if(req.method==='GET'&&url.pathname==='/v1/daily-summaries'){
         observation.route='materials';send(200,store.page(token,'daily-summaries',query));return;

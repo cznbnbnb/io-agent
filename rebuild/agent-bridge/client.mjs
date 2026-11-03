@@ -96,7 +96,7 @@ export class BridgeClient{
       const reader=response.body?.getReader();if(!reader)fail('INVALID_RESPONSE',{permanent:true});
       const chunks=[];let size=0;
       try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;
-        if(size>MAX_RESPONSE){await reader.cancel();fail('RESPONSE_TOO_LARGE',{permanent:true});}chunks.push(value);}}
+        if(size>(path==='lifelog-text/history'?32*MAX_RESPONSE:path.startsWith('lifelog-text')?8*MAX_RESPONSE:MAX_RESPONSE)){await reader.cancel();fail('RESPONSE_TOO_LARGE',{permanent:true});}chunks.push(value);}}
       finally{reader.releaseLock();}
       text=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));
     }catch(e){if(e instanceof BridgeError)throw e;fail('NETWORK_UNAVAILABLE',{retryable:true});}
@@ -131,6 +131,30 @@ export class BridgeClient{
     if(!page||!Array.isArray(page.items)||page.items.length>(filters.limit??20)||typeof page.has_more!=='boolean'||typeof page.next_cursor!=='string'||!page.next_cursor||page.next_cursor.length>4096||!stamp(page.server_time)||!stamp(page.fresh_until)||page.coverage?.scope!=='server_stored_daily_ai_summaries'||page.coverage.phone_sync_status!=='unknown'||page.has_more&&page.items.length===0)fail('INVALID_RESPONSE',{permanent:true});
     for(const item of page.items)if(!item||typeof item.material_id!=='string'||!item.material_id.startsWith('daily-')||!integer(item.revision)||typeof item.date!=='string'||!/^\d{4}-\d\d-\d\d$/.test(item.date)||typeof item.text!=='string'||!item.text.startsWith('# '+item.date+' 每日 AI 总结')||!stamp(item.started_at)||!stamp(item.ended_at)||!stamp(item.stored_at)||item.source_ref?.server_id!==this.config.server_id||item.source_ref.material_id!==item.material_id||item.source_ref.revision!==item.revision||item.content_role!=='source_data')fail('INVALID_RESPONSE',{permanent:true});
     return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page};
+  }
+  /** CLI daily returns complete selected days; pagination is transport-only unless explicitly requested. */
+  async daily(input={}){
+    if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['date','from','to','keyword','kind','limit','cursor'].includes(k))||input.date!==undefined&&(input.from!==undefined||input.to!==undefined))fail('INVALID_QUERY');
+    const filters={...input};if(filters.date!==undefined){filters.from=filters.to=filters.date;delete filters.date;}
+    for(const day of [filters.from,filters.to].filter(v=>v!==undefined))if(typeof day!=='string'||!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)fail('INVALID_QUERY');
+    if(filters.from&&filters.to&&filters.to<filters.from||filters.limit!==undefined&&(!Number.isInteger(filters.limit)||filters.limit<1||filters.limit>100)||filters.keyword!==undefined&&(typeof filters.keyword!=='string'||!filters.keyword||filters.keyword.length>512)||filters.kind!==undefined&&!['summary','segment','transcript'].includes(filters.kind)||filters.cursor!==undefined&&(typeof filters.cursor!=='string'||!filters.cursor||filters.cursor.length>4096))fail('INVALID_QUERY');
+    const completeDays=(!!filters.from||!!filters.to)&&filters.limit===undefined&&filters.cursor===undefined,items=[];let cursor=filters.cursor,page,bytes=0;
+    do{
+      const query=new URLSearchParams(Object.entries({...filters,...(cursor?{cursor}:{})}).map(([k,v])=>[k,String(v)]));
+      page=(await this.#send('GET','lifelog-text?'+query)).body;
+      if(!page||!Array.isArray(page.items)||typeof page.has_more!=='boolean'||page.has_more&&(!page.items.length||typeof page.next_cursor!=='string'||page.next_cursor===cursor)||page.coverage?.scope!=='server_stored_lifelog_text')fail('INVALID_RESPONSE');
+      for(const item of page.items)if(typeof item.material_id!=='string'||!integer(item.revision)||!Number.isSafeInteger(item.correction_revision)||typeof item.text!=='string'||!Array.isArray(item.blocks)||!Array.isArray(item.notes)||item.content_role!=='source_data'||item.source_ref?.server_id!==this.config.server_id)fail('INVALID_RESPONSE');
+      bytes+=Buffer.byteLength(JSON.stringify(page.items));if(bytes>32*1048576)fail('DAILY_RESULT_TOO_LARGE',{detail:'Use a smaller date range or explicit limit/cursor; no partial result was returned.'});
+      items.push(...page.items);cursor=page.next_cursor;
+    }while(completeDays&&page.has_more);
+    return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page,items,complete:!page.has_more};
+  }
+  async dailyEdit(action,input){
+    if(!['daily-correct','daily-note','daily-revert','daily-history'].includes(action)||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_QUERY');
+    if(action==='daily-history')return (await this.#send('POST','lifelog-text/history',JSON.stringify(input))).body;
+    if(action==='daily-correct'&&!Array.isArray(input.edits)||action==='daily-note'&&typeof input.note!=='string'||action==='daily-revert'&&!integer(input.revert_revision))fail('INVALID_CORRECTION');
+    const payload=JSON.stringify(input);if(Buffer.byteLength(payload)>1048576)fail('CORRECTION_TOO_LARGE');
+    return (await this.#send('POST','lifelog-text/correct',payload)).body;
   }
   async inbox(cursor=null,limit=20){
     const query=new URLSearchParams({limit:String(limit)});
