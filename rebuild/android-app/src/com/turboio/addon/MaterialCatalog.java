@@ -31,7 +31,7 @@ final class MaterialCatalog {
   }
   private Entry(Entry entry,String title,Set<LocalDate> memberships){id=entry.id;this.title=title==null||title.trim().isEmpty()?entry.title:title;source=entry.source;state=entry.state;error=entry.error;fullText=entry.fullText;audioState=entry.audioState;coverage=entry.coverage;revision=entry.revision;startedAt=entry.startedAt;endedAt=entry.endedAt;storedAt=entry.storedAt;observedAt=entry.observedAt;day=entry.day;zone=entry.zone;segments=entry.segments;Set<LocalDate> dates=new TreeSet<>(memberships);this.dates=Collections.unmodifiableSet(dates);}
   String timeRange(){DateTimeFormatter f=DateTimeFormatter.ofPattern("HH:mm",Locale.ROOT);return f.format(Instant.ofEpochMilli(startedAt).atZone(zone))+" – "+f.format(Instant.ofEpochMilli(endedAt).atZone(zone));}
-  String syncLabel(){switch(state){case "local_only":return "文字已读取 · 仅保存在手机";case "local_updated":return "文字已更新 · 尚未上传";case "server_stored":return "文字已同步";case "blocked":return "同步需处理";case "expired":return "同步凭据或事件已到期";case "reconcile":return "正在核对同步结果";case "sending":return "正在同步";default:return "文字待同步";}}
+  String syncLabel(){switch(state){case "local_only":return "手机原文 · 已读取";case "local_updated":return "手机原文 · 已更新";case "server_stored":return "文字已同步";case "blocked":return "同步需处理";case "expired":return "同步凭据或事件已到期";case "reconcile":return "正在核对同步结果";case "sending":return "正在同步";default:return "文字待同步";}}
  }
  final String account;final ZoneId zone;final List<Entry> entries;final Set<LocalDate> dates;
  final int stored,pending,attention,localOnly;final long lastStoredAt;private final Set<String> deleted;

@@ -78,14 +78,14 @@ final class MaterialBatch {
   sheet.action("全选",()->list[0].setAll(!list[0].everything()));changed.run();sheet.show();
  }
 
- /** Pick one of the recent days for a one-off daily-summary sync. */
+ /** Quick selection of a recent day; older dates are synced from the materials calendar. */
  static void syncDay(Activity a,ZoneId zone,String target,Consumer<LocalDate> start){
   MaterialReadingUI.Sheet sheet=new MaterialReadingUI.Sheet(a,"按日期同步","把所选日期已读取的智记文字及每日总结同步到 "+target+"。原音和位置不上传；更早日期先在资料页打开加载。",0.5f);
   LocalDate today=LocalDate.now(zone);LocalDate[] picked={today};TextView[] confirm={null};List<MaterialReadingUI.Tick> ticks=new ArrayList<>();String[] week={"一","二","三","四","五","六","日"};
   LinearLayout card=AgentUI.column(a);card.setBackground(MaterialReadingUI.fill(a,MaterialReadingUI.CARD,16));card.setClipToOutline(true);LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.topMargin=AgentUI.dp(a,10);sheet.body.addView(card,cp);
   for(int i=0;i<7;i++){LocalDate day=today.minusDays(i);if(i>0){View rule=new View(a);rule.setBackgroundColor(MaterialReadingUI.LINE);LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,AgentUI.dp(a,1));rp.leftMargin=AgentUI.dp(a,14);card.addView(rule,rp);}
    LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(AgentUI.dp(a,4),0,AgentUI.dp(a,14),0);row.setBackground(MaterialReadingUI.pressable(a,null));MaterialReadingUI.Tick tick=MaterialReadingUI.tick(a,row,MaterialReadingUI.ACCENT_SOFT,MaterialReadingUI.ON_ACCENT);ticks.add(tick);
-   String name=(i==0?"今天 · ":i==1?"昨天 · ":"")+day.getMonthValue()+"月"+day.getDayOfMonth()+"日 周"+week[day.getDayOfWeek().getValue()-1];row.addView(AgentUI.text(a,name,15,i<3?AgentUI.INK:AgentUI.MUTED),new LinearLayout.LayoutParams(0,-2,1));if(i>=3)row.addView(AgentUI.text(a,"可能已不可用",12,AgentUI.MUTED));
+   String name=(i==0?"今天 · ":i==1?"昨天 · ":"")+day.getMonthValue()+"月"+day.getDayOfMonth()+"日 周"+week[day.getDayOfWeek().getValue()-1];row.addView(AgentUI.text(a,name,15,AgentUI.INK),new LinearLayout.LayoutParams(0,-2,1));
    final int index=i;row.setFocusable(true);row.setContentDescription(name);row.setOnClickListener(v->{picked[0]=day;for(int k=0;k<ticks.size();k++)ticks.get(k).set(k==index?MaterialReadingUI.Tick.ALL:MaterialReadingUI.Tick.NONE);confirm[0].setText("同步 "+day.getMonthValue()+"月"+day.getDayOfMonth()+"日");});
    card.addView(row,new LinearLayout.LayoutParams(-1,AgentUI.dp(a,52)));}
   ticks.get(0).set(MaterialReadingUI.Tick.ALL);

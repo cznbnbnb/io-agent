@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-03",
+  "device_version": "0.5.3-dev163",
+  "timezone": "Asia/Shanghai",
+  "source": "Android dumpsys location; original host 1.0.10 pinned smali; no coordinate or audio export",
+  "gps_observations": {
+    "foreground_request_interval_ms": 5000,
+    "foreground_delivery_intervals_seconds_observed": [
+      5,
+      6,
+      8,
+      9
+    ],
+    "background_first_unregister": "18:52:29.826",
+    "background_next_register": "19:02:29.861",
+    "background_next_unregister": "19:02:39.862",
+    "background_burst_request_interval_ms": 1000,
+    "background_burst_duration_ms": 10001,
+    "background_burst_deliveries": 1,
+    "current_gps_request": "OFF",
+    "one_background_cycle_only": true
+  },
+  "historical_statistics": {
+    "window": "since system location statistics began; not one day",
+    "gps_active_duration": "1d 1h 29m 15s",
+    "gps_deliveries": 14152,
+    "request_interval_range_ms": [
+      1000,
+      30000
+    ],
+    "cannot_attribute_historical_requests_to_actual_ui_background": true
+  },
+  "code_findings": {
+    "stock_amap_option_mode": "Hight_Accuracy",
+    "stock_amap_gps_first": true,
+    "stock_continuous_interval_from": "LocationUpdateSettings.sourceIntervalMillis",
+    "existing_dev161_policy": "Only failed background one-shot retries: 60 seconds then 300 seconds; cache/in-flight/foreground/continuous unchanged",
+    "lifelog_text_sync_starts_location": false
+  },
+  "status": "INVESTIGATION_PENDING_SYSTEM_FINGERPRINT",
+  "diagnostic_apk": "com.turboio.performance.codex",
+  "product_location_policy_changed": false,
+  "limits": [
+    "No per-day battery saving inferred from request intervals or short samples.",
+    "One background burst does not establish a fixed schedule or exclude another continuous-owner path.",
+    "Need read-only provider/owner states to attribute continuous versus one-shot behavior; installation pending user fingerprint."
+  ]
+}

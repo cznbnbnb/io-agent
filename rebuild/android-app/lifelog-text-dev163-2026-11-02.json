@@ -43,7 +43,9 @@
     "portable_correction_read_undo_passed": true,
     "actual_account_daily_complete": true,
     "actual_account_text_kinds": [
-      "summary"
+      "summary",
+      "segment",
+      "transcript"
     ],
     "native_session_replaced": false,
     "formal_sessions_online_and_executable": true,
@@ -65,9 +67,9 @@
     "code": 10585,
     "signed": true,
     "sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
-    "installed": false,
-    "last_installed": "dev162",
-    "blocker": "No USB device; 100.73.124.63:39527 connect timed out; requested current address",
+    "installed": true,
+    "last_installed": "dev163",
+    "blocker": null,
     "delta": {
       "baseline_sha256": "940dd293e1c5120edcf62075bdbd96967478e3993fc07d583095ff90f548e8e1",
       "candidate_sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
@@ -76,13 +78,180 @@
       "commands": 8141,
       "delta_sha256": "c6ba00cfa84ba96ee371be98bd5481c10292cd6f4448297a98d121f7564cf461",
       "reconstruction_hash_verified": true
-    }
+    },
+    "installed_confirmed_at": "2026-11-03T10:50:40Z",
+    "installed_sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
+    "normal_app_started": true,
+    "existing_pairing_preserved": true
   },
   "limitations": [
-    "Real phone text upload not yet verified.",
     "Old cached insight summary fields may retain prior truncation until the source day is refreshed.",
     "Only cached/read days are uploaded; no surprise historical full fetch.",
     "Corrected dependencies invalidate old summaries; regeneration needs an Agent explicit edit, not automatic model billing.",
-    "Historical text is retained; this release adds no authoritative deletion sync."
-  ]
+    "Historical text is retained; this release adds no authoritative deletion sync.",
+    "Normal phone UI and server immutable-source readback verified; private phone source files were not separately exported for hash comparison."
+  ],
+  "real_upload": {
+    "at": "2026-11-03T11:02:25.049Z",
+    "date": "2026-11-02",
+    "complete": true,
+    "counts": {
+      "summary": 1,
+      "segment": 3,
+      "transcript": 14
+    },
+    "blocks": 4905,
+    "chars": 86021,
+    "source_revision_readback_matches_daily": true,
+    "real_corrections_made": false,
+    "checks": [
+      {
+        "kind": "summary",
+        "revision": 2,
+        "blocks": 1,
+        "chars": 1121,
+        "sha256": "2ff28279172f8941ff3eaf0546a31d86cafc629f77919bb44f26d8919e2576c2",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "segment",
+        "revision": 1,
+        "blocks": 10,
+        "chars": 255,
+        "sha256": "0e6809e55bc81d6f0266cd734988f6853ef446856ee9e61a9c23a56fcc740cb1",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 44,
+        "chars": 677,
+        "sha256": "88efec1464a1970850e8ea65a38671558f9935fe935c904742a95880e1872b57",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 6,
+        "chars": 25,
+        "sha256": "44b257cec6fbc51133b8866ade384df5c3f29173c41361bcea55d3222c2a0edb",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 699,
+        "chars": 15847,
+        "sha256": "349dedc504abecbd8cd8288ec14ebe60d2304bad8ca2a1c62593f6e215b2c80f",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "segment",
+        "revision": 1,
+        "blocks": 71,
+        "chars": 2045,
+        "sha256": "c66a2db6118c56ced74baabc378102e199f6d9ee2d23253f32314bb41a2d965b",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 145,
+        "chars": 1744,
+        "sha256": "e1e1487869d64636bda5f8f36d1fcca4868331c5a82876855c96adced1227f1b",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 726,
+        "chars": 12867,
+        "sha256": "872dda1fd1d2375d05e225d26ebebd8c34418639ed7f8b98f2af6a534fa7f316",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 237,
+        "chars": 4546,
+        "sha256": "956d37a04fb10297eb330465d85c79b4eda6ded2d6f97181871683ba80b44e8b",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 181,
+        "chars": 3265,
+        "sha256": "1b26a506b04bc58a4f8ef0b90fc1de651c534d505809f24b6185bcbcf7af4b58",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 310,
+        "chars": 4760,
+        "sha256": "c6c718a23f7a7e436a596d5e52ce1bc6b7821c8809c5a3a84af3880ee5b437e6",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 4,
+        "chars": 16,
+        "sha256": "1652fec593ab728b37ca9cd570968989a2b58acbcf378cb1b60f99de11033a74",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 495,
+        "chars": 6884,
+        "sha256": "d0a1f9fae29c32628fb51e4c6130331fe5f055cb0be91bc5e9fb29a437c57ef7",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 104,
+        "chars": 1718,
+        "sha256": "0202e9e54b7df1f1541cade834b97c7c3a3aad0e18f516b9b9483005c27da390",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 2,
+        "chars": 5,
+        "sha256": "bfc33c5e016b771c8381facd3e97b8ec501cc96855b738032a93d2e61614519d",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 1509,
+        "chars": 25265,
+        "sha256": "087e488689fea832269c0265066eaef92d9c02d37de5a09781cdbc592e65e112",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "transcript",
+        "revision": 1,
+        "blocks": 355,
+        "chars": 4631,
+        "sha256": "5e984994d2f84e70586570e92251b4d1b07b167b373d57edac6be0a4680f51fc",
+        "original_readback_equal": true
+      },
+      {
+        "kind": "segment",
+        "revision": 1,
+        "blocks": 6,
+        "chars": 350,
+        "sha256": "4244c42363c1944c25f4f6c776d935a9283cfb4f24ada487c3f38a6a03ae51f9",
+        "original_readback_equal": true
+      }
+    ],
+    "phone_previous_day_record_count": 14,
+    "phone_source_file_hash_independently_read": false,
+    "upload_ack_hash_validation": "production client validates canonical source SHA against server ACK before recording success"
+  }
 }

@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-03",
+  "base": "6750d61",
+  "candidate": {
+    "version": "0.5.3-dev164",
+    "version_code": 10586,
+    "sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
+    "bytes": 435087977,
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "installed": false
+  },
+  "scope": [
+    "Use phone-original labels without falsely claiming server status from obsolete outbox",
+    "Count stored text as items, not days",
+    "Label seven-day quick picker accurately; no unsupported three-day expiry claim"
+  ],
+  "background_history_loading_changed": false,
+  "location_policy_changed": false,
+  "tests": {
+    "catalog_document_checks": 35,
+    "local_library_checks": 46,
+    "java_d8": true,
+    "signing_provenance_apk_audit": true
+  },
+  "delta": {
+    "baseline_version": "dev163",
+    "baseline_sha256": "ae272a8d7c3332c7ffb3a93a746fbccbad9b7c7d4448f28d316a5c275afe0ea7",
+    "bytes": 1971180,
+    "sha256": "39d9dab9ee68625b327402b1c794e506bd423587baca2a1844c1d96450c68f39",
+    "local_reconstruction_verified": true
+  },
+  "pending": "No overlapping install while read-only performance probe awaits system fingerprint; UI live verification pending."
+}
