@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 发布无凭据CLI分发包0.2.0
+
+- 分发ZIP位于 docs/distribution/cz-iot-cli.zip，194,131字节、53文件，SHA256SUMS同时提交；MANIFEST源提交为 ad050ce03a5cf623ac2a3c20f605101f3dccc43e，逐文件摘要已全部核对。后续只改发布记录不重新包装，避免source_commit自引用。
+- 最终ZIP扫描两项generic-api-key提示均为文档中的todo_key幂等示例，已逐项核实，不是访问密钥；源码暂存扫描无泄漏。历史198提交的31项误报已核实，未改写历史。ZIP不含现场配对码、密钥、私有连接、数据库、音频或智记正文。
+- 最终包的本地Git更新集成测试再次通过（check/update/no-op/状态保留/哈希损坏/路径拒绝/替换失败恢复）。推送目标为新Private origin cznbnbnb/io-agent 的 codex/agent-workspace-ui；不合并main、不改变权限或默认分支。另一Agent请从该分支的 docs/CLI-QUICKSTART.md 开始，未知Agent的原生唤起/打断不在问答CLI保证内。
+- 本机旧受管安装尚无MANIFEST，下一步仅补公共安装元数据、用本次审核ZIP更新代码，再从真实私库运行update --check；配对、私有目录、当前Agent及正式连接不停止，手机/眼镜未操作，装机仍dev172。
+
 ## [codex] 2026-11-04 CLI 0.2.0 私库分发与自助更新（执行中）
 
 - 用户要求项目放私有仓库、重点介绍CLI并给另一Agent试绑定，随后新增update命令并要求仓库名不含rayneo。已在用户登录的GitHub中把既有仓库改名为 `cznbnbnb/io-agent`，Private未变；共享Git origin已同步新地址，本机目录与实际会话/配对未改。
