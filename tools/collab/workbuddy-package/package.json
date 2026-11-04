@@ -1,6 +1,6 @@
 {
   "name": "cz-iot-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Paired glasses CLI for Agent questions, daily summaries and confirmation-gated todos",
   "type": "module",

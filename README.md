@@ -1,14 +1,18 @@
 # iO Agent · cz-iot-cli
 
+**让另一个 Agent 连接眼镜，先看 [CLI 快速接入](docs/CLI-QUICKSTART.md)。** [下载无凭据便携包](docs/distribution/cz-iot-cli.zip) · [文件摘要](docs/distribution/SHA256SUMS)。私有仓库需要 GitHub 读取权限；手机扫码或粘贴绑定字符串后才授予这台电脑访问，不转发原电脑密钥。
+
+CLI 0.2.0 起可用 `cz-iot-cli update --check` 检查、`cz-iot-cli update` 更新。只更新代码并保留配对；常驻连接器在原任务结束后重启加载新代码。完整步骤、问答验收和更新条件见快速接入。
+
 基于固定版本 Turbo-IO 与官方 Android App 宿主，开发眼镜、手机、服务器与电脑 Agent 的任务及资料闭环。当前采用 Android 优先路线，保留鸿蒙源码，待 Android 成熟后适配。
 
 ## 产品与入口
 
-手机 App 名称为 **iO Agent**；电脑端 CLI 正式名称为 **cz-iot-cli**，支持 Claude、Codex 和其他能够执行命令的 Agent。配对一次后可投送眼镜消息、问答、读取已同步的每日 AI 总结，并建议待办（点头确认后添加）。
+手机 App 名称为 **iO Agent**；电脑端 CLI 正式名称为 **cz-iot-cli**，支持 Claude、Codex 和其他能够执行命令并提供真实会话身份的 Agent。配对一次后可投送眼镜消息、问答、查询已同步的总结/分段/转写与活动日历，并建议待办（点头确认后添加）。
 
 便携包入口与跨电脑使用见 [cz-iot-cli 使用说明](tools/collab/workbuddy-package/README.md)。旧 `io-agent.mjs` 调用继续兼容，现有配对、会话和本机资料不因改名迁移。当前功能与装机版本以 [协作交接](docs/product/COLLABORATION-HANDOFF.md) 顶部为准，不在此重复维护旧进度百分比。
 
-当前 Android 仍复用固定原厂宿主的登录、蓝牙、智记与待办能力；独立产品命名不等于这些依赖已经移除。Android 安装身份保留以支持原地更新，原厂内置页面与第三方来源说明按实际保留。
+当前 Android 独立包 `cn.cznbnb.ioagent` 复用固定原厂宿主的登录、蓝牙、智记与待办能力；独立产品命名不等于这些依赖已经移除。原厂内置页面与第三方来源说明按实际保留。
 
 先阅读 [协作交接](docs/product/COLLABORATION-HANDOFF.md)、[开发状态](docs/product/DEVELOPMENT-STATUS.md)、[开发计划](docs/product/DEVELOPMENT-PLAN.md) 和 [项目约定](AGENTS.md)。需求以 [PRD](docs/product/PRD.md) 为准，人工观察统一登记到 [验收清单](docs/product/USER-VERIFICATION-TODO.md)。
 
@@ -45,7 +49,7 @@ node tools/android/test-context-voice-fixture.mjs
 
 GitHub 只保存可审查的代码、协议、测试和进度。官方宿主 APK、固定自有签名、真实账号凭据、原音、智记正文、设备身份、工具缓存与历史原始日志保留在本地，不进入仓库。没有这些私有输入仍可推进纯核心、服务器和模拟测试；完整装包及真机验收由持有相应环境的开发者完成。
 
-官方宿主固定为 **1.0.7 / 230**，SHA-256 为 `30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91`。不要用其他官方版本替换输入来跳过 ABI 或来源门禁。不要为绕过签名冲突卸载 App 或清数据。
+当前 Android 宿主固定为 **1.0.10 / 258**，摘要与适配门禁以 `rebuild/android-app/host-110.mjs` 为准。CLI 使用者不需要这个 APK。不要用其他官方版本替换构建输入来跳过 ABI 或来源门禁，不为绕过签名冲突卸载 App 或清数据。
 
 ## 来源及许可
 

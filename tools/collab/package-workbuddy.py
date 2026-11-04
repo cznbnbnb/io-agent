@@ -32,7 +32,7 @@ if __name__=='__main__':
  output=parser.parse_args().output;output.parent.mkdir(parents=True,exist_ok=True)
  payload={str(p.relative_to(ROOT)).replace('\\','/'):p.read_bytes() for p in files()}
  for p in (ROOT/'tools/collab/workbuddy-package').iterdir():
-  if p.is_file() and (p.suffix in ['.md','.mjs'] or p.name=='package.json'):payload[p.name]=p.read_bytes()
+  if p.is_file() and (p.suffix in ['.md','.mjs','.py'] or p.name=='package.json'):payload[p.name]=p.read_bytes()
  payload['rebuild/agent-bridge/vendor/qrcode-LICENSE']=(BRIDGE/'vendor/qrcode-LICENSE').read_bytes()
  payload['rebuild/agent-bridge/package.json']=(BRIDGE/'package.json').read_bytes()
  manifest={'format':'cz-iot-cli-package/1','name':'cz-iot-cli','entrypoint':'cz-iot-cli.mjs','compatibility_entrypoints':['io-agent.mjs'],'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'contains_credentials':False,'files':{p:hashlib.sha256(b).hexdigest() for p,b in sorted(payload.items())}}

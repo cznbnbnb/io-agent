@@ -1,5 +1,7 @@
 # cz-iot-cli
 
+当前 CLI 版本 **0.2.0**。首次接入按下方“电脑只配对一次”操作；本包只含代码，没有这台电脑的配对凭据。自动更新用 `node cz-iot-cli.mjs update --check` / `node cz-iot-cli.mjs update`，见文末说明。
+
 每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。读取服务端已同步的总结、分段智记和逐字转写；不读音频或手机文件；空结果不代表当天没有活动。指定日期自动取全，显式分页时按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
 这是可独立解压的眼镜问答 CLI，无需克隆原项目。支持 Windows / macOS / Linux；Windows 和 WorkBuddy 本体的端到端行为尚未实测。
@@ -127,3 +129,17 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 
 
 2026-11-04：新增 `node cz-iot-cli.mjs daily-context`，stdin `{"date":"2026-10-30"}`。读取账号已同步的原厂已有活动、定位和日历，完整定位点仅在 `include_points:true` 时返回。`daily` 默认附结构化概览；没有原音、没有新增定位采集，日历不是实际出席记录。分页与来源限制见 `DAILY-SUMMARIES.md`。
+
+
+## 更新 CLI（0.2.0 起）
+
+```sh
+node cz-iot-cli.mjs update --check
+node cz-iot-cli.mjs update
+```
+
+已安装短命令时直接用 `cz-iot-cli update`。更新需 Git、已有的 Python3.10+ 环境以及私有仓库 `cznbnbnb/io-agent` 的读取权限；默认SSH，使用Git HTTPS认证时加 `--https`。不需要当前会话ID或手机连接。它只取 `codex/agent-workspace-ui` 通道中已经打包的 `docs/distribution/cz-iot-cli.zip`，不是直接运行未打包的开发源码。
+
+先核对外层与逐文件SHA，检查拒绝损坏包和越界文件，再替换代码；保留 `~/.turboio`、`.io-agent`、`rebuild/agent-bridge/private` 及其他不在代码清单中的文件。普通文件替换错误会恢复本次已换代码；不要并发执行更新，断电中断后需重试。安装目录需当前用户可写，不自动提权或修改系统目录权限。
+
+普通CLI下一次调用使用新版；已运行的受管连接器/会话监听器仍持有旧模块，需要等任务结束后重启。更新不会关闭用户的Agent。旧版不认识 update 时先手动换为0.2.0分发代码一次；不要删除原配对。返回 available:false 表示分发清单与已装代码一致，不需要重复更新。
