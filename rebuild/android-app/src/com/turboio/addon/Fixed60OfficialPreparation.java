@@ -15,7 +15,7 @@ final class Fixed60OfficialPreparation {
  private boolean verifying,directoryVerified;
  private Fixed60OfficialPreparation(Activity host){
   app=(Application)host.getApplication();foreground.add(host);
-  try{feed=new Fixed60OfficialFeed(SystemClock::elapsedRealtime,()->available&&(!FirmwareQueue.busy()||Fixed60OfficialRuntime.sourceCompatible()),ProductInfo.OFFICIAL_OTA_GUARDED);feed.start(18794);}
+  try{feed=new Fixed60OfficialFeed(SystemClock::elapsedRealtime,()->available&&(!FirmwareQueue.busy()||Fixed60OfficialRuntime.sourceCompatible()),ProductInfo.OFFICIAL_OTA_GUARDED);feed.start(Fixed60OfficialFeed.PORT);}
   catch(IOException unavailable){feed=null;note="本机更新源无法启动，保持禁止安装";}
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
    public void onActivityResumed(Activity a){foreground.add(a);}

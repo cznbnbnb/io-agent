@@ -3,11 +3,11 @@ import hashlib, struct
 
 MEMBER = 'lib/arm64-v8a/libapp.so'
 INPUT_SHA = '363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c'
-OUTPUT_SHA = 'a60b405791a3f1ab3110a7f27a3ab06f95bf5277d63de0ad58ac8bfcae742511'
+OUTPUT_SHA = '51aa02e05a8df9fcd8730f778f8cd5eaaed78689487b2bc96e7308a690dd5a47'
 SIZE = 45089712
 SLOTS = (
-    (8872178, b'/xrlauncherapi/v1/signApi/gray/upgrade', b'http://127.0.0.1:18794/g/xxxxxxxA78p2M'),
-    (902816, b'/xrlauncherhwapi/v1/signApi/gray/upgrade', b'http://127.0.0.1:18794/g/xxxxxxxxxxCCXhB'),
+    (8872178, b'/xrlauncherapi/v1/signApi/gray/upgrade', b'http://127.0.0.1:18795/g/xxxxxxxOhuKnB'),
+    (902816, b'/xrlauncherhwapi/v1/signApi/gray/upgrade', b'http://127.0.0.1:18795/g/xxxxxxxxxpJTwXJ'),
 )
 
 def patch_library(data):

@@ -10,7 +10,9 @@ import java.util.function.LongSupplier;
 
 /** Derived from pinned Turbo-IO OfficialOtaFeed. Fixed1.0.5.5 download only; no Bluetooth APIs. */
 final class Fixed60OfficialFeed implements Closeable {
- static final String[] PATHS={"/g/xxxxxxxA78p2M","/g/xxxxxxxxxxCCXhB"};
+ // The legacy package owns 18794; localhost ports are shared across app UIDs.
+ static final int PORT=18795;
+ static final String[] PATHS={"/g/xxxxxxxOhuKnB","/g/xxxxxxxxxpJTwXJ"};
  private final LongSupplier clock;private final BooleanSupplier protectedMode;private final boolean guarded;
  private ServerSocket listener;private volatile boolean closed;private byte[] archive;
  private String token="",md5="";private long deadline;private int queries,firmwareQueries,downloads,rejected;

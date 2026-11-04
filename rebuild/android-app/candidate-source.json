@@ -454,7 +454,7 @@
     },
     {
       "path": "src/com/turboio/addon/Fixed60OfficialFeed.java",
-      "sha256": "d8a9c5e8bcf8137b3943c9404457a3b2b773504eb026536d89c03ad6cfd81793"
+      "sha256": "e2e35343f54ed0be757bbf4512e6fa6abbca9ad965050bec1e528a0876a498ad"
     },
     {
       "path": "src/com/turboio/addon/Fixed60OfficialGate.java",
@@ -466,7 +466,7 @@
     },
     {
       "path": "src/com/turboio/addon/Fixed60OfficialPreparation.java",
-      "sha256": "0a09a0a2c3e6be333f9e5f6a279dfd002acace285f9d17a0db24814397df7f6f"
+      "sha256": "4480c62b9b0781c79970f860d5a326f3ffd763ef8887b136cff88f414a6ea76a"
     },
     {
       "path": "src/com/turboio/addon/Fixed60OfficialRuntime.java",
@@ -1074,16 +1074,16 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "6db2151847e245a7f2b657c9de82cbe04d4003c42dff19d51c6e7c3db19cc6fa"
+      "sha256": "c96ce288e6226c18e7eb2ddb4fff79d8cfdfa052924c5358bbb060c66f06e64e"
     }
   ],
-  "product_sha256": "642f021c45cc6df8ffdabb9a1fbff82e429a34801b75e41e4aa041e7d4fcd6b9",
-  "addon_sha256": "24279bd4101d6871342592fde6df91392a5e729fa8962dccf09c0f3c8531a964",
+  "product_sha256": "87f9e8f4b468d1d2be056eccc129519f6db30fea954a8c52577ae285ee86c970",
+  "addon_sha256": "e89ce8fc00b6ddaee8a6652161ce33ef1f774732226798988ad480d5fc120b1f",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "a4683a1fc05855eb8135da19c2c96b6418f74a367634bf533322e2dc8caf9de4"
   },
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",
-  "native_route_policy_sha256": "9616e8ccfa0c28d7fbe0ff79b55197f1696ce9077565c39dc19d89011a58e483"
+  "native_route_policy_sha256": "9c568991765492330d78f5c0e1d671d7963f9143340edb44a37e8817f43acfd0"
 }

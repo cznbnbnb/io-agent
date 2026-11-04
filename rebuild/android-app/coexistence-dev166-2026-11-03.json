@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T03:46:08.750569+00:00",
+  "version": "0.5.3-dev166",
+  "package": "cn.cznbnb.ioagent",
+  "sha256": "e7fb7ade3f8e6c84c1fd28beda3accb743963a7794d5ff8afb0a206bbf8c57ff",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "baseline_sha256": "6251b953b66f0459326460b9f3c5494226b5d5e11c1a0440b3f99cdad07f70bb",
+  "legacy_package": "com.rayneo.venus.pub",
+  "legacy_version": "0.5.3-dev164",
+  "legacy_sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
+  "legacy_sha_verified_after_install": true,
+  "legacy_data_cleared": false,
+  "legacy_uninstalled": false,
+  "official_apk_installed": false,
+  "delta_bytes": 18731346,
+  "delta_sha256": "66c3895dd214f59e0dfcabe9c864c03186c5d0dc032dbffde2e7d90b1c8b6973",
+  "installed_and_reconstructed_sha_verified": true,
+  "usb_pm_install_result": "Success",
+  "signature_warning_observed_in_this_install": false,
+  "fault": "New and legacy application IDs shared localhost port 18794. A failed source bind left feed null, causing pairing firmware-verification failure. Restarting dev165 after the old process stopped restored queries and reached home.",
+  "fix": "Independent app source and both same-length/same-Dart-hash native query URLs use 18795; no protocol instruction or firmware-install authorization changes.",
+  "device_regression": {
+    "legacy_package_process_running": false,
+    "legacy_port_held_by": "60-second loopback-only toybox nc listener; no second app Bluetooth channel",
+    "simultaneous_listeners": [
+      "LISTEN      0      0      127.0.0.1:18794              0.0.0.0:*                  ",
+      "LISTEN      0      0       [::ffff:127.0.0.1]:18795                    *:*                  "
+    ],
+    "new_source_running": true,
+    "real_query_count": 2,
+    "real_firmware_query_count": 1,
+    "rejected_count": 0,
+    "download_count": 0,
+    "firmware_phase": "LOCKED",
+    "new_process_fatal_exception_count": 0,
+    "dev166_foreground_page_verified": false,
+    "foreground_limit": "User switched to other applications; did not repeatedly seize foreground. Successful query counters came from freshly restarted dev166 process."
+  },
+  "regression_checks": [
+    "two native serialized routes exactly replaced; old 18794 absent; same Dart string hashes and readonly segments",
+    "HostPolicyTest passed",
+    "16 real HTTP checks: 18794 occupied, both paths with app/firmware return successful no-update, no download",
+    "Java/D8 build, APK v2/v3, zipalign, private and original DEX audits passed"
+  ],
+  "changed_zip_members_vs_dev165": [
+    "lib/arm64-v8a/libapp.so",
+    "AndroidManifest.xml",
+    "classes5.dex",
+    "assets/io-agent/product.json"
+  ],
+  "unchanged_zip_members_vs_dev165": 4069,
+  "not_done": [
+    "Original-signed app installation",
+    "Agent account/main-phone recovery, local audio/drafts/export migration",
+    "Package-bound service compatibility and full glasses acceptance"
+  ],
+  "phone_temp_cleanup": true,
+  "superseded_dev165_removed": true,
+  "retained_packages": {
+    "independent_current": 166,
+    "legacy_installed": 164,
+    "legacy_rollback_pending_migration": 163,
+    "offline_old_phone_exception": 154
+  }
+}

@@ -5,7 +5,28 @@ public final class Fixed60OfficialFeedTest {
  static String request(int port,String target,String extra){return "GET "+target+" HTTP/1.1\r\nHost: 127.0.0.1:"+port+"\r\n"+extra+"\r\n";}
  static Object data(Fixed60OfficialFeed.Reply r){ok(r.code==200);return BoundedJson.map(BoundedJson.read(r.body)).get("data");}
  public static void main(String[] args)throws Exception{
-  byte[] zip=Files.readAllBytes(Paths.get(args[0]));AtomicLong clock=new AtomicLong(1000);AtomicBoolean guard=new AtomicBoolean(true);
+  AtomicLong clock=new AtomicLong(1000);AtomicBoolean guard=new AtomicBoolean(true);
+  // Reproduce the migration case: the legacy app still owns the original port.
+  try(ServerSocket legacy=new ServerSocket(18794,4,InetAddress.getByName("127.0.0.1"));
+      Fixed60OfficialFeed f=new Fixed60OfficialFeed(clock::get,guard::get)){
+   int port=f.start(Fixed60OfficialFeed.PORT);ok(port==18795);ok(legacy.isBound());
+   for(String path:Fixed60OfficialFeed.PATHS)for(String kind:new String[]{"app","firmware"}){
+    String query=path+"?packageType="+kind+"&packageName=strix+OS&glassesType=S3&deviceType=android&versionCode=01.00.05.0005";
+    try(Socket s=new Socket("127.0.0.1",port)){
+     s.setSoTimeout(2000);s.getOutputStream().write(request(port,query,"").getBytes("UTF-8"));
+     ByteArrayOutputStream wire=new ByteArrayOutputStream();byte[] b=new byte[4096];int size;
+     while((size=s.getInputStream().read(b))!=-1)wire.write(b,0,size);
+     String response=wire.toString("UTF-8");ok(response.startsWith("HTTP/1.1 200 OK"));
+     Map<String,Object> body=BoundedJson.map(BoundedJson.read(response.substring(response.indexOf("\r\n\r\n")+4).getBytes("UTF-8")));
+     ok(((Number)body.get("error_code")).intValue()==1000);ok(body.get("data")==null);
+    }
+   }
+   ok(!f.armed());ok(f.fullResponses()==0&&f.servedBytes()==0);
+  }
+  if(args.length==1&&"--coexistence-only".equals(args[0])){
+   System.out.println("Fixed60 dual-package update source: "+n+" checks passed; loopback only, no firmware input or device I/O");return;
+  }
+  byte[] zip=Files.readAllBytes(Paths.get(args[0]));
   try(Fixed60OfficialFeed f=new Fixed60OfficialFeed(clock::get,guard::get)){
    int port=f.start(0);String query=Fixed60OfficialFeed.PATHS[1]+"?packageType=firmware&packageName=strix+OS&glassesType=S3&deviceType=android&versionCode=01.00.05.0005";
    ok(data(f.reply(request(port,query,"")))==null);byte[] caller=zip.clone();f.arm(caller);caller[0]^=1;
