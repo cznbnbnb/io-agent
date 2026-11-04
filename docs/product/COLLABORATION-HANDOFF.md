@@ -1,3 +1,11 @@
+## [codex] 2026-11-04 发布待GitHub HTTPS本人认证（代码已就绪）
+
+- 仓库已改名io-agent并保持Private；本批代码、最终ZIP与校验和均本地提交，本机CLI已升级0.2.0。Git push尚未成功，不能把这些本地提交/新文档称为已上传；源代码分支仍codex/agent-workspace-ui，main未动。
+- 用户批准仅io-agent仓库写入。GitHub部署公钥页面已显示专用公钥Read/write，指纹与本机私钥导出公钥一致；SSH实际22/443及隔离配置仍返回Permission denied(publickey)。不反复造新密钥，不借此申请其他仓库权限，也不声称真实update下载通过。
+- 已准备GitHub fine-grained token表单：仅cznbnbnb/io-agent、Contents读写+必需Metadata只读、默认30天；尚未生成。浏览器规则要求本人完成新认证凭据生成/录入，电脑控制工具还明确拒绝操作Terminal，未通过其他UI自动化绕过。
+- 已请求用户本人在GitHub生成并复制令牌，再在Mac终端运行 /tmp/io-agent-git-login.py 隐藏输入。脚本只存Mac钥匙串中该仓库路径凭据，设置仅该URL的HTTPS rewrite并写无密钥验证状态；不把令牌发到聊天、不进Git/ZIP。尚未执行该脚本，未新增HTTPS凭据或rewrite。
+- 用户完成后读取 /tmp/io-agent-git-login-status.json，再fetch核对新提交、push本分支、运行真实cz-iot-cli update --check，最后把已发布的Quickstart链接留给用户。若HTTPS验证失败，先如实定位，不宣称完成。眼镜推送关闭，本批无手机/眼镜动作，dev172不变，其他Agent未跟踪Delegate文件保留。
+
 ## [codex] 2026-11-04 最终CLI 0.2.0包与本机升级
 
 - 最终ZIP为194,278字节/53文件，SHA256为337975e4c30501e984461173f977b04f9f65137b03813999c1a2efa95f58fa94；source_commit为311bb41e01f9ddb8abc520a2aff10353423a3066。覆盖上一批包，包含Desktop SSH代理环境修正。最终逐文件摘要与更新集成测试通过，扫描仅两处已核实todo_key文档示例误报。
