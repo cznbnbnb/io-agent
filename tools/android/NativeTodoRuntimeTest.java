@@ -93,6 +93,13 @@ public final class NativeTodoRuntimeTest {
    yes(actionNames().equals(Arrays.asList("accept","begin","unknown")),"Unproven create result must report unknown, not success");
    yes(Host107LifelogHttp.writes.get()==1&&Host107Todo.refreshes.get()==0,"Unproven write must not refresh or retry");frames(f.uid,false);
   }
+  try(Fixture f=new Fixture(root)){
+   f.session.closed();set(f.runtime,"presenting",false);TaskPairing.polls=0;TaskDevice d=(TaskDevice)get(f.runtime,"device");Context context=new Context(root);
+   NativeTodoRuntime.wake(context,d,()->true,"v1");f.idle();yes(TaskPairing.polls==1,"First wake polls once");
+   for(int i=0;i<20;i++){NativeTodoRuntime.wake(context,d,()->true,"v1");f.idle();}yes(TaskPairing.polls==1,"Unchanged empty inbox must not poll every runtime tick");
+   NativeTodoRuntime.wake(context,d,()->true,"v2");f.idle();yes(TaskPairing.polls==2,"New proposal marker polls without waiting for fallback");
+   android.os.SystemClock.offset+=60001;NativeTodoRuntime.wake(context,d,()->true,"v2");f.idle();yes(TaskPairing.polls==3,"Missing watch has bounded fallback");android.os.SystemClock.offset=0;
+  }
   System.out.println("Native todo runtime: "+checks.get()+" checks passed; real observer/session/create and Host107Ota main guard, synthetic Android/transports");
  }
 }
@@ -102,7 +109,7 @@ public final class NativeTodoRuntimeTest {
 final class TaskDevice {final String server="synthetic.invalid",owner="synthetic-owner",producer="synthetic-phone";}
 final class TaskApi {static String safeError(Exception e){return e.getMessage()==null?e.getClass().getSimpleName():e.getMessage();}}
 final class TaskPairing {
- static List<NativeTodoSession.Proposal> todoSuggestions(TaskDevice device){throw new AssertionError("Polling is outside this decision callback test");}
+ static int polls;static List<NativeTodoSession.Proposal> todoSuggestions(TaskDevice device){polls++;return Collections.emptyList();}
  static Map<String,Object> todoAction(TaskDevice device,String id,Map<String,Object> body)throws Exception{
   NativeTodoRuntimeTest.ioThread("server todo action");String action=(String)body.get("action");NativeTodoRuntimeTest.events.add("server."+action);
   String expected=action.equals("accept")?"ACCEPTED":action.equals("begin")?"CREATING":action.equals("created")?"CREATED":action.equals("decline")?"DECLINED":action.equals("failed")?"FAILED":"UNKNOWN";

@@ -26,6 +26,7 @@ export class TodoSuggestions {
       if(previous){if(previous.payload!==payload)reject(409,'TODO_KEY_CONFLICT');return this.view(previous);}
       const id='todo-'+sha(canonical([p.owner,p.producer,input.todo_key]));
       this.store.db.prepare("INSERT INTO todo_suggestions VALUES (?,?,?,?,?,'pending_confirmation',NULL,NULL,NULL,?,?,?)").run(p.owner,id,p.producer,input.todo_key,payload,now,now,expires);
+      this.store.pendingInboxOwners.add(p.owner);
       return this.view(this.store.db.prepare('SELECT * FROM todo_suggestions WHERE owner=? AND id=?').get(p.owner,id));
     });
   }
@@ -68,6 +69,7 @@ export class TodoSuggestions {
       const allowed={show:['pending_confirmation'],accept:['shown'],decline:['shown'],begin:['accepted'],created:['creating','unknown'],failed:['shown','accepted','creating'],unknown:['accepted','creating']}[action];
       if(!allowed.includes(current.state))reject(409,'TODO_STATE_CONFLICT');
       this.store.db.prepare('UPDATE todo_suggestions SET state=?,phone_producer=?,native_id=?,error=?,updated_at=? WHERE owner=? AND id=?').run(target,p.producer,input.native_id??null,input.error??null,this.store.clock(),p.owner,id);
+      this.store.pendingInboxOwners.add(p.owner);
       return{...this.view(this.store.db.prepare('SELECT * FROM todo_suggestions WHERE owner=? AND id=?').get(p.owner,id)),may_create:action==='begin'};
     });
   }

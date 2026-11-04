@@ -367,7 +367,19 @@ public final class MaterialMonthRuntimeTest {
    try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==1&&schedule.status().indexed==1&&schedule.status().unverified==11);}
   }
  }
+ static void calendarReplacement()throws Exception{
+  long now=Instant.parse("2026-11-04T02:00:00Z").toEpochMilli();
+  try(Fixture f=new Fixture();MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
+   MaterialHistorySchedule.Plan p=schedule.begin(now,false);schedule.indexed(p,index(OWNER.binding,p.month,Arrays.asList("2026-11-01")),now+1);
+   schedule.include(YearMonth.of(2026,10),now+31000);p=schedule.begin(now+31000,false);yes(p.calendar()&&p.month.equals("2026-10"));
+   schedule.indexed(p,index(OWNER.binding,p.month,Arrays.asList("2026-10-28","2026-10-30")),now+31001);
+   long later=now+21631002;schedule.include(YearMonth.of(2026,10),later);p=schedule.begin(later,false);yes(p!=null&&p.calendar()&&p.month.equals("2026-10"));
+   schedule.indexed(p,index(OWNER.binding,p.month,Arrays.asList("2026-10-28")),later+1);
+   yes(!schedule.status().dates.contains(LocalDate.of(2026,10,30))&&schedule.status().dates.contains(LocalDate.of(2026,10,28)));
+  }
+ }
  static void recentHistoryWindow()throws Exception{
+  calendarReplacement();
   long now=Instant.parse("2026-10-29T02:00:00Z").toEpochMilli();
   try(Fixture f=new Fixture();MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){
    long at=now;for(int i=0;i<12;i++){MaterialHistorySchedule.Plan p=schedule.begin(at,false);yes(p.calendar());List<String> days=p.month.equals("2026-10")?Arrays.asList("2026-10-25"):p.month.equals("2026-09")?Arrays.asList("2026-09-10","2026-09-20","2026-09-30"):Collections.emptyList();schedule.indexed(p,index(OWNER.binding,p.month,days),at+1);at+=31000;}
@@ -401,7 +413,7 @@ public final class MaterialMonthRuntimeTest {
   try{
    // History belongs to the signed-in source account, not optional uploads.
    try(Fixture f=new Fixture()){
-    MaterialSettings.value=null;long dayAt=historyIndexed(f,now);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==0);noUpload();
+    MaterialSettings.value=null;long dayAt=historyIndexed(f,now);if(Host107LifelogHttp.calendars!=12||Host107LifelogHttp.lists!=0)throw new AssertionError("history count calendars="+Host107LifelogHttp.calendars+" lists="+Host107LifelogHttp.lists+" status="+f.runtime.historyStatus(OWNER.binding));noUpload();
     history(f,dayAt).get(3,TimeUnit.SECONDS);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==2&&Host107LifelogHttp.fulls==1);yes(local(f,OWNER.binding).days.size()==1);noUpload();
     try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().loaded==1&&schedule.status().indexed==12);}
     yes(f.runtime.historyStatus(OWNER.binding).contains("12 个月")&&!f.runtime.historyStatus(OTHER.binding).contains("已检查"));
@@ -409,8 +421,8 @@ public final class MaterialMonthRuntimeTest {
    // Real parser failure from eleven incomplete responses cannot hold the
    // verified October dates behind the failed September request.
    try(Fixture f=new Fixture()){
-    MaterialSettings.value=null;YearMonth current=YearMonth.from(Instant.ofEpochMilli(now).atZone(ZoneId.of("Asia/Shanghai")));for(int i=1;i<12;i++)Host107LifelogHttp.partialMonths.add(current.minusMonths(i).toString());
-    long dayAt=historyIndexed(f,now);yes(Host107LifelogHttp.calendars==12&&Host107LifelogHttp.lists==0);
+    MaterialSettings.value=null;YearMonth current=YearMonth.from(Instant.ofEpochMilli(now).atZone(ZoneId.of("Asia/Shanghai")));for(int i=0;i<12;i++)if(!current.minusMonths(i).equals(YearMonth.of(2026,10)))Host107LifelogHttp.partialMonths.add(current.minusMonths(i).toString());
+    long dayAt=historyIndexed(f,now);if(Host107LifelogHttp.calendars!=12||Host107LifelogHttp.lists!=0)throw new AssertionError("history count calendars="+Host107LifelogHttp.calendars+" lists="+Host107LifelogHttp.lists+" status="+f.runtime.historyStatus(OWNER.binding));
     history(f,dayAt).get(3,TimeUnit.SECONDS);history(f,dayAt+31000).get(3,TimeUnit.SECONDS);yes(Host107LifelogHttp.lists==4&&local(f,OWNER.binding).days.size()==2);
     try(MaterialHistorySchedule schedule=new MaterialHistorySchedule(f.files,OWNER.binding)){yes(schedule.status().indexed==1&&schedule.status().unverified==11&&schedule.status().loaded==2);yes(schedule.status().message.contains("日历标记待核实")&&!schedule.status().message.contains("联网"));}noUpload();
    }
@@ -571,4 +583,10 @@ final class LifelogAudioRuntime{static void sources(String account,List<Official
 final class DailySummarySync {
  static MaterialSyncSession.Status status(File root,MaterialConfig config){return new MaterialSyncSession.Status();}
  static MaterialSyncSession.Status run(File root,MaterialConfig config,List<DailySummary> summaries,Set<String> dates,MaterialSyncSession.Guard guard,MaterialApi.Transport transport)throws Exception{throw new AssertionError("Local history must not call summary upload");}
+}
+
+// Upload remains a forbidden boundary in the history-only runtime suite.
+final class LifelogTextSync {
+ static MaterialSyncSession.Status status(File root,MaterialConfig config){return new MaterialSyncSession.Status();}
+ static MaterialSyncSession.Status run(File root,MaterialConfig config,Set<String> dates,MaterialSyncSession.Guard guard,MaterialApi.Transport transport)throws Exception{throw new IOException("HISTORY_FIXTURE_UPLOAD_DISABLED");}
 }

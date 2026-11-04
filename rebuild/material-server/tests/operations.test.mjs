@@ -97,7 +97,8 @@ test('public management shell contains no data and restricts scripts, frames and
  assert.match(await response.text(),/管理后台/);
  const script=await(await fetch(f.base+'/v1/admin/app.js')).text();
  assert.equal(/innerHTML|localStorage|sessionStorage/.test(script),false);
- const consoleScript=await(await fetch(f.base+'/v1/admin/console.js')).text();assert.equal(/innerHTML|localStorage|sessionStorage/.test(consoleScript),false);
+ const consoleScript=await(await fetch(f.base+'/v1/admin/console.js')).text();assert.equal(/innerHTML|sessionStorage/.test(consoleScript),false);
+ assert.deepEqual([...consoleScript.matchAll(/localStorage\.(getItem|setItem)\(([^,)]+)/g)].map(m=>m[2]),["'io-admin-daily-view'","'io-admin-daily-view'"]);
  assert.equal((await fetch(f.base+'/v1/admin?token=secret')).status,400);
 });
 

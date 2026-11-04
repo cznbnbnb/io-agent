@@ -19,6 +19,15 @@ public final class MaterialCatalogDocumentTest {
  public static void main(String[] args)throws Exception{
   Map<String,Object> fixture=WireJson.map(WireJson.read(Files.readAllBytes(Path.of(args[0]))));List<Object> events=WireJson.list(fixture.get("events"));Map<String,Object> first=WireJson.map(WireJson.copy(events.get(0))),last=WireJson.map(WireJson.copy(events.get(3)));
   List<Object> rows=new ArrayList<>();rows.add(row(first,"server_stored"));rows.add(row(last,"queued"));MaterialCatalog catalog=catalog(rows,ZoneId.of("Asia/Shanghai"));yes(catalog.entries.size()==1&&catalog.pending==1&&catalog.stored==0);yes(catalog.lastStoredAt==Instant.parse("2026-10-13T01:00:00Z").toEpochMilli());MaterialCatalog.Entry entry=catalog.entries.get(0);yes(entry.revision==4&&entry.day.equals(LocalDate.of(2026,10,11)));yes(catalog.on(entry.day).size()==1&&catalog.dates.contains(entry.day));yes(entry.segments.size()>0);yes(catalog.on(LocalDate.of(2026,10,12)).isEmpty());
+  LocalDate emptyDay=LocalDate.of(2026,10,30),unknownDay=LocalDate.of(2026,10,31);Set<LocalDate> hints=new TreeSet<>(Arrays.asList(emptyDay,unknownDay));
+  List<MaterialLocalLibrary.DayRead> reads=Arrays.asList(new MaterialLocalLibrary.DayRead("2026-10-30","Asia/Shanghai",1,0));
+  Set<LocalDate> marks=MaterialCatalog.markedDates(catalog,reads,null,hints);yes(!marks.contains(emptyDay)&&marks.contains(unknownDay)&&marks.contains(entry.day));yes(hints.contains(emptyDay));
+  yes(MaterialCatalog.markedDates(catalog,Collections.emptyList(),null,hints).contains(emptyDay));
+  OfficialLifelogInsight.Point point=new OfficialLifelogInsight.Point(1,100,200,"stay",1,2,0,0,"");
+  OfficialLifelogInsight.Day locationDay=new OfficialLifelogInsight.Day("2026-10-30","Asia/Shanghai",Collections.emptyList(),Arrays.asList(point));
+  LifelogInsightStore.Snapshot locations=new LifelogInsightStore.Snapshot(catalog.account,Collections.singletonMap("2026-10-30\nAsia/Shanghai",locationDay));
+  yes(MaterialCatalog.markedDates(catalog,reads,locations,hints).contains(emptyDay));
+  yes(MaterialCatalog.markedDates(catalog,Arrays.asList(new MaterialLocalLibrary.DayRead("2026-10-30","UTC",1,0)),null,hints).contains(emptyDay));
   MaterialCatalog western=catalog(rows,ZoneId.of("America/Los_Angeles"));yes(western.entries.get(0).day.equals(LocalDate.of(2026,10,10)));yes(entry.segments.stream().anyMatch(segment->segment.start==null));
   for(MaterialDocument.Format format:MaterialDocument.Format.values()){
    byte[] bytes=MaterialDocument.encode(entry,format);yes(bytes.length>0);String filename=MaterialDocument.filename(entry,format);yes(filename.matches("iO-[0-9]{8}-[0-9]{4}-[a-f0-9]{8}\\."+format.extension));

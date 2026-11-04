@@ -73,7 +73,7 @@ export class TrafficLedger{
     const recentWhere=where.replace('hour>=?','at>=?'),rows=this.db.prepare(`SELECT seq,at,producer,route,method,status,request_bytes,response_bytes,duration_ms FROM recent WHERE ${recentWhere} ORDER BY seq DESC LIMIT 51 OFFSET ?`).all(...args,offset);
     const first=this.db.prepare('SELECT MIN(at) first FROM recent WHERE owner=?').get(owner).first;
     const rateArgs=[owner,Math.max(now-60000,first??now),...args.slice(2)],coverage=Math.max(1,Math.min(60000,now-(first??now)));
-    const rate=this.db.prepare(`SELECT COUNT(*) requests,COALESCE(SUM(CASE WHEN status>=400 THEN 1 ELSE 0 END),0) errors,COALESCE(SUM(CASE WHEN route IN ('inbox','identity','agent-sessions','phone-presence') THEN 1 ELSE 0 END),0) polling FROM recent WHERE ${recentWhere}`).get(...rateArgs);
+    const rate=this.db.prepare(`SELECT COUNT(*) requests,COALESCE(SUM(CASE WHEN status>=400 THEN 1 ELSE 0 END),0) errors,COALESCE(SUM(CASE WHEN route IN ('inbox','identity','agent-sessions','phone-presence','todo-suggestions') THEN 1 ELSE 0 END),0) polling FROM recent WHERE ${recentWhere}`).get(...rateArgs);
     return {available:true,hours,window_from:iso(since),server_time:iso(now),totals,hourly,routes,producers,recent:rows.slice(0,50),has_more:rows.length>50,offset,
       per_second:Number((rate.requests/(coverage/1000)).toFixed(2)),recent_rate:{...rate,seconds:Number((coverage/1000).toFixed(1))},recent_available_from:first===null?null:iso(first)};
   }

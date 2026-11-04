@@ -178,7 +178,7 @@ final class MaterialRuntime {
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
   MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
-  Set<java.time.LocalDate> dates=new TreeSet<>(historyDates(current.binding));for(MaterialLocalLibrary.DayRead day:local.days)if(day.sourceCount>0&&day.timezone.equals(zone.getId()))dates.add(java.time.LocalDate.parse(day.date));catalog=MaterialCatalog.withDates(catalog,dates);
+  catalog=MaterialCatalog.withDates(catalog,MaterialCatalog.markedDates(catalog,local.days,insights,historyDates(current.binding)));
   CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved==null?recoveryError:saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }

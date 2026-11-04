@@ -16,11 +16,15 @@ final class NativeTodoRuntime {
  private final ExecutorService io=Executors.newSingleThreadExecutor();private final AtomicBoolean busy=new AtomicBoolean();
  private final NativeTodoSession session;private volatile TaskDevice device;private volatile BooleanSupplier allowed=()->false;
  private volatile boolean presenting;private String uid="",lease="";private Fixed60Session.Link link;private MinuteCardSession preflight;
+ private long nextPoll;private String pollPhone="",pollSignal="";
  private NativeTodoRuntime(Context context)throws Exception{app=context.getApplicationContext();AtomicDocument file=new AtomicDocument(new File(app.getFilesDir(),"io-native-todo-v1.json"));session=new NativeTodoSession(new NativeTodoSession.Store(){public Object read()throws Exception{return file.read();}public void save(Object value)throws Exception{file.save(value);}});}
- static synchronized void wake(Context context,TaskDevice device,BooleanSupplier allowed){
+ static synchronized void wake(Context context,TaskDevice device,BooleanSupplier allowed,String inboxSignal){
   if(instance==null)try{instance=new NativeTodoRuntime(context);}catch(Exception unavailable){android.util.Log.w("TurboIOTodo","todo journal unavailable");return;}
   NativeTodoRuntime r=instance;r.device=device;r.allowed=allowed;if(!r.busy.compareAndSet(false,true))return;
-  r.io.execute(()->{try{r.poll();}catch(Exception failed){android.util.Log.w("TurboIOTodo","todo poll "+TaskApi.safeError(failed));}finally{r.busy.set(false);}});
+  r.io.execute(()->{try{long now=SystemClock.elapsedRealtime();String phone=r.phone();
+   if(!r.session.active()&&inboxSignal.equals(r.pollSignal)&&phone.equals(r.pollPhone)&&now<r.nextPoll)return;
+   r.nextPoll=now+60000;r.pollPhone=phone;r.pollSignal=inboxSignal;r.poll();
+  }catch(Exception failed){android.util.Log.w("TurboIOTodo","todo poll "+TaskApi.safeError(failed));}finally{r.busy.set(false);}});
  }
  private String phone(){TaskDevice d=device;return d.server+":"+d.owner+":"+d.producer;}
  private void check()throws java.io.IOException{TaskWire.require(session.healthy(),"TODO_STORAGE_UNCERTAIN");TaskWire.require(allowed.getAsBoolean()&&AgentCardRuntime.enabled(),"TASK_PAUSED");TaskWire.require(!session.active()||session.phone().equals(phone()),"TODO_PHONE_CHANGED");}

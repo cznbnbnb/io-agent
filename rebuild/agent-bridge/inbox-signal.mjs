@@ -11,7 +11,7 @@ import {atomic} from './session-pairing.mjs';
  * cursor, route filter and execution journal. The existing OS lock elects the
  * watcher and releases automatically if its process exits. */
 export class SharedInboxSignal {
-  constructor(config,{directory=path.join(os.userInfo().homedir,'.turboio','inbox-signals-v1'),waitSeconds=10}={}){
+  constructor(config,{directory=path.join(os.userInfo().homedir,'.turboio','inbox-signals-v1'),waitSeconds=25}={}){
     this.client=new BridgeClient({...config,timeout_ms:30000});this.waitSeconds=waitSeconds;
     const key=createHash('sha256').update(JSON.stringify([config.base_url,config.server_id,config.owner_id,config.producer_id,fs.realpathSync(config.credential_file)])).digest('hex');
     fs.mkdirSync(directory,{recursive:true,mode:0o700});const stat=fs.lstatSync(directory);

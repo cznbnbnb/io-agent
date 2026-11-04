@@ -13,6 +13,7 @@ final class LifelogInsightStore implements AutoCloseable {
   final String account;private final Map<String,OfficialLifelogInsight.Day> days;
   Snapshot(String account,Map<String,OfficialLifelogInsight.Day> days){this.account=account;this.days=Collections.unmodifiableMap(new TreeMap<>(days));}
   OfficialLifelogInsight.Day day(String date,String timezone){return days.get(date+"\n"+timezone);}
+  Collection<OfficialLifelogInsight.Day> days(){return days.values();}
   /** The official event that lists this material as one of its sources. */
   OfficialLifelogInsight.Event eventFor(String materialId){for(OfficialLifelogInsight.Day day:days.values())for(OfficialLifelogInsight.Event event:day.events)if(materialIds(event).contains(materialId))return event;return null;}
   /** Mutating/export actions must use the same day as the visible timeline. */

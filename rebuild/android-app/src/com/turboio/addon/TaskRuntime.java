@@ -119,7 +119,7 @@ final class TaskRuntime {
  private void refreshDirectory(long now)throws Exception{
   if(!Host107Login.loggedIn())TaskWire.require(false,Host107Login.loginCode());TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");
   try{TaskSessionDirectory fresh=TaskPairing.directory(device,now);fresh.checkDefaultAgainst(directory);settings.saveDirectory(fresh);directory=fresh;
-   List<Map<String,Object>> restored=new ArrayList<>();for(TaskSessionDirectory.Entry e:fresh.sessions)if(e.online)restored.add(e.route);if(settings.syncDevice(device,restored,keepBindings(now),onlineBindings(now),now))rebuild();directoryNote="";nextDirectory=now+15000;
+   List<Map<String,Object>> restored=new ArrayList<>();for(TaskSessionDirectory.Entry e:fresh.sessions)if(e.online)restored.add(e.route);if(settings.syncDevice(device,restored,keepBindings(now),onlineBindings(now),now))rebuild();directoryNote="";nextDirectory=now+(visible?15000:60000);
    Map<String,Object> chosen=fresh.defaultRoute();if(chosen!=null&&fresh.find(chosen)!=null)try{if(settings.ensureSession(device,chosen,now,keepBindings(now),onlineBindings(now)))rebuild();}catch(RuntimeException capacity){if(!"TASK_PROFILES_FULL".equals(capacity.getMessage()))throw capacity;directoryNote="TASK_PROFILES_FULL";}
   }catch(Exception failure){directoryNote=TaskApi.safeError(failure);nextDirectory=now+15000;throw failure;}
  }
@@ -256,10 +256,10 @@ final class TaskRuntime {
    PhonePresence next=TaskPairing.phone(d,account,null);TaskDevice current=device;
    if(current!=null&&current.deviceId.equals(d.deviceId)&&account.equals(pairingAccount())){PhonePresence prior=phone;phone=next;if(next.allowed(TaskSessionDirectory.elapsed())&&(prior==null||!prior.allowed(TaskSessionDirectory.elapsed()))){nextInboxPoll=0;notificationPending=true;schedule();}}
   }catch(Exception unavailable){phone=null;}finally{main.post(()->{phoneBusy=false;});}});}
-  main.postDelayed(this,6000);
+  main.postDelayed(this,10000);
  }};
  private final Runnable tick=()->{
-  if(!running()||ticking)return;ticking=true;notificationPending=false;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){phone=null;pairing=TaskApi.safeError(failure);}hub.pump(now,device,readSharedInbox);if(readSharedInbox){lastInboxPoll=now;lastInboxSignal=sampledInboxSignal;nextInboxPoll=now+(inboxWatch!=null&&inboxWatch.healthy()?60000:15000);}if(device!=null)NativeTodoRuntime.wake(TaskRuntime.this.app,device,()->owner==generation&&running()&&glassesAllowed());}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation||notificationPending?500:visible||TaskAttention.active()?3000:10000);}});}});
+  if(!running()||ticking)return;ticking=true;notificationPending=false;long owner=generation;io.execute(()->{try{load();if(owner==generation&&running()&&Host107Login.loggedIn()){clearLoginNote();long now=System.currentTimeMillis();try{device(now);}catch(Exception failure){phone=null;pairing=TaskApi.safeError(failure);}hub.pump(now,device,readSharedInbox);if(readSharedInbox){lastInboxPoll=now;lastInboxSignal=sampledInboxSignal;nextInboxPoll=now+(inboxWatch!=null&&inboxWatch.healthy()?60000:15000);}if(device!=null)NativeTodoRuntime.wake(TaskRuntime.this.app,device,()->owner==generation&&running()&&glassesAllowed(),sampledInboxSignal);}}catch(Exception failure){note=TaskApi.safeError(failure);}finally{publish(snapshot());main.post(()->{ticking=false;if(running()){main.removeCallbacks(this.tick);main.postDelayed(this.tick,owner!=generation||notificationPending?500:visible||TaskAttention.active()?3000:10000);}});}});
  };
  private void schedule(){main.post(()->{if(!ticking){main.removeCallbacks(tick);if(running())main.postDelayed(tick,500);}});}
 }

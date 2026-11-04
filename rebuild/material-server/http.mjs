@@ -247,7 +247,7 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
           await new Promise(resolve=>{
             const done=()=>{clearTimeout(timer);store.inboxWaiters.delete(wake);res.removeListener('close',done);resolve();};
             const wake=owner=>{if(owner===state.owner_id)done();};
-            const timer=setTimeout(done,Math.min(Number(query.wait_seconds??10),10)*1000);
+            const timer=setTimeout(done,Number(query.wait_seconds??10)*1000);
             store.inboxWaiters.add(wake);res.once('close',done);
           });
           if(res.destroyed)return;

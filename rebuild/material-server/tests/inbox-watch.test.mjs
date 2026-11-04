@@ -22,3 +22,22 @@ test('pausing/resuming wakes the shared listener, daily-only grants cannot subsc
  const next=f.watch(paused.version);await until(()=>f.store.inboxWaiters.size===1);f.store.console.action(session,{action:'delivery',device_id:f.agent.device_id,paused:false});assert.equal((await next).status,200);
  const onlyDaily=f.store.mint({owner:f.owner,producer:'daily-reader',scopes:['daily-summaries:read']});assert.equal((await f.watch(null,onlyDaily.token)).status,403);
 });
+
+test('todo proposals wake the phone watch without a new task; replay is quiet and decisions change the marker',async t=>{
+ const f=await setup(t),first=await(await f.watch(null,f.phone.token)).json();
+ const pending=f.watch(first.version,f.phone.token);await until(()=>f.store.inboxWaiters.size===1);
+ const todo=f.store.todoSuggestions.create(f.agent.token,{todo_key:'watch-proposal',content:'合成待办建议'});
+ const next=await(await pending).json();assert.notEqual(next.version,first.version);assert.equal(next.changed,true);
+ assert.equal(f.store.todoSuggestions.pending(f.phone.token).items.length,1);
+ f.store.todoSuggestions.create(f.agent.token,{todo_key:'watch-proposal',content:'合成待办建议'});assert.equal(f.store.inboxVersion(f.phone.token).version,next.version);
+ f.store.todoSuggestions.phone(f.phone.token,todo.proposal_id,{action:'show'});assert.notEqual(f.store.inboxVersion(f.phone.token).version,next.version);
+ assert.equal(f.store.todoSuggestions.pending(f.second.token).items.length,0);
+});
+
+test('25-second watch survives the former ten-second cutoff and still wakes promptly',async t=>{
+ const f=await setup(t),marker=f.store.inboxVersion(f.agent.token),server=await listen(f.store,0);t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));});
+ const c=new AbortController();t.after(()=>c.abort());let settled=false;
+ const pending=fetch(`http://127.0.0.1:${server.address().port}/v1/inbox/watch?wait_seconds=25&version=${marker.version}`,{headers:{Authorization:'Bearer '+f.agent.token},signal:c.signal}).then(r=>{settled=true;return r;});
+ await until(()=>f.store.inboxWaiters.size===1);await new Promise(r=>setTimeout(r,10500));assert.equal(settled,false);
+ f.addTask('long-watch-task','合成等待验证');assert.equal((await(await pending).json()).changed,true);
+});

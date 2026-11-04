@@ -35,6 +35,16 @@ final class MaterialCatalog {
  }
  final String account;final ZoneId zone;final List<Entry> entries;final Set<LocalDate> dates;
  final int stored,pending,attention,localOnly;final long lastStoredAt;private final Set<String> deleted;
+ /** Calendar hints never outweigh a successful empty day read. Local files are retained. */
+ static Set<LocalDate> markedDates(MaterialCatalog catalog,List<MaterialLocalLibrary.DayRead> reads,LifelogInsightStore.Snapshot insights,Set<LocalDate> hints){
+  Set<LocalDate> dates=new TreeSet<>(catalog.dates);dates.addAll(hints);String zone=catalog.zone.getId();
+  if(insights!=null)for(OfficialLifelogInsight.Day day:insights.days())if(day.timezone.equals(zone)&&(!day.events.isEmpty()||!day.trail.isEmpty()))dates.add(LocalDate.parse(day.date));
+  for(MaterialLocalLibrary.DayRead read:reads)if(read.timezone.equals(zone)){
+   LocalDate date=LocalDate.parse(read.date);OfficialLifelogInsight.Day day=insights==null?null:insights.day(read.date,zone);
+   if(read.sourceCount>0||day!=null&&(!day.events.isEmpty()||!day.trail.isEmpty()))dates.add(date);else dates.remove(date);
+  }
+  return dates;
+ }
  private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt){this(account,zone,entries,lastStoredAt,Collections.emptySet());}
  private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt,Set<String> deleted){this(account,zone,entries,lastStoredAt,deleted,Collections.emptySet());}
  private MaterialCatalog(String account,ZoneId zone,List<Entry> entries,long lastStoredAt,Set<String> deleted,Set<LocalDate> hints){

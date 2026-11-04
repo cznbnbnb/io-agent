@@ -560,8 +560,9 @@ export class MaterialStore {
     const p=this.auth(token),scopes=new Set(JSON.parse(p.scopes));
     if(!Object.values(QUEUE_READ).some(required=>required.some(scope=>scopes.has(scope))))reject(403,'FORBIDDEN');
     const primary=this.db.prepare('SELECT revision FROM primary_phones WHERE owner=?').get(p.owner);
+    const todos=scopes.has('receipts:phone')&&!p.sessionRoute?this.db.prepare("SELECT id,state,updated_at FROM todo_suggestions WHERE owner=? AND state IN ('pending_confirmation','shown','accepted','creating') AND (phone_producer IS NULL OR phone_producer=?) AND (expires>? OR state='creating') ORDER BY created_at,id LIMIT 20").all(p.owner,p.producer,this.clock()):[];
     return {schema_version:'1.0',server_id:this.devices.serverId(),owner_id:p.owner,producer_id:p.producer,
-      version:sha(canonical([p.owner,p.producer,p.sessionRoute??null,p.scopes,this.queueCeiling(p.owner),this.console.deliveryPaused(p.owner,p.producer),primary?.revision??0])),server_time:iso(this.clock())};
+      version:sha(canonical([p.owner,p.producer,p.sessionRoute??null,p.scopes,this.queueCeiling(p.owner),this.console.deliveryPaused(p.owner,p.producer),primary?.revision??0,todos])),server_time:iso(this.clock())};
   }
   inbox(token,query={}){
     const p=this.auth(token),scopes=new Set(JSON.parse(p.scopes));

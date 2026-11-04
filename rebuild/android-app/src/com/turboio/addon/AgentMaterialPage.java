@@ -31,7 +31,7 @@ final class AgentMaterialPage {
   if(closed||suspended||request!=revision||activity.isDestroyed())return;if(!error.isEmpty()){invalidateContent(MaterialWorkspace.label(error));return;}snapshot=value;render();refreshSelectedIfNeeded();
  });}
  private void select(LocalDate day){if(day.equals(selected)&&reading)return;if(!day.equals(selected))leaveSelection(false);if(reading){revision++;reading=false;if(readOwner>=0)runtime.cancelRead(readOwner);readOwner=-1;}selected=day;browsedWeek=day;readError="";list.setSelection(0);render();refresh();}
- private Set<LocalDate> markedDates(){Set<LocalDate> dates=new TreeSet<>(snapshot.catalog.dates);dates.addAll(runtime.historyDates(snapshot.catalog.account));return dates;}
+ private Set<LocalDate> markedDates(){return MaterialCatalog.markedDates(snapshot.catalog,snapshot.local.days,snapshot.insights,runtime.historyDates(snapshot.catalog.account));}
  private void refreshSelectedIfNeeded(){MaterialLocalLibrary.DayRead read=dayRead();long age=read==null?-1:System.currentTimeMillis()-read.readAt;if(age<0||age>=60000)readSelected();}
  private void readSelected(){if(closed||suspended||!active||snapshot==null)return;final LocalDate day=selected;final String timezone=snapshot.catalog.zone.getId();long request=++revision;reading=true;readError="";render();
   readOwner=runtime.readDay(day.toString(),timezone,(value,error)->{if(closed||suspended||request!=revision||activity.isDestroyed())return;reading=false;
