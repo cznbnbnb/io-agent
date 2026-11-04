@@ -1,3 +1,12 @@
+## [codex] 2026-11-04 私有仓库发布与CLI自助更新交付完成
+
+- 用户本人完成重新生成/输入后，Mac钥匙串认证和真实Git读取均成功；未把认证令牌写入项目、ZIP或交接。该凭据仅限io-agent仓库Contents读写，期限按用户生成时的30天；本机只对本仓库完整SSH URL使用HTTPS rewrite，其他仓库不扩权。旧SSH路径仍未通过，不把它记成已修复。
+- 已fetch核对远端：Claude仍520ad23、Codex原8c30f09，无新的对方代码需合入。本批5提交已推送新Private仓库 cznbnbnb/io-agent 的 codex/agent-workspace-ui；main及默认分支未改。浏览器已实际打开该分支的CLI-QUICKSTART与最新README，Private标识和ZIP下载入口可见。
+- 本机正式 cz-iot-cli update --check 与 update 均从真实私库取包成功：0.2.0、source_commit=311bb41e01f9ddb8abc520a2aff10353423a3066、changed_files=0、available=false、updated=false，pairing_state_touched=false。这是“已是最新版”的真实回执；旧0.1.0到0.2.0原地替换8文件已在上一条单独验证，保留配对和私有状态，不伪称本次又有代码升级。
+- 最终ZIP194,278字节/53文件及逐文件MANIFEST摘要再次核对，与公开在私库的SHA256SUMS一致。源码/分发包密钥检查已完成，历史与包内提示均已逐项核实为非凭据示例/哈希/记录ID；不把Mac钥匙串或私钥打包。Windows执行仍未真机测试，未知Agent的原生唤起/打断仍需单独适配。
+- 交付入口：docs/CLI-QUICKSTART.md；分发：docs/distribution/cz-iot-cli.zip。另一电脑需要自己的私库读取认证，或由用户转交无凭据ZIP；手机扫码/粘贴只批准眼镜接入，不能替代GitHub权限。让实际Agent在真实session生成二维码/字符串，手机确认后只做一次notify+ask/wait双向验收；不要复制本机密钥，不创建假session。
+- 本批不改手机/眼镜（dev172不变）、不发进度/测试题、不重启在用Agent/正式连接器，其他Agent未跟踪Delegate文件未提交。下一步推荐用户把Quickstart链接或ZIP转给另一Agent，在它的电脑上完成扫码及原会话回答测试。
+
 ## [codex] 2026-11-04 发布待GitHub HTTPS本人认证（代码已就绪）
 
 - 仓库已改名io-agent并保持Private；本批代码、最终ZIP与校验和均本地提交，本机CLI已升级0.2.0。Git push尚未成功，不能把这些本地提交/新文档称为已上传；源代码分支仍codex/agent-workspace-ui，main未动。
