@@ -85,7 +85,19 @@ public final class TaskVoiceBridgeTest {
    if(changed.equals("fingerprint"))TaskWire.body(request).put("question","同版本问题被换成另一件事");
    rejects(()->e.hub.answerVoice(e.first().binding(),draft,NOW));yes(draft.phase().equals("REVIEW")&&draft.answerText().equals(TEXT)&&e.hub.view(e.first().binding()).pending.isEmpty()&&e.server().posts==0);
   }
-  try(Env e=new Env(root,"wrong-target")){VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());String binding=e.first().binding();rejects(()->e.hub.prepareVoice(binding,"bridge-request",2,TaskWire.requestFingerprint(request(e.first())),draft,NOW));yes(draft.phase().equals("IDLE"));rejects(()->e.hub.prepareVoice(binding,"bridge-request",1,String.join("",Collections.nCopies(64,"0")),draft,NOW));yes(draft.phase().equals("IDLE"));e.prepare(draft);rejects(()->e.prepare(draft));review(draft);int calls=e.servers.get(e.connections.get(1).binding()).calls;rejects(()->e.hub.answerVoice(e.connections.get(1).binding(),draft,NOW));yes(e.servers.get(e.connections.get(1).binding()).calls==calls&&draft.phase().equals("REVIEW"));}
+  // A reopened, never-started draft is refreshed once, preserving its token.
+  // The single preparation boundary still rejects later closure or changed targets.
+  for(String changed:Arrays.asList("revision","route","parent_closed","request_closed","fingerprint"))try(Env e=new Env(root,"prepared-"+changed)){
+   VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());e.prepare(draft);String token=draft.token();
+   e.prepare(draft);yes(e.server().calls==6&&token.equals(draft.token())&&!draft.needsStop());Map<String,Object> request=e.server().request;
+   if(changed.equals("revision")){Map<String,Object> body=copy(TaskWire.body(request));body.put("revision",2);e.server().request=item("request",body,4);}
+   if(changed.equals("route"))TaskWire.body(request).put("route",e.connections.get(1).route());
+   if(changed.equals("parent_closed"))e.server().parent.put("state","completed");
+   if(changed.equals("request_closed"))request.put("state","answered");
+   if(changed.equals("fingerprint"))TaskWire.body(request).put("question","同版本问题被换成另一件事");
+   rejects(()->e.prepare(draft));yes(draft.phase().equals("PREPARED")&&token.equals(draft.token())&&!draft.needsStop());
+  }
+  try(Env e=new Env(root,"wrong-target")){VoiceAnswerSession draft=new VoiceAnswerSession(new Memory());String binding=e.first().binding();rejects(()->e.hub.prepareVoice(binding,"bridge-request",2,TaskWire.requestFingerprint(request(e.first())),draft,NOW));yes(draft.phase().equals("IDLE"));rejects(()->e.hub.prepareVoice(binding,"bridge-request",1,String.join("",Collections.nCopies(64,"0")),draft,NOW));yes(draft.phase().equals("IDLE"));e.prepare(draft);String originalToken=draft.token();e.prepare(draft);yes(originalToken.equals(draft.token())&&!draft.needsStop());review(draft);rejects(()->e.prepare(draft));int calls=e.servers.get(e.connections.get(1).binding()).calls;rejects(()->e.hub.answerVoice(e.connections.get(1).binding(),draft,NOW));yes(e.servers.get(e.connections.get(1).binding()).calls==calls&&draft.phase().equals("REVIEW"));}
  }
  static void interruptedSave(File root)throws Exception{
   try(Env e=new Env(root,"interrupted-local-save")){Memory memory=new Memory();VoiceAnswerSession draft=new VoiceAnswerSession(memory);e.prepare(draft);review(draft);memory.failSaved=true;rejects(()->e.hub.answerVoice(e.first().binding(),draft,NOW));yes(!draft.healthy()&&WireJson.map(memory.value).get("phase").equals("SUBMITTING"));Map<String,Object> saved=only(e.hub,e.first().binding());yes(answer(saved).get("text").equals(TEXT)&&e.server().posts==0);

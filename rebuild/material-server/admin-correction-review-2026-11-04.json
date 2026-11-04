@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T13:06:00.865514+00:00",
+  "url": "https://cznbnb.cn/io-api/v1/admin#daily",
+  "changes": [
+    "Effective text, source comparison and correction history are separate tabs",
+    "Show currently adopted source/correction versions and phone/server scope",
+    "Exact character diff uses locally served jsdiff 8.0.2 with preserved BSD-3-Clause license; no CDN",
+    "Historical before/after is separate from comparison with the latest phone source",
+    "No-op submissions explicitly say no text changes and collapse unchanged full text",
+    "Compact reading spacing, consistent typography, narrow viewport stacked comparison, keyboard tabs",
+    "Raw effective text is inspectable and export uses the same data.text"
+  ],
+  "live_checks": {
+    "date": "2026-11-03",
+    "source_revision": 2,
+    "correction_revision": 1,
+    "corrected": true,
+    "summary_stale": false,
+    "needs_review": false,
+    "body_matches_latest_phone_source": true,
+    "historical_submission_text_unchanged": true,
+    "reason_described_summary_dependency_refresh": true,
+    "cli_text_sha256": "8e785c42231a36470622fe5a307b64ae258ea7fc4051eba38596fe2ad6050015",
+    "rendered_raw_text_sha256": "8e785c42231a36470622fe5a307b64ae258ea7fc4051eba38596fe2ad6050015",
+    "text_chars": 1282,
+    "equality_verified": true,
+    "effective_tab_verified": true,
+    "comparison_tab_verified": true,
+    "history_tab_verified": true,
+    "narrow_viewport_verified": true,
+    "desktop_viewport_not_overridden": true,
+    "actual_corrections_or_materials_changed": false,
+    "undo_clicked": false
+  },
+  "tests": {
+    "http_admin_operations": 17,
+    "chinese_multi_edit_diff_preserves_both_strings": true,
+    "browser_live_logged_in_read_only": true
+  },
+  "release": {
+    "backup": "/opt/turboio/backup-correction-ui-20261104T130044Z",
+    "service": "active",
+    "files": {
+      "http.mjs": "8c0a9d383a3ca2f67415b596d65b20dcb75f37de359f9af8a2ab4fb4b108caba",
+      "admin/console.js": "460ab720ddb906cd76c9c4b71958396de85930b8188931e8e6ef7b90c9a88eef",
+      "admin/style.css": "b536647e62ee59238626ad4b34484f99c5cd1c767e3ef93954a979c4fe3c0b1b",
+      "admin/diff.js": "393b4b1497f75caee5d393c3f3fdd0deb7192c8b38c6394e7079cef96308542f",
+      "admin/diff-LICENSE": "eda81a415869e67809f6a9f3fd6056062cb83a462118e07eec5e92b2e0c40ce9",
+      "admin/diff-README.md": "19b3a06b51886fde8ef0bba42e18aa24292839dcf2e780263841027ccea419e3"
+    }
+  },
+  "final_release": {
+    "backup": "/opt/turboio/backup-correction-ui-20261104T130044Z/no-text-change",
+    "files": {
+      "admin/console.js": "d29fb9ac37958b7888d98082ecefc2e9d3f6f77572595bc5b72031a7e6dd1e8a",
+      "admin/style.css": "5d6261c338af78d3d21a2e146863ffc7a585827cb2e2c722f5d6117641f9d4d4"
+    },
+    "service": "active"
+  },
+  "screenshots_kept_local_not_in_repository": true,
+  "personal_lifelog_text_not_in_repository": true
+}

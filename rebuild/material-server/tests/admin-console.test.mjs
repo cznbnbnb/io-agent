@@ -83,6 +83,14 @@ test('empty inbox wait picks up a new task and rechecks revoked credentials befo
  const reading=fetch(url,{headers});await new Promise(r=>setTimeout(r,35));f.addTask('qa-delayed','等待期间新增任务');const reply=await reading;assert.equal(reply.status,200);const page=await reply.json();assert(page.items.some(i=>i.object_id==='qa-delayed'));
  const waiting=fetch(f.base+'/v1/inbox?cursor='+encodeURIComponent(page.next_cursor),{headers});await new Promise(r=>setTimeout(r,35));f.store.devices.revoke(f.agent.device_id);assert.equal((await waiting).status,401);
 });
+test('shared-watch clients read empty route snapshots without the legacy inbox delay',async t=>{
+ const f=await setup(t,{wait:3000}),cursor=f.store.inbox(f.agent.token).next_cursor;
+ const reply=await fetch(f.base+'/v1/inbox?cursor='+encodeURIComponent(cursor),{headers:{Authorization:'Bearer '+f.agent.token,'X-IO-Inbox-Mode':'snapshot'},signal:AbortSignal.timeout(1500)});
+ assert.equal(reply.status,200);const page=await reply.json();assert.equal(page.items.length,0);assert.equal(page.has_more,false);
+ assert.equal(f.store.inbox(f.agent.token,{cursor:page.next_cursor}).items.length,0);
+ f.store.devices.revoke(f.agent.device_id);
+ assert.equal((await fetch(f.base+'/v1/inbox?cursor='+encodeURIComponent(page.next_cursor),{headers:{Authorization:'Bearer '+f.agent.token,'X-IO-Inbox-Mode':'snapshot'}})).status,401);
+});
 test('lifelog detail and history show effective text, while audited undo restores only the chosen change',async t=>{
  const f=await setup(t),source={id:'text-'+'a'.repeat(64),date:'2026-11-02',timezone:'Asia/Shanghai',kind:'transcript',started_at:'2026-11-02T01:00:00Z',ended_at:'2026-11-02T02:00:00Z',blocks:[{id:'clip',kind:'utterance',text:'CK023 样机'}],related_ids:[]};
  const writer=f.store.mint({owner:f.owner,producer:'qa-text',scopes:['materials:write']});f.store.lifelog.upload(writer.token,{base_revision:0,source});

@@ -58,8 +58,9 @@ final class VoiceAnswerSession implements CaptureSession {
  public synchronized boolean needsStop(){return !healthy||flag("needs_stop");}synchronized String transcript(){return text(state);}synchronized String answerText(){return state.get("edited")==null?transcript():(String)state.get("edited");}
  synchronized String operation(){return "agent-voice-"+token();}public synchronized Object snapshot(){return WireJson.copy(state);}
  synchronized boolean prepare(TaskConnection connection,Map<String,Object> request,Map<String,Object> parent,long wall)throws Exception{
-  if(!healthy||!phase().equals("IDLE"))return false;TaskWire.object(request);TaskWire.object(parent);
+  if(!healthy||!TaskWire.set("IDLE","PREPARED").contains(phase()))return false;TaskWire.object(request);TaskWire.object(parent);
   TaskWire.require(TaskWire.canAnswer(request,parent,wall)&&TaskWire.same(TaskWire.body(request).get("route"),connection.route()),"VOICE_REQUEST_CLOSED");
+  if(phase().equals("PREPARED")){Map<String,Object> original=WireJson.map(state.get("target"));return connection.binding().equals(original.get("binding"))&&TaskWire.requestFingerprint(request).equals(original.get("fingerprint"));}
   Map<String,Object> next=empty();next.put("phase","PREPARED");next.put("token",UUID.randomUUID().toString().replace("-",""));next.put("target",WireJson.object("binding",connection.binding(),"fingerprint",TaskWire.requestFingerprint(request),"request",WireJson.copy(request)));save(next);return true;
  }
  public synchronized boolean arm(String peer,long generation,long now,int seconds,Cutoff cutoff)throws Exception{

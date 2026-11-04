@@ -26,6 +26,7 @@ final class AgentCardRuntime {
  private final Set<String> reoffer=new HashSet<>(),displayedPrompters=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>(),questionChecks=new HashSet<>(),retiredPrompters=new HashSet<>();
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
  private Map<String,Object> lastPrompterExit=Collections.emptyMap();
+ private long voiceExitAt;private String voiceExitRequest="";private final Map<String,Object> voiceStartup=new LinkedHashMap<>();
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Application application,Activity host)throws IOException{
@@ -264,18 +265,20 @@ final class AgentCardRuntime {
  }
  private void openPrompterVoice(String did){
   TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis())){recordPrompterExit(owner,"owner_closed");TaskAttention.release("voice");refresh();return;}
-  recordPrompterExit(owner,"checking_question");refresh();
-  // The exit event may have been queued before a pause, phone answer, revision, or restart.
-  tasks.detail(owner.binding,"request",owner.id,(state,error)->{
-   TaskPrompterOwner current=prompter();if(current==null||!did.equals(current.did)){TaskAttention.release("voice");return;}
-   boolean allowed=error.isEmpty()&&prompterAllowed(current,state);snapshot=state;
-   prefs.edit().remove("prompter_owner").commit();
-   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){recordPrompterExit(current,!error.isEmpty()?"request_refresh_failed_"+error:!allowed?"question_closed_or_changed":"voice_ui_unavailable");TaskAttention.release("voice");message="已退出提词器，原问题暂不可口述；请在手机查看";if(TaskRuntime.glassesAllowed()&&attended()&&!TaskAttention.active())postNotice("口述未开始",message,"question-voice-unavailable",15000);refresh();return;}
-   recordPrompterExit(current,"voice_ui_opened");
-   message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
-  });
+  voiceExitAt=now();voiceExitRequest=owner.id;voiceStartup.clear();voiceStartup.put("exit",0L);
+  recordPrompterExit(owner,"opening_voice");
+  // Reject a known stale local owner immediately. Voice preparation does the one
+  // authoritative request/parent refresh before it can offer microphone admission.
+  boolean allowed=snapshot==null||prompterAllowed(owner,snapshot);
+  prefs.edit().remove("prompter_owner").commit();
+  if(!allowed||!openGlassesVoice(owner.binding,owner.id,owner.revision,owner.fingerprint)){recordPrompterExit(owner,!allowed?"question_closed_or_changed":"voice_ui_unavailable");TaskAttention.release("voice");message="已退出提词器，原问题暂不可口述；请在手机查看";if(TaskRuntime.glassesAllowed()&&attended()&&!TaskAttention.active())postNotice("口述未开始",message,"question-voice-unavailable",15000);refresh();return;}
+  recordPrompterExit(owner,"voice_ui_opened");voiceStage(owner.id,"voice_ui_opened");
+  message=visible()?"已退出提词器，正在准备原问题口述":"已退出提词器，手机在后台准备原问题口述";refresh();
  }
  private void recordPrompterExit(TaskPrompterOwner owner,String outcome){lastPrompterExit=WireJson.object("at",System.currentTimeMillis(),"request_id",owner==null?"":owner.id,"display_until",owner==null?0:owner.until,"outcome",outcome);}
+ static void voiceStage(String request,String stage){
+  AgentCardRuntime r=instance;if(r==null)return;r.main.post(()->{if(!request.equals(r.voiceExitRequest)||r.voiceStartup.containsKey(stage))return;r.voiceStartup.put(stage,Math.max(0,now()-r.voiceExitAt));r.lastPrompterExit.put("startup_ms",WireJson.copy(r.voiceStartup));r.refresh();});
+ }
  private void openVoice(AgentCardRequest voice){
   if(!openGlassesVoice(voice.binding,voice.requestId,voice.revision,voice.fingerprint)){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
   message=visible()?"已在眼镜选择口述，正在打开原问题语音回答":"已在眼镜选择口述，手机在后台开始口述";refresh();

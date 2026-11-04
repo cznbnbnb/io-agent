@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "at": "2026-10-28T08:50:18.365Z",
+  "at": "2026-11-04T12:49:06.956Z",
   "assertions": 1960,
   "kind": "JVM real atomic voice journals and answer mailbox; reflection-based official ASR boundary with ABI doubles",
   "abi": {
@@ -231,7 +231,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
-      "sha256": "9137c4c45cbfab2f0f5dcc5ef772320dfbf414b7541be3baa6bf16aad0086d1d"
+      "sha256": "5c9eaf4a660a458229981f5710b2868f2fe259d7b8d0d55fc71d3b3dd6bfc32e"
     },
     {
       "path": "src/com/turboio/addon/VoiceOption.java",
@@ -279,19 +279,19 @@
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
-      "sha256": "8dc57a7992a5350d7988e3c4ca8595f5864a4d6410171cb92445be4e174ea7e7"
+      "sha256": "260aa1b6da8bd29e0053d8457ce68945427661d0bf761fe305e45cf948a97bb9"
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "52b43f32b4089981645fe7b7bfaab5d711b3178740169d8c91f283f8c42afdc8"
+      "sha256": "eaca1e8d62cd2db5494c26b0de406e85ea629df682587b28e4fd8f43303d0803"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "fd3e961d61596c06d4ed21ea77805852212c748aec6c16f7261c122ec794d366"
+      "sha256": "cb9baa8bbe7add88978d573e572db3d1e76884efa0b61760bed0afc9773f513c"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "96926d5fd4254fc311adbd9df7428cd4c7aae539f7223e9a4d04e2873cfeb081"
+      "sha256": "37496cffb2788ea7dffd1ba73b443d3ef4fd11b42413d066744ea7a596502caf"
     },
     {
       "path": "src/com/turboio/addon/TaskDevice.java",
@@ -303,11 +303,11 @@
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "a6bd5abc450a3dc34419388000efe20603bb7ea8a68e47763d87c0d1af29302a"
+      "sha256": "7442b60b0c792e82a88dcadb62d8f31ec431d4cc1b7349a46cc9494961b1cbfe"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
+      "sha256": "5959398356a73924c53fc93efdcde874e19dd6190587bf6772f1e186ea7fff9b"
     },
     {
       "path": "src/com/turboio/addon/TaskConnection.java",
@@ -315,7 +315,7 @@
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -367,7 +367,7 @@
     },
     {
       "path": "../../tools/android/TaskVoiceBridgeTest.java",
-      "sha256": "58f11a84e98860b1e8d6c7e68010d89f6622fbc134bd27b6b19f27837c3b3863"
+      "sha256": "8b0f139df11b085742704dba36436bad1b8411e77fbedc2ad2eb83b814b5b81c"
     },
     {
       "path": "../../tools/android/VoiceAnswerTest.java",

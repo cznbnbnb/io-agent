@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T13:04:23.637931+00:00",
+  "current": {
+    "version": "0.5.3-dev176",
+    "sha256": "d2fdddd48325ccf41ca4a7158df874f81c25deebfcc82e01655095097fcc04ee",
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev176.apk"
+  },
+  "rollback": {
+    "version": "0.5.3-dev175",
+    "sha256": "e1e0fcb814f2fce58d3d69e0c149ba6a68f49c219043e0f537a8b0ebfe5dda3f",
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev175.apk"
+  },
+  "removed": [
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev174.apk",
+      "bytes": 435202275,
+      "sha256": "269a286ab9afb8f2db8c2c954b85e991d74c4d894d199c6767800ad71a64cb3b"
+    },
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev173.apk",
+      "bytes": 435202275,
+      "sha256": "7a9e8b15adedfe01d5264bf94cdb5d40da5f3da873fa00f61dd7930396e67ae9"
+    }
+  ],
+  "phone_delta_files_removed": true,
+  "isolated_source_removed": true,
+  "credentials_and_user_materials_untouched": true
+}

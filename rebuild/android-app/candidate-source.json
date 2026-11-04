@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "f302d8576dfac348e450ca41f59e28877f70842e5285642284bcf28c129f6f40"
+      "sha256": "e96b2d49646830c22dde130f39368cf8982b9a873c01f80d82857e788b12e6f4"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -958,11 +958,11 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHttp.java",
-      "sha256": "880e75dc79ce1dc65135648c114c0f0d15f2dd8f09fdf3c6ff337bec7f4f6a6e"
+      "sha256": "34bb76e463e71014335ab1ce2b8884a3100b4180166da92a2eba9669709c50aa"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "4c4dcbbfc49bba8afb94ef2d2ae1fbbd2a871bcf8500e9823fdd3201aa182e6f"
+      "sha256": "cb9baa8bbe7add88978d573e572db3d1e76884efa0b61760bed0afc9773f513c"
     },
     {
       "path": "src/com/turboio/addon/TaskInboxWatch.java",
@@ -1050,11 +1050,11 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "0bdab693a10b33d6fc9928bbd017818d82b408284fa1dc5644660350fee2c0a3"
+      "sha256": "e11f194aa13a2f82aa4f733346a535b89ab094343abedb272d96bcc80c8b1b21"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
-      "sha256": "9137c4c45cbfab2f0f5dcc5ef772320dfbf414b7541be3baa6bf16aad0086d1d"
+      "sha256": "5c9eaf4a660a458229981f5710b2868f2fe259d7b8d0d55fc71d3b3dd6bfc32e"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerWorkspace.java",
@@ -1094,11 +1094,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "76742d4d7b642dd3ab01d1aad932b57bebf527a9e8c3fbdba667a4360131a55e"
+      "sha256": "bd0b59c2d1d587af8b7772781d186bb1d542f2bba4daa0485889c7cdf5cfbc0f"
     }
   ],
-  "product_sha256": "37cdce309a09ce2c65f7a182e7480f2d4961c22a4da2f2e6cac3ab1303d8cc45",
-  "addon_sha256": "fd1334b9b288945af19d30e7ba249f30cc950b219994724d816227f2029fac63",
+  "product_sha256": "aeeb8f099274bd53103b52df3fe96f5a69972db0162a8405681a12d757396a54",
+  "addon_sha256": "c42ee51259998284c1de866cd5ad32bd1753a38042a00170114984680b9f3715",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"

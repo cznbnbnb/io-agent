@@ -37,7 +37,7 @@ final class VoiceAnswerRuntime {
  private static final class Attempt {
   final String id;final VoiceAnswerJournal journal;final VoiceAnswerSession draft;
   volatile String binding="",request="",peer="",token="",note="",traced="";volatile long generation,captureOperation;
-  volatile boolean starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;final AtomicBoolean arming=new AtomicBoolean();
+  volatile boolean starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;boolean audioSeen;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
   volatile CaptureSession.StopProbe probe;volatile long recoveryFence;volatile boolean recovering;
@@ -116,10 +116,10 @@ final class VoiceAnswerRuntime {
     Map<String,Object> target=WireJson.map(WireJson.map(item.draft.snapshot()).get("target"));Map<String,Object> request=WireJson.map(target.get("request"));
     if(fingerprint.equals(target.get("fingerprint"))&&revision==TaskWire.positive(request.get("revision"))&&TaskWire.set("PREPARED","REVIEW","SUBMITTING","SAVED").contains(item.draft.phase())&&!("PREPARED".equals(item.draft.phase())&&(item.arming.get()||safe("voice-process/"+item.id+".json").exists()||safe("voice-audio/"+item.token).exists())))chosen=item;
    }
-   if(chosen!=null){active=chosen;refresh(chosen,null);finish(operation,result,"");return;}
-   Attempt a=open(id());active=a;
+   if(chosen!=null&&!"PREPARED".equals(chosen.draft.phase())){active=chosen;refresh(chosen,null);finish(operation,result,"");return;}
+   Attempt a=chosen==null?open(id()):chosen;active=a;
    main.post(()->tasks.prepareVoice(binding,requestId,revision,fingerprint,a.draft,(snapshot,failure)->{
-    io.execute(()->{bind(a);if(!failure.isEmpty())a.note=failure;refresh(a,null);finish(operation,result,failure);});
+    io.execute(()->{bind(a);if(!failure.isEmpty())a.note=failure;else AgentCardRuntime.voiceStage(a.request,"question_ready");refresh(a,null);finish(operation,result,failure);});
    }));
   }catch(Exception e){if(active!=null)refresh(active,null);finish(operation,result,error(e));}});
  }
@@ -161,7 +161,7 @@ final class VoiceAnswerRuntime {
   Fixed60Session.Link link=Host107Ota.link();if(!a.peer.equals(link.peer)||a.generation!=link.generation){a.starting=false;refreshLater(a);finish(operation,result,"VOICE_CONNECTION_CHANGED");return;}
   try{
    a.cutoff=cutoff(a);a.recording=Host107Recording.acquire(a.draft,a.cutoff,receiver(a,false,operation,result));
-   TaskWire.require(a.recording!=null,"VOICE_CAPTURE_BUSY");a.physicallyReleased=false;a.recording.inspect();
+   TaskWire.require(a.recording!=null,"VOICE_CAPTURE_BUSY");a.physicallyReleased=false;AgentCardRuntime.voiceStage(a.request,"device_check");a.recording.inspect();
   }catch(Exception e){unarmedFailure(a,operation,result,error(e));}
  }
  private VoiceCaptureCutoff cutoff(Attempt a){return new VoiceCaptureCutoff(SystemClock::elapsedRealtime,(token,peer,generation)->{Host107Recording owner=a.recording;if(owner==null)throw new IOException("VOICE_STOP_DISPATCH_FAILED");owner.deadlineStop(token,peer,generation);});}
@@ -170,11 +170,11 @@ final class VoiceAnswerRuntime {
   final long fence=a.recoveryFence;return new Host107Recording.Receiver(){
    private boolean current(){return owns(a)&&recovery==a.recovery&&(recovery?fence==a.recoveryFence:operation==a.captureOperation);}
    public void frame(String peer,long generation,byte[] data){if(current()&&!recovery&&a.coordinator!=null)a.coordinator.frame(peer,generation,data);}
-   public void sent(int type,boolean accepted,long at){if(!current())return;if(!recovery){if(a.coordinator!=null)a.coordinator.sent(type,accepted,at);return;}if(type!=4)return;
+   public void sent(int type,boolean accepted,long at){if(!current())return;if(!recovery){if(type==1&&accepted)AgentCardRuntime.voiceStage(a.request,"recording_command_accepted");if(a.coordinator!=null)a.coordinator.sent(type,accepted,at);return;}if(type!=4)return;
     io.execute(()->{try{TaskWire.require(current()&&accepted&&a.draft.stopSubmitted(a.token,a.peer,a.generation,at),"VOICE_STOP_SUBMISSION_UNCONFIRMED");a.probe=a.draft.probeStop(a.peer,a.generation,SystemClock.elapsedRealtime());TaskWire.require(a.probe!=null,"VOICE_STOP_PROOF_REJECTED");main.post(()->{if(current())try{a.recording.inspectIdle();}catch(Exception e){recoveryFailure(a,error(e));}});}catch(Exception e){recoveryFailure(a,error(e));}});
    }
    public void noStart(long at){if(current()&&!recovery&&a.coordinator!=null)a.coordinator.noStart(at);}
-   public void ready(boolean ready,long at){if(!current()||recovery)return;if(ready)arm(a,operation,result);else main.post(()->unarmedFailure(a,operation,result,"VOICE_PREFLIGHT_NOT_READY"));}
+   public void ready(boolean ready,long at){if(!current()||recovery)return;if(ready){AgentCardRuntime.voiceStage(a.request,"device_ready");arm(a,operation,result);}else main.post(()->unarmedFailure(a,operation,result,"VOICE_PREFLIGHT_NOT_READY"));}
    public void idle(boolean idle,long at){if(!current())return;if(!recovery){if(a.coordinator!=null)a.coordinator.idle(idle,at);return;}
     io.execute(()->{try{TaskWire.require(current()&&a.draft.deviceIdle(a.probe,a.peer,a.generation,at,idle)&&a.draft.finish(),"VOICE_STOP_PROOF_REJECTED");completeRecoveryResources(a,fence);}catch(Exception e){recoveryFailure(a,error(e));}});
    }
@@ -236,7 +236,7 @@ final class VoiceAnswerRuntime {
    c.attachEngine(new VoiceAnswerCoordinator.Engine(){
     public boolean start()throws Exception{return startNative(a);}
     public boolean working()throws Exception{return "WORKING".equals(nativeOwner.state());}
-    public void pcm(byte[] bytes)throws Exception{nativeOwner.pcm(a.token,bytes);}
+    public void pcm(byte[] bytes)throws Exception{nativeOwner.pcm(a.token,bytes);if(!a.audioSeen){a.audioSeen=true;AgentCardRuntime.voiceStage(a.request,"audio_receiving");}}
     public void sealInput()throws Exception{nativeOwner.sealInput(a.token);}
     public boolean stop()throws Exception{return nativeOwner.stop(a.token);}
     public boolean stopped()throws Exception{return nativeOwner.engineStopped();}

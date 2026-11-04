@@ -78,7 +78,7 @@ final class TaskHub implements AutoCloseable {
   TaskWire.require(TaskWire.same(TaskWire.body(parent).get("route"),c.profile.connection.route()),"TASK_ROUTE_MISMATCH");return parent;
  }
  void prepareVoice(String binding,String requestId,long revision,String fingerprint,VoiceAnswerSession draft,long now)throws Exception{
-  Channel c=channel(binding,true);TaskWire.require(draft!=null&&draft.healthy()&&"IDLE".equals(draft.phase()),"VOICE_DRAFT_NOT_READY");
+  Channel c=channel(binding,true);TaskWire.require(draft!=null&&draft.healthy()&&TaskWire.set("IDLE","PREPARED").contains(draft.phase()),"VOICE_DRAFT_NOT_READY");
   Map<String,Object> request=voiceRequest(c,requestId,revision,fingerprint,now),parent=voiceParent(c,request);
   TaskWire.require(draft.prepare(c.profile.connection,request,parent,now),"VOICE_DRAFT_NOT_READY");c.note="voice_prepared";
  }

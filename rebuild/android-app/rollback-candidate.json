@@ -2,15 +2,15 @@
   "schema": 1,
   "product": "iO Agent Android",
   "application_id": "cn.cznbnb.ioagent",
-  "version": "0.5.3-dev173",
-  "version_code": 10595,
-  "revision": "v173-inbox-catchup",
+  "version": "0.5.3-dev175",
+  "version_code": 10597,
+  "revision": "v175-voice-startup",
   "host_version": "1.0.10",
   "host_code": 258,
-  "signed": "2026-11-04T12:15:31.377Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev173.apk",
+  "signed": "2026-11-04T12:49:18.184Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev175.apk",
   "bytes": 435202275,
-  "sha256": "7a9e8b15adedfe01d5264bf94cdb5d40da5f3da873fa00f61dd7930396e67ae9",
+  "sha256": "e1e0fcb814f2fce58d3d69e0c149ba6a68f49c219043e0f537a8b0ebfe5dda3f",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -66,5 +66,5 @@
   "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
   "release_gate_passed": false,
-  "installed_at": "2026-11-04T12:23:08.948672+00:00"
+  "installed_at": "2026-11-04T12:50:51.306229+00:00"
 }

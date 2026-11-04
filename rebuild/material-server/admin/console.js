@@ -1,3 +1,4 @@
+import './diff.js';
 const $=id=>document.getElementById(id);
 const num=v=>new Intl.NumberFormat('zh-CN').format(v??0);
 const time=v=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'暂无记录';
@@ -83,7 +84,15 @@ function dailyContent(text,date){
  const title=(lines.shift()??'').replace(/^#{1,6}\s+|^[-*]\s+/,'').trim()||'每日 AI 总结',body=lines.join('\n').trim();
  return{title,body,preview:body.replace(/^#{1,6}\s+|^[-*]\s+/gm,'').replace(/\s+/g,' ').trim()};
 }
-function summaryText(text){return el('div',{class:'summary-prose'},text.split('\n').map(line=>line.startsWith('# ')?el('h2',{},line.slice(2)):line.startsWith('## ')?el('h3',{},line.slice(3)):line.startsWith('### ')?el('h4',{},line.slice(4)):el('p',{},line||'\u00a0')));}
+function summaryText(text){return el('div',{class:'summary-prose'},text.split('\n').filter(line=>line.trim()).map(line=>line.startsWith('# ')?el('h2',{},line.slice(2)):line.startsWith('## ')?el('h3',{},line.slice(3)):line.startsWith('### ')?el('h4',{},line.slice(4)):el('p',{},line||'\u00a0')));}
+// Reused by current source/effective comparison and each historical edit.
+function textComparison(before,after){
+ const changes=globalThis.Diff.diffChars(before,after,{timeout:40,maxEditLength:1500})??[{removed:true,value:before},{added:true,value:after}];
+ const old=el('div',{class:'diff-text'}),current=el('div',{class:'diff-text'});
+ for(const part of changes){if(!part.added)old.append(el(part.removed?'del':'span',{},part.value));if(!part.removed)current.append(el(part.added?'ins':'span',{},part.value));}
+ return el('div',{class:'diff-columns'},el('section',{},el('div',{class:'diff-column-label'},'− 改前'),old),el('section',{},el('div',{class:'diff-column-label'},'+ 改后'),current));
+}
+
 const errorText=e=>({CORRECTION_CONFLICT:'资料已更新，请关闭详情并刷新后核对。',CORRECTION_REVERT_CONFLICT:'同一段已有后续修改，不能直接撤销，请查看订正历史。',CORRECTION_REVERT_NOT_EDIT:'撤销记录不能再次撤销，请提交新的订正。',INVALID_ADMIN_QUERY:'筛选条件无效，请重置后重试。',ADMIN_TASK_ACTIVE:'所选任务仍在执行，不能移入回收站。可以先归档。',DEVICE_REVOKED:'设备已解绑，请刷新列表。',DEFAULT_SESSION_UNAVAILABLE:'这个会话暂时不能执行，请选择已接通的会话。',DEVICE_DELIVERY_PAUSED:'该设备暂停了投送，请先恢复。',DEFAULT_REVISION_CONFLICT:'默认工作区已在另一端更新，请刷新后重试。',PRIMARY_PHONE_CHANGED:'主手机已在另一端切换，请刷新后重试。',PHONE_ACCOUNT_REQUIRED:'这台手机尚未完成账号绑定，无法设为主手机。',TASK_NOT_FOUND:'任务已不可用，请刷新列表。',DEVICE_NOT_FOUND:'设备已不可用，请刷新列表。'}[e.code]??e.message);
 
 export class AdminView{
@@ -124,24 +133,56 @@ export class AdminView{
  }
  async detail(kind,id){const ticket=this.ticket,dialog=$('detail-dialog');$('detail-content').replaceChildren(el('div',{class:'drawer-heading'},el('h2',{},'正在读取…'),button('关闭',()=>dialog.close())));dialog.showModal();
   try{const data=await this.api(kind==='task'?'task':'daily-detail',undefined,{id});if(ticket!==this.ticket||!dialog.open)return;
-   const body=$('detail-content');body.replaceChildren(el('div',{class:'drawer-heading'},el('span',{class:'eyebrow'},kind==='task'?'任务详情':'智记详情'),button('关闭',()=>dialog.close())));
+   dialog.classList.toggle('lifelog-drawer',kind==='daily');const body=$('detail-content');body.replaceChildren(el('div',{class:'drawer-heading'},el('span',{class:'eyebrow'},kind==='task'?'任务详情':'智记详情'),button('关闭',()=>dialog.close())));
    if(kind==='daily'){
-    const summary=dailyContent(data.text,data.date);body.append(el('h1',{},data.summary_stale?'总结待重新订正':summary.title),el('p',{class:'muted'},`${data.date} · 原文 v${data.revision} / 订正 v${data.correction_revision} · ${time(data.stored_at)}`));
-    if(data.summary_stale)body.append(el('p',{class:'footnote'},'关联转写已经订正，旧总结暂不作为查询结果。Agent 可根据最新全文重新订正总结。'));
-    if(data.needs_review)body.append(el('p',{class:'footnote'},'手机原文在订正后发生变化。当前仍保留订正版，请核对历史。'));
-    body.append(button('导出当前文字',()=>downloadDaily(data),{class:'secondary'}),summaryText(summary.body));
-    for(const note of data.notes)body.append(el('blockquote',{},note.text,el('small',{class:'cell-note'},`${note.agent} · ${time(note.at)} · 补充记录`)));
-    const history=el('section',{class:'correction-history'});body.append(history);
-    const loadHistory=async before=>{const h=await this.api('history',undefined,{id,...(before?{before}: {})});if(!dialog.open||ticket!==this.ticket)return;
-     if(!before)history.append(el('details',{class:'technical'},el('summary',{},'查看手机原文（不含订正）'),summaryText(h.original.blocks.map(b=>b.text).join('\n'))),el('h3',{},'订正记录'));
-     if(!h.items.length)history.append(el('p',{class:'muted'},'还没有订正。'));
-     for(const entry of h.items){const details=el('details',{class:'technical'},el('summary',{},`v${entry.revision} · ${entry.agent} · ${time(entry.at)}`),el('p',{},entry.reason),el('p',{class:'muted'},'依据：'+entry.evidence.join('；')));
-      for(const [key,change] of Object.entries(entry.changes.blocks))details.append(el('small',{class:'cell-note'},key),el('del',{},change.before?.text??change.after?.base_text??'原文'),el('ins',{},change.after?.text??'恢复原文'));
-      for(const note of entry.changes.notes)details.append(el('p',{},note.text));
-      if(entry.operation!=='revert')details.append(button('撤销这次修改',()=>this.confirm('撤销这次修改','仅撤销所选修改；其他修改会保留。若同一段已被再次修改，会提示刷新核对。',{action:'lifelog-revert',correction:{request_id:crypto.randomUUID(),material_id:id,expected_source_revision:data.revision,expected_revision:data.correction_revision,agent:'admin',reason:'用户在管理后台撤销订正',evidence:['后台核对订正记录 v'+entry.revision],revert_revision:entry.revision}},{danger:true}),{class:'text-button'}));history.append(details);
+    dialog.classList.add('lifelog-drawer');
+    const summary=dailyContent(data.text,data.date),activeStatus=data.summary_stale?'待重新订正':data.corrected?'订正版已生效':'手机原文生效';
+    body.append(el('header',{class:'lifelog-heading'},el('div',{class:'detail-meta'},badge(activeStatus,data.summary_stale?'warn':'good'),el('span',{},`${data.date} · 原文 v${data.revision} · 订正记录 v${data.correction_revision}`)),el('h1',{},data.summary_stale?'总结暂不供 Agent 读取':summary.title)));
+    body.append(el('div',{class:'effective-banner'},el('strong',{},data.summary_stale?'关联转写已更新，旧总结已暂停用于查询':'这里展示 Agent 通过 daily 实际读取的当前内容'),el('p',{},data.summary_stale?'Agent 需要根据最新转写重新订正总结；当天分段智记和转写仍可查询。':'订正只在服务器生效，手机保留原文。查询和导出使用下方当前版本。')));
+    if(data.needs_review)body.append(el('p',{class:'review-banner'},'手机原文在订正后又更新了。当前仍使用订正版，请对照核查。'));
+    const tabs=el('div',{class:'lifelog-tabs',role:'tablist','aria-label':'智记内容视图'}),content=el('section',{class:'lifelog-panel',role:'tabpanel'});body.append(tabs,content);
+    let history=null,loading=null;const buttons=new Map();
+    const readHistory=()=>loading??(loading=this.api('history',undefined,{id}).then(value=>(history=value)));
+    const select=async name=>{
+     for(const [key,tab] of buttons){const on=key===name;tab.setAttribute('aria-selected',String(on));tab.tabIndex=on?0:-1;}
+     content.setAttribute('aria-label',name);content.replaceChildren();
+     if(name==='当前生效'){
+      content.append(el('div',{class:'reading-tools'},el('span',{class:'muted'},data.corrected?'Agent 读取订正后的正文':'Agent 读取服务器上的当前原文'),button('导出当前文字',()=>downloadDaily(data),{class:'secondary'})),summaryText(summary.body));
+      for(const note of data.notes)content.append(el('blockquote',{class:'lifelog-note'},note.text,el('small',{class:'cell-note'},`${note.agent} · ${time(note.at)} · 后续补充，不改写原话`)));
+      content.append(el('details',{class:'raw-reading'},el('summary',{},'查看 CLI 返回的原始文字'),el('pre',{'data-agent-text':'true'},data.text)));return;
      }
-     if(h.has_more)history.append(button('更早的订正',event=>{event.currentTarget.remove();void loadHistory(h.next_before).catch(this.error);},{class:'text-button'}));
-    };body.append(button('原文与订正历史',event=>{event.currentTarget.remove();void loadHistory().catch(this.error);},{class:'secondary'}));return;
+     content.append(el('p',{class:'muted'},'正在读取原文与订正…'));
+     try{await readHistory();}catch(error){if(dialog.open&&buttons.get(name).getAttribute('aria-selected')==='true')content.replaceChildren(empty('暂时无法读取',errorText(error)),button('重试',()=>{loading=null;void select(name);}));return;}
+     if(!dialog.open||ticket!==this.ticket||buttons.get(name).getAttribute('aria-selected')!=='true')return;content.replaceChildren();
+     if(name==='变更对比'){
+      const originals=new Map(history.original.blocks.map(block=>[block.id,block])),effective=new Map(data.blocks.map(block=>[block.id,block]));
+      const keys=[...new Set([...originals.keys(),...effective.keys()])],changed=keys.filter(key=>(originals.get(key)?.text??'')!==(effective.get(key)?.text??''));
+      const count=el('strong',{},`${changed.length} 段与手机当前原文不同`),all=el('input',{type:'checkbox','aria-label':'包含未变化的段落'}),rows=el('div',{class:'diff-blocks'});
+      content.append(el('div',{class:'diff-tools'},count,el('label',{},all,' 包含未变化段落')),el('p',{class:'diff-legend'},'删除内容以红色和删除线标出，新增内容以绿色和下划线标出。左侧是手机当前原文，右侧是 Agent 当前读取的版本。'),rows);
+      const draw=()=>{rows.replaceChildren();for(const [index,key] of keys.entries()){
+       const before=originals.get(key)?.text??'',after=effective.get(key)?.text??'';if(!all.checked&&before===after)continue;
+       rows.append(el('article',{class:'diff-block'},el('div',{class:'diff-block-heading'},el('strong',{},`第 ${index+1} 段`),badge(before===after?'未变化':!after?'当前不供查询':!before?'新增':'已修改',before===after?'muted':'accent')),textComparison(before,after)));
+      }if(!rows.children.length)rows.append(el('div',{class:'unchanged-message'},el('strong',{},'当前没有文字差异'),el('p',{},'当前订正文本与手机原文一致。订正提交也可能只更新依据或恢复总结可查询，具体请查看当次记录。'),button('查看订正历史',()=>void select('订正历史'),{class:'text-button'})));};all.addEventListener('change',draw);draw();return;
+     }
+     content.append(el('p',{class:'history-explainer'},'以下是每次修改发生时的对比。历史记录不等于当前生效内容；请在“当前生效”查看 Agent 的实际读取版本。'));
+     const entries=el('div',{class:'correction-timeline'});content.append(entries);
+     const renderHistory=value=>{for(const entry of value.items){
+      const kind=entry.operation==='revert'?'撤销修改':entry.operation==='note'?'补充说明':'订正正文',changes=Object.entries(entry.changes.blocks);
+      const details=el('details',{class:'correction-entry',open:entry===history.items[0]},el('summary',{},el('span',{class:'revision-mark'},`v${entry.revision}`),el('strong',{},kind),el('span',{},entry.agent),el('time',{datetime:entry.at},time(entry.at))));
+      details.append(el('div',{class:'correction-reason'},el('strong',{},'修改原因'),el('p',{},entry.reason),el('strong',{},'依据'),el('ul',{},entry.evidence.map(e=>el('li',{},e)))));
+      let changedCount=0;const unchanged=[];
+      for(const [key,change] of changes){const before=change.before?.text??change.after?.base_text??history.original.blocks.find(b=>b.id===key)?.text??'',after=change.after?.text??change.before?.base_text??history.original.blocks.find(b=>b.id===key)?.text??'';if(before===after){unchanged.push(after);continue;}changedCount++;details.append(textComparison(before,after));}
+      if(changes.length&&!changedCount){details.querySelector('summary').append(badge('正文无文字变化','muted'));details.append(el('p',{class:'unchanged-message'},'本次提交没有改动文字。依据或总结可查询状态可能有更新，以上方修改原因为准。'));}
+      if(unchanged.length)details.append(el('details',{class:'unchanged-source'},el('summary',{},'查看未改动的提交全文'),summaryText(unchanged.join('\n'))));
+      for(const note of entry.changes.notes)details.append(el('blockquote',{class:'lifelog-note'},note.text));
+      if(entry.operation!=='revert')details.append(button('撤销这次修改',()=>this.confirm('撤销这次修改','仅撤销所选修改；其他修改会保留。若同一段已被再次修改，会提示刷新核对。',{action:'lifelog-revert',correction:{request_id:crypto.randomUUID(),material_id:id,expected_source_revision:data.revision,expected_revision:data.correction_revision,agent:'admin',reason:'用户在管理后台撤销订正',evidence:['后台核对订正记录 v'+entry.revision],revert_revision:entry.revision}},{danger:true}),{class:'text-button'}));entries.append(details);
+     }};
+     renderHistory(history);if(!history.items.length)entries.append(empty('还没有订正记录','当前使用手机同步到服务器的原文。'));
+     let cursor=history.next_before;const more=button('更早的订正',async()=>{more.disabled=true;try{const value=await this.api('history',undefined,{id,before:cursor});if(!dialog.open)return;renderHistory(value);cursor=value.next_before;more.hidden=!value.has_more;}catch(error){this.error(error);}finally{more.disabled=false;}},{class:'secondary',hidden:!history.has_more});content.append(more);
+    };
+    for(const name of ['当前生效','变更对比','订正历史']){const tab=button(name,()=>void select(name),{role:'tab','aria-selected':'false'});buttons.set(name,tab);tabs.append(tab);}
+    tabs.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const names=[...buttons.keys()],at=names.findIndex(name=>buttons.get(name).getAttribute('aria-selected')==='true'),next=event.key==='Home'?0:event.key==='End'?names.length-1:(at+(event.key==='ArrowRight'?1:-1)+names.length)%names.length;buttons.get(names[next]).focus();void select(names[next]);});
+    void select('当前生效');return;
    }
    const task=data.task,session=data.sessions.find(s=>JSON.stringify(s.route)===JSON.stringify(task.body.route)||s.route.session_id===task.body.route.session_id);
    body.append(el('h1',{},task.body.command),el('div',{class:'detail-meta'},badge(label(task.state),task.state==='completed'?'good':'muted'),el('span',{},session?.label??task.body.route.agent_id)),el('p',{class:'muted'},`更新于 ${time(task.stored_at)} · 版本 ${task.revision}`));

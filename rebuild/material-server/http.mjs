@@ -9,6 +9,7 @@ const ADMIN_ASSETS=new Map([
   ['/v1/admin',['admin/index.html','text/html; charset=utf-8']],
   ['/v1/admin/app.js',['admin/app.js','text/javascript; charset=utf-8']],
   ['/v1/admin/console.js',['admin/console.js','text/javascript; charset=utf-8']],
+  ['/v1/admin/diff.js',['admin/diff.js','text/javascript; charset=utf-8']],
   ['/v1/admin/style.css',['admin/style.css','text/css; charset=utf-8']]
 ].map(([route,[file,type]])=>[route,{data:fs.readFileSync(new URL(file,import.meta.url)),type}]));
 
@@ -266,7 +267,7 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       }
       if(req.method==='GET'&&url.pathname==='/v1/inbox'){
         let page=store.inbox(token,query);
-        if(!page.items.length&&idleInboxWaitMs>0){
+        if(!page.items.length&&idleInboxWaitMs>0&&req.headers['x-io-inbox-mode']!=='snapshot'){
           // Bounded empty-mailbox wait: existing clients use a 10s+ request timeout.
           // Re-read identity/primary-phone/paused state after waiting; never return stale authority.
           await new Promise(resolve=>setTimeout(resolve,idleInboxWaitMs));

@@ -20,6 +20,9 @@ final class TaskHttp implements TaskApi.Transport {
    if(disabled)throw new IOException("TASK_PAUSED");
    request.setInstanceFollowRedirects(false);request.setUseCaches(false);request.setConnectTimeout(5000);request.setReadTimeout(path.startsWith("/inbox/watch?")?30000:10000);
    request.setRequestMethod(payload==null?"GET":"POST");request.setRequestProperty("Authorization","Bearer "+token);request.setRequestProperty("Accept","application/json");request.setRequestProperty("Accept-Encoding","identity");
+   // The shared watch owns idle waiting. Per-route snapshot reads must not each
+   // hold the task IO lane for the server's legacy empty-inbox delay.
+   if(path.startsWith("/inbox?"))request.setRequestProperty("X-IO-Inbox-Mode","snapshot");
    if(payload!=null){request.setDoOutput(true);request.setRequestProperty("Content-Type","application/json");request.setFixedLengthStreamingMode(payload.length);try(OutputStream out=request.getOutputStream()){out.write(payload);}}
    int status=request.getResponseCode();String content=request.getContentType();
    if(content==null||!content.matches("(?i)application/json(?:\\s*;\\s*charset=utf-8)?"))throw new IOException("TASK_RESPONSE_INVALID");

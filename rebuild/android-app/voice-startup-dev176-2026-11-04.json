@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T13:03:42.063456+00:00",
+  "version": "0.5.3-dev176",
+  "version_code": 10598,
+  "apk_sha256": "d2fdddd48325ccf41ca4a7158df874f81c25deebfcc82e01655095097fcc04ee",
+  "installed_sha_verified": true,
+  "delta": {
+    "baseline_sha256": "e1e0fcb814f2fce58d3d69e0c149ba6a68f49c219043e0f537a8b0ebfe5dda3f",
+    "candidate_sha256": "d2fdddd48325ccf41ca4a7158df874f81c25deebfcc82e01655095097fcc04ee",
+    "apk_bytes": 435202275,
+    "delta_bytes": 1999195,
+    "commands": 8233,
+    "delta_sha256": "32d550ba62d884de9f480ec17741fcd3018c99dc9c65f72f3cf86d01d7489f5e",
+    "reconstruction_hash_verified": true
+  },
+  "baseline_dev175": {
+    "startup_ms": {
+      "audio_receiving": 12937,
+      "device_check": 11179,
+      "device_ready": 11609,
+      "exit": 0,
+      "question_ready": 11134,
+      "recording_command_accepted": 11834,
+      "voice_ui_opened": 63
+    },
+    "human_answer": "选二。还是过了十几秒才弹出。好。",
+    "accepted_as_latency_success": false
+  },
+  "current_dev176": {
+    "startup_ms": {
+      "audio_receiving": 3364,
+      "device_check": 1624,
+      "device_ready": 2060,
+      "exit": 0,
+      "question_ready": 1584,
+      "recording_command_accepted": 2210,
+      "voice_ui_opened": 34
+    },
+    "audio_receiving_reduction_percent": 74.0,
+    "request_id": "req-357a0737f2732641ff5017e6e0593ea0c5f8fd0692fd9acf71266929584088b3",
+    "answer_id": "answer-android-102c489d3a9bde48faa9f9196fe6ea138ff437b7ac74a389889a7640df0a5502",
+    "input_source": "voice",
+    "option_id": null,
+    "retained_answer_text": "犬一更快的能够接受。",
+    "raw_speech_option_unmatched": true,
+    "returned_to_same_native_session": true,
+    "phone_submit_clicked": false
+  },
+  "root_cause": "The single task IO lane sequentially read empty inboxes for multiple routes; the legacy server imposed about 1000 ms wait per empty read despite a separate shared watch. The request/parent read followed that batch.",
+  "changes": [
+    "One authoritative voice preparation refresh instead of duplicated outer and inner refreshes",
+    "Reused never-started PREPARED drafts still refresh original question and task, preserving token",
+    "Snapshot header skips only the legacy empty-inbox wait; original watch, polling cadence and old clients unchanged",
+    "Monotonic startup stage metadata contains no audio or question content"
+  ],
+  "tests": {
+    "voice_bridge_assertions": 279,
+    "voice_core_assertions": 1960,
+    "server_admin_operations": 17,
+    "real_user_glasses_answer": true
+  },
+  "server_snapshot_release": {
+    "backup": "/opt/turboio/backup-inbox-snapshot-20261104T125513Z",
+    "service": "active",
+    "http_sha256": "f6a0faf6e98f02db877c60acdfdfdefa03ac51ccca22f755379bc3413a39a110"
+  },
+  "limits": [
+    "Two measured runs, not a percentile or long-term timing guarantee",
+    "Recognition returned 犬一 instead of 选一, leaving option_id null; original voice text preserved, not rewritten",
+    "No speculative queue, priority worker or extra background polling added",
+    "Public app update manifest has not been changed in this batch"
+  ]
+}
