@@ -10,6 +10,8 @@ export async function update(args,{directory=root,repository,branch='codex/agent
  try{
   const source=repository??(args.includes('--https')?'https://github.com/cznbnbnb/io-agent.git':'git@github.com:cznbnbnb/io-agent.git');
   const env={...process.env,GIT_TERMINAL_PROMPT:'0'};
+  // Desktop shells can omit the user's existing macOS SSH agent socket.
+  if(process.platform==='darwin'&&!env.SSH_AUTH_SOCK){const socket=spawnSync('/bin/launchctl',['getenv','SSH_AUTH_SOCK'],{encoding:'utf8',timeout:5000});if(socket.status===0&&socket.stdout.trim())env.SSH_AUTH_SOCK=socket.stdout.trim();}
   for(const command of [['clone','--quiet','--filter=blob:none','--sparse','--depth','1','--single-branch','--branch',branch,source,checkout],['-C',checkout,'sparse-checkout','set','docs/distribution']]){
    const result=spawnSync('git',command,{env,encoding:'utf8',timeout:60000,maxBuffer:1048576});need(!result.error&&result.status===0,'UPDATE_REPOSITORY_UNAVAILABLE');
   }

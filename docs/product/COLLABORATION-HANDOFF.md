@@ -1,3 +1,9 @@
+## [codex] 2026-11-04 修正Desktop更新进程的SSH代理环境
+
+- 真实私库推送发现当前Desktop shell缺SSH_AUTH_SOCK，Git报publickey失败；Mac既有登录代理持有用户SSH身份，但该公钥尚未登记GitHub授权。仅在macOS且环境缺失时，从launchctl读取现有SSH代理socket供本次Git子进程使用，不创建/上传密钥、不加新权限、不改全局环境。
+- updater同样补此已发生的问题，避免别的Desktop Agent执行update也失败；仍尊重用户已设置的SSH_AUTH_SOCK。本机发布命令复用同一既有代理；仓库专用部署公钥写入表单已准备，需用户确认新增仓库权限后提交，再验真实私库下载。因运行代码变更需重新生成分发包及source_commit，不沿用前包作为最终发布。
+- 不碰手机/眼镜，装机仍dev172；Windows未真机验，main不合并，其他Agent的Delegate未跟踪文件保留。
+
 ## [codex] 2026-11-04 发布无凭据CLI分发包0.2.0
 
 - 分发ZIP位于 docs/distribution/cz-iot-cli.zip，194,131字节、53文件，SHA256SUMS同时提交；MANIFEST源提交为 ad050ce03a5cf623ac2a3c20f605101f3dccc43e，逐文件摘要已全部核对。后续只改发布记录不重新包装，避免source_commit自引用。
