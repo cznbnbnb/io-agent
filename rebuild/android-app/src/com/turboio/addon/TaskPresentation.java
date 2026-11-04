@@ -24,7 +24,7 @@ final class TaskPresentation {
   boolean expired(long now){
    if("expired".equals(state))return true;
    if(item==null)return local!=null&&"expired".equals(local.get("state"));
-   long deadline=stamp(item.get("expires_at"));return active()&&deadline>0&&deadline<=now;
+   long deadline=TaskWire.taskDeadline(item);return active()&&deadline<=now;
   }
   boolean active(){return TaskWire.set("queued","agent_received","running","waiting_answer","cancel_requested","execution_unknown","stop_requested","stop_unconfirmed","stopped","resume_requested").contains(state)&&!(item==null&&local!=null&&TaskWire.set("expired","withdrawn_local").contains(local.get("state")));}
   boolean localOnly(){return item==null;}
@@ -96,7 +96,7 @@ final class TaskPresentation {
    if(candidate.key.equals(original.key)||candidate.localOnly()||!candidate.binding.equals(original.binding)||
      !candidate.profile.connection.owner.equals(original.profile.connection.owner)||!candidate.profile.enabled||candidate.profile.connection.expiresAt<=now||
      !TaskWire.same(candidate.body.get("route"),original.body.get("route"))||!TaskWire.same(candidate.body.get("route"),candidate.profile.connection.route())||
-     !"running".equals(candidate.state)||stamp(candidate.item.get("expires_at"))<=now)continue;
+     !"running".equals(candidate.state)||TaskWire.taskDeadline(candidate.item)<=now)continue;
    try{Map<String,Object> execution=TaskWire.execution(candidate.body.get("execution"));
     if(!"running".equals(execution.get("phase"))||!(execution.get("turn_id") instanceof String)||((String)execution.get("turn_id")).trim().isEmpty())continue;
    }catch(RuntimeException invalid){continue;}

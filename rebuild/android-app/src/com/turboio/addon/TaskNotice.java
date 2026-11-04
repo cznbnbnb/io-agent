@@ -7,12 +7,17 @@ final class TaskNotice {
  final String key,legacy,text,scope,binding;final long expires,retainUntil,sequence,stored;final boolean deliverable;
  private TaskNotice(String key,String legacy,String text,String scope,TaskConnection connection,Map<String,Object> item,Map<String,Object> parent){
   this.key=key;this.legacy=legacy;this.text=text;this.scope=scope;binding=connection.binding();
-  retainUntil=TaskWire.stamp(parent.get("expires_at"));expires=Math.min(connection.expiresAt,Math.min(TaskWire.stamp(item.get("expires_at")),retainUntil));
+  retainUntil=TaskWire.taskDeadline(parent);expires=Math.min(connection.expiresAt,Math.min(TaskWire.stamp(item.get("expires_at")),retainUntil));
   sequence=TaskWire.positive(item.get("commit_seq"));stored=TaskWire.stamp(item.get("stored_at"));// A short Agent reply can finish before the phone's next inbox poll.
   // Completion does not withdraw an explicitly sent, still-unexpired notice.
   deliverable=TaskWire.ACTIVE_TASKS.contains(parent.get("state"))||"completed".equals(parent.get("state"));
  }
  boolean live(long now){return deliverable&&expires>now;}
+ /** Stock 1.0.10 ordinary notification, business 21/type 2. No question, reply or prompter. */
+ byte[] frame(String applicationId,String title,long now){
+  return OtaFrame.encode(2,WireJson.object("notificationUID",key,"appId",applicationId,"appName","iO Agent","title",title,"subtitle","","content",oneLine(text),"timestamp",java.time.Instant.ofEpochMilli(now).toString(),"category",0,"reply",false,"type",1),null);
+ }
+ static String oneLine(String text){return text.trim().replaceAll("[ \\t]*[\\r\\n]+[ \\t]*","；").replaceAll("([。；，！？：、])；","$1");}
  static TaskNotice prepare(TaskConnection connection,Map<String,Object> item,Map<String,Object> parent,long now){TaskNotice n=read(connection,item,parent);TaskWire.require(n.live(now),"TASK_NOTICE_CLOSED");return n;}
  static TaskNotice read(TaskConnection connection,Map<String,Object> item,Map<String,Object> parent){
   TaskWire.object(item);TaskWire.object(parent);Map<String,Object> b=TaskWire.body(item),p=TaskWire.body(parent);

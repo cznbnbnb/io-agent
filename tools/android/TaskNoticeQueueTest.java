@@ -64,6 +64,15 @@ final class TaskNoticeQueueTest {
    yes(!reply.live(reply.expires));
   }
   File failure=new File(root,"notice-failure");failure.mkdirs();
+  // A one-hour status receipt can expire while its twelve-hour command is still active.
+  File deadlineDir=new File(root,"notice-command-deadline");deadlineDir.mkdirs();
+  try(Disk disk=new Disk(deadlineDir)){
+   Map<String,Object> parent=AgentCardTest.task(c);parent.put("expires_at",TaskWire.now(NOW-1));parent.put("command_expires_at",TaskWire.now(NOW+43200000));
+   TaskNotice live=TaskNotice.read(c,message(c,21),parent);TaskNoticeQueue q=new TaskNoticeQueue(disk);
+   yes(live.live(NOW));yes(live.retainUntil==NOW+43200000);yes(q.select(Arrays.asList(live),disk.offered,NOW)==live);yes(q.claim(live,NOW));
+   q.closed(NOW);yes(new TaskNoticeQueue(disk).select(Arrays.asList(live),Collections.emptySet(),NOW+60000)==null);
+   parent.put("expires_at",TaskWire.now(NOW+3600000));parent.put("command_expires_at",TaskWire.now(NOW-1));yes(!TaskNotice.read(c,message(c,22),parent).live(NOW));
+  }
   try(Disk disk=new Disk(failure)){
    TaskNoticeQueue q=new TaskNoticeQueue(disk);disk.fail=true;yes(!q.claim(d,NOW));yes(!q.healthy());yes(q.select(backlog,Collections.emptySet(),NOW)==null);yes(disk.offered.isEmpty());
   }

@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "9bd42a3b657bf6090539637992c631b9e0cd8b90b8a6d8437310a49c5fb17cef"
+      "sha256": "0bfa23e57b431661fc3458e26cb055e25138703c8d5c7858d109b0fcee6d7679"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -526,7 +526,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Connection.java",
-      "sha256": "7044fbb44e1ac1b6b335753f01c7163fa12f181a1d6485685485da83c6e15a28"
+      "sha256": "9c08169b1f98e82de17fe7957bd2691dbcd02917ae0b05e22a30f08e48dec363"
     },
     {
       "path": "src/com/turboio/addon/Host107HeadSettings.java",
@@ -558,7 +558,7 @@
     },
     {
       "path": "src/com/turboio/addon/Host107Suggestion.java",
-      "sha256": "3708124a61a8747bea2fefa3da329a2686b8ee2a2e11c5e14b5492521118c783"
+      "sha256": "7850664220c325a38599bd50cb36ac0de6aec0f19248e3ec761f759d09a53a0d"
     },
     {
       "path": "src/com/turboio/addon/Host107Todo.java",
@@ -966,7 +966,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "96a8cb2fe68d16b14f02ffee1a9b0df171e4c826466db48d649cbe70558a5c77"
+      "sha256": "ea742e2b18bc1d7f300cdd44a4f195815253e632284866f32e0cdfd83ad81f5b"
     },
     {
       "path": "src/com/turboio/addon/TaskNoticeQueue.java",
@@ -978,7 +978,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskPresentation.java",
-      "sha256": "5a2cef0286541c2663422d92e57b55b4a253affc84e08604cc5e8e76c2ed2dc8"
+      "sha256": "a8054bd99e2760f7cc03e4d6c3d330454568414f1668775f4ba23f89465b9228"
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
@@ -1014,7 +1014,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
+      "sha256": "5959398356a73924c53fc93efdcde874e19dd6190587bf6772f1e186ea7fff9b"
     },
     {
       "path": "src/com/turboio/addon/TaskWorkspace.java",
@@ -1078,14 +1078,14 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "ae9613a69b13f3c6e8c8f913b0fd4f10a5e9bc9c3f652aacb297807acff4c2e8"
+      "sha256": "0fa300ab21bae036540e1a1f2cc9134832cb080c75f54c94076d8dba26d5a6f7"
     }
   ],
-  "product_sha256": "4b087f613d92f5f8a08f756f5b4dcc978f83c548428705f8ce9e1b101f4ed93b",
-  "addon_sha256": "afb92639f60a394971c0c235fe06b46a125ecd7529ed9afe053f40b33f211616",
+  "product_sha256": "1fe1a72d8244b6013e177d8bac196a6c262a716b4014a5562554190e63b22cdd",
+  "addon_sha256": "75e483eefbfea594ca4b94fea1f0a772b20e1b7770f7241cafe2055e3232732b",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
-    "classes3": "a4683a1fc05855eb8135da19c2c96b6418f74a367634bf533322e2dc8caf9de4"
+    "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"
   },
   "upstream": "f57cc82d0c810435653b684fbdd8c07c533a012f",
   "host_source_sha256": "951dabcb8a0a954dd90b901dab9a6b53c48c406545879f4900949c8b41e26e22",

@@ -37,6 +37,10 @@ public final class TaskPresentationTest {
   TaskPresentation completing=showing(pa,legacy,executing(a,"awaiting-final",106,"result_pending"));check(completing.currentExecution(completing.find(pa.binding+"/legacy-question-record"))==null);
   Map<String,Object> stale=WireJson.map(WireJson.copy(active));stale.put("expires_at",TaskWire.now(NOW-1));TaskPresentation timedOut=showing(pa,legacy,stale);check(timedOut.currentExecution(timedOut.find(pa.binding+"/legacy-question-record"))==null);
   TaskPresentation empty=showing(pa,legacy);check(empty.currentExecution(empty.find(pa.binding+"/legacy-question-record"))==null);check(empty.currentExecution(null)==null);
+  stale.put("command_expires_at",TaskWire.now(NOW+43200000));TaskPresentation stillRunning=showing(pa,legacy,stale);
+  check(stillRunning.currentExecution(stillRunning.find(pa.binding+"/legacy-question-record"))!=null);check(stillRunning.filter("running").size()==2);
+  stale.put("expires_at",TaskWire.now(NOW+3600000));stale.put("command_expires_at",TaskWire.now(NOW-1));TaskPresentation commandExpired=showing(pa,legacy,stale);
+  check(commandExpired.currentExecution(commandExpired.find(pa.binding+"/legacy-question-record"))==null);check(commandExpired.filter("expired").size()==1);
  }
  public static void main(String[] args)throws Exception{
   TaskConnection a=connection("codex-original"),b=connection("claude-original");TaskProfiles.Profile pa=new TaskProfiles.Profile(a,true),pb=new TaskProfiles.Profile(b,false);

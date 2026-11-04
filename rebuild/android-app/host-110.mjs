@@ -56,6 +56,7 @@ export function verifyHost(root){
  if(!path.relative(root,scanner).startsWith('smali_classes2'+path.sep))throw new Error('Unexpected scanner hook DEX');
  const location=check('LL8/u1;',['.method public final a(Lkotlin/jvm/functions/Function1;)V','    invoke-virtual {v2, v3, v4}, LL8/D2;->a(J)Ljava/util/Map;','    invoke-virtual {v0, p1}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z']);
  const locationResult=check('LL8/b1;',['.method public final a(Ljava/util/Map;Z)V','    iget-wide v0, p0, LL8/b1;->m:J']);
- for(const file of [location,locationResult])if(!path.relative(root,file).startsWith('smali_classes3'+path.sep))throw new Error('Unexpected location hook DEX');
- const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,scanner,location,locationResult,proofs};
+ const locationProvider=check('LL8/Z0;',['.method public final invoke(Ljava/lang/Object;)Ljava/lang/Object;','    check-cast v4, LL8/u0;','    sget-object v0, LL8/u0;->ANDROID_SYSTEM:LL8/u0;','    invoke-virtual {v9, p1, v5}, LL8/J2;->d(ZLE8/i;)V']);
+ for(const file of [location,locationResult,locationProvider])if(!path.relative(root,file).startsWith('smali_classes3'+path.sep))throw new Error('Unexpected location hook DEX');
+ const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,scanner,location,locationResult,locationProvider,proofs};
 }

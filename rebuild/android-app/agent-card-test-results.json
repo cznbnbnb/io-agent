@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "at": "2026-10-30T11:34:20.153Z",
-  "assertions": 843,
+  "at": "2026-11-04T06:06:01.986Z",
+  "assertions": 860,
   "sources": [
     {
       "path": "src/com/turboio/addon/TaskNoticeQueue.java",
@@ -9,7 +9,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskNotice.java",
-      "sha256": "96a8cb2fe68d16b14f02ffee1a9b0df171e4c826466db48d649cbe70558a5c77"
+      "sha256": "ea742e2b18bc1d7f300cdd44a4f195815253e632284866f32e0cdfd83ad81f5b"
     },
     {
       "path": "src/com/turboio/addon/AgentCardRequest.java",
@@ -41,7 +41,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "96926d5fd4254fc311adbd9df7428cd4c7aae539f7223e9a4d04e2873cfeb081"
+      "sha256": "37496cffb2788ea7dffd1ba73b443d3ef4fd11b42413d066744ea7a596502caf"
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
@@ -57,7 +57,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
-      "sha256": "41719d3ffca30e47f52e482a7e69fd7fbae0c4b67b8ec683851504788767e4dd"
+      "sha256": "5959398356a73924c53fc93efdcde874e19dd6190587bf6772f1e186ea7fff9b"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",
@@ -65,7 +65,7 @@
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
@@ -77,11 +77,11 @@
     },
     {
       "path": "../../tools/android/TaskNoticeQueueTest.java",
-      "sha256": "c5a9f177ae5723a50b0159c191d857b5360d325b97b938cb44b2bd71cb868954"
+      "sha256": "b59f62516329b330cf76aac27f9d8d009acf1744f08ffc94471bf9c2ceb35055"
     },
     {
       "path": "../../tools/android/AgentCardTest.java",
-      "sha256": "346bb9810dbf3869bc2d44bbd688c6b03f3a8821aa51d9c8c944604f933bc1b7"
+      "sha256": "3b0a1bc8a2d9feed09978ba34eaf6c26113b7fb184aef1a590e7b134ea6d7b08"
     },
     {
       "path": "../../tools/android/TaskConnectionTest.java",

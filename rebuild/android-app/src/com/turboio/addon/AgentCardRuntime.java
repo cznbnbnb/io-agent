@@ -136,24 +136,28 @@ final class AgentCardRuntime {
   if(noticeSnapshot!=snapshot){noticeCandidates=TaskNoticeQueue.collect(snapshot.contexts);if(snapshot.phone!=null)noticeCandidates.removeIf(n->n.sequence<=snapshot.phone.noticeAfter);noticeSnapshot=snapshot;}
   List<TaskNotice> candidates=noticeCandidates;
   long at=System.currentTimeMillis();TaskNotice notice=noticeQueue.select(candidates,offered,at);
-  if(notice==null||NativeTransfer.connected().isEmpty()||!noticeQueue.claim(notice,at))return;
+  if(notice==null||NativeTransfer.connected().isEmpty())return;
+  String owner="agent-notice-"+notice.key;if(!NativeTransfer.acquireMessages(owner))return;
+  if(!noticeQueue.claim(notice,at)){NativeTransfer.releaseMessages(owner);return;}
   nextAuto=now()+10000;
   PrompterSharePort.trace("progress notice claimed key="+notice.key+" seq="+notice.sequence);
-  // 2026-10-27 user: progress/blocker notices are ordinary notifications, not the prompter (only a long-press
-  // leaves it). The stock app mirrors the phone notification to the glasses, where it leaves by itself.
-  boolean posted=noticeNotification(notice,at);noticeQueue.closed(System.currentTimeMillis());
-  message=posted?"最新任务提醒已作为普通通知发到眼镜，会自动消失":"通知未能发出，已保留在手机，不自动重复投送";
+  // Send only our own ordinary notification over the existing SDK. A new independent install may
+  // have no Android notification-listener access. Posting to Android alone is not a lens receipt.
+  TaskHub.View source=snapshot.context(notice.binding);
+  String agent=source==null?"Agent":TaskPresentation.agentName(source.profile.connection.agent);agent=agent.startsWith("Claude")?"Claude":agent.equals("Codex")?"Codex":"Agent";
+  Fixed60Session.Link link=Host107Ota.link();message="正在发送眼镜提醒";
+  Host107Suggestion.sendNotice(link,notice.frame(app.getPackageName(),agent+(notice.text.startsWith("已完成：")?"进度":"提醒"),at),()->{
+   TaskHub.View current=snapshot==null?null:snapshot.context(notice.binding);Fixed60Session.Link active=Host107Ota.link();
+   return enabled()&&TaskRuntime.glassesAllowed()&&notice.live(System.currentTimeMillis())&&current!=null&&current.profile.enabled&&!TaskAttention.active()&&!NewsTele.active()&&!FirmwareQueue.busy()&&Objects.equals(link.peer,active.peer)&&link.generation==active.generation;
+  },ok->{NativeTransfer.releaseMessages(owner);noticeQueue.closed(System.currentTimeMillis());
+   message=ok?"眼镜提醒已提交设备；实际显示请以镜片为准":"眼镜提醒发送未确认，已保留在手机，不自动重复投送";
+   PrompterSharePort.trace("progress notice SDK result key="+notice.key+" accepted="+ok);refresh();
+  });
  }
  private static final String NOTICE_CHANNEL="turboio_agent_notice";
  /** One notification per task connection: a newer notice replaces the older one, and it expires with the notice. */
  /** The lens mirrors a few short lines; a line break leaves most of one empty, so breaks become 「；」. */
- static String oneLine(String text){return text.trim().replaceAll("[ \\t]*[\\r\\n]+[ \\t]*","；").replaceAll("([。；，！？：、])；","$1");}
- private boolean noticeNotification(TaskNotice notice,long at){
-  TaskHub.View source=notice.binding==null||snapshot==null?null:snapshot.context(notice.binding);
-  String agent=source==null?"Agent":TaskPresentation.agentName(source.profile.connection.agent);agent=agent.startsWith("Claude")?"Claude":agent.equals("Codex")?"Codex":"Agent";
-  // Short titles without spaces: the glasses split a spaced Latin title and dropped part of it in testing.
-  return postNotice(agent+(notice.text.startsWith("已完成：")?"进度":"提醒"),notice.text,notice.binding==null?"agent":notice.binding,Math.max(60000,notice.expires-at));
- }
+ static String oneLine(String text){return TaskNotice.oneLine(text);}
  /** Ordinary phone notification, mirrored to the lens by the host and dismissed there on its own (no long press). */
  private boolean postNotice(String title,String body,String tag,long timeout){
   if(!TaskRuntime.glassesAllowed())return false;

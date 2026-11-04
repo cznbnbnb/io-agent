@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T06:59:15.819747+00:00",
+  "version": "0.5.3-dev169",
+  "version_code": 10591,
+  "application_id": "cn.cznbnb.ioagent",
+  "apk_sha256": "e307bbe2708a62fe37164ccdac653b326fe26c8f11c5f3c17c6b7ab69d1533a9",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "installed": true,
+  "delta": {
+    "baseline_sha256": "e4549966198eb80ac07ba1949b96e1259d6d512eee7ba6bcd82a7bbab39eb89f",
+    "candidate_sha256": "e307bbe2708a62fe37164ccdac653b326fe26c8f11c5f3c17c6b7ab69d1533a9",
+    "apk_bytes": 435189987,
+    "delta_bytes": 6161259,
+    "commands": 8231,
+    "delta_sha256": "c39bebe2c740f4a67db4aa9e72cdbeca7c4a3a0e52efcb57d08d3a0b38c45d3c",
+    "reconstruction_hash_verified": true
+  },
+  "baseline_version": "0.5.3-dev168",
+  "baseline_reconstruction_installed_hashes_verified": true,
+  "data_cleared": false,
+  "official_app_installed_by_this_run": false,
+  "notifications": {
+    "earlier_listener_was_disabled": true,
+    "user_enabled_listener": true,
+    "root_retry_skipped_due_to_status_envelope_expiry": true,
+    "uses_command_expires_at": true,
+    "delivery": "owned SDK business21/type2, ordinary notification",
+    "test_message_id": "notice-67a109b6e3d35d0ccd1c4ea4969f1c1529dcd4edbc80114ead3f29f730ddddef",
+    "sdk_accepted_status_observed": true,
+    "user_confirmed_visible": true,
+    "user_words": "看到了；眼镜消息已收到",
+    "unknown_result_auto_replayed": false
+  },
+  "weather": {
+    "before": "--°C",
+    "current_phone_preview": "29°C",
+    "glasses_weather_observation": null,
+    "independent_amap_single_request_routed_to_existing_android_system_provider": true,
+    "continuous_amap_failure_still_observed": true,
+    "no_new_background_timer": true
+  },
+  "sms": {
+    "before_map_connected": false,
+    "original_permission_explanation_opened": true,
+    "user_reports_enabled": true,
+    "user_words": "短信通知也打开了",
+    "real_sms_sent": false,
+    "actual_sms_delivery_tested": false
+  },
+  "host_contract": {
+    "version": "1.0.10/258",
+    "original_libapp_sha256": "363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c",
+    "todo_create_fields": [
+      "content",
+      "description",
+      "priority",
+      "starred",
+      "sourceType",
+      "sourceId",
+      "completed",
+      "clientId",
+      "source",
+      "listId",
+      "dueDate",
+      "dueTimeZone"
+    ],
+    "schedule_location_time_fields": [
+      "startTime",
+      "endTime",
+      "location"
+    ],
+    "suggestion_card_time_field": "timeRange",
+    "notification_sources": "preset recommended apps plus received-notification registration"
+  },
+  "tests": {
+    "agent_card_assertions": 860,
+    "wire_hot_path_assertions": 50,
+    "wire_concurrent_cases": 8000,
+    "task_presentation_checks": 84,
+    "host_policy": "passed",
+    "coexisting_update_feed_checks": 16,
+    "lifelog_host_boundary_checks": 6,
+    "build_sign_private_dex_alignment_audits": "passed"
+  },
+  "next_scope": "Plan only; structured activity/location/calendar upload and update center not implemented in this batch",
+  "release_gate_passed": false
+}

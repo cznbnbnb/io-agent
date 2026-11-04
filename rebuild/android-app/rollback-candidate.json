@@ -2,15 +2,15 @@
   "schema": 1,
   "product": "iO Agent Android",
   "application_id": "cn.cznbnb.ioagent",
-  "version": "0.5.3-dev167",
-  "version_code": 10589,
-  "revision": "io-agent-settings-and-host-compatibility",
+  "version": "0.5.3-dev168",
+  "version_code": 10590,
+  "revision": "io-agent-busy-session-queue-gate",
   "host_version": "1.0.10",
   "host_code": 258,
-  "signed": "2026-11-04T04:26:38.629Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev167.apk",
+  "signed": "2026-11-04T04:58:02.220Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev168.apk",
   "bytes": 435189987,
-  "sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+  "sha256": "e4549966198eb80ac07ba1949b96e1259d6d512eee7ba6bcd82a7bbab39eb89f",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -68,5 +68,5 @@
   "release_gate_passed": false,
   "coexistence_preview": true,
   "retention_eligible_rollback": false,
-  "phone_install_evidence": "settings-host-compat-dev167-2026-11-03.json"
+  "phone_install_evidence": "phone-settings-workspace-dev168-2026-11-03.json"
 }

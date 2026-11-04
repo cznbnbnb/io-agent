@@ -35,6 +35,9 @@ public final class Host107Connection implements GlassesConnection {
  /** Called on the host location coordinator's main thread, after its cache lookup. */
  public static boolean allowLocationRetry(){Host107Connection self=instance;return self==null||locationRetry.allow(self.visible,SystemClock.elapsedRealtime());}
  public static void locationResult(Object value,boolean cancelled){Host107Connection self=instance;if(self!=null)locationRetry.completed(value!=null,cancelled,self.visible,SystemClock.elapsedRealtime());}
+ /** The independent package cannot authenticate the stock AMap signing key. Use the host's
+  * existing system one-shot provider; keep its cache, cancellation, timeout and retry budget. */
+ public static boolean systemOneShotLocation(){Host107Connection self=instance;return self!=null&&"cn.cznbnb.ioagent".equals(self.app.getPackageName());}
  /** No screen yet (TurboAddon.boot): cards, dictation and OTA links read the shared stock connection. */
  static synchronized void boot(Context context){if(instance==null)instance=new Host107Connection(context,null);}
  static void attach(Activity activity){Host107Connection self=get(activity);self.foreground.add(activity);self.visible=true;if(activity.getClass().getName().equals("com.rayneo.venus.MainActivity")&&self.owned)try{handoff();}catch(Exception failure){self.note=code(failure);}}

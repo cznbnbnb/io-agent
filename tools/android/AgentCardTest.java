@@ -63,6 +63,14 @@ public final class AgentCardTest {
  static void notices()throws Exception{
   TaskConnection c=connection("codex");Map<String,Object> parent=task(c),notice=item("message",WireJson.object("message_id","notice-"+String.join("",Collections.nCopies(64,"a")),"revision",1,"task_id","same-task-id","route",c.route(),"request_id",null,"channel","progress","text","等待查明录音占用，无需回答"),3);notice.put("state","recorded");
   TaskNotice prepared=TaskNotice.prepare(c,notice,parent,NOW);yes(prepared.text.equals(TaskWire.text(TaskWire.body(notice).get("text"),1800,false))&&!prepared.text.contains("长按退出"));yes(prepared.key.equals(TaskNotice.prepare(c,notice,parent,NOW).key));
+  OtaFrame frame=OtaFrame.decode(prepared.frame("cn.cznbnb.ioagent","Codex提醒",NOW));Map<String,Object> payload=BoundedJson.map(frame.json);
+  yes(frame.type==2&&frame.binary.length==0);yes(payload.keySet().equals(new HashSet<>(Arrays.asList("notificationUID","appId","appName","title","subtitle","content","timestamp","category","reply","type"))));
+  yes(payload.get("notificationUID").equals(prepared.key)&&payload.get("appId").equals("cn.cznbnb.ioagent")&&payload.get("content").equals(prepared.text));
+  yes(payload.get("reply").equals(false)&&((Number)payload.get("type")).intValue()==1&&((Number)payload.get("category")).intValue()==0);
+  yes(java.time.Instant.parse((String)payload.get("timestamp")).toEpochMilli()==NOW);yes(TaskNotice.oneLine("第一行。\n第二行\r\n第三行").equals("第一行。第二行；第三行"));
+  Object message=new Object();boolean[] allowed={true};byte[] bytes=prepared.frame("cn.cznbnb.ioagent","Codex提醒",NOW);
+  yes(SuggestionGate.register(message,PEER,bytes,()->allowed[0]));yes(SuggestionGate.allow(message,PEER,bytes));yes(!SuggestionGate.allow(message,OTHER,bytes));
+  allowed[0]=false;yes(!SuggestionGate.allow(message,PEER,bytes));allowed[0]=true;SuggestionGate.retire(message);yes(!SuggestionGate.allow(message,PEER,bytes));
   // A re-pair derives a new binding (new producer and token) for the same session: the notice is not shown again.
   {Map<String,Object> v=TaskConnectionTest.sample();v.put("computer_id","pc");v.put("agent_id",c.agent);v.put("project_id","project");v.put("session_id",c.session);v.put("expires_at",TaskWire.now(NOW+86400000));v.put("producer_id","synthetic-repaired-phone");v.put("token","B".repeat(43));
    TaskConnection repaired=TaskConnection.parse(WireJson.bytes(v),NOW);TaskNotice again=TaskNotice.prepare(repaired,notice,parent,NOW);yes(!repaired.binding().equals(c.binding())&&again.key.equals(prepared.key)&&!again.legacy.equals(prepared.legacy));}
