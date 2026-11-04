@@ -298,7 +298,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentCardRuntime.java",
-      "sha256": "0bfa23e57b431661fc3458e26cb055e25138703c8d5c7858d109b0fcee6d7679"
+      "sha256": "f302d8576dfac348e450ca41f59e28877f70842e5285642284bcf28c129f6f40"
     },
     {
       "path": "src/com/turboio/addon/AgentCardSession.java",
@@ -926,7 +926,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskApi.java",
-      "sha256": "bc08acefb84cd3297913eae8699a0195c60cb345a12c7c53080a4e45c96edc00"
+      "sha256": "7442b60b0c792e82a88dcadb62d8f31ec431d4cc1b7349a46cc9494961b1cbfe"
     },
     {
       "path": "src/com/turboio/addon/TaskAttention.java",
@@ -962,7 +962,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskHub.java",
-      "sha256": "58aad7d32cb98087b77a2ca52ca3264fbe28ae33c457ad9017a6e5a5446a804b"
+      "sha256": "4c4dcbbfc49bba8afb94ef2d2ae1fbbd2a871bcf8500e9823fdd3201aa182e6f"
     },
     {
       "path": "src/com/turboio/addon/TaskInboxWatch.java",
@@ -974,7 +974,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskMailbox.java",
-      "sha256": "33dc7765d107975fc1dcdc5716a0d8d3d2b807ca7cd84fda43e49d52f301958b"
+      "sha256": "eaca1e8d62cd2db5494c26b0de406e85ea629df682587b28e4fd8f43303d0803"
     },
     {
       "path": "src/com/turboio/addon/TaskNames.java",
@@ -1010,7 +1010,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskRuntime.java",
-      "sha256": "a27386d167de4f123e087c1e641f9c5dbdb36f020037d89483c7227b4fb91289"
+      "sha256": "4de803ebafe03757ce871645ca6c0c87b9c034048ebcdb212644f856b0fd5822"
     },
     {
       "path": "src/com/turboio/addon/TaskSessionDirectory.java",
@@ -1050,7 +1050,7 @@
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerRuntime.java",
-      "sha256": "9c41581827dc9c011c2857127eaaa8f8365eebdc6aba0b6466fe2849e8d1a8c6"
+      "sha256": "0bdab693a10b33d6fc9928bbd017818d82b408284fa1dc5644660350fee2c0a3"
     },
     {
       "path": "src/com/turboio/addon/VoiceAnswerSession.java",
@@ -1094,11 +1094,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "2b5854d4484f2c7709f2c916660f97fa92b272d4ccfef4e445de60c4aeff60bc"
+      "sha256": "76742d4d7b642dd3ab01d1aad932b57bebf527a9e8c3fbdba667a4360131a55e"
     }
   ],
-  "product_sha256": "d418fa1f6aac6a437229474906463d0bfbc9fa89c9810b212e6b2bf4cf188b59",
-  "addon_sha256": "78aecd4ead1501b849d6e2cfa53e4e2a1e86bfbaa0ef354497eb25875e381bd6",
+  "product_sha256": "37cdce309a09ce2c65f7a182e7480f2d4961c22a4da2f2e6cac3ab1303d8cc45",
+  "addon_sha256": "fd1334b9b288945af19d30e7ba249f30cc950b219994724d816227f2029fac63",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"

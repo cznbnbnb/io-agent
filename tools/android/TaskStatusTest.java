@@ -12,7 +12,7 @@ public final class TaskStatusTest {
  private static Map<String,Object> copy(Map<String,Object> value){return WireJson.map(WireJson.copy(value));}
  private static final class Peer implements TaskApi.Transport {
   final TaskConnection connection;final Map<String,Object> task,request;
-  int identityCalls,inboxCalls,requestReads;boolean first=true,failStatus,foreignStatus;List<Object> extra=Collections.emptyList();
+  int identityCalls,inboxCalls,requestReads,backlogPage;boolean first=true,failStatus,foreignStatus,failInbox;List<Object> extra=Collections.emptyList();List<List<Object>> backlog;
   Peer(TaskConnection c)throws Exception{
    connection=c;Map<String,Object> fixture=WireJson.map(WireJson.read(Files.readAllBytes(Paths.get("docs/contracts/normal.json"))));
    Map<String,Object> t=null,r=null;for(Object raw:WireJson.list(fixture.get("events"))){Map<String,Object> e=WireJson.map(raw);if("task".equals(e.get("kind")))t=copy(TaskWire.body(e));if("request".equals(e.get("kind")))r=copy(TaskWire.body(e));}
@@ -22,7 +22,10 @@ public final class TaskStatusTest {
   public TaskApi.Response exchange(String path,byte[] body)throws IOException{
    if(body!=null)throw new AssertionError("Status reads must never write answers or tasks");
    if(path.equals("/identity")){identityCalls++;return ok(WireJson.object("schema_version","1.0","owner_id",connection.owner,"producer_id",connection.producer,"server_id",connection.server,"expires_at",connection.expires,"scopes",new ArrayList<>(TaskConnection.SCOPES)));}
-   if(path.startsWith("/inbox?")){inboxCalls++;List<Object> items=first?Arrays.asList(task,request):extra;first=false;extra=Collections.emptyList();return ok(WireJson.object("items",items,"has_more",false,"next_cursor","cursor-"+inboxCalls,"server_time",TaskWire.now(NOW),"fresh_until",TaskWire.now(NOW)));}
+   if(path.startsWith("/inbox?")){inboxCalls++;if(failInbox)throw new IOException("INBOX_UNAVAILABLE");List<Object> items;boolean more=false;
+    if(backlog!=null){items=backlogPage<backlog.size()?backlog.get(backlogPage++):Collections.emptyList();more=backlogPage<backlog.size();}
+    else{items=first?Arrays.asList(task,request):extra;first=false;extra=Collections.emptyList();}
+    return ok(WireJson.object("items",items,"has_more",more,"next_cursor","cursor-"+inboxCalls,"server_time",TaskWire.now(NOW),"fresh_until",TaskWire.now(NOW)));}
    if(path.startsWith("/requests/")){requestReads++;if(failStatus)throw new IOException("STATUS_UNAVAILABLE");Map<String,Object> result=copy(request);if(foreignStatus){Map<String,Object> route=copy(TaskWire.body(result));Map<String,Object> other=copy(connection.route());other.put("session_id","foreign");route.put("route",other);result.put("body",route);}return ok(result);}
    throw new AssertionError("Unexpected path "+path);
   }
@@ -65,6 +68,31 @@ public final class TaskStatusTest {
   Peer foreign=new Peer(c);foreign.foreignStatus=true;TaskApi guarded=new TaskApi(c,foreign);
   try(TaskMailbox box=new TaskMailbox(Files.createTempDirectory("io-status-route-").toFile(),c)){
    yes(guarded.pump(box,NOW));yes(guarded.note.equals("TASK_ROUTE_MISMATCH"));yes(TaskWire.same(TaskWire.body(WireJson.map(box.cached("request",id).get("item"))).get("route"),c.route()));
+  }
+  // A new route used to wait ten seconds after every historical page: 900 owner
+  // entries meant 45 ticks before its question could appear. Catch-up is bounded
+  // per pump, preserves the cursor and returns to the idle policy after the tail.
+  Peer history=new Peer(c);List<Object> entries=new ArrayList<>();
+  for(int i=0;i<898;i++){Map<String,Object> old=copy(TaskWire.body(history.task));old.put("task_id","old-task-"+i);Map<String,Object> route=copy(c.route());route.put("session_id","older-session");old.put("route",route);entries.add(TaskContextsTest.item(old,"task",i+1));}
+  history.task.put("commit_seq",899);history.request.put("commit_seq",900);entries.add(history.task);entries.add(history.request);history.backlog=new ArrayList<>();
+  for(int i=0;i<entries.size();i+=20)history.backlog.add(new ArrayList<>(entries.subList(i,Math.min(i+20,entries.size()))));
+  TaskApi catching=new TaskApi(c,history);
+  try(TaskMailbox box=new TaskMailbox(Files.createTempDirectory("io-status-history-").toFile(),c)){
+   int pumps=0;long at=NOW;yes(!catching.catchingUp());
+   do{int before=history.inboxCalls;yes(catching.pump(box,at,false));yes(history.inboxCalls-before<=4);pumps++;at+=500;yes(pumps<=12);}while(catching.catchingUp());
+   yes(catching.inboxCurrent()&&pumps==12&&history.inboxCalls==45);yes(state(box,id).equals("pending"));yes(box.objects().size()==2);
+   int reads=history.inboxCalls;for(int n=0;n<10;n++)catching.pump(box,at+n*3000,false);yes(history.inboxCalls==reads);
+  }
+  Peer interrupted=new Peer(c);interrupted.backlog=history.backlog;TaskApi resumable=new TaskApi(c,interrupted);
+  try(TaskMailbox box=new TaskMailbox(Files.createTempDirectory("io-status-history-retry-").toFile(),c)){
+   yes(resumable.pump(box,NOW,false));yes(resumable.catchingUp());String cursor=box.cursor();interrupted.failInbox=true;
+   TaskContextsTest.rejects(()->resumable.pump(box,NOW+500,false));yes(!resumable.catchingUp());yes(cursor.equals(box.cursor()));int calls=interrupted.inboxCalls;
+   yes(!resumable.pump(box,NOW+1000,false));yes(interrupted.inboxCalls==calls);interrupted.failInbox=false;
+   long at=NOW+6000;do{yes(resumable.pump(box,at,false));at+=500;}while(resumable.catchingUp());yes(state(box,id).equals("pending"));
+  }
+  Peer hubHistory=new Peer(c);hubHistory.backlog=history.backlog;TaskProfiles profile=TaskProfiles.empty().upsert(c,true,NOW);
+  try(TaskHub hub=new TaskHub(Files.createTempDirectory("io-status-history-hub-").toFile(),profile,connection->hubHistory)){
+   yes(!hub.catchingUp());hub.pump(NOW);yes(hub.catchingUp());hub.apply(profile.enabled(c.binding(),false,NOW));yes(!hub.catchingUp());
   }
   // Oldest first, one request per pump; another route is never queried. Once a pending request
   // has been read after its deadline, its local expired presentation does not need endless polling.

@@ -134,7 +134,7 @@ final class TaskMailbox implements AutoCloseable {
   TaskWire.require(cursor().equals(expected),"TASK_CURSOR_STALE");List<Object> items=WireJson.list(page.get("items"));TaskWire.require(items.size()<=20&&page.get("has_more") instanceof Boolean&&(!Boolean.TRUE.equals(page.get("has_more"))||!items.isEmpty()),"TASK_PAGE_INVALID");
   String cursor=TaskWire.text(page.get("next_cursor"),4096,false);TaskWire.stamp(page.get("server_time"));TaskWire.stamp(page.get("fresh_until"));
   Map<String,Object> next=copy();long previous=0;
-  for(Object value:items){Map<String,Object> item=TaskWire.object(WireJson.copy(value));long seq=TaskWire.positive(item.get("commit_seq"));TaskWire.require(seq>previous&&TaskWire.set("task","request","message").contains(item.get("kind")),"TASK_PAGE_ORDER");previous=seq;merge(next,item,0);}
+  for(Object value:items){Map<String,Object> item=TaskWire.object(WireJson.copy(value));long seq=TaskWire.positive(item.get("commit_seq"));TaskWire.require(seq>previous&&TaskWire.set("task","request","message").contains(item.get("kind")),"TASK_PAGE_ORDER");previous=seq;if(TaskWire.same(TaskWire.body(item).get("route"),connection.route()))merge(next,item,0);}
   next.put("cursor",cursor);publish(next);
  }
  synchronized void acceptDetail(Map<String,Object> item,long now)throws IOException{Map<String,Object> next=copy();merge(next,WireJson.map(WireJson.copy(item)),now);publish(next);}

@@ -25,6 +25,7 @@ final class AgentCardRuntime {
  // Questions whose interrupted dictation was closed after a restart; offered again once.
  private final Set<String> reoffer=new HashSet<>(),displayedPrompters=new HashSet<>(),cancelledPrompters=new HashSet<>(),noticeChecks=new HashSet<>(),questionChecks=new HashSet<>(),retiredPrompters=new HashSet<>();
  private long nextAuto,lastCleanupGeneration=Long.MIN_VALUE;private String lastCleanupOwner="",message="等待电脑问题",lastExport="";
+ private Map<String,Object> lastPrompterExit=Collections.emptyMap();
  private static long now(){return SystemClock.elapsedRealtime();}
  private static void main(){if(Looper.myLooper()!=Looper.getMainLooper())throw new IllegalStateException("AGENT_CARD_THREAD");}
  private AgentCardRuntime(Application application,Activity host)throws IOException{
@@ -38,7 +39,12 @@ final class AgentCardRuntime {
    }
   });
   NewsTele.orphans=this::orphan;
-  NewsTele.closed=did->{noticeQueue.closed(System.currentTimeMillis());retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();};
+  NewsTele.closed=did->{long at=System.currentTimeMillis();noticeQueue.closed(at);boolean first=retiredPrompters.add(did);TaskPrompterNotice notice=prompterNotice();if(notice!=null&&notice.did.equals(did))prefs.edit().remove("prompter_notice_owner").commit();
+   TaskPrompterOwner question=prompter();if(first&&question!=null&&question.did.equals(did)){
+    recordPrompterExit(question,at>=question.until?"display_deadline":"prompter_closed");
+    if(at>=question.until){message="本次提问显示已结束，未开始录音；可在手机查看原问题";main.post(()->{if(TaskRuntime.glassesAllowed()&&attended()&&!TaskAttention.active())postNotice("提问已结束","本次提问显示已结束，未开始录音；可在手机查看。","question-ended",15000);refresh();});}
+   }
+  };
   VoiceAnswerRuntime.get(app,tasks).recoverInterrupted((binding,request)->{reoffer.add(binding+"\n"+request);message="口述被中断，已结束眼镜录音；这道题会重新发到眼镜";nextAuto=0;refresh();pump();});
   document=new AtomicDocument(new File(app.getFilesDir(),"io-agent-card-v1.json"));session=new AgentCardSession(new AgentCardSession.Store(){public Object read()throws Exception{return document.read();}public void save(Object value)throws Exception{document.save(value);}});
   app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks(){
@@ -257,16 +263,19 @@ final class AgentCardRuntime {
   return new NewsTele.Adoption(live?()->openPrompterVoice(did):null,live?owner.until-System.currentTimeMillis():0);
  }
  private void openPrompterVoice(String did){
-  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis())){TaskAttention.release("voice");return;}
+  TaskPrompterOwner owner=prompter();if(owner==null||!owner.did.equals(did)||cancelledPrompters.contains(did)||!owner.live(System.currentTimeMillis())){recordPrompterExit(owner,"owner_closed");TaskAttention.release("voice");refresh();return;}
+  recordPrompterExit(owner,"checking_question");refresh();
   // The exit event may have been queued before a pause, phone answer, revision, or restart.
   tasks.detail(owner.binding,"request",owner.id,(state,error)->{
    TaskPrompterOwner current=prompter();if(current==null||!did.equals(current.did)){TaskAttention.release("voice");return;}
    boolean allowed=error.isEmpty()&&prompterAllowed(current,state);snapshot=state;
    prefs.edit().remove("prompter_owner").commit();
-   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){TaskAttention.release("voice");message="已退出提词器，原问题暂不可口述；请在手机查看";refresh();return;}
+   if(!allowed||!openGlassesVoice(current.binding,current.id,current.revision,current.fingerprint)){recordPrompterExit(current,!error.isEmpty()?"request_refresh_failed_"+error:!allowed?"question_closed_or_changed":"voice_ui_unavailable");TaskAttention.release("voice");message="已退出提词器，原问题暂不可口述；请在手机查看";if(TaskRuntime.glassesAllowed()&&attended()&&!TaskAttention.active())postNotice("口述未开始",message,"question-voice-unavailable",15000);refresh();return;}
+   recordPrompterExit(current,"voice_ui_opened");
    message=visible()?"已退出提词器，正在打开原问题语音回答":"已退出提词器，手机在后台开始原问题口述";refresh();
   });
  }
+ private void recordPrompterExit(TaskPrompterOwner owner,String outcome){lastPrompterExit=WireJson.object("at",System.currentTimeMillis(),"request_id",owner==null?"":owner.id,"display_until",owner==null?0:owner.until,"outcome",outcome);}
  private void openVoice(AgentCardRequest voice){
   if(!openGlassesVoice(voice.binding,voice.requestId,voice.revision,voice.fingerprint)){message="已在眼镜选择口述，请在手机打开原问题";refresh();return;}
   message=visible()?"已在眼镜选择口述，正在打开原问题语音回答":"已在眼镜选择口述，手机在后台开始口述";refresh();
@@ -358,7 +367,7 @@ final class AgentCardRuntime {
  }
  private String text(){return message+"\n"+(HeadGestureRuntime.pending()?"待办交互设置正在保护或恢复":"待办交互设置没有待恢复记录")+(session.cardMayExist()?"\n镜片实际退场尚未另行核对":"")+(!session.answerFailure().isEmpty()?"\n"+TaskWorkspace.label(session.answerFailure()):"");}
  private void refresh(){// Only a live card counts: cardMayExist() stays true after retirement until a lens exit is proven.
-  if(session.pending()||preflight!=null)TaskAttention.hold("card",20000);else TaskAttention.release("card");String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"background",TaskAttention.background(),"attention",TaskAttention.owners(),"notifications_held",TaskAttention.blockedCount(),"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;
+  if(session.pending()||preflight!=null)TaskAttention.hold("card",20000);else TaskAttention.release("card");String text=text();for(TextView view:new ArrayList<>(views))view.setText(text);String state=new String(WireJson.bytes(WireJson.object("version",ProductInfo.VERSION,"phase",session.phase(),"healthy",session.healthy(),"pending",session.pending(),"card_may_exist",session.cardMayExist(),"has_selection",session.hasSelection(),"answer_failure",session.answerFailure(),"head_pending",HeadGestureRuntime.pending(),"head_status",HeadGestureRuntime.status(),"preflight",preflight==null?"":preflight.phase(),"fetching",fetching,"checking_show",checkingShow,"answer_busy",answerBusy,"drafts",session.drafts().size(),"background",TaskAttention.background(),"attention",TaskAttention.owners(),"notifications_held",TaskAttention.blockedCount(),"prompter_exit",lastPrompterExit,"message",message)),java.nio.charset.StandardCharsets.UTF_8);if(state.equals(lastExport))return;
   // 2026-10-23: the wearer saw the confirm card about a minute after dictation ended; each status change
   // is logged with its time so the slow step can be found (no question or answer text is logged).
   android.util.Log.i("TurboIOCard","card phase="+session.phase()+" pending="+session.pending()+" head="+HeadGestureRuntime.pending()+" preflight="+(preflight==null?"":preflight.phase())+" fetching="+fetching+" show="+checkingShow+" busy="+answerBusy+" msg="+message);

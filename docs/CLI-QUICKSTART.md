@@ -13,6 +13,14 @@ node setup.mjs doctor
 node cz-iot-cli.mjs help
 ```
 
+Windows PowerShell 5.1 先设置无 BOM 的 UTF-8 管道编码，避免中文变成问号：
+
+```powershell
+$OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+```
+
+若要求文件全部放 D 盘，每次调用保持相同的 `IO_AGENT_PAIRING_HOME`（例如 `D:\Project\cz-iot-cli\.pairing-home`），并用 `node cz-iot-cli.mjs`，不必执行默认写入系统目录的 npm 全局安装。
+
 不需要安装第三方 Node/Python 依赖。想在任意目录使用短命令，可在**配对之前**执行：
 
 ```sh
@@ -50,6 +58,8 @@ cz-iot-cli help
 一台电脑只配对一次；后续新会话复用电脑授权，首次投送会自动接入。`pair` 返回 `paired:true` 是已配对，不是失败。若专门测试“重新扫码”，使用一个新建的空私有目录作为 `IO_AGENT_PAIRING_HOME`，本次所有调用保持同一目录；不要删除正常使用的共享授权或修改默认工作区。
 
 ## 3. 做一轮双向测试
+
+一次只测一道题，收到答案或结束本题后再测下一种格式。多道题和待办一起发送会争用镜片；不要因为 pending 就换键重发。`NATIVE_HOST_UNSUPPORTED` 只表示没有当前宿主的常驻唤醒/下发适配；当前会话继续调用 `wait/status`，仍可读回眼镜答案并接着工作，不需要因此让用户回聊天补一句。
 
 用户戴好眼镜并同意开始后，先发**一条** `notify`。消息示例“新 Agent 已连接，这是眼镜测试消息”；`expires_at` 由 Agent 生成未来5分钟的 UTC ISO 时间。接着用 `ask` 发一道选择题：
 

@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Android owner of an explicitly requested original-question voice draft.
- * Preparing never claims the mic. Missing physical-source evidence fails closed.
+ * Preparing never claims the mic. Each capture requires fresh native version/idle checks.
  * Physical stop dispatch never waits for this IO lane, ASR, or durable writes. */
 final class VoiceAnswerRuntime {
  interface Result {void done(Snapshot value,String error);}
@@ -37,7 +37,7 @@ final class VoiceAnswerRuntime {
  private static final class Attempt {
   final String id;final VoiceAnswerJournal journal;final VoiceAnswerSession draft;
   volatile String binding="",request="",peer="",token="",note="",traced="";volatile long generation,captureOperation;
-  volatile boolean admitted,starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;final AtomicBoolean arming=new AtomicBoolean();
+  volatile boolean starting,abort,recovery,physicallyReleased=true,manifestComplete,reviewHeld;final AtomicBoolean arming=new AtomicBoolean();
   volatile Host107Recording recording;volatile VoiceCaptureCutoff cutoff;volatile VoiceAnswerCoordinator coordinator;
   volatile Host107VoiceTask engine;volatile Host107VoiceDecoder decoder;volatile VoiceAudioArchive archive;
   volatile CaptureSession.StopProbe probe;volatile long recoveryFence;volatile boolean recovering;
@@ -123,9 +123,6 @@ final class VoiceAnswerRuntime {
    }));
   }catch(Exception e){if(active!=null)refresh(active,null);finish(operation,result,error(e));}});
  }
- private boolean readiness(String peer){
-  try{return peer!=null&&!peer.isEmpty()&&VoiceCaptureReadiness.read(bytes(safe("io-agent-voice-readiness.json"),8192),FixedPeerHash.of(peer)).permitted;}catch(Exception unavailable){return false;}
- }
  private void refresh(Attempt a,VoiceAnswerCoordinator.State event){
   if(!owns(a))return;
   try{
@@ -144,16 +141,19 @@ final class VoiceAnswerRuntime {
    else if("REVIEW".equals(phase)){if(canSave&&!a.reviewHeld){a.reviewHeld=true;TaskAttention.hold("voice",20000);}}
    else if(!"PREPARED".equals(phase))TaskAttention.release("voice");
    if("PREPARED".equals(phase)&&!a.starting){
-    publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,false,canSave,need,isClean));
-    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);if(!ready)android.util.Log.i("TurboIOVoice","handoff blocked attended="+attended()+" login="+Host107Login.loggedIn()+" card="+AgentCardRuntime.handoffBlockers(a.binding,a.request));io.execute(()->{boolean verified=readiness(link.peer);android.util.Log.i("TurboIOVoice","prepared check verified="+verified+" ready="+ready+" blocked="+blocked+" clean="+isClean+" owns="+owns(a)+" starting="+a.starting+" action="+action);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;a.admitted=verified;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":verified?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_SOURCE_VERIFICATION_REQUIRED",text,a.binding,a.request,verified&&ready&&!blocked&&isClean,canSave,need,isClean));if(verified&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
+    publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":"VOICE_PREFLIGHT_NOT_READY",text,a.binding,a.request,false,canSave,need,isClean));
+    main.post(()->{if(!owns(a)||a.starting)return;Fixed60Session.Link link=Host107Ota.link();boolean ready=handoff(a);if(!ready)android.util.Log.i("TurboIOVoice","handoff blocked attended="+attended()+" login="+Host107Login.loggedIn()+" card="+AgentCardRuntime.handoffBlockers(a.binding,a.request));io.execute(()->{// The shipped host/decoder are checked during build. A developer enrollment file
+    // belongs to old diagnostic runs, not to a new installation or phone. Actual
+    // microphone admission still occurs in acquire/inspect/arm with the fresh peer.
+    boolean connected=link.peer!=null&&!link.peer.isEmpty();android.util.Log.i("TurboIOVoice","prepared check connected="+connected+" ready="+ready+" blocked="+blocked+" clean="+isClean+" owns="+owns(a)+" starting="+a.starting+" action="+action);if(!owns(a)||a.starting||!"PREPARED".equals(a.draft.phase()))return;publish(a,new Snapshot(p,blocked?"VOICE_RECOVERY_REQUIRED":connected?(ready?n:"VOICE_PREFLIGHT_NOT_READY"):"VOICE_CONNECTION_CHANGED",text,a.binding,a.request,connected&&ready&&!blocked&&isClean,canSave,need,isClean));if(connected&&!ready&&!blocked)main.postDelayed(()->{if(owns(a)&&!a.starting&&attended()&&(!observers.isEmpty()||headless!=null))refreshLater(a);},500);});});
    }else publish(a,new Snapshot(p,n,text,a.binding,a.request,false,canSave,need,isClean));
   }catch(Exception invalid){a.note=error(invalid);publish(a,new Snapshot("BLOCKED",a.note,"",a.binding,a.request,false,false,true,false));}
  }
  void start(Result result){
   long operation=begin(result);if(operation==0)return;Attempt a=active;
-  if(a==null||blocked||!value.canStart||!handoff(a)){finish(operation,result,a!=null&&!a.admitted?"VOICE_SOURCE_VERIFICATION_REQUIRED":"VOICE_START_NOT_READY");return;}
+  if(a==null||blocked||!value.canStart||!handoff(a)){finish(operation,result,"VOICE_START_NOT_READY");return;}
   Fixed60Session.Link link=Host107Ota.link();a.starting=true;a.abort=false;a.captureOperation=operation;a.peer=link.peer;a.generation=link.generation;
-  io.execute(()->{try{TaskWire.require(owns(a)&&a.draft.healthy()&&"PREPARED".equals(a.draft.phase())&&readiness(a.peer),"VOICE_SOURCE_VERIFICATION_REQUIRED");main.post(()->acquire(a,operation,result));}
+  io.execute(()->{try{TaskWire.require(owns(a)&&a.draft.healthy()&&"PREPARED".equals(a.draft.phase()),"VOICE_START_NOT_READY");main.post(()->acquire(a,operation,result));}
    catch(Exception e){a.starting=false;a.note=error(e);refresh(a,null);finish(operation,result,a.note);}});
  }
  private void acquire(Attempt a,long operation,Result result){
@@ -207,7 +207,7 @@ final class VoiceAnswerRuntime {
  }
  private void arm(Attempt a,long operation,Result result){
   if(!a.arming.compareAndSet(false,true))return;
-  io.execute(()->{try{TaskWire.require(owns(a)&&a.starting&&!a.abort&&readiness(a.peer),"VOICE_SOURCE_VERIFICATION_REQUIRED");
+  io.execute(()->{try{TaskWire.require(owns(a)&&a.starting&&!a.abort,"VOICE_START_NOT_READY");
    main.post(()->{try{
     TaskWire.require(owns(a)&&!a.abort&&handoff(a),"VOICE_START_NOT_READY");
     Host107VoiceEnvironment environment=Host107VoiceEnvironment.current("zh-CN");TaskWire.require(environment.idle(),"VOICE_ENGINE_BUSY");
@@ -223,7 +223,7 @@ final class VoiceAnswerRuntime {
  }
  private void completeArm(Attempt a,long operation,Result result){
   io.execute(()->{try{
-   TaskWire.require(owns(a)&&a.starting&&!a.abort&&readiness(a.peer),"VOICE_SOURCE_VERIFICATION_REQUIRED");
+   TaskWire.require(owns(a)&&a.starting&&!a.abort,"VOICE_START_NOT_READY");
    a.decoder=new Host107VoiceDecoder();safe("voice-audio/"+a.token);a.archive=new VoiceAudioArchive(files,a.token,14);
    processRecord(a);TaskWire.require(!a.abort,"VOICE_START_NOT_READY");
    long now=SystemClock.elapsedRealtime();TaskWire.require(a.cutoff.arm(a.token,FixedPeerHash.of(a.peer),a.generation,now+VoiceAnswerSession.CAPTURE_SECONDS*1000L)&&a.draft.arm(a.peer,a.generation,now,VoiceAnswerSession.CAPTURE_SECONDS,a.cutoff),"VOICE_START_NOT_READY");

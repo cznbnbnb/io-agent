@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T12:34:32.661024+00:00",
+  "current": {
+    "version": "0.5.3-dev174",
+    "path": "artifacts/iO-Agent-Android-0.5.3-dev174.apk",
+    "sha256": "269a286ab9afb8f2db8c2c954b85e991d74c4d894d199c6767800ad71a64cb3b"
+  },
+  "rollback": {
+    "version": "0.5.3-dev173",
+    "path": "artifacts/iO-Agent-Android-0.5.3-dev173.apk",
+    "sha256": "7a9e8b15adedfe01d5264bf94cdb5d40da5f3da873fa00f61dd7930396e67ae9"
+  },
+  "removed": [
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev170.apk",
+      "bytes": 435189987,
+      "sha256": "b7f64f8acb26b04efc29bc955049a2a3c2eba4cbfa6a8de0ca27fd6c3aa2ffea"
+    },
+    {
+      "path": "artifacts/iO-Agent-Android-0.5.3-dev172.apk",
+      "bytes": 435202275,
+      "sha256": "b57339ad4383195977388194916df9a18ccf68088f3ed493ad56f9b1cd73f2b2"
+    }
+  ],
+  "isolated_source_archive_removed": true,
+  "pinned_decoded_host_retained": true,
+  "credentials_and_user_materials_untouched": true
+}

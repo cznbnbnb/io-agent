@@ -33,6 +33,7 @@ final class TaskHub implements AutoCloseable {
   profiles=next;for(TaskProfiles.Profile p:next.profiles){Channel c=channels.get(p.binding);c.profile=p;if(!p.enabled)c.note="paused";}
  }
  void pump(long now){pump(now,null,true);}
+ boolean catchingUp(){for(Channel c:channels.values())if(c.profile.enabled&&c.api!=null&&c.api.catchingUp())return true;return false;}
  void pump(long now,TaskDevice device,boolean readInbox){for(Channel c:channels.values())if(c.profile.enabled&&c.api!=null){TaskConnection connection=c.profile.connection;
   boolean shared=device!=null&&device.owner.equals(connection.owner)&&device.server.equals(connection.server)&&device.producer.equals(connection.producer);
   try{if(shared&&readInbox)c.api.inboxChanged();c.api.pump(c.mailbox,now,readInbox||!shared);c.note=c.api.note;}catch(Exception failure){c.note=TaskApi.safeError(failure);}}}

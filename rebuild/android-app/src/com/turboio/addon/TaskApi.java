@@ -10,8 +10,9 @@ final class TaskApi {
  interface Transport {Response exchange(String path,byte[] payload)throws IOException;void cancel();}
  static final class Response {final int status;final byte[] body;final long retryAfter;Response(int status,byte[] body,long retryAfter){this.status=status;this.body=body;this.retryAfter=retryAfter;}}
  private final TaskConnection connection;private final Transport transport;
- private long nextCheck,nextStatusCheck,identityUntil;private boolean running,inboxCurrent,sessionControl,sessionDirectory;
+ private long nextCheck,nextStatusCheck,identityUntil;private boolean running,inboxCurrent,catchingUp,sessionControl,sessionDirectory;
  boolean inboxCurrent(){return inboxCurrent;}
+ boolean catchingUp(){return catchingUp;}
  boolean sessionControl(){return sessionControl;}
  String note="paused";
  TaskApi(TaskConnection connection,Transport transport){this.connection=connection;this.transport=transport;}
@@ -91,9 +92,11 @@ final class TaskApi {
      mailbox.finish(claim,response.status,response.body,now,response.retryAfter);claim=null;
     }
    }
-   if(readInbox||!inboxCurrent){String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
+   // New routes start before the owner's existing history. Drain a bounded batch,
+   // then ask the runtime to continue promptly instead of sleeping ten seconds per page.
+   if(readInbox||!inboxCurrent)for(int pageIndex=0;pageIndex<4;pageIndex++){String cursor=mailbox.cursor();Response inbox=transport.exchange("/inbox?limit=20"+(cursor.isEmpty()?"":"&cursor="+encode(cursor)),null);
    if(inbox.status!=200){String code=error(inbox);if(inbox.status==410&&code.equals("CURSOR_RESET_REQUIRED"))mailbox.resetCursor(cursor);throw new IOException(code);}
-   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);inboxCurrent=!Boolean.TRUE.equals(page.get("has_more"));note="received";nextCheck=now+(Boolean.TRUE.equals(page.get("has_more"))?0:3000);}
+   Map<String,Object> page=WireJson.map(WireJson.read(inbox.body));mailbox.acceptPage(page,cursor);catchingUp=Boolean.TRUE.equals(page.get("has_more"));inboxCurrent=!catchingUp;note="received";nextCheck=now+(catchingUp?0:3000);if(inboxCurrent)break;}
    // One bounded status read per pump, after queue delivery/inbox work. Failure cannot undo a saved
    // answer or starve incoming tasks; each route keeps its own cursor and status cooldown.
    if(now>=nextStatusCheck){String request=mailbox.staleRequest(now);if(request!=null){
@@ -103,7 +106,7 @@ final class TaskApi {
    }}
    return true;
   }catch(IOException|RuntimeException error){
-   inboxCurrent=false;identityUntil=0;
+   inboxCurrent=false;catchingUp=false;identityUntil=0;
    if(claim!=null){mailbox.finish(claim,0,new byte[0],now,0);note=requestStarted?"TRANSPORT_UNKNOWN":"REFRESH_UNAVAILABLE";}
    else note=safeError(error);
    nextCheck=now+5000;throw error;

@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T12:33:56.485183+00:00",
+  "version": "0.5.3-dev174",
+  "version_code": 10596,
+  "apk_sha256": "269a286ab9afb8f2db8c2c954b85e991d74c4d894d199c6767800ad71a64cb3b",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "installed_apk_sha_verified": true,
+  "preserving_data_delta_install": {
+    "dev173": {
+      "baseline_sha256": "b57339ad4383195977388194916df9a18ccf68088f3ed493ad56f9b1cd73f2b2",
+      "candidate_sha256": "7a9e8b15adedfe01d5264bf94cdb5d40da5f3da873fa00f61dd7930396e67ae9",
+      "apk_bytes": 435202275,
+      "delta_bytes": 1999195,
+      "commands": 8233,
+      "delta_sha256": "7f106f13a329f0124e8253390249c23a66e7a9653689857c689448e150c4d66c",
+      "reconstruction_hash_verified": true
+    },
+    "dev174": {
+      "baseline_sha256": "7a9e8b15adedfe01d5264bf94cdb5d40da5f3da873fa00f61dd7930396e67ae9",
+      "candidate_sha256": "269a286ab9afb8f2db8c2c954b85e991d74c4d894d199c6767800ad71a64cb3b",
+      "apk_bytes": 435202275,
+      "delta_bytes": 1999195,
+      "commands": 8233,
+      "delta_sha256": "b760e1b2b3cb88372f057c1b974a09600cf1c5cf9f987b1ce46d1bc6e7e32880",
+      "reconstruction_hash_verified": true
+    }
+  },
+  "initial_workbuddy_delay": {
+    "stored_at": "2026-11-04T11:37:36.088Z",
+    "glasses_displayed_receipt_at": "2026-11-04T11:44:54.583Z",
+    "expires_at": "2026-11-04T11:45:20.039Z",
+    "delay_seconds": 438.495,
+    "remaining_at_display_seconds": 25.456,
+    "owner_history_revisions_approx": 899,
+    "owner_distinct_objects": 372,
+    "continuous_phone_http_200": true,
+    "old_exit_time_unknown": true
+  },
+  "fixes": [
+    "Bounded four-page catch-up with 500 ms continuation only while has_more; original idle rate and failure backoff preserved",
+    "Validate all page entries and advance global cursor; store newly received objects only for this route; existing ledger/drafts retained",
+    "Remove old per-device diagnostic enrollment from production voice admission; pinned build ABI checks and each-capture firmware/idle/ownership/cutoff/recovery checks retained",
+    "Export text-free prompter exit stages and explain ended questions"
+  ],
+  "dev173_manual_failure": {
+    "user_report": "没开始录音",
+    "prompter_exit_stage": "voice_ui_opened",
+    "observed_phone_page": "VOICE_SOURCE_VERIFICATION_REQUIRED: developer source/stop validation required",
+    "root_cause": "Production runtime required old internal diagnostic io-agent-voice-readiness.json; independent install/new phone lacked that admission state",
+    "historical_gate_not_bypassed_by_forged_record": true
+  },
+  "dev174_single_question": {
+    "same_question_reoffered_after_update": true,
+    "new_question_created_for_reoffer": false,
+    "phone_submit_clicked_by_agent": false,
+    "request_id": "req-09e8916ef3143dd0967a1fa33a7ca0a80df6eec4b9193f924f2dfb4e69a19fcf",
+    "state": "answered",
+    "answer_id": "answer-android-33f718c9ca776ed094b357dde8bad7db7603384b3516004e43f9acaa907489b2",
+    "input_source": "voice",
+    "option_id": "voice-ok",
+    "text": "选一。\n正常开启录音。",
+    "stored_at": "2026-11-04T12:32:32.890Z",
+    "native_session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+    "returned_to_current_cli": true,
+    "card_status": {
+      "answer_busy": false,
+      "answer_failure": "",
+      "attention": "",
+      "background": true,
+      "card_may_exist": true,
+      "checking_show": false,
+      "drafts": 0,
+      "fetching": false,
+      "has_selection": false,
+      "head_pending": false,
+      "head_status": "IDLE · 待办头势设置已回读确认，保护结束",
+      "healthy": true,
+      "message": "已在眼镜确认，正在保存并提交原文",
+      "notifications_held": 0,
+      "pending": false,
+      "phase": "RETIRED",
+      "preflight": "",
+      "prompter_exit": {
+        "at": 1793795527398,
+        "display_until": 1793795632166,
+        "outcome": "voice_ui_opened",
+        "request_id": "req-09e8916ef3143dd0967a1fa33a7ca0a80df6eec4b9193f924f2dfb4e69a19fcf"
+      },
+      "version": "0.5.3-dev174"
+    }
+  },
+  "verification": {
+    "contexts": "connection, mailbox, contexts 68, status 103 passed",
+    "directory": "directory 143, task controls 98, contexts 68, status 103 passed",
+    "task_prompter": "169 checks passed",
+    "recording_recovery": "485 assertions passed; synthetic boundary/cutoff/stop coverage",
+    "android_build": "Java8/Android36/D8; pinned host and signature/source audits passed",
+    "untracked_delegate_sources_excluded": true
+  },
+  "preserved": {
+    "formal_pairings": true,
+    "account_and_lifelog": true,
+    "existing_drafts": true,
+    "glasses_progress": false,
+    "server_progress_watch": "off",
+    "desktop_launch_override": false
+  },
+  "scope_limits": [
+    "Current physical closed loop is Mac Codex, not the Windows WorkBuddy host",
+    "WorkBuddy active ask/wait/status is supported; Windows resident wakeup/execution remains unsupported",
+    "No new Windows resident adapter or full ACP current-session takeover implemented",
+    "Original dev172 long-press failure had no historical exit log; dev173 failure reproduced the missing diagnostic admission gate",
+    "No audio/transcript archive uploaded as evidence",
+    "Long-term power consumption not inferred from short run"
+  ]
+}
