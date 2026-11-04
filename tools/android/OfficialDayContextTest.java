@@ -23,6 +23,10 @@ final class OfficialDayContextTest {
    Map<String,Object> empty=OfficialDayContext.read(account,day,WireJson.bytes(WireJson.object("code",0,"data",data)));OfficialDayContext.retain(files.toFile(),account,empty,()->account);yes(WireJson.list(OfficialDayContext.saved(files.toFile(),account,day.date,day.timezone).get("trail")).isEmpty());
    data.put("date","2026-10-29");boolean rejected=false;try{OfficialDayContext.read(account,day,WireJson.bytes(WireJson.object("code",0,"data",data)));}catch(IllegalArgumentException expected){rejected=true;}yes(rejected);
   }finally{try(java.util.stream.Stream<Path> paths=Files.walk(files)){for(Path p:(Iterable<Path>)paths.sorted(Comparator.reverseOrder())::iterator)Files.delete(p);}}
+  Map<String,Object> release=WireJson.object("schema",1,"application_id","cn.cznbnb.ioagent","host_version","1.0.10","version","0.5.3-dev172","version_code",10594,"bytes",435000000,"sha256","a".repeat(64),"signer_sha256","b".repeat(64),"url","https://cznbnb.cn/io-updates/iO-Agent-Android-0.5.3-dev172.apk","notes",Arrays.asList("合成更新说明"));
+  yes(new AppRelease(WireJson.bytes(release),"cn.cznbnb.ioagent").code==10594);
+  for(String url:Arrays.asList("http://cznbnb.cn/io-updates/iO-Agent-Android-x.apk","https://other.invalid/io-updates/iO-Agent-Android-x.apk","https://cznbnb.cn/io-updates/../x.apk","https://cznbnb.cn/io-updates/iO-Agent-Android-x.apk?next=bad")){Map<String,Object> bad=new TreeMap<>(release);bad.put("url",url);boolean rejected=false;try{new AppRelease(WireJson.bytes(bad),"cn.cznbnb.ioagent");}catch(IllegalArgumentException expected){rejected=true;}yes(rejected);}
+  boolean wrongPackage=false;try{new AppRelease(WireJson.bytes(release),"com.rayneo.venus.pub");}catch(IllegalArgumentException expected){wrongPackage=true;}yes(wrongPackage);
   System.out.println("Official existing day context: "+checks+" checks passed");
  }
 }

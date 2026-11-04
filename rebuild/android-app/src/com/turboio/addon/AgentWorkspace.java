@@ -49,7 +49,7 @@ final class AgentWorkspace {
   AgentUI.iconRow(a,everyday,"folder-open","保存位置",ExportDestination.label(a),null,()->ExportDestination.settings(a,this::renderSettings));AgentUI.divider(a,everyday);
   AgentUI.iconRow(a,everyday,"bell","眼镜提醒",null,AgentCardRuntime.enabled()?"已开启":"已关闭",this::reminders);
   LinearLayout more=AgentUI.section(a,settingsBody,"更多");AgentUI.iconRow(a,more,"layers","扩展工具","阅读、导航及原有扩展",null,this::extensions);AgentUI.divider(a,more);
-  AgentUI.iconRow(a,more,"shield-check","账号与设备",null,null,this::account);AgentUI.divider(a,more);AgentUI.iconRow(a,more,"info","关于 iO Agent",null,ProductInfo.VERSION,this::about);AgentUI.divider(a,more);
+  AgentUI.iconRow(a,more,"shield-check","账号与设备",null,null,this::account);AgentUI.divider(a,more);AgentUI.iconRow(a,more,"refresh","更新中心","手机应用与眼镜固件",null,()->AgentUpdateUI.show(a));AgentUI.divider(a,more);AgentUI.iconRow(a,more,"info","关于 iO Agent",null,ProductInfo.VERSION,this::about);AgentUI.divider(a,more);
   AgentUI.iconRow(a,more,"wrench","开发者选项","测试、诊断与固件",null,this::developer);
   AgentUI.gap(a,settingsBody,24);TextView footer=AgentUI.text(a,"iO Agent · 让任务回到视线中心",12,AgentUI.MUTED);footer.setGravity(Gravity.CENTER);settingsBody.addView(footer);scroll.post(()->{if(!closed)scroll.scrollTo(0,scrollY);});
  }

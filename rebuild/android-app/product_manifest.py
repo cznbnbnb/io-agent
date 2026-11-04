@@ -40,10 +40,10 @@ def patch(data):
     # credentials are not application IDs and remain unchanged.
     old_package='com.rayneo.venus.pub'
     strings=[package+s[len(old_package):] if s==old_package or s.startswith(old_package+'.') else s for s in strings]
-    required=['manifest','application','activity','intent-filter','action','category','name','exported','label','versionCode','versionName',NS,MAIN,LAUNCHER,HOST]
+    required=['manifest','application','activity','uses-permission','intent-filter','action','category','name','exported','label','versionCode','versionName',NS,MAIN,LAUNCHER,HOST]
     if any(s not in strings for s in required):raise ValueError('Missing host manifest vocabulary')
     idx={s:strings.index(s) for s in required}
-    for s in [ACTIVITY,'iO Agent',product['version']]:
+    for s in [ACTIVITY,'iO Agent',product['version'],'android.permission.REQUEST_INSTALL_PACKAGES']:
         idx[s]=len(strings);strings.append(s)
     raw=bytearray();offsets=[]
     for s in strings:
@@ -109,6 +109,8 @@ def patch(data):
     result=[];inserted=0
     for i,c in enumerate(chunks):
         if i in skip:continue
+        if u16(c,0)==0x102 and u32(c,20)==idx['application']:
+            result.extend([begin('uses-permission',[('name',3,idx['android.permission.REQUEST_INSTALL_PACKAGES'])]),end('uses-permission')])
         if u16(c,0)==0x103 and u32(c,20)==idx['application']:
             result.extend([begin('activity',[('name',3,idx[ACTIVITY]),('exported',18,0),('label',3,idx['iO Agent'])]),end('activity')]);inserted+=1
         result.append(c)

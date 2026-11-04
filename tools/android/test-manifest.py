@@ -46,6 +46,7 @@ while pending:
 key=lambda name:NS+'|'+name
 expected['attrs'][key('versionCode')]=(16,product['version_code']);expected['attrs'][key('versionName')]=(3,product['version'])
 app=next(c for c in expected['children'] if c['name']=='application');new_app=next(c for c in after['children'] if c['name']=='application')
+expected['children'].insert(expected['children'].index(app),{'name':'uses-permission','attrs':{key('name'):(3,'android.permission.REQUEST_INSTALL_PACKAGES')},'children':[]})
 app['attrs'][key('label')]=(3,'iO Agent')
 host=next(c for c in app['children'] if c['name']=='activity' and c['attrs'].get(key('name'))==(3,HOST))
 def launcher(node):return node['name']=='intent-filter' and {(c['name'],c['attrs'].get(key('name'))) for c in node['children']}>= {('action',(3,MAIN)),('category',(3,LAUNCHER))}
