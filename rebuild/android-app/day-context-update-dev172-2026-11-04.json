@@ -216,7 +216,7 @@
     "No real nonempty schedule or multi-point trajectory sample was available",
     "No steps/calories source; coordinates remain source_unspecified",
     "No firmware written, no microphone or new positioning started by this work",
-    "Phone update page entry verified; published-manifest click/download/system-installer flow not completed because USB disconnected",
-    "Phone temp APK/delta cleanup pending reconnection; local signed artifacts retain current172 and rollback170 plus existing163 migration exception"
-  ]
+    "Published release check passed on phone; download/system-installer flow awaits the next legitimate higher version. No firmware written."
+  ],
+  "phone_update_followup": "update-check-dev172-2026-11-04.json"
 }

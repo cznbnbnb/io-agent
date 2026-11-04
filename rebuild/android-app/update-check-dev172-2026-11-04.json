@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T08:29:19.143114+00:00",
+  "version": "0.5.3-dev172",
+  "installed_sha256_rechecked": true,
+  "update_page_result": "当前已是最新适配版本。\n0.5.3-dev172",
+  "update_check_phone_ui_passed": true,
+  "download_started": false,
+  "installer_started": false,
+  "firmware_started": false,
+  "removed": [
+    "/data/local/tmp/codex-dev170.apk",
+    "/data/local/tmp/codex-dev170.patch",
+    "/data/local/tmp/codex-dev171.apk",
+    "/data/local/tmp/codex-dev171.patch",
+    "/data/local/tmp/codex-dev172.apk",
+    "/data/local/tmp/codex-dev172.patch",
+    "/data/local/tmp/codex-dev170-delta.dex",
+    "/data/local/tmp/codex-dev167-ui.xml"
+  ],
+  "already_absent": [
+    "/data/local/tmp/codex-dev169-ui.xml"
+  ],
+  "reclaimed_bytes": 1311592210,
+  "user_materials_changed": false,
+  "system_back_returns_settings": true,
+  "ui_dump_removed_after_back_check": true
+}
