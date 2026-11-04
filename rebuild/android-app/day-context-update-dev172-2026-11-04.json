@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T08:21:43.151751+00:00",
+  "version": "0.5.3-dev172",
+  "version_code": 10594,
+  "apk_sha256": "b57339ad4383195977388194916df9a18ccf68088f3ed493ad56f9b1cd73f2b2",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "installed_hash_verified": true,
+  "delta": {
+    "baseline_sha256": "f4bb78038bc5eb3f09995298a17eaa205f172723f6702ccb503c767907287502",
+    "candidate_sha256": "b57339ad4383195977388194916df9a18ccf68088f3ed493ad56f9b1cd73f2b2",
+    "apk_bytes": 435202275,
+    "delta_bytes": 1999195,
+    "commands": 8233,
+    "delta_sha256": "6c436e70e4e9242d24f979d18b92fdf5669b7d9deacad35ec1b6a0f9df97667c",
+    "reconstruction_hash_verified": true
+  },
+  "source_commits": {
+    "server_context": "2418bad",
+    "app": "12514ba"
+  },
+  "source": "Existing original lifelog day events/trailPoints only; no new collection or Android calendar scan",
+  "original_day": "2026-10-30",
+  "phone": {
+    "text_records": 0,
+    "event_counts": {
+      "stayPoint": 0,
+      "trajectory": 0,
+      "schedule": 0
+    },
+    "point_count": 1,
+    "point_source_date_matches_query": true,
+    "ui_only_location_label_checked": true,
+    "separate_activity_and_calendar_switches_enabled_by_authorized_UI": true
+  },
+  "cli": [
+    {
+      "date": "2026-10-30",
+      "category": "calendar",
+      "revision": 1,
+      "events": 0,
+      "points": 0
+    },
+    {
+      "date": "2026-10-30",
+      "category": "activity",
+      "revision": 1,
+      "events": 0,
+      "points": 1
+    }
+  ],
+  "daily_omits_raw_points_by_default": true,
+  "standard_portable_managed_mailbox_tests": true,
+  "sync_transport_checks": 13,
+  "projection_and_release_checks": 15,
+  "catalog_checks": 40,
+  "library_checks": 46,
+  "history_runtime_checks": 422,
+  "server_context_release": {
+    "deployed": true,
+    "backup": "/var/lib/turboio-material/admin-context-release-1793778543199795318",
+    "source_sha256": {
+      "store.mjs": "a2a55d56ea3a78932a0d912ed4ac4dfd742798cfeabb22b36d0a14e8a350f470",
+      "http.mjs": "954721acd5e01e7d63bbfd85f7a82a4ac16ea1621aa400abcd41ca09f2018803",
+      "lifelog-text.mjs": "7feb546059b76df8386f91aa7696771b460e5ef70f7d3118ba4b42b5ad08c934",
+      "daily-context.mjs": "13c670e712fcdd0f64e15427598f9c1b69d13248441a82256d41e0eca1b06394"
+    },
+    "grants_changed": false,
+    "snapshot_checked": true,
+    "production_runtime_smoke_passed": true,
+    "source_commit": "2418bad",
+    "profile": "context"
+  },
+  "app_update_publication": {
+    "published": true,
+    "backup": "/var/lib/turboio-material/app-update-release-1793779630494092243",
+    "version": "0.5.3-dev172",
+    "sha256": "b57339ad4383195977388194916df9a18ccf68088f3ed493ad56f9b1cd73f2b2",
+    "manifest": "https://cznbnb.cn/io-updates/latest.json",
+    "firmware_changed": false
+  },
+  "gateway": {
+    "applied": true,
+    "backup": "/var/lib/turboio-material/io-inbox-watch-before-1793779783942683492.conf.bak",
+    "watch_timeout_seconds": 35,
+    "other_api_timeouts_changed": false,
+    "before_sha256": "895d38ab55ea7abe4da95602b869adb15b59f7e59fb5eb13a4a7c218017e738c",
+    "after_sha256": "bee983298b9854c128559edf5e2b2d57d070dd638f8f83655258dd4baf63f529"
+  },
+  "gateway_public_watch": {
+    "status": 200,
+    "elapsed_ms": 25374,
+    "changed": false,
+    "version_unchanged": true
+  },
+  "short_idle_observations": {
+    "before_gateway": {
+      "elapsed_seconds": 85,
+      "rows": [
+        [
+          "agent-1fa50a71",
+          "agent-sessions",
+          27
+        ],
+        [
+          "agent-1fa50a71",
+          "identity",
+          8
+        ],
+        [
+          "agent-1fa50a71",
+          "inbox",
+          24
+        ],
+        [
+          "phone-135a6559",
+          "agent-sessions",
+          2
+        ],
+        [
+          "phone-135a6559",
+          "identity",
+          17
+        ],
+        [
+          "phone-135a6559",
+          "inbox",
+          35
+        ],
+        [
+          "phone-135a6559",
+          "phone-presence",
+          9
+        ],
+        [
+          "phone-135a6559",
+          "todo-suggestions",
+          1
+        ]
+      ]
+    },
+    "after_gateway": {
+      "elapsed_seconds": 156,
+      "rows": [
+        [
+          "agent-sessions",
+          200,
+          3,
+          1.0
+        ],
+        [
+          "identity",
+          200,
+          31,
+          0.0
+        ],
+        [
+          "inbox",
+          200,
+          25,
+          7722.0
+        ],
+        [
+          "phone-presence",
+          200,
+          16,
+          4.0
+        ],
+        [
+          "todo-suggestions",
+          200,
+          2,
+          1.0
+        ]
+      ]
+    },
+    "battery_measurement": false,
+    "controlled_energy_comparison": false
+  },
+  "runtime_components": {
+    "updated": [
+      {
+        "file": "rebuild/agent-bridge/client.mjs",
+        "sha256": "d2d29dc2f97b58a408b2dc47f53c0b73053003f414b30c390f7930b757af9287"
+      },
+      {
+        "file": "rebuild/agent-bridge/questions/cli.mjs",
+        "sha256": "b262848f69df428e90b86cd601027cb25dd0819cee2b796b92f76554bf74497a"
+      },
+      {
+        "file": "rebuild/agent-bridge/questions/managed-cli.mjs",
+        "sha256": "02fdb043563a9857065b53b06a20a6a1db3b4595f92c0ecfabc22081dddb9d0b"
+      }
+    ],
+    "workers_restarted": false
+  },
+  "runtime_restart": {
+    "residents": [
+      {
+        "at": "2026-11-04T08:08:33.954Z",
+        "cloud_online": true,
+        "can_execute": true,
+        "reason": null
+      },
+      {
+        "at": "2026-11-04T08:08:33.708Z",
+        "cloud_online": true,
+        "can_execute": true,
+        "reason": null
+      }
+    ],
+    "connector_restarted": true,
+    "desktop_launch_changed": false
+  },
+  "limits": [
+    "No real nonempty schedule or multi-point trajectory sample was available",
+    "No steps/calories source; coordinates remain source_unspecified",
+    "No firmware written, no microphone or new positioning started by this work",
+    "Phone update page entry verified; published-manifest click/download/system-installer flow not completed because USB disconnected",
+    "Phone temp APK/delta cleanup pending reconnection; local signed artifacts retain current172 and rollback170 plus existing163 migration exception"
+  ]
+}

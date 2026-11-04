@@ -124,3 +124,6 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 
 
 2026-11-02：`daily` 已升级为已同步智记文字查询，指定日期自动收齐总结、分段与转写。新增 `daily-correct`、`daily-note`、`daily-history`、`daily-revert`；订正在服务器单独保存，不回写手机。原音仍不上传。以 `help` 和 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md` 为准。
+
+
+2026-11-04：新增 `node cz-iot-cli.mjs daily-context`，stdin `{"date":"2026-10-30"}`。读取账号已同步的原厂已有活动、定位和日历，完整定位点仅在 `include_points:true` 时返回。`daily` 默认附结构化概览；没有原音、没有新增定位采集，日历不是实际出席记录。分页与来源限制见 `DAILY-SUMMARIES.md`。

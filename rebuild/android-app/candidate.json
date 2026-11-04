@@ -67,5 +67,6 @@
   "one_minute_card_passed": false,
   "release_gate_passed": false,
   "preview": true,
-  "retention_eligible_rollback": false
+  "retention_eligible_rollback": false,
+  "evidence": "day-context-update-dev172-2026-11-04.json"
 }

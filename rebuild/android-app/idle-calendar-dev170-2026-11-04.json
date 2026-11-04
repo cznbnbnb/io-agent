@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T07:27:00Z",
+  "version": "0.5.3-dev170",
+  "version_code": 10592,
+  "installed_sha256": "b7f64f8acb26b04efc29bc955049a2a3c2eba4cbfa6a8de0ca27fd6c3aa2ffea",
+  "delta_bytes": 1986907,
+  "delta_sha256": "ba1fae6727f1d1833c75dc59045a6f9fbfce8e5a788918340742be75922dd0bf",
+  "full_baseline_reconstruction_and_installed_hash_checked": true,
+  "data_cleared": false,
+  "source_commit": "a7e6d26",
+  "server_backup": "/var/lib/turboio-material/admin-idle-release-1793776818615646879",
+  "stage1_server_deployed": true,
+  "qa": [
+    "25-second long watch wakes on todo change",
+    "40 catalog/document checks",
+    "46 local-library checks",
+    "422 history-runtime checks",
+    "136 native-todo checks"
+  ],
+  "phone_ui": {
+    "materials_opens": true,
+    "oct30_text_records": 0,
+    "oct30_marker_present": true,
+    "reason_pending": "legacy official insight events/trail present; fresh structured context verification follows in dev171"
+  },
+  "long_duration_power_measured": false,
+  "computer_runtime_files_updated": true,
+  "existing_computer_workers_restarted": false,
+  "glasses_test_sent": false
+}
