@@ -25,7 +25,9 @@ public final class TaskDirectoryTest {
   Map<String,Object> expired=copy(wire);first(expired).put("lease_expires_at",TaskWire.now(NOW-1));yes(fresh(expired,c).gate(c.route(),1200).equals("DIRECTORY_TARGET_OFFLINE"));
   no(()->TaskSessionDirectory.fresh(d.encode(),c.server,c.owner,500,499));no(()->TaskSessionDirectory.fresh(d.encode(),c.server,"another-owner",0,1));
   Map<String,Object> unknown=copy(wire);first(unknown).put("busy",null);yes(fresh(unknown,c).gate(c.route(),1200).isEmpty());yes(fresh(unknown,c).sessions.get(0).status(1200).startsWith("状态未知"));WireJson.map(first(unknown).get("capabilities")).put("atomic_queue_append",false);no(()->fresh(unknown,c));
-  Map<String,Object> busy=copy(wire);first(busy).put("busy",true);WireJson.map(first(busy).get("capabilities")).put("atomic_queue_append",false);yes(fresh(busy,c).gate(c.route(),1200).equals("DIRECTORY_TARGET_BUSY"));
+  // Shared Desktop input is executable while busy, independently of atomic queue support.
+  Map<String,Object> busy=copy(wire);first(busy).put("busy",true);WireJson.map(first(busy).get("capabilities")).put("atomic_queue_append",false);TaskSessionDirectory shared=fresh(busy,c);yes(shared.gate(c.route(),1200).isEmpty());yes(shared.sessions.get(0).status(1200).equals("忙碌 · 可排队"));yes(Boolean.FALSE.equals(shared.sessions.get(0).capabilities.get("atomic_queue_append")));yes(shared.gate(c.route(),61000).equals("DIRECTORY_TARGET_OFFLINE"));
+  Map<String,Object> idleOnly=copy(busy);WireJson.map(first(idleOnly).get("capabilities")).put("can_execute",false);first(idleOnly).put("reason","agent_busy");yes(fresh(idleOnly,c).gate(c.route(),1200).equals("DIRECTORY_TARGET_UNSUPPORTED"));
   Map<String,Object> unsupported=copy(wire);WireJson.map(first(unsupported).get("capabilities")).put("can_execute",false);first(unsupported).put("reason","native_unavailable");yes(fresh(unsupported,c).gate(c.route(),1200).equals("DIRECTORY_TARGET_UNSUPPORTED"));yes(fresh(unsupported,c).sessions.get(0).status(1200).startsWith("连接未就绪"));
   Map<String,Object> offline=copy(wire);first(offline).put("online",false);first(offline).put("busy",null);first(offline).put("reason","lease_expired");Map<String,Object> caps=WireJson.map(first(offline).get("capabilities"));for(String key:caps.keySet())caps.put(key,false);TaskSessionDirectory od=fresh(offline,c);yes(od.defaultRoute()!=null);yes(od.gate(c.route(),1200).equals("DIRECTORY_TARGET_OFFLINE"));yes(od.sessions.get(0).status(1200).startsWith("离线"));
   Map<String,Object> forgedOffline=copy(offline);WireJson.map(first(forgedOffline).get("capabilities")).put("can_execute",true);no(()->fresh(forgedOffline,c));
@@ -76,14 +78,16 @@ public final class TaskDirectoryTest {
  static Map<String,Object> row(TaskMailbox box,int n){return WireJson.map(box.pending().get(n));}
  static void gate(File base)throws Exception{
   TaskConnection c=connection(1);
-  for(int mode=0;mode<3;mode++){
-   Peer peer=new Peer(c);TaskApi api=new TaskApi(c,peer);if(mode==0)peer.cap=false;if(mode==1)peer.failDirectory=true;if(mode==2)first(peer.data).put("lease_expires_at",TaskWire.now(NOW-1));File path=new File(base,"blocked-"+mode);String payload;
+  for(int mode=0;mode<4;mode++){
+   Peer peer=new Peer(c);TaskApi api=new TaskApi(c,peer);if(mode==0)peer.cap=false;if(mode==1)peer.failDirectory=true;if(mode==2)first(peer.data).put("lease_expires_at",TaskWire.now(NOW-1));if(mode==3){first(peer.data).put("busy",true);first(peer.data).put("reason","agent_busy");WireJson.map(first(peer.data).get("capabilities")).put("can_execute",false);WireJson.map(first(peer.data).get("capabilities")).put("atomic_queue_append",false);}File path=new File(base,"blocked-"+mode);String payload;
    try(TaskMailbox box=new TaskMailbox(path,c)){
     box.acceptDetail(peer.task,NOW);box.acceptDetail(peer.request,NOW);payload=(String)box.delegate("delegate", "原会话完整委托",NOW,NOW+600000).get("payload");box.draftAnswer("answer",(String)peer.request.get("object_id"),1,null,"旧问题仍正常回答",NOW);
     api.pump(box,NOW);yes(peer.taskPosts==0&&peer.answerPosts==1);yes(row(box,0).get("state").equals("awaiting_target"));yes(TaskWire.nonnegative(row(box,0).get("attempts"))==0);yes(!Boolean.TRUE.equals(row(box,0).get("needs_lookup")));yes(row(box,1).get("state").equals("server_stored"));
    }
    try(TaskMailbox box=new TaskMailbox(path,c)){yes(row(box,0).get("payload").equals(payload));yes(row(box,0).get("state").equals("awaiting_target"));peer.cap=true;peer.failDirectory=false;peer.data=directory(c);api.pump(box,NOW+6000);yes(peer.taskPosts==1&&TaskWire.same(TaskWire.body(peer.saved).get("route"),c.route()));yes(row(box,0).get("payload").equals(payload)&&row(box,0).get("state").equals("server_stored"));}
   }
+  Peer shared=new Peer(c);first(shared.data).put("busy",true);WireJson.map(first(shared.data).get("capabilities")).put("atomic_queue_append",false);
+  try(TaskMailbox box=new TaskMailbox(new File(base,"busy-shared-desktop"),c)){box.delegate("busy-shared","补充给同一桌面会话",NOW,NOW+600000);new TaskApi(c,shared).pump(box,NOW);yes(shared.taskPosts==1);yes(row(box,0).get("state").equals("server_stored"));yes(TaskWire.same(TaskWire.body(shared.saved).get("route"),c.route()));yes(Boolean.FALSE.equals(WireJson.map(first(shared.data).get("capabilities")).get("atomic_queue_append")));}
   // Ambiguous sends reconcile even if capability is subsequently removed and the event expired.
   Peer lost=new Peer(c);lost.loseAck=true;File path=new File(base,"lost");String frozen;
   try(TaskMailbox box=new TaskMailbox(path,c)){frozen=(String)box.delegate("once","不能重复执行",NOW,NOW+5000).get("payload");TaskApi api=new TaskApi(c,lost);no(()->api.pump(box,NOW));yes(lost.taskPosts==1&&Boolean.TRUE.equals(row(box,0).get("needs_lookup")));}

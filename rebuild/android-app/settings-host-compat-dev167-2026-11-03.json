@@ -2,9 +2,9 @@
   "schema": 1,
   "at": "2026-11-04T04:28:06.591Z",
   "batch": "dev167 / 10589",
-  "installed": false,
-  "phone_validation": "deferred_by_user",
-  "phone_request": "continue_code_without_phone",
+  "installed": true,
+  "phone_validation": "completed_for_lifelog_and_settings; removal_thread_bug_and_busy_gate_fixed_in_dev168",
+  "phone_request": "user_reconnected_usb",
   "glasses_notifications_sent": false,
   "host_compatibility": {
     "cause": "dev166 loopback-port native hash omitted from the lifelog HTTP input allowlist",
@@ -186,12 +186,16 @@
     "cli_desktop_regressions": 36
   },
   "retention": {
-    "legacy164_preserved": true,
     "legacy163_rollback_pending_migration": true,
-    "independent166_current_preserved": true,
     "legacy154_offline_device_exception": true,
     "official_app_installed": false,
-    "legacy_uninstalled": false
+    "legacy_uninstalled": false,
+    "legacy164_installed_now": false,
+    "legacy_absence_observed_after_user_reconnected": true,
+    "legacy_uninstalled_by_this_run": false,
+    "legacy164_artifact_preserved": true,
+    "independent166_prior_artifact_preserved": false,
+    "independent166_removed_after_dev168_verified": true
   },
   "candidate": {
     "application_id": "cn.cznbnb.ioagent",
@@ -204,7 +208,7 @@
     "signature_v2": true,
     "signature_v3": true,
     "release_gate_passed": false,
-    "installed": false
+    "installed": true
   },
   "delta": {
     "baseline_sha256": "e7fb7ade3f8e6c84c1fd28beda3accb743963a7794d5ff8afb0a206bbf8c57ff",
@@ -225,7 +229,7 @@
     "context_tests": 68,
     "state_tests": 41,
     "compiled": true,
-    "phone_visual_verified": false,
+    "phone_visual_verified": true,
     "source_and_asset_audits_passed": true
   },
   "cleanup": {
@@ -234,5 +238,18 @@
     "progress_watch": "off",
     "formal_connections": "left running",
     "unrelated_delegate_sources": "preserved; excluded from compilation and commit"
-  }
+  },
+  "installation": {
+    "at": "2026-11-04T04:36:55.885Z",
+    "version": "0.5.3-dev167",
+    "version_code": 10589,
+    "sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+    "installed": true,
+    "delta_verified": true,
+    "device": "Honor BRT-AN00",
+    "legacy_installed": false,
+    "legacy_uninstalled_by_this_run": false,
+    "data_cleared": false
+  },
+  "followup_evidence": "phone-settings-workspace-dev168-2026-11-03.json"
 }

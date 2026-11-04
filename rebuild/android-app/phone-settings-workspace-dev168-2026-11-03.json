@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T05:00:13.554761+00:00",
+  "batch": "dev168 / 10590",
+  "installation": {
+    "at": "2026-11-04T04:59:03.558039+00:00",
+    "version": "0.5.3-dev168",
+    "version_code": 10590,
+    "sha256": "e4549966198eb80ac07ba1949b96e1259d6d512eee7ba6bcd82a7bbab39eb89f",
+    "installed": true,
+    "delta_verified": true,
+    "device": "Honor BRT-AN00",
+    "legacy_uninstalled_by_this_run": false,
+    "data_cleared": false
+  },
+  "candidate": {
+    "application_id": "cn.cznbnb.ioagent",
+    "version": "0.5.3-dev168",
+    "version_code": 10590,
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev168.apk",
+    "bytes": 435189987,
+    "sha256": "e4549966198eb80ac07ba1949b96e1259d6d512eee7ba6bcd82a7bbab39eb89f",
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "release_gate_passed": false
+  },
+  "delta": {
+    "baseline_sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+    "candidate_sha256": "e4549966198eb80ac07ba1949b96e1259d6d512eee7ba6bcd82a7bbab39eb89f",
+    "apk_bytes": 435189987,
+    "delta_bytes": 1986913,
+    "commands": 8233,
+    "delta_sha256": "ebc49e49d87d6a0d1445d4dbc3948dcb17632b2c76168789d4f5a0864719224a",
+    "reconstruction_hash_verified": true
+  },
+  "preliminary_dev167_install": {
+    "at": "2026-11-04T04:36:55.885Z",
+    "version": "0.5.3-dev167",
+    "version_code": 10589,
+    "sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+    "installed": true,
+    "delta_verified": true,
+    "device": "Honor BRT-AN00",
+    "legacy_installed": false,
+    "legacy_uninstalled_by_this_run": false,
+    "data_cleared": false
+  },
+  "fixes": {
+    "busy_session_gate": "fresh online lease and host can_execute decide admissibility; atomic_queue_append remains false",
+    "local_session_removal": "persist local removal on IO executor, post AgentCardRuntime.pause to main thread before new snapshot"
+  },
+  "regressions": {
+    "directory": 143,
+    "controls": 98,
+    "contexts": 68,
+    "state": 41,
+    "encrypted_removal_registry": 28
+  },
+  "phone": {
+    "primary_phone": "independent_app_confirmed_in_normal_UI",
+    "ready_session_count": 4,
+    "current_development_session": "busy_queueable",
+    "current_development_native_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+    "default_session_unchanged": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30",
+    "nov3_lifelog_entries": 25,
+    "nov3_detail_opened": true,
+    "oct30_supported_read_returns": 0,
+    "oct30_stock_page": "这一天还没有总结",
+    "oct30_server_daily_count": 0,
+    "oct30_limitation": "Does not prove no activity or raw recordings; calendar hasLog is separate",
+    "recent_nonempty_days_preload": "3/3",
+    "edge_back": [
+      "detail returns to selected day",
+      "multiselect exits without deleting",
+      "removal confirmation cancels",
+      "save-location page returns to settings"
+    ],
+    "settings_visual": "Lucide assets rendered; settings and primary/default/connections/sync/export pages opened",
+    "source_unsupported_error_recurred": false,
+    "local_offline_removal": {
+      "synthetic_entry": "phone-ai-acceptance",
+      "dev167": "failed_before_storage_with_AGENT_CARD_THREAD",
+      "dev168": "confirmation_removed_entry",
+      "offline_count_before": 5,
+      "offline_count_after": 4,
+      "cancel_preserved_entry": true,
+      "actual_files_or_server_account_deleted": false,
+      "reopened_directory_after_background_refresh": "offline count 4; synthetic row absent"
+    },
+    "app_fatal_process_markers_in_retained_androidruntime_log": 0
+  },
+  "limits": [
+    "No new glasses question/recording/firmware test",
+    "Busy current chat not given a synthetic new turn during this work; queue path tested offline",
+    "No real lifelog, task, file or account deleted",
+    "Old package was already absent after user reconnected; not uninstalled in this run",
+    "Official signed app not installed; coexistence and power comparison remain separate"
+  ],
+  "cleanup": {
+    "status": "complete",
+    "progress_watch": "off",
+    "formal_connections": "running",
+    "unrelated_delegate_sources": "SHA-preserved and excluded",
+    "phone_owned_install_and_ui_files_removed": [
+      "codex-dev167-delta.dex",
+      "codex-dev167.delta",
+      "codex-dev167.apk",
+      "codex-dev168.delta",
+      "codex-dev168.apk",
+      "codex-dev167-ui.xml",
+      "codex-dev166-ui.xml",
+      "codex-dev165-ui.xml"
+    ],
+    "local_deltas_removed": true,
+    "uninstalled_first_dev168_candidate_removed": true,
+    "final_phone_page": "Agent settings",
+    "at": "2026-11-04T05:04:47.336270+00:00",
+    "device_lock": "released"
+  },
+  "retention": {
+    "current": "dev168",
+    "same_package_rollback": "dev167",
+    "legacy_metadata": {
+      "version": "0.5.3-dev164",
+      "apk": "artifacts/iO-Agent-Android-0.5.3-dev164.apk",
+      "sha256": "54b74aa89d3bee0bdb766c9793d2ea67793acc7e631638a524c45c9c95ed3e80",
+      "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad"
+    },
+    "legacy164_artifact": "migration reference retained; no longer installed on connected phone",
+    "legacy163_artifact": "prior explicit migration hold; review after local-data inventory",
+    "legacy154_artifact": "offline old-phone baseline exception",
+    "removed": "dev166 signed APK and dev166-to-dev167 delta"
+  }
+}

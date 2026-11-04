@@ -152,7 +152,9 @@ final class TaskRuntime {
   TaskSessionDirectory.Entry entry=directory==null?null:directory.find(view.profile.connection.route());
   TaskWire.require(!view.profile.enabled||view.profile.connection.expiresAt<=now||entry==null||!entry.live(TaskSessionDirectory.elapsed())||!Boolean.TRUE.equals(entry.capabilities.get("can_execute")),"TASK_PROFILE_ACTIVE");
   if(binding.equals(snapshot().defaultBinding))setDefaultInternal(null,directory.defaultRevision());
-  AgentCardRuntime.pause(binding);settings.forget(binding);rebuild();
+  settings.forget(binding);rebuild();
+  // Card state belongs to the UI thread; withdraw before work() publishes the new snapshot.
+  main.post(()->AgentCardRuntime.pause(binding));
  },result);schedule();}
  void restoreRemoved(RestoreResult result){final int[] restored={0};work(()->{login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");long now=System.currentTimeMillis();refreshDirectory(now);restored[0]=settings.restoreRemoved(device,directory,now);if(restored[0]>0)rebuild();},(state,error)->result.done(state,error,restored[0]));schedule();}
  void refresh(Result result){work(()->{login();hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}

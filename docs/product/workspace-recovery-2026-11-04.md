@@ -1,6 +1,6 @@
 # 新手机工作区执行恢复：2026-11-03（UTC 11-04）
 
-本次检查在电脑及服务器完成。手机已拔线，未操作手机或眼镜；设备显示仍需下次真机检查。
+本文前半为手机拔线时的电脑/服务器恢复记录；随后用户接回USB，dev168真机验证见文末。
 
 ## 已定位的两处故障
 
@@ -55,8 +55,40 @@ Claude 修复只在同一个原生 host 明确回报 `busy=false` 且 `activeTur
 
 后续 Desktop 再升级仍会触发版本核对，需复核新 bundle；不能把该私有 follower 接口描述成官方稳定 API。
 
+## 后续真机发现：忙碌的当前聊天被误归类
+
+主代理安装 dev167 并打开真机连接页时，已实际看到三个“可接收任务”会话：Claude 原聊天续接、Claude 手机工作区、Codex 85ddd5 手机工作区。当前开发聊天因 busy 被误归入“离线与未就绪”。`2026-11-04T04:49Z` 的只读核对结果：
+
+- 当前聊天的新 listener PID 54367 正常存活；正式目录 route 为 `io-mac-computer / io-current-codex / workspace-2c2bf72fb7add79e3cf410ec / 01a1670e-97c8-7083-a014-aa9ea3de6a98`。
+- health 新鲜，`cloud_online=true`、`can_execute=true`、无错误。服务器同样回报 online/can_execute，另有 `busy=true`、`atomic_queue_append=false`。
+- 旧 scoped listener 已停，目录仍保留其历史离线条目。服务器共有 8 个条目，手机登记上限 16；不是容量问题。
+
+原因是手机 `TaskSessionDirectory.Entry.gate()` 旧实现额外拒绝了 `busy && !atomic_queue_append`。这里的 `atomic_queue_append` 只描述能否原子追加到原生 Agent 队列；Desktop 使用电脑 listener 的持久队列等待原会话空闲，因此此值正确地为 false，不能为了让界面可选而伪造 true。
+
+`NativeRuntimeAdapter.readinessSnapshot()` 已统一给出是否接受任务的结果：原生队列或 `shared_conversation_input` 可以在忙碌时公布 `can_execute=true`；纯 `atomic_idle_start` host 忙碌时公布 false。dev168 已据此修改手机 gate：在新鲜在线租约下信任 `can_execute`，忙碌会话显示“忙碌 · 可排队”，仍保留原生 `atomic_queue_append=false`。相关四组回归检查分别为 143、98、68、41 项，全部通过；只读复核未发现遗漏或回归。
+
+只读复核了提交到执行的完整路径，没有发现另一处以 busy 拒收 Desktop 任务的判断：
+
+1. `TaskWorkspace.DelegateForm.available()/submit()`、`TaskRuntime.delegate()`、`TaskHub.delegate()` 走同一目录 gate/requireExecutable，随后持久保存手机任务。源码中没有独立 `TaskDispatch` 类，这几层就是实际下发入口。
+2. `TaskApi.pump()` 在 claim 及发送前再次调用同一 `TaskSessionDirectory.gate()`；不会另行解释 busy。修 gate 会同时覆盖首次提交、发件箱等待目标及 POST 前复核。既有任务仍以原 operation ID 对账，不改投其他会话。
+3. 服务器 `POST /v1/tasks → queueSubmit() → queueApply()` 校验身份、scope、路由、时间、幂等及 revision；不会按忙碌状态拒收。服务器设置默认目标同样只判断 online 与 can_execute。
+4. 电脑 `NativeRuntimeAdapter.onItem()` 接受匹配路由的新 queued revision，写入持久 journal 并发出 agent_received；`pollEvents()` 将指令放进 `SessionControl`。Desktop 忙碌时 `tick()` 保持 `queued / waiting_for_idle`，空闲才开始原生输入；这属于正常排队，没有失败或换会话。
+5. 已通过的 `session-control.test.mjs` 中 “shared desktop owner explicitly admits same-session messages after busy desktop work ends” 覆盖：busy 时零次原生输入，空闲后只派发一次并进入 running。
+
+本次仅复核现有代码、状态并补本文档；没有向仍在工作的当前聊天发送新的真实任务。真机呈现及提交入口由主代理继续验收。
+
 ## 当前开发聊天实际接入
 
 主代理已停止旧 scoped listener，使用原配对电脑执行显式 Desktop join，原生 session `01a1670e-97c8-7083-a014-aa9ea3de6a98` 保持不变。新 route 使用真实原生 cwd `/Users/cznbnb/Project/AI Glasses Project`，project `workspace-2c2bf72fb7add79e3cf410ec`；旧 worktree route 保留历史且已离线，不双重消费。2026-11-04T04:22:43Z 服务器确认新 route online/can_execute/exact_turn_interrupt 均为 true。当前聊天正在开发，未向它人为重复注入一轮；忙时队列由既有协议测试覆盖。眼镜进度开关明确为 false，服务器 watch 已关闭。
 
 正式 runtime 已同步本批 profile、session-control、resident-manager、session-resident、questions/cli；Claude 所需 broker/plugin register 也按已提交版本补齐。Codex 手机工作区服务及 Claude 原聊天 listener 保留运行。默认目标仍为原 85ddd5 工作区，没有擅自替换用户默认。手机离线期间仅核验服务器与原生聊天，不把这作为手机页面验收。
+
+## 手机交付状态
+
+- 手机重新接入后，dev167 的三个可接收工作区已完成页面检查；主手机也已通过正常确认流程切换到独立包 `cn.cznbnb.ioagent`。
+- dev168 的 busy gate 修复已完成构建、上述回归和差异安装，手机页面验证如下。
+- 当前 busy 聊天未重复注入新任务；页面可排队与既有队列测试分别记录，不宣称本轮重新完成了手机到当前聊天的实际派发。
+
+### dev168 真机复核
+
+2026-11-04T05:00Z，dev168/10590差异安装与完整SHA核对通过。设置页显示4个可接收；当前开发聊天显示“忙碌 · 可排队”，与3个原可用工作区共同列在可接收组。默认仍是85ddd5，旧route仍离线。当前聊天仍在工作，未人为重复注入新任务；实际排队执行沿用已通过的完整路径测试。
