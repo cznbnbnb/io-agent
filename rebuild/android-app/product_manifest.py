@@ -1,7 +1,7 @@
 """Keep the stock login launcher; retain a private old-shortcut redirect activity.
 No credential, device certificate, signature or server-auth bypass is introduced.
 """
-import struct,json,pathlib
+import struct,json,pathlib,re
 U=0xffffffff
 NS='http://schemas.android.com/apk/res/android'
 ACTIVITY='com.turboio.addon.AgentActivity'
@@ -11,6 +11,8 @@ LAUNCHER='android.intent.category.LAUNCHER'
 def patch(data):
     product=json.loads((pathlib.Path(__file__).parent/'product.json').read_text(encoding='utf-8'))
     if product['schema']!=1 or product['version_code']<=230:raise ValueError('Invalid product version')
+    package=product.get('application_id','com.rayneo.venus.pub')
+    if not isinstance(package,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+',package):raise ValueError('Invalid application ID')
     u16=lambda b,p:struct.unpack_from('<H',b,p)[0]
     u32=lambda b,p:struct.unpack_from('<I',b,p)[0]
     if u16(data,0)!=3 or u32(data,4)!=len(data):raise ValueError('Invalid AXML')
@@ -33,14 +35,30 @@ def patch(data):
         if utf:n,pos=length(pos)
         strings.append(pool[pos:pos+n*(1 if utf else 2)].decode('utf-8' if utf else 'utf-16le'))
     if ACTIVITY in strings:return data
+    # Installation identity includes authorities, app-owned permissions/actions,
+    # task affinity and callback aliases. Implementation classes and third-party
+    # credentials are not application IDs and remain unchanged.
+    old_package='com.rayneo.venus.pub'
+    strings=[package+s[len(old_package):] if s==old_package or s.startswith(old_package+'.') else s for s in strings]
     required=['manifest','application','activity','intent-filter','action','category','name','exported','label','versionCode','versionName',NS,MAIN,LAUNCHER,HOST]
     if any(s not in strings for s in required):raise ValueError('Missing host manifest vocabulary')
-    idx={s:strings.index(s) for s in required};raw=pool[start:];offsets=[]
+    idx={s:strings.index(s) for s in required}
     for s in [ACTIVITY,'iO Agent',product['version']]:
-        idx[s]=len(strings);strings.append(s);offsets.append(len(raw))
-        raw+=(bytes([len(s),len(s)])+s.encode()+b'\0') if utf else struct.pack('<H',len(s))+s.encode('utf-16le')+b'\0\0'
-    raw+=b'\0'*(-len(raw)%4);new_start=start+len(offsets)*4
-    chunks[pi]=struct.pack('<HHIIIIII',1,28,new_start+len(raw),len(strings),0,flags&~1,new_start,0)+pool[28:start]+struct.pack('<'+'I'*len(offsets),*offsets)+raw
+        idx[s]=len(strings);strings.append(s)
+    raw=bytearray();offsets=[]
+    for s in strings:
+        offsets.append(len(raw));units=len(s.encode('utf-16le'))//2
+        if utf:
+            encoded=s.encode('utf-8')
+            for size in [units,len(encoded)]:
+                if size>32767:raise ValueError('AXML UTF-8 string too long')
+                raw.extend(bytes([size]) if size<128 else bytes([128|(size>>8),size&255]))
+            raw.extend(encoded+b'\0')
+        else:
+            raw.extend(struct.pack('<H',units) if units<32768 else struct.pack('<HH',32768|(units>>16),units&65535))
+            raw.extend(s.encode('utf-16le')+b'\0\0')
+    raw+=b'\0'*(-len(raw)%4);new_start=28+len(offsets)*4
+    chunks[pi]=struct.pack('<HHIIIIII',1,28,new_start+len(raw),len(strings),0,flags&~1,new_start,0)+struct.pack('<'+'I'*len(offsets),*offsets)+raw
     mapping=next(c for c in chunks if u16(c,0)==0x180)
     def rid(name):
         pos=8+idx[name]*4

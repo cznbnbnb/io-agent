@@ -8,6 +8,10 @@ import sys
 import zipfile
 
 ROOT=pathlib.Path(__file__).resolve().parent
+# Pinned 1.0.10 launcher resource variants; keep IDs and every unrelated asset.
+LAUNCHER_ICONS={name:ROOT/'branding'/f'launcher-{size}.png' for name,size in
+               [('res/8X.png',48),('res/Dw.png',72),('res/M2.png',96),
+                ('res/Gd.png',144),('res/5p.png',192)]}
 sys.path.insert(0,str(ROOT/'upstream'/'android-addon'))
 from addon_assets import assets
 from background_manifest import patch as patch_manifest
@@ -70,6 +74,7 @@ def assemble(source,hook,addon,destination):
                 if signature(info.filename):continue
                 if info.filename in ['classes2.dex','classes3.dex']:content=(hook/(info.filename[:-4]+'-hooked.dex')).read_bytes()
                 elif info.filename=='AndroidManifest.xml':content=manifest
+                elif info.filename in LAUNCHER_ICONS:content=LAUNCHER_ICONS[info.filename].read_bytes()
                 elif info.filename==ROUTE_MEMBER and native_preparation():content=patch_library(z.read(info))
                 else:content=z.read(info)
                 out.writestr(info,content)
@@ -86,10 +91,12 @@ def audit(source,destination,hook,addon):
         if len(after.namelist())!=len(b):raise ValueError('Duplicate output members')
         expected=(a-{n for n in a if signature(n)})|set(extra)|{'classes5.dex'}
         if b!=expected:raise ValueError('Unexpected ZIP member difference')
+        if not set(LAUNCHER_ICONS)<=a:raise ValueError('Pinned launcher resources missing')
         changed=[];preserved=0
         for name in a&b:
             if name in ['classes2.dex','classes3.dex']:expected_bytes=(hook/(name[:-4]+'-hooked.dex')).read_bytes()
             elif name=='AndroidManifest.xml':expected_bytes=patch_product(patch_manifest(before.read(name)))
+            elif name in LAUNCHER_ICONS:expected_bytes=LAUNCHER_ICONS[name].read_bytes()
             elif name==ROUTE_MEMBER and native_preparation():expected_bytes=patch_library(before.read(name))
             else:
                 if digest_entry(before,name)!=digest_entry(after,name):raise ValueError('Unexpected changed original '+name)
@@ -100,7 +107,7 @@ def audit(source,destination,hook,addon):
         for name,p in extra.items():
             if after.read(name)!=p.read_bytes():raise ValueError('Wrong public asset '+name)
         routing=native_preparation()
-        return {'original_entries_preserved':preserved,'replaced':sorted(changed),'added_dex':'classes5.dex','public_assets':len(extra),'original_resources_and_native_libraries_preserved':not routing,'original_resources_preserved':True,'all_other_original_native_libraries_preserved':True,'native_source_route':route_report() if routing else None,'source_dex_count':4,'device_installed':False}
+        return {'original_entries_preserved':preserved,'replaced':sorted(changed),'added_dex':'classes5.dex','public_assets':len(extra),'original_resources_and_native_libraries_preserved':False,'original_resources_preserved':False,'all_other_original_resources_preserved':True,'launcher_icons':sorted(LAUNCHER_ICONS),'all_other_original_native_libraries_preserved':True,'native_source_route':route_report() if routing else None,'source_dex_count':4,'device_installed':False}
 
 if __name__=='__main__':
     if len(sys.argv)==3 and sys.argv[1]=='--add-notices':

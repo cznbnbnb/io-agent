@@ -1074,11 +1074,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "22932de639a4e2cd3519298ea1506b79c59de271ec5eaf2aa8a77ea5242d18b7"
+      "sha256": "6db2151847e245a7f2b657c9de82cbe04d4003c42dff19d51c6e7c3db19cc6fa"
     }
   ],
-  "product_sha256": "970caee68744d35f94636bb6da0b180842e1ecf5b1eb8f088ab14092b18182ea",
-  "addon_sha256": "e32a3ab3351a6ca25c4bb7c57c4fbeeb2bd467b6cd27fe3bd3186d022279f0d1",
+  "product_sha256": "642f021c45cc6df8ffdabb9a1fbff82e429a34801b75e41e4aa041e7d4fcd6b9",
+  "addon_sha256": "24279bd4101d6871342592fde6df91392a5e729fa8962dccf09c0f3c8531a964",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "a4683a1fc05855eb8135da19c2c96b6418f74a367634bf533322e2dc8caf9de4"

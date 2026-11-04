@@ -36,6 +36,13 @@ patched=patch(original)
 assert patch(patched)==patched
 before=tree(original);after=tree(patched);expected=copy.deepcopy(before)
 product=json.loads((ROOT/'product.json').read_text(encoding='utf-8'))
+package=product.get('application_id','com.rayneo.venus.pub')
+pending=[expected]
+while pending:
+    node=pending.pop();pending.extend(node['children'])
+    for name,(typ,value) in list(node['attrs'].items()):
+        if typ==3 and (value=='com.rayneo.venus.pub' or value.startswith('com.rayneo.venus.pub.')):
+            node['attrs'][name]=(typ,package+value[len('com.rayneo.venus.pub'):])
 key=lambda name:NS+'|'+name
 expected['attrs'][key('versionCode')]=(16,product['version_code']);expected['attrs'][key('versionName')]=(3,product['version'])
 app=next(c for c in expected['children'] if c['name']=='application');new_app=next(c for c in after['children'] if c['name']=='application')
@@ -49,4 +56,5 @@ assert own['attrs']=={key('name'):(3,ACTIVITY),key('exported'):(18,0),key('label
 assert own['children']==[]
 app['children'].append(own)
 assert expected==after,'An unrelated manifest node/attribute changed'
-print('Product manifest: passed (stock login launcher retained, old entry private, all other nodes/permissions/providers preserved)')
+assert after['attrs']['|package']==(3,package)
+print('Product manifest: passed (explicit installation identity, stock classes/login launcher retained, old entry private)')
