@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 最终CLI 0.2.0包与本机升级
+
+- 最终ZIP为194,278字节/53文件，SHA256为337975e4c30501e984461173f977b04f9f65137b03813999c1a2efa95f58fa94；source_commit为311bb41e01f9ddb8abc520a2aff10353423a3066。覆盖上一批包，包含Desktop SSH代理环境修正。最终逐文件摘要与更新集成测试通过，扫描仅两处已核实todo_key文档示例误报。
+- 本机 ~/.turboio/connector-runtime 原0.1.0缺MANIFEST：先补公共安装元数据，再由本次审核的update_package.py原地替换8个公共代码/元数据文件。help已显示0.2.0及update；配对文件与两处私有目录的inode/mtime/size前后相同。未关闭当前Agent、正式监听器或改变默认目标；后续普通调用用新版，既有运行连接器需空闲后重启。
+- 用户已明确确认“允许，仅授权io-agent仓库”。既有SSH公钥被GitHub拒绝为already in use，未成功授权；改用Mac本地独立部署密钥，GitHub仅登记公钥为该Private仓库Read/write。私钥留在~/.ssh，不进源码/ZIP。新增SSH别名github-io-agent和仅匹配本仓库完整Git SSH URL的rewrite，不影响其他仓库权限，不使用CODEX_CLI_PATH。
+- 私库push及实际update --check收尾后再补结果；手机/眼镜未操作，dev172不变，main不合并，其他Agent的未跟踪Delegate文件未提交。
+
 ## [codex] 2026-11-04 修正Desktop更新进程的SSH代理环境
 
 - 真实私库推送发现当前Desktop shell缺SSH_AUTH_SOCK，Git报publickey失败；Mac既有登录代理持有用户SSH身份，但该公钥尚未登记GitHub授权。仅在macOS且环境缺失时，从launchctl读取现有SSH代理socket供本次Git子进程使用，不创建/上传密钥、不加新权限、不改全局环境。
