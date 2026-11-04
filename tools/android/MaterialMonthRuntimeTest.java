@@ -590,3 +590,5 @@ final class LifelogTextSync {
  static MaterialSyncSession.Status status(File root,MaterialConfig config){return new MaterialSyncSession.Status();}
  static MaterialSyncSession.Status run(File root,MaterialConfig config,Set<String> dates,MaterialSyncSession.Guard guard,MaterialApi.Transport transport)throws Exception{throw new IOException("HISTORY_FIXTURE_UPLOAD_DISABLED");}
 }
+
+final class DayContextSync {static int run(android.content.Context app,MaterialConfig config,Set<String> selected,MaterialSyncSession.Guard guard,MaterialApi.Transport transport)throws Exception{throw new IOException("HISTORY_FIXTURE_UPLOAD_DISABLED");}}

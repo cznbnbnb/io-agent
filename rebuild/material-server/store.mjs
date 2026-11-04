@@ -5,6 +5,7 @@ import {randomBytes,randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {canonical,sha,reject} from './json.mjs';
 import {createValidator,createQueueValidator} from './validation.mjs';
 import {PhonePresence} from './phone-presence.mjs';
+import {DailyContext} from './daily-context.mjs';
 import {DeviceRegistry} from './devices.mjs';
 import {MaterialPairings} from './material-pairings.mjs';
 import {SessionPairings,SESSION_SCOPES} from './session-pairings.mjs';
@@ -106,7 +107,7 @@ export class MaterialStore {
         this.db.prepare('INSERT OR IGNORE INTO meta VALUES (?,?)').run('server_id',randomUUID());
       });
       this.cursorSecret=this.db.prepare('SELECT value FROM meta WHERE key=?').get('cursor_secret').value;
-      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);
+      this.sessionPairings=new SessionPairings(this);this.materialPairings=new MaterialPairings(this);this.devices=new DeviceRegistry(this);this.phones=new PhonePresence(this);this.agentSessions=new AgentSessionDirectory(this);this.transfer=new MaterialTransfer(this);this.todoSuggestions=new TodoSuggestions(this);this.dayContext=new DailyContext(this);
       this.lifelog=new LifelogText(this);this.admin=new AdminAuth(this);this.console=new AdminConsole(this);
       this.audio=null;this.audioUnavailable=false;
       try{this.audio=new AudioArchive(this,path===':memory:'?path:path+'.audio.sqlite');this.audio.prune();}

@@ -6,6 +6,7 @@ import argparse,base64,hashlib,json,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 PROFILES={
+ 'context':['store.mjs','http.mjs','lifelog-text.mjs','daily-context.mjs'],
  'idle':['store.mjs','http.mjs','todo-suggestions.mjs','traffic.mjs','admin/console.js'],
  'appearance':['admin/index.html','admin/console.js','admin/style.css'],
  'notifications':['store.mjs','http.mjs','devices.mjs','phone-presence.mjs','admin-console.mjs'],
@@ -27,6 +28,12 @@ backup=pathlib.Path('/var/lib/turboio-material/admin-'+profile+'-release-'+str(t
 with sqlite3.connect('/var/lib/turboio-material/materials.sqlite') as live,sqlite3.connect(str(backup/'before.sqlite')) as copy:
  live.backup(copy);assert copy.execute('PRAGMA quick_check').fetchone()[0]=='ok'
 os.chmod(backup/'before.sqlite',0o600)
+if profile=='context':
+ nginx=pathlib.Path('/etc/nginx/sites-enabled/ev').resolve();nginx_before=nginx.read_bytes();(backup/'nginx-before.conf').write_bytes(nginx_before)
+ text=nginx_before.decode();start=text.index('  location /io-api/v1/ {');end=text.index('\n  }',start)+4;original=text[start:end]
+ assert original.count('client_max_body_size 300k;')==1,'NGINX_BASELINE_CHANGED'
+ block=original.replace('location /io-api/v1/', 'location = /io-api/v1/daily-context/source').replace('proxy_pass http://127.0.0.1:3401/v1/;', 'proxy_pass http://127.0.0.1:3401/v1/daily-context/source;').replace('client_max_body_size 300k;', 'client_max_body_size 5m;')
+ nginx_after=nginx_before if block in text else (text[:start]+block+'\n\n'+text[start:]).encode()
 for name in data:
  if (root/name).exists():
   (backup/name).parent.mkdir(parents=True,exist_ok=True);(backup/name).write_bytes((root/name).read_bytes())
@@ -47,12 +54,16 @@ try:
  if profile=='notifications':
   smoke=smoke.replace('s.close();', """const {listen}=await import('./http.mjs');const device=s.devices.enroll({owner:'caller601-admin-codex',role:'agent',label:'QA notification'});const http=await listen(s,0);const url='http://127.0.0.1:'+http.address().port+'/v1/inbox/watch',headers={Authorization:'Bearer '+device.token};
   const marker=await(await fetch(url,{headers})).json();const pending=fetch(url+'?version='+marker.version,{headers,signal:AbortSignal.timeout(2000)});for(let n=0;n<100&&!s.inboxWaiters.size;n++)await new Promise(r=>setTimeout(r,5));assert.equal(s.inboxWaiters.size,1);s.devices.revoke(device.device_id);assert.equal((await pending).status,401);http.closeAllConnections();await new Promise(r=>http.close(r));s.close();""")
+ if profile=='context':
+  smoke=smoke.replace('s.close();', """const writer=s.mint({owner:'caller601-admin-codex',producer:'qa',scopes:['materials:write']});const reader=s.devices.enroll({owner:'caller601-admin-codex',role:'agent',label:'QA context'});const source={id:'context-'+'a'.repeat(64),date:'2026-11-03',timezone:'Asia/Shanghai',origin:'official_lifelog',coordinate_system:'source_unspecified',coverage:'source_snapshot',category:'calendar',events:[],trail:[]};s.dayContext.upload(writer.token,{base_revision:0,source});assert.equal(s.dayContext.read(reader.token,{date:source.date}).items.length,1);assert.equal(s.lifelog.read(reader.token,{from:source.date,to:source.date}).context.items.length,1);s.close();""")
  checked=subprocess.run([node,'--input-type=module','-e',smoke],cwd=stage,capture_output=True,text=True,timeout=30)
  if checked.returncode:raise RuntimeError('ISOLATED_SMOKE_FAILED: '+checked.stderr[-3000:])
  switched=True;subprocess.run(['systemctl','stop',service],check=True,timeout=30)
  for name,item in data.items():
   p=root/name;p.write_bytes(base64.b64decode(item['body']));os.chmod(p,0o644)
  subprocess.run(['systemctl','start',service],check=True,timeout=30)
+ if profile=='context':
+  nginx.write_bytes(nginx_after);subprocess.run(['nginx','-t'],check=True,capture_output=True,timeout=20);subprocess.run(['systemctl','reload','nginx'],check=True,timeout=20)
  shutil.rmtree(stage)
  for attempt in range(30):
   try:
@@ -66,6 +77,8 @@ try:
 except Exception:
  if not switched:
   shutil.rmtree(stage,ignore_errors=True);raise
+ if profile=='context':
+  nginx.write_bytes(nginx_before);subprocess.run(['nginx','-t'],check=True,capture_output=True,timeout=20);subprocess.run(['systemctl','reload','nginx'],check=True,timeout=20)
  subprocess.run(['systemctl','stop',service],check=True,timeout=30)
  for name,item in data.items():
   if item['before'] is None:(root/name).unlink(missing_ok=True)
@@ -81,7 +94,7 @@ def main():
   body=subprocess.check_output(['git','show',args.source+':'+path],cwd=ROOT)
   assert body==(ROOT/path).read_bytes(),'SOURCE_CHANGED: '+name
   old=subprocess.run(['git','show',args.baseline+':'+path],cwd=ROOT,capture_output=True)
-  assert old.returncode==0 or name in ['admin-auth.mjs','admin-console.mjs','admin/console.js'],'BASELINE_UNAVAILABLE: '+name
+  assert old.returncode==0 or name in ['admin-auth.mjs','admin-console.mjs','admin/console.js','daily-context.mjs'],'BASELINE_UNAVAILABLE: '+name
   data[name]={'before':hashlib.sha256(old.stdout).hexdigest() if old.returncode==0 else None,'after':hashlib.sha256(body).hexdigest(),'body':base64.b64encode(body).decode()}
  r=subprocess.run(['ssh','-o','BatchMode=yes','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=10','ubuntu@43.142.59.131','sudo -n python3 -'],input='data='+repr(data)+'\napply='+repr(args.apply)+'\nprofile='+repr(args.profile)+'\n'+REMOTE,text=True,capture_output=True,timeout=120)
  if r.returncode:raise SystemExit('ADMIN_LOGIN_RELEASE_FAILED: '+r.stderr[-1800:])

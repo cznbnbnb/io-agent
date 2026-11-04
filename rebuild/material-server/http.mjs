@@ -128,6 +128,15 @@ export function createServer(store,{traffic=null,trafficUnavailable=false,adminO
       if(req.method==='GET'&&url.pathname==='/v1/identity'){
         if(url.search)reject(400,'INVALID_QUERY');send(200,store.identity(token));return;
       }
+      if(url.pathname.startsWith('/v1/daily-context')){
+        observation.route='materials';
+        if(req.method==='GET'&&url.pathname==='/v1/daily-context'){if(query.include_points!==undefined&&!['true','false'].includes(query.include_points)||query.limit!==undefined&&!/^\d+$/.test(query.limit))reject(400,'INVALID_QUERY');send(200,store.dayContext.read(token,{...query,...(query.include_points!==undefined?{include_points:query.include_points==='true'}:{}),...(query.limit!==undefined?{limit:Number(query.limit)}:{})}));return;}
+        if(req.method==='POST'&&!url.search){
+          if(url.pathname==='/v1/daily-context/head'){send(200,store.dayContext.head(token,await smallJson(req,observation)));return;}
+          if(url.pathname==='/v1/daily-context/source'){send(200,store.dayContext.upload(token,await smallJson(req,observation,4*1048576+4096)));return;}
+        }
+        reject(404,'NOT_FOUND');
+      }
       if(url.pathname.startsWith('/v1/lifelog-text')){
         observation.route='materials';
         if(req.method==='GET'&&url.pathname==='/v1/lifelog-text'){send(200,store.lifelog.read(token,query));return;}

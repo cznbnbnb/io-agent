@@ -149,6 +149,10 @@ export class BridgeClient{
     }while(completeDays&&page.has_more);
     return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page,items,complete:!page.has_more};
   }
+  async dailyContext(input={}){
+    if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['date','from','to','include_points','limit','cursor'].includes(k)))fail('INVALID_QUERY');
+    const query=new URLSearchParams(Object.entries(input).map(([k,v])=>[k,String(v)]));return (await this.#send('GET','daily-context?'+query)).body;
+  }
   async dailyEdit(action,input){
     if(!['daily-correct','daily-note','daily-revert','daily-history'].includes(action)||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_QUERY');
     if(action==='daily-history')return (await this.#send('POST','lifelog-text/history',JSON.stringify(input))).body;

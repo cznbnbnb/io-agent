@@ -11,6 +11,7 @@ final class OfficialLifelogDiscovery {
   final String account;final List<OfficialLifelogSnapshot.Source> sources;final int requests,days,recordingEntries,otherEntries;
   /** Summaries, outlines and trails seen in the same responses; best effort, may be empty. */
   final List<OfficialLifelogInsight.Day> insights;
+  final List<Map<String,Object>> contexts=new ArrayList<>();final List<String> contextErrors=new ArrayList<>();
   private Snapshot(String account,List<OfficialLifelogSnapshot.Source> sources,int requests,int days,int recordingEntries,int otherEntries,List<OfficialLifelogInsight.Day> insights){this.account=account;this.sources=Collections.unmodifiableList(sources);this.requests=requests;this.days=days;this.recordingEntries=recordingEntries;this.otherEntries=otherEntries;this.insights=Collections.unmodifiableList(insights);}
  }
  private static void require(boolean ok,String code){MaterialWire.require(ok,code);}
@@ -31,9 +32,10 @@ final class OfficialLifelogDiscovery {
   }
   // A disappearing/re-grouped aggregate invalidates this batch, but never asks
   // a downstream caller to remove material already retained locally/server-side.
-  for(int i=0;i<days.size();i++){admit(account,login,deadline);byte[] raw=transport.list(days.get(i));requests++;bytes=budget(raw,bytes);admit(account,login,deadline);require(pages.get(i).sameMembership(OfficialLifelogInventory.read(days.get(i),raw)),"LIFELOG_INVENTORY_CHANGED");}
+  List<Map<String,Object>> contexts=new ArrayList<>();List<String> contextErrors=new ArrayList<>();
+  for(int i=0;i<days.size();i++){admit(account,login,deadline);byte[] raw=transport.list(days.get(i));requests++;bytes=budget(raw,bytes);admit(account,login,deadline);require(pages.get(i).sameMembership(OfficialLifelogInventory.read(days.get(i),raw)),"LIFELOG_INVENTORY_CHANGED");try{contexts.add(OfficialDayContext.read(account,days.get(i),raw));}catch(IllegalArgumentException unsupported){contextErrors.add(days.get(i).date+":DAY_CONTEXT_SOURCE_UNSUPPORTED");}}
   List<OfficialLifelogSnapshot.Source> merged=new ArrayList<>();for(List<OfficialLifelogSnapshot.Source> fragments:found.values())merged.add(OfficialLifelogSnapshot.fragments(fragments));admit(account,login,deadline);
   List<OfficialLifelogInsight.Day> insights=new ArrayList<>();for(OfficialLifelogInsight.Day day:listed){List<OfficialLifelogInsight.Event> refined=new ArrayList<>();for(OfficialLifelogInsight.Event e:day.events)refined.add(e.refine(detailed.get(e.id)));insights.add(new OfficialLifelogInsight.Day(day.date,day.timezone,refined,day.trail));}
-  return new Snapshot(account,merged,requests,days.size(),recordings,other,insights);
+  Snapshot result=new Snapshot(account,merged,requests,days.size(),recordings,other,insights);result.contexts.addAll(contexts);result.contextErrors.addAll(contextErrors);return result;
  }
 }

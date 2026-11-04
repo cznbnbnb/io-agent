@@ -12,9 +12,10 @@ final class MaterialRuntime {
   final MaterialConfig config;final MaterialCatalog catalog;final MaterialLocalLibrary.Snapshot local;final String uploadError,autoError;
   /** Official summaries/outlines/trails; null when the local copy is unreadable. */
   final LifelogInsightStore.Snapshot insights;
-  final String date,timezone;
+  final String date,timezone;final Map<String,Object> context;
   CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights){this(config,catalog,local,uploadError,autoError,insights,"","");}
-  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights,String date,String timezone){this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;this.insights=insights;this.date=date;this.timezone=timezone;}
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights,String date,String timezone){this(config,catalog,local,uploadError,autoError,insights,date,timezone,null);}
+  CatalogSnapshot(MaterialConfig config,MaterialCatalog catalog,MaterialLocalLibrary.Snapshot local,String uploadError,String autoError,LifelogInsightStore.Snapshot insights,String date,String timezone,Map<String,Object> context){this.context=context;this.config=config;this.catalog=catalog;this.local=local;this.uploadError=uploadError;this.autoError=autoError;this.insights=insights;this.date=date;this.timezone=timezone;}
  }
  static final class MonthSelection {
   final OfficialLifelogMonthDiscovery.Snapshot source;final String configFingerprint;private final long owner;
@@ -179,7 +180,8 @@ final class MaterialRuntime {
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
   MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
   catalog=MaterialCatalog.withDates(catalog,MaterialCatalog.markedDates(catalog,local.days,insights,historyDates(current.binding)));
-  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved==null?recoveryError:saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone);
+  Map<String,Object> context=date.isEmpty()?null:OfficialDayContext.saved(app.getFilesDir(),current.binding,date,timezone);
+  CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved==null?recoveryError:saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone,context);
   recentCatalog=loaded;recentCatalogAt=android.os.SystemClock.elapsedRealtime();return loaded;
  }
  private void deliverCatalog(long owner,CatalogSnapshot snapshot,String error,CatalogResult result){main.post(()->{
@@ -233,6 +235,7 @@ final class MaterialRuntime {
  private void retainDay(String date,String timezone,OfficialLifelogDiscovery.Snapshot fresh,OfficialAccountBinding expected,long owner)throws Exception{
    synchronized(guard){check(owner);MaterialWire.require(expected.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
     try(MaterialLocalLibrary library=new MaterialLocalLibrary(app.getFilesDir(),expected.binding)){library.recordRead(date,timezone,fresh.sources,System.currentTimeMillis(),()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}
+    for(Map<String,Object> source:fresh.contexts)OfficialDayContext.retain(app.getFilesDir(),expected.binding,source,()->account(owner).binding);
     // Best effort, after the transcript is safely retained.
     if(!fresh.insights.isEmpty())try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),expected.binding)){store.record(fresh.insights,()->{check(owner);OfficialAccountBinding now=account(owner);MaterialWire.require(expected.same(now),"OFFICIAL_ACCOUNT_CHANGED");return now.binding;});}catch(Exception ignored){}
    }
@@ -304,7 +307,7 @@ final class MaterialRuntime {
    Set<String> selectedDates=null;if(selectedDays!=null){selectedDates=new HashSet<>();for(OfficialLifelogInventory.Request request:selectedDays)selectedDates.add(request.date);}
    List<DailySummary> summaries=DailySummary.latest(official.latestJournals());MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");
    MaterialApi.Transport guarded=new MaterialApi.Transport(){public MaterialApi.Response exchange(String path,byte[] body)throws IOException{try{MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");MaterialApi.Response response=http.exchange(path,body);MaterialWire.require(login.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");return response;}catch(IOException|RuntimeException failure){throw failure;}catch(Exception failure){throw new IOException("OFFICIAL_ACCOUNT_UNAVAILABLE");}}public void cancel(){http.cancel();}};
-   note="syncing";MaterialSyncSession.Status textStatus=LifelogTextSync.run(app.getFilesDir(),target,selectedDates,()->check(owner),guarded);
+   note="syncing";MaterialSyncSession.Status textStatus=LifelogTextSync.run(app.getFilesDir(),target,selectedDates,()->check(owner),guarded);DayContextSync.run(app,target,selectedDates,()->check(owner),guarded);
    boolean hasSummary=false;for(DailySummary summary:summaries)if(selectedDates==null||selectedDates.contains(summary.date))hasSummary=true;
    status=hasSummary?DailySummarySync.run(app.getFilesDir(),target,summaries,selectedDates,()->check(owner),guarded):new MaterialSyncSession.Status();
    if(!hasSummary)status.selectedComplete=true;status.stored+=textStatus.stored;status.queued+=textStatus.queued;status.added+=textStatus.added;status.progressed|=textStatus.progressed;status.selectedComplete&=textStatus.selectedComplete;

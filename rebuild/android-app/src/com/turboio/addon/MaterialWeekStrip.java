@@ -34,7 +34,7 @@ final class MaterialWeekStrip extends HorizontalScrollView {
   bindDates(a);
  }
  private void bindDates(Activity a){for(int p=0;p<PAGES;p++)for(int i=0;i<7;i++){
-  LocalDate day=shownMonday.plusWeeks(p-CENTER).plusDays(i);boolean on=day.equals(selected),has=dates.contains(day);LinearLayout cell=cells[p][i];cell.setTag(day);cell.setContentDescription(day+(has?"，有智记":"，暂无智记标记"));
+  LocalDate day=shownMonday.plusWeeks(p-CENTER).plusDays(i);boolean on=day.equals(selected),has=dates.contains(day);LinearLayout cell=cells[p][i];cell.setTag(day);cell.setContentDescription(day+(has?"，有资料":"，暂无资料标记"));
   weekdays[p][i].setTextColor(on?MaterialReadingUI.ON_ACCENT:AgentUI.MUTED);numbers[p][i].setText(Integer.toString(day.getDayOfMonth()));numbers[p][i].setTextColor(on?MaterialReadingUI.ON_ACCENT:has?AgentUI.INK:MaterialReadingUI.DIM);
   dots[p][i].setBackground(MaterialReadingUI.fill(a,has?(on?MaterialReadingUI.ON_ACCENT:MaterialReadingUI.ACCENT_SOFT):0,2));cell.setBackground(on?MaterialReadingUI.fill(a,AgentUI.ACCENT,14):null);
  }}

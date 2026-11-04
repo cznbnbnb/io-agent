@@ -75,7 +75,7 @@ export class LifelogText {
   const hasMore=offset+items.length<all.length,now=this.store.clock();
   return {items,total:all.length,has_more:hasMore,next_cursor:hasMore?this.store.signCursor({v:1,owner,kind:'lifelog-text',filter:hash,last:offset+items.length,ceiling:Number.MAX_SAFE_INTEGER,expires:now+3600000}):null,server_time:iso(now),fresh_until:iso(now),version,coverage:{scope:'server_stored_lifelog_text',phone_sync_status:'unknown',audio_available:false,originals_included:false},complete:!hasMore};
  }
- read(token,query){return this.query(this.store.auth(token,'lifelog:read').owner,query);}
+ read(token,query){const owner=this.store.auth(token,'lifelog:read').owner,result=this.query(owner,query);return{...result,context:this.store.dayContext.query(owner,{from:query.from,to:query.to})};}
  history(owner,input){
   if(!fields(input,['material_id'],['before','source_revision'])||!id(input.material_id)||input.source_revision!==undefined&&(!integer(input.source_revision)||input.source_revision<1)||input.before!==undefined&&!integer(input.before))reject(400,'INVALID_CORRECTION');
   const source=this.sources(owner).find(s=>s.id===input.material_id);if(!source)reject(404,'MATERIAL_NOT_FOUND');
