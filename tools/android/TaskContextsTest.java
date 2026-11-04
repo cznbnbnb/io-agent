@@ -58,6 +58,11 @@ public final class TaskContextsTest {
   TaskProfiles capacity=TaskProfiles.empty();for(int i=0;i<TaskProfiles.MAX;i++)capacity=capacity.upsert(connection(a.base,"context-"+i),false,NOW);final TaskProfiles full=capacity;rejects(()->full.upsert(b,false,NOW));check(full.profiles.size()==TaskProfiles.MAX);
   // Explicitly removing a paused/expired registration frees a slot; live/default ones stay.
   String oldest=full.profiles.get(0).binding,newest=full.selected;check(full.remove(oldest,NOW).profiles.size()==TaskProfiles.MAX-1);rejects(()->full.enabled(oldest,true,NOW).remove(oldest,NOW));rejects(()->full.remove(newest,NOW+172800000));rejects(()->full.remove("missing",NOW+172800000));
+  // Explicit local removal can free an offline selected target, including the final registration.
+  TaskProfiles forgotten=imported.forget(a.binding());check(forgotten.profiles.size()==1&&forgotten.selected.equals(b.binding()));
+  check(TaskProfiles.decode(forgotten.encode()).selected.equals(b.binding()));
+  TaskProfiles none=forgotten.forget(b.binding());check(none.profiles.isEmpty()&&none.selected.isEmpty()&&none.selected()==null);
+  check(TaskProfiles.decode(none.encode()).profiles.isEmpty());rejects(()->none.forget(b.binding()));
   TaskProfiles freed=full.remove(oldest,NOW+172800000);check(freed.profiles.size()==TaskProfiles.MAX-1&&freed.selected.equals(newest));rejects(()->freed.get(oldest));
   TaskProfiles refilled=freed.upsert(b,false,NOW);check(refilled.profiles.size()==TaskProfiles.MAX&&TaskProfiles.decode(refilled.encode()).profiles.size()==TaskProfiles.MAX);
   TaskProfiles expired=TaskProfiles.decode(legacy);check(expired.profiles.size()==1);rejects(()->expired.enabled(a.binding(),true,NOW+172800000));check(!expired.enabled(a.binding(),false,NOW+172800000).selected().enabled);

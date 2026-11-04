@@ -54,7 +54,8 @@ export function validateResidentConfig(c){
     path.isAbsolute(c.agent.credential_file??'')&&c.owner&&Number.isSafeInteger(c.owner.pid)&&
     (c.runtime==='codex'?c.owner.executable==='codex':['claude','claude.exe'].includes(c.owner.executable))&&typeof c.owner.started==='string'&&
     typeof c.label==='string'&&c.label.length>0&&c.label.length<=64&&Array.isArray(c.legacyTaskIds)&&c.legacyTaskIds.length<=1000&&
-    c.legacyTaskIds.every(id=>typeof id==='string'&&id.length<=128),'RESIDENT_CONFIG_INVALID');return c;
+    c.legacyTaskIds.every(id=>typeof id==='string'&&id.length<=128)&&
+    (c.control===undefined||c.control==='desktop'&&c.runtime==='codex'&&c.endpoint===undefined&&c.rpcPath===undefined),'RESIDENT_CONFIG_INVALID');return c;
 }
 export function residentStatus(binding,{home=residentHome(),read=processIdentity}={}){
   const directory=path.join(home,'sessions',residentKey(binding));
@@ -64,7 +65,7 @@ export function residentStatus(binding,{home=residentHome(),read=processIdentity
     return{resident_live:true,cloud_online:h.cloud_online===true,can_execute:h.can_execute===true,reason:h.reason??null,pid:h.worker.pid,session_id:binding.route.session_id};
   }catch{return{resident_live:false,reason:'RESIDENT_NOT_RUNNING'};}
 }
-export async function ensureResident({agent,binding,runtime,label,legacyTaskId,endpoint,rpcPath},{home=residentHome(),read=processIdentity,
+export async function ensureResident({agent,binding,runtime,label,legacyTaskId,endpoint,rpcPath,control},{home=residentHome(),read=processIdentity,
   launch=spawn,waitMs=8000,owner=nativeOwner(runtime,{read})}={}){
   if(!['codex','claude-code'].includes(runtime))return{resident_live:false,can_execute:false,reason:'NATIVE_HOST_UNSUPPORTED'};
   if(process.platform==='win32')return{resident_live:false,can_execute:false,reason:'RESIDENT_PLATFORM_UNSUPPORTED'};
@@ -73,7 +74,7 @@ export async function ensureResident({agent,binding,runtime,label,legacyTaskId,e
   if(!fs.existsSync(workerFile))return{resident_live:false,can_execute:false,reason:'RESIDENT_COMPONENT_NOT_INSTALLED'};
   // rejoin lets the Claude Mod join a Desktop continuation of this conversation with the same CLI.
   const rejoin={node:process.execPath,cli:fileURLToPath(new URL('../questions/cli.mjs',import.meta.url))};
-  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId],rejoin,...(endpoint?{endpoint,rpcPath}:{})});
+  const c=validateResidentConfig({schema_version:1,agent,binding,runtime,label:label||'当前会话',owner,legacyTaskIds:[legacyTaskId],rejoin,...(control?{control}:{}),...(endpoint?{endpoint,rpcPath}:{})});
   privateDirectory(home);const root=privateDirectory(path.join(home,'sessions')),directory=privateDirectory(path.join(root,residentKey(binding)));
   let previous;try{previous=privateRecord(path.join(directory,'resident.json'));}catch{}
   const prior=residentStatus(binding,{home,read});

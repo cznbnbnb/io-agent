@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T04:28:06.591Z",
+  "batch": "dev167 / 10589",
+  "installed": false,
+  "phone_validation": "deferred_by_user",
+  "phone_request": "continue_code_without_phone",
+  "glasses_notifications_sent": false,
+  "host_compatibility": {
+    "cause": "dev166 loopback-port native hash omitted from the lifelog HTTP input allowlist",
+    "accepted_native_sha256": "51aa02e05a8df9fcd8730f778f8cd5eaaed78689487b2bc96e7308a690dd5a47",
+    "production_boundary_checks": 6,
+    "http_checks": 74,
+    "unknown_native_rejected": true
+  },
+  "workspace": {
+    "claude": {
+      "at": "2026-11-04T04:15:16.185Z",
+      "task_id": "task-android-6ae97210e92d97172a09dcae7af2e74545b5797f42cf10c02eb8685eb48f2dea",
+      "state": "completed",
+      "revision": 5,
+      "execution": {
+        "command_id": "7931a61c-09cc-5b79-acf2-813ffd808941",
+        "phase": "completed",
+        "turn_id": "f728cc0b-9ab3-431a-9ff8-f5a8c8ce7e1c"
+      },
+      "result_bytes": 4,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+      "object_fields": [
+        "kind",
+        "object_id",
+        "revision",
+        "schema_version",
+        "body",
+        "state",
+        "commit_seq",
+        "stored_at",
+        "event_id",
+        "expires_at",
+        "command_expires_at",
+        "receipts"
+      ],
+      "receipt_stages": [
+        "agent_received",
+        "task_resumed",
+        "task_completed"
+      ],
+      "result_message": {
+        "message_id": "result-f8f35827b5ad73d064897a037b40d2be011307ceec173aa983c206fa438a3642",
+        "task_id": "task-android-6ae97210e92d97172a09dcae7af2e74545b5797f42cf10c02eb8685eb48f2dea",
+        "route": {
+          "agent_id": "io-claude-code",
+          "computer_id": "io-mac-computer",
+          "project_id": "rayneo-io-agent",
+          "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+        },
+        "channel": "result",
+        "text_length": 1,
+        "text_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+        "stored_at": "2026-11-04T04:14:40.747Z"
+      }
+    },
+    "codex": {
+      "at": "2026-11-04T04:20:31.638Z",
+      "task_id": "task-codex-recovery-a714aad2-d79e-46d3-8b43-030d4e057016",
+      "state": "completed",
+      "revision": 5,
+      "execution": {
+        "command_id": "90e2e97e-a220-5df0-aebf-fd84c32904ad",
+        "phase": "completed",
+        "turn_id": "01a1a4c4-812e-75b0-9ea8-577845c89e7f"
+      },
+      "receipt_stages": [
+        "agent_received",
+        "task_resumed",
+        "task_completed"
+      ],
+      "result_message": {
+        "message_id": "result-ae734a2b5af668535c4a60b5275c3d2e2401d8023ca2b79bc50a712dbb03752f",
+        "task_id": "task-codex-recovery-a714aad2-d79e-46d3-8b43-030d4e057016",
+        "channel": "result",
+        "text_length": 13,
+        "text_sha256": "4d98a5979361973dbbc1c6848d9f0c9d29ba31396956098ce54baf151bf6a6bd",
+        "stored_at": "2026-11-04T04:17:31.082Z"
+      }
+    },
+    "current_session": {
+      "at": "2026-11-04T04:21:35.240Z",
+      "session": "01a1670e-97c8-7083-a014-aa9ea3de6a98",
+      "route": {
+        "computer_id": "io-mac-computer",
+        "agent_id": "io-current-codex",
+        "project_id": "workspace-2c2bf72fb7add79e3cf410ec",
+        "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+      },
+      "workspace": "/Users/cznbnb/Project/AI Glasses Project",
+      "status": {
+        "resident_live": true,
+        "cloud_online": true,
+        "can_execute": true,
+        "reason": null,
+        "pid": 54367,
+        "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+      },
+      "glasses_progress": false
+    },
+    "directory": {
+      "at": "2026-11-04T04:27:32.678Z",
+      "after_returning_to_current_chat": true,
+      "sessions": [
+        {
+          "route": {
+            "agent_id": "io-claude-code",
+            "computer_id": "io-mac-computer",
+            "project_id": "rayneo-io-agent",
+            "session_id": "bfae0b25-5c1a-49ef-bed9-ef98a47c3e3d"
+          },
+          "online": true,
+          "capabilities": {
+            "can_execute": true,
+            "exact_turn_interrupt": true,
+            "descendants_proof": false,
+            "atomic_queue_append": true,
+            "native_queue_expiry": false
+          },
+          "workspace": "/Users/cznbnb/Project/AI Glasses Project/rayneo-io-agent",
+          "lease_expires_at": "2026-11-04T04:28:32.772Z"
+        },
+        {
+          "route": {
+            "agent_id": "io-current-codex",
+            "computer_id": "computer-f04986f7-67ba-49bb-b656-585095933cad",
+            "project_id": "workspace-6bfe9c02d837bf6a4104210e",
+            "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+          },
+          "online": false,
+          "capabilities": {
+            "can_execute": false,
+            "exact_turn_interrupt": false,
+            "descendants_proof": false,
+            "atomic_queue_append": false,
+            "native_queue_expiry": false
+          },
+          "workspace": "/Users/cznbnb/Project/AI Glasses Project/rayneo-io-agent-codex",
+          "lease_expires_at": "2026-11-04T04:20:52.116Z"
+        },
+        {
+          "route": {
+            "agent_id": "io-current-codex",
+            "computer_id": "io-mac-computer",
+            "project_id": "workspace-2215dbd52a60e11930077982",
+            "session_id": "85ddd5a4-c238-4c3e-8a24-d5ef9cc04d30"
+          },
+          "online": true,
+          "capabilities": {
+            "can_execute": true,
+            "exact_turn_interrupt": true,
+            "descendants_proof": false,
+            "atomic_queue_append": false,
+            "native_queue_expiry": false
+          },
+          "workspace": "/Users/cznbnb/Documents/iO Agent/Codex",
+          "lease_expires_at": "2026-11-04T04:28:32.817Z"
+        },
+        {
+          "route": {
+            "agent_id": "io-current-codex",
+            "computer_id": "io-mac-computer",
+            "project_id": "workspace-2c2bf72fb7add79e3cf410ec",
+            "session_id": "01a1670e-97c8-7083-a014-aa9ea3de6a98"
+          },
+          "online": true,
+          "capabilities": {
+            "can_execute": true,
+            "exact_turn_interrupt": true,
+            "descendants_proof": false,
+            "atomic_queue_append": false,
+            "native_queue_expiry": false
+          },
+          "workspace": "/Users/cznbnb/Project/AI Glasses Project",
+          "lease_expires_at": "2026-11-04T04:28:24.377Z"
+        }
+      ]
+    },
+    "queue_regressions": 122,
+    "cli_desktop_regressions": 36
+  },
+  "retention": {
+    "legacy164_preserved": true,
+    "legacy163_rollback_pending_migration": true,
+    "independent166_current_preserved": true,
+    "legacy154_offline_device_exception": true,
+    "official_app_installed": false,
+    "legacy_uninstalled": false
+  },
+  "candidate": {
+    "application_id": "cn.cznbnb.ioagent",
+    "version": "0.5.3-dev167",
+    "version_code": 10589,
+    "apk": "artifacts/iO-Agent-Android-0.5.3-dev167.apk",
+    "sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+    "bytes": 435189987,
+    "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+    "signature_v2": true,
+    "signature_v3": true,
+    "release_gate_passed": false,
+    "installed": false
+  },
+  "delta": {
+    "baseline_sha256": "e7fb7ade3f8e6c84c1fd28beda3accb743963a7794d5ff8afb0a206bbf8c57ff",
+    "candidate_sha256": "a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee",
+    "apk_bytes": 435189987,
+    "delta_bytes": 2062825,
+    "commands": 8141,
+    "delta_sha256": "c407a2b84daad84db0d4ff224b9194d2b0df51792e21cca456875c7e75cc2223",
+    "reconstruction_hash_verified": true
+  },
+  "ui": {
+    "library": "Lucide 0.468.0",
+    "icons": 43,
+    "png_bytes": 77205,
+    "local_removal_tests": 28,
+    "directory_tests": 126,
+    "controls_tests": 98,
+    "context_tests": 68,
+    "state_tests": 41,
+    "compiled": true,
+    "phone_visual_verified": false,
+    "source_and_asset_audits_passed": true
+  },
+  "cleanup": {
+    "device_lock": "released",
+    "qa_tasks": "completed",
+    "progress_watch": "off",
+    "formal_connections": "left running",
+    "unrelated_delegate_sources": "preserved; excluded from compilation and commit"
+  }
+}

@@ -41,6 +41,20 @@ public final class Host107LifelogCalendarHttpTest {
   int fixedLength(){return fixedContentLength;}
  }
  public static void main(String[] args)throws Exception{
+  if(args.length==4&&"--host-inputs".equals(args[0])){
+   java.lang.reflect.Method read=Host107LifelogHttp.class.getDeclaredMethod("inputs");read.setAccessible(true);String[] original=null;
+   for(int i=1;i<args.length;i++){
+    System.setProperty("test.apk",args[i]);
+    try(Host107LifelogHttp adapter=new Host107LifelogHttp(new Context(),OWNER,()->{})){
+     try{
+      String[] signing=(String[])read.invoke(adapter);yes(i<3);yes(signing.length==2&&signing[0].length()==32&&signing[1].length()==32);
+      if(i==1)original=signing;else yes(Arrays.equals(original,signing));
+     }catch(java.lang.reflect.InvocationTargetException failure){yes(i==3&&"OFFICIAL_HOST_UNSUPPORTED".equals(failure.getCause().getMessage()));}
+    }
+   }
+   System.clearProperty("test.apk");
+   System.out.println("Host signing inputs: "+checks+" checks passed; source APK only, no network or account data");return;
+  }
   URL.setURLStreamHandlerFactory(protocol->"https".equals(protocol)?new URLStreamHandler(){protected URLConnection openConnection(URL url){opens++;if(!url.toString().startsWith("https://xr-api-p.rayneo.cn/lifelog/api/v1/"))throw new AssertionError("non-calendar URL");opened.run();return next;}}:null);
   Fake f=fresh();Host107LifelogHttp a=adapter();OfficialLifelogCalendarRequest request=month();byte[] exposed=request.body();Arrays.fill(exposed,(byte)'x');byte[] result=a.calendar(request);
   yes(Arrays.equals(result,f.response));yes(opens==1&&f.outputCalls==1&&f.responseCalls==1);yes(f.disconnected.getCount()==0);

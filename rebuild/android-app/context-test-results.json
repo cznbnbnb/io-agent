@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "date": "2026-10-30T11:33:15.087Z",
+  "date": "2026-11-04T04:15:12.849Z",
   "kind": "JVM real durable stores/protocol fixtures and isolated synthetic transports; no physical-device or real Agent acceptance",
-  "checks": "Task contexts: 63 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
+  "checks": "Task contexts: 68 checks passed (migration, identity/route isolation, independent failure/pause, original full answers, stable queues after renewal/restart)",
   "status_checks": "Task status: 41 checks passed (empty incremental inbox, accepted answer, restart, bounded refresh, route isolation, failed read, deadline)",
   "sources": [
     {
@@ -11,7 +11,7 @@
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
     },
     {
       "path": "src/com/turboio/addon/TaskWire.java",
@@ -23,7 +23,7 @@
     },
     {
       "path": "src/com/turboio/addon/TaskProfiles.java",
-      "sha256": "96926d5fd4254fc311adbd9df7428cd4c7aae539f7223e9a4d04e2873cfeb081"
+      "sha256": "37496cffb2788ea7dffd1ba73b443d3ef4fd11b42413d066744ea7a596502caf"
     },
     {
       "path": "src/com/turboio/addon/AtomicDocument.java",

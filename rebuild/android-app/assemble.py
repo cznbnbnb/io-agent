@@ -33,6 +33,20 @@ def public_assets():
                    'assets/io-agent/NOTICE.txt':ROOT/'upstream'/'NOTICE',
                    'assets/io-agent/upstream-lock.json':ROOT/'upstream-lock.json',
                    'assets/io-agent/product.json':ROOT/'product.json'})
+    icon_root=ROOT/'vendor'/'lucide'
+    icon_manifest=json.loads((icon_root/'manifest.json').read_text())
+    if hashlib.sha256((icon_root/'LICENSE').read_bytes()).hexdigest()!=icon_manifest['license_sha256']:
+        raise ValueError('Lucide license does not match the pinned source')
+    if hashlib.sha256((icon_root/'FEATHER-LICENSE').read_bytes()).hexdigest()!=icon_manifest['feather_license_sha256']:
+        raise ValueError('Feather license does not match the pinned source')
+    result['assets/io-agent/lucide-LICENSE.txt']=icon_root/'LICENSE'
+    result['assets/io-agent/feather-LICENSE.txt']=icon_root/'FEATHER-LICENSE'
+    result['assets/io-agent/lucide-manifest.json']=icon_root/'manifest.json'
+    for name,digest in icon_manifest['png_sha256'].items():
+        path=icon_root/'png'/f'{name}.png'
+        if hashlib.sha256(path.read_bytes()).hexdigest()!=digest:
+            raise ValueError(f'Lucide asset does not match the pinned render: {name}')
+        result[f'assets/io-agent/icons/{name}.png']=path
     return result
 
 def add_notices(destination):

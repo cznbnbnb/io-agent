@@ -10,10 +10,11 @@ import java.util.concurrent.*;
 final class TaskRuntime {
  static {TaskSessionDirectory.elapsedClock(SystemClock::elapsedRealtime);}
  interface Result {void done(Snapshot snapshot,String error);}
+ interface RestoreResult {void done(Snapshot snapshot,String error,int restored);}
  static final class Snapshot {
   final TaskSettings.Saved saved;final String binding,note,device,pairing;final List<TaskHub.View> contexts;
   final TaskSessionDirectory directory;final String directoryNote,defaultBinding,defaultStatus,directoryProducer;final Map<String,Object> defaultRoute,pendingDefault;
-  PhonePresence phone;
+  PhonePresence phone;Set<String> removedRoutes=Collections.emptySet();
   private String fingerprint;
   Snapshot(TaskHub hub,String note){this(hub,note,"","");}
   Snapshot(TaskHub hub,String note,String device,String pairing){this(hub,note,device,pairing,null,"DIRECTORY_REFRESH_REQUIRED",null,"");}
@@ -24,9 +25,10 @@ final class TaskRuntime {
   }
   String fingerprint(){if(fingerprint==null){
    List<Object> publicRows=new ArrayList<>();for(TaskHub.View v:contexts)publicRows.add(WireJson.object("binding",v.binding,"preview",v.profile.connection.preview(),"note",v.note,"enabled",v.profile.enabled,"inbox_current",v.inboxCurrent,"session_control",v.sessionControl,"pending",v.pending,"objects",v.objects));
-   List<Object> directoryRows=new ArrayList<>();if(directory!=null)for(TaskSessionDirectory.Entry e:directory.sessions)directoryRows.add(WireJson.object("route",e.route,"label",e.label,"status",e.status(TaskSessionDirectory.elapsed()),"generation",e.generation));
+   List<Object> directoryRows=new ArrayList<>();for(TaskSessionDirectory.Entry e:visibleSessions())directoryRows.add(WireJson.object("route",e.route,"label",e.label,"status",e.status(TaskSessionDirectory.elapsed()),"generation",e.generation));
    fingerprint=TaskWire.hash(WireJson.bytes(WireJson.object("selected",binding,"note",note,"contexts",publicRows,"device",device,"pairing",pairing,"directory",directoryRows,"directory_note",directoryNote,"default",directory==null?null:directory.defaultTarget,"default_status",defaultStatus,"default_pending",this.pendingDefault,"phone",phone==null?"":phone.fingerprint())));
   }return fingerprint;}
+  List<TaskSessionDirectory.Entry> visibleSessions(){if(directory==null)return Collections.emptyList();if(removedRoutes.isEmpty())return directory.sessions;List<TaskSessionDirectory.Entry> visible=new ArrayList<>();for(TaskSessionDirectory.Entry entry:directory.sessions)if(!removedRoutes.contains(entry.key))visible.add(entry);return Collections.unmodifiableList(visible);}
   TaskHub.View context(String binding){for(TaskHub.View v:contexts)if(v.binding.equals(binding))return v;return null;}
   String bindingFor(Map<String,Object> route){if(route!=null)for(TaskHub.View v:contexts)if(directory!=null&&v.profile.connection.producer.equals(directoryProducer)&&v.profile.connection.server.equals(directory.server)&&v.profile.connection.owner.equals(directory.owner)&&TaskWire.same(v.profile.connection.route(),route))return v.binding;return "";}
  }
@@ -62,7 +64,7 @@ final class TaskRuntime {
  void observe(Activity owner,Result observer){observers.put(observer,owner);read(null);}
  void unobserve(Result observer){observers.remove(observer);}
  private void publish(Snapshot snapshot){main.post(()->{AgentCardRuntime.accept(snapshot);TurboAddon.pending(snapshot);for(Map.Entry<Result,Activity> entry:new ArrayList<>(observers.entrySet()))if(observers.containsKey(entry.getKey())&&active(entry.getValue()))entry.getKey().done(snapshot,"");});}
- private Snapshot snapshot(){TaskDevice d=device;Snapshot state=new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);state.phone=phone;return state;}
+ private Snapshot snapshot(){TaskDevice d=device;Snapshot state=new Snapshot(hub,note,d==null?"":d.preview(),pairing,directory,directoryNote,pendingDefault,d==null?"":d.producer);state.phone=phone;state.removedRoutes=settings.removedRoutes(d,directory);return state;}
  private void cancelAll(){for(TaskHttp t:transports.values())t.cancel();TaskInboxWatch watch=inboxWatch;if(watch!=null)watch.close();inboxWatch=null;lastInboxSignal="";nextInboxPoll=0;}
  private void load()throws Exception{
   if(initialized)return;TaskProfiles profiles=settings.loadAll();final long boundGeneration=generation;enabled.clear();for(TaskProfiles.Profile p:profiles.profiles)if(p.enabled)enabled.add(p.binding);
@@ -142,9 +144,17 @@ final class TaskRuntime {
    }finally{probe.cancel();}
   },result);schedule();
  }
- /** Drops an expired, non-default registration (see TaskProfiles.remove) and reloads the
-  * hub, whose channel set must match the profiles; mailbox files stay on disk. */
- void remove(String binding,Result result){AgentCardRuntime.pause(binding);generation++;cancelAll();work(()->{TaskWire.require(!binding.equals(snapshot().defaultBinding),"TASK_TARGET_SELECTED");settings.remove(binding);if(hub!=null)hub.close();hub=null;transports.clear();enabled.clear();initialized=false;load();},result);schedule();}
+ /** Removes only the local session registration; durable task files are retained. */
+ void remove(String binding,Result result){work(()->{
+  long now=System.currentTimeMillis();TaskHub.View view=hub.view(binding);TaskWire.require(view!=null,"TASK_TARGET_CHANGED");
+  TaskWire.require(!TaskProfiles.unsent(view.pending)&&new TaskPresentation(Collections.singletonList(new TaskPresentation.Source(view.profile,view.objects,view.pending)),now).questions.isEmpty(),"TASK_PROFILE_PENDING");
+  if(device!=null)refreshDirectory(now);
+  TaskSessionDirectory.Entry entry=directory==null?null:directory.find(view.profile.connection.route());
+  TaskWire.require(!view.profile.enabled||view.profile.connection.expiresAt<=now||entry==null||!entry.live(TaskSessionDirectory.elapsed())||!Boolean.TRUE.equals(entry.capabilities.get("can_execute")),"TASK_PROFILE_ACTIVE");
+  if(binding.equals(snapshot().defaultBinding))setDefaultInternal(null,directory.defaultRevision());
+  AgentCardRuntime.pause(binding);settings.forget(binding);rebuild();
+ },result);schedule();}
+ void restoreRemoved(RestoreResult result){final int[] restored={0};work(()->{login();TaskWire.require(device!=null,"DIRECTORY_PAIRING_REQUIRED");long now=System.currentTimeMillis();refreshDirectory(now);restored[0]=settings.restoreRemoved(device,directory,now);if(restored[0]>0)rebuild();},(state,error)->result.done(state,error,restored[0]));schedule();}
  void refresh(Result result){work(()->{login();hub.pump(System.currentTimeMillis());note="contexts_updated";},result);}
  private void bound(String binding)throws Exception{login();TaskWire.require(enabled.contains(binding),"TASK_PAUSED");TaskWire.require(hub!=null&&hub.view(binding)!=null,"TASK_TARGET_CHANGED");}
  void receipt(String binding,Map<String,Object> request,String stage){Map<String,Object> frozen=WireJson.map(WireJson.copy(request));work(()->{bound(binding);long now=System.currentTimeMillis();hub.receipt(binding,frozen,stage,now);hub.detail(binding,"request",(String)frozen.get("object_id"),now);},(state,error)->android.util.Log.i("TurboIOCard","receipt "+stage+(error.isEmpty()?" sent":" not sent "+error)));}

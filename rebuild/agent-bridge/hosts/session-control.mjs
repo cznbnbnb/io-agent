@@ -148,9 +148,15 @@ export class SessionControl {
     // interrupted local turn keeps its unconfirmed history, but cannot hold a
     // later task's explicit continuation forever. Other live/unknown local
     // turns and unrelated new commands still retain the admission fence.
-    if(local.some(c=>!TERMINAL.has(c.phase)&&!(next.resume_of&&c.native_status==='interrupted'))){this.#change(next,'queued','waiting_for_observed_turn');return this.list();}
     let status;
     try{status=await this.#hostStatus();}catch(error){this.#change(next,'queued',safeCode(error));return this.list();}
+    // A lost historical observation is not an unacknowledged remote input.
+    // Once the same live host explicitly reports no active turn, retain the
+    // unknown historical result without fencing every future phone message.
+    // An unresolved Stop still needs its descendant proof before proceeding.
+    const idle=status.busy===false&&status.activeTurnId===null;
+    if(local.some(c=>!TERMINAL.has(c.phase)&&!(next.resume_of&&c.native_status==='interrupted')&&
+      !(idle&&c.phase==='outcome_unknown'&&!c.stop_control_id))){this.#change(next,'queued','waiting_for_observed_turn');return this.list();}
     const nativeQueue=this.#host.capabilities?.atomic_queue_append===true;
     if(status.busy&&!nativeQueue){this.#change(next,'queued','waiting_for_idle');return this.list();}
     // Shared Desktop mode uses the native owner's user-message admission.

@@ -61,10 +61,10 @@ final class MaterialWorkspace {
  }}
  static void show(Activity activity){show(activity,()->{});}
  static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料同步");MaterialRuntime runtime=MaterialRuntime.get(activity);final boolean[] closed={false};final Runnable[] refresh={null};
-  MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();body.addView(AgentUI.text(activity,label(error.isEmpty()?state.note:error),20,AgentUI.INK));
+  MaterialRuntime.Result render=(state,error)->{if(closed[0]||activity.isDestroyed())return;LinearLayout body=screen.body;body.removeAllViews();AgentUI.summary(activity,body,"cloud-upload",label(error.isEmpty()?state.note:error),"文字同步状态");AgentUI.gap(activity,body,16);
    body.addView(AgentUI.text(activity,"自动同步已读取的分段智记、逐字转写及每日 AI 总结。后台仍只预载最近有数据的三天，更早日期按需读取。原音和位置不上传；服务器订正不会改动手机原文。",14,AgentUI.MUTED));
-   if(state.config!=null)body.addView(AgentUI.text(activity,state.config.connection.preview(),13,AgentUI.MUTED));
-   MaterialSyncSession.Status s=state.status;body.addView(AgentUI.text(activity,"服务器已存版本 "+s.stored+" · 待同步版本 "+s.queued+"\n待核对 "+s.blocked+" · 结果未知 "+s.reconcile+" · 已过期 "+s.expired,16,AgentUI.INK));
+   if(state.config!=null){LinearLayout connection=AgentUI.section(activity,body,"资料空间");AgentUI.iconRow(activity,connection,"link","连接信息","查看账号与服务器登记",null,()->AgentUI.notice(activity,state.config.connection.preview()));}
+   MaterialSyncSession.Status s=state.status;LinearLayout counts=AgentUI.section(activity,body,"处理进度");AgentUI.row(activity,counts,"服务器已保存",null,s.stored+" 份",null);AgentUI.divider(activity,counts);AgentUI.row(activity,counts,"等待同步",null,s.queued+" 份",null);AgentUI.divider(activity,counts);AgentUI.row(activity,counts,"需要核对","结果未知 "+s.reconcile+" · 已过期 "+s.expired,s.blocked+" 份",null);
    if(s.days>0)body.addView(AgentUI.text(activity,"本次读取每日总结 "+s.discovered+" 份；发现数量不代表服务器已保存数量。",14,AgentUI.MUTED));
    if(s.tooLarge>0)body.addView(AgentUI.text(activity,"超出单条上限 "+s.tooLarge+" 份：未上传、未截断，原文仍在原厂智记",14,AgentUI.MUTED));
    if(s.conflicts+s.unowned+s.invalid>0)body.addView(AgentUI.text(activity,"正文冲突 "+s.conflicts+" · 归属待核对 "+s.unowned+" · 无效响应 "+s.invalid,14,AgentUI.MUTED));
@@ -88,13 +88,13 @@ final class MaterialWorkspace {
   picker.setTitle("选择智记日期");picker.show();
  }
  private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] block=new byte[2048];int n;while((n=in.read(block))!=-1){if(bytes.size()+n>8192)throw new IOException("MATERIAL_IMPORT_BUDGET");bytes.write(block,0,n);}return bytes.toByteArray();}}
- static void configure(Activity activity,MaterialRuntime runtime,MaterialConfig saved,Runnable refresh){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料连接设置");TextView info=AgentUI.text(activity,"选择电脑生成的资料登记文件。保存前将核对服务器身份，并绑定当前原厂账号。",14,AgentUI.MUTED);screen.body.addView(info);final MaterialConnection[] candidate={null};final boolean[] closed={false};
+ static void configure(Activity activity,MaterialRuntime runtime,MaterialConfig saved,Runnable refresh){AgentUI.Screen screen=new AgentUI.Screen(activity,"资料连接设置");AgentUI.summary(activity,screen.body,"link","手动更新资料连接","通常由手机账号自动恢复，仅在需要更换服务器时使用。");AgentUI.gap(activity,screen.body,18);TextView info=AgentUI.text(activity,"选择电脑生成的资料登记文件。保存前将核对服务器身份，并绑定当前原厂账号。",14,AgentUI.MUTED);screen.body.addView(info);final MaterialConnection[] candidate={null};final boolean[] closed={false};
   java.util.function.Consumer<byte[]> preview=raw->{try{candidate[0]=MaterialConnection.parse(raw,System.currentTimeMillis());info.setText(candidate[0].preview()+"\n尚未保存；服务器身份将在保存时核对。");}catch(Exception failed){candidate[0]=null;info.setText("登记文件无效或已到期，请重新提供。");}finally{Arrays.fill(raw,(byte)0);}};
   AgentUI.button(activity,screen.body,"选择资料登记文件",false,()->TaskFilePicker.pick(activity,uri->{if(closed[0])return;try{InputStream in=activity.getContentResolver().openInputStream(uri);if(in==null)throw new IOException();preview.accept(read(in));}catch(Exception failure){info.setText("无法读取登记文件，请重新选择。");}}));
   AgentUI.button(activity,screen.body,"读取电脑登记文件",false,()->{try{File internal=new File(activity.getFilesDir(),"connection-import/material-connection.json"),external=activity.getExternalFilesDir(null),file=internal.isFile()?internal:external==null?null:new File(external,"connection-import/material-connection.json");if(file==null)throw new IOException();preview.accept(read(new FileInputStream(file)));}catch(Exception missing){info.setText(label("MATERIAL_IMPORT_UNAVAILABLE"));}});
   if(saved!=null)AgentUI.button(activity,screen.body,"读取已保存连接",false,()->preview.accept(saved.connection.encode()));
   CheckBox enabled=new CheckBox(activity);enabled.setText("允许将当前账号的智记文字和每日总结同步到此服务器");enabled.setTextColor(AgentUI.INK);screen.body.addView(enabled);
-  AgentUI.button(activity,screen.body,"核对并保存",true,()->{if(candidate[0]==null){info.setText("请先读取资料登记文件。");return;}info.setText("正在核对服务器身份…");runtime.configure(candidate[0].encode(),enabled.isChecked(),(state,error)->{refresh.run();if(closed[0])return;if(error.isEmpty()){screen.dialog.dismiss();}else info.setText(label(error));});});
+  AgentUI.button(activity,screen.dock,"核对并保存",true,()->{if(candidate[0]==null){info.setText("请先读取资料登记文件。");return;}info.setText("正在核对服务器身份…");runtime.configure(candidate[0].encode(),enabled.isChecked(),(state,error)->{refresh.run();if(closed[0])return;if(error.isEmpty()){screen.dialog.dismiss();}else info.setText(label(error));});});
   screen.dialog.setOnDismissListener(dialog->{closed[0]=true;candidate[0]=null;runtime.cancelPending();});
  }
 }

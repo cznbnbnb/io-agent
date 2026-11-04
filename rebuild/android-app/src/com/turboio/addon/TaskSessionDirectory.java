@@ -42,7 +42,7 @@ final class TaskSessionDirectory {
   }
   boolean live(long elapsed){return online&&liveUntil!=Long.MIN_VALUE&&elapsed>=liveFrom&&elapsed<liveUntil;}
   String gate(long elapsed){if(!live(elapsed))return "DIRECTORY_TARGET_OFFLINE";if(!Boolean.TRUE.equals(capabilities.get("can_execute")))return "DIRECTORY_TARGET_UNSUPPORTED";if(!Boolean.FALSE.equals(busy)&&!Boolean.TRUE.equals(capabilities.get("atomic_queue_append")))return "DIRECTORY_TARGET_BUSY";return "";}
-  String status(long elapsed){String gate=gate(elapsed);return gate.isEmpty()?(busy==null?"状态未知 · 可排队":Boolean.TRUE.equals(busy)?"忙碌 · 可排队":"在线 · 可接收任务"):gate.equals("DIRECTORY_TARGET_UNSUPPORTED")?"当前会话不支持执行":gate.equals("DIRECTORY_TARGET_BUSY")?"忙碌 · 暂不能排队":"离线或状态待更新";}
+  String status(long elapsed){String gate=gate(elapsed);return gate.isEmpty()?(busy==null?"状态未知 · 可排队":Boolean.TRUE.equals(busy)?"忙碌 · 可排队":"可接收任务"):gate.equals("DIRECTORY_TARGET_UNSUPPORTED")?"连接未就绪 · 暂不能接收任务":gate.equals("DIRECTORY_TARGET_BUSY")?"忙碌 · 暂不能排队":"离线 · 等待电脑连接";}
   String display(){return route.get("agent_id")+" · "+route.get("computer_id")+"\n"+label+"\n工作区 · "+workspace+"\n会话 · "+route.get("session_id");}
  }
  private TaskSessionDirectory(Map<String,Object> value,String server,String owner,long start,long end,boolean observed){

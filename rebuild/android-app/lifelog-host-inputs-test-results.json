@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "at": "2026-11-04T04:08:25.330Z",
+  "scope": "Production APK-input boundary with pinned source host and current data-only native route; no account credentials or network",
+  "device": false,
+  "network": false,
+  "installed_apk_or_credentials_read": false,
+  "passed": true,
+  "checks": 6,
+  "sources": [
+    {
+      "path": "src/com/turboio/addon/Host107LifelogHttp.java",
+      "sha256": "2af17f391a121f4fe22e276cca64412446a68b30905a066d7c133c95cd103f31"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialLifelogCalendarRequest.java",
+      "sha256": "8209e9395ea52630dd3b0a8d853c380a4ca998a08ffdc899dec6939f30a667d0"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialGatewaySigning.java",
+      "sha256": "7cff1b2e716e074f2d104ecff48177b77536ab461de8c6cb54d50a9231619dc5"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialTodoCreate.java",
+      "sha256": "b456ce1d973e05b1f524aca0f6948928a4bc5ed14b298bf7b56341afb6975c68"
+    },
+    {
+      "path": "src/com/turboio/addon/OfficialLifelogJson.java",
+      "sha256": "d7d21fc35a4da429ef6d53e8c50929c45a48c177d862802e0e6508aac9c45a8a"
+    },
+    {
+      "path": "src/com/turboio/addon/WireJson.java",
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
+    },
+    {
+      "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
+      "sha256": "ed815b9b204c8be52a8a1011f617ebf1d0159a0e2d3390e9e5857874376282d0"
+    },
+    {
+      "path": "../../tools/android/Host107LifelogCalendarHttpTest.java",
+      "sha256": "6095ceea39776e1efcd347e5ccb605c54e290aadcca1ca2329006088bc3a36c8"
+    },
+    {
+      "path": "../../tools/android/test-lifelog-calendar-http.mjs",
+      "sha256": "5179ac16e8476ea6596d3b18c3bb64b7caa919c3e6e601c22c78c8a8947da52c"
+    }
+  ],
+  "temporary_classes_removed": true
+}

@@ -37,3 +37,4 @@ sources.push(writeTestProductInfo(out));
 run('javac',['-encoding','UTF-8','-d',out,'-sourcepath',[path.join(root,'src'),path.join(root,'upstream/android-addon/src')].join(path.delimiter),'tools/android/host-policy-fixtures/com/turboio/addon/Host107Recording.java',...sources,...original,'tools/android/fixtures/Y3/D.java','tools/android/fixtures/O4/H.java','tools/android/HostPolicyTest.java','tools/android/Fixed60OfficialFeedTest.java']);
 run('java',['-cp',out,'com.turboio.addon.HostPolicyTest']);
 run('java',['-cp',out,'com.turboio.addon.Fixed60OfficialFeedTest','--coexistence-only']);
+run(process.execPath,['tools/android/test-lifelog-calendar-http.mjs','--host-inputs']);

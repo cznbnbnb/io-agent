@@ -26,7 +26,7 @@ final class GlassesConnectionUI {
   default:return "设备连接暂不可用，请检查权限或重新打开此页面";
  }}
  static void show(Activity activity){
-  EditorialUI.Screen screen=new EditorialUI.Screen(activity,"眼镜连接");GlassesConnection connection=Host107Connection.get(activity);Handler main=new Handler(Looper.getMainLooper());
+  AgentUI.Screen screen=new AgentUI.Screen(activity,"眼镜连接");GlassesConnection connection=Host107Connection.get(activity);Handler main=new Handler(Looper.getMainLooper());
   final boolean[] closed={false};final String[] error={""},previous={""};final Runnable[] update={null};
   java.util.function.Consumer<Action> action=work->{try{work.run();error[0]="";}catch(Exception failure){error[0]=label(failure.getMessage());}previous[0]="";update[0].run();};
   update[0]=()->{
@@ -34,25 +34,25 @@ final class GlassesConnectionUI {
    GlassesConnection.Snapshot state=connection.snapshot();StringBuilder key=new StringBuilder(state.note).append(state.enabled).append(state.owned).append(state.shared).append(state.scanning).append(error[0]).append(GlassesPermission.missing(activity).length).append(FirmwareQueue.busy());
    for(GlassesConnection.Peer p:state.peers)key.append(p.id).append(p.name).append(p.ble).append(p.spp).append(p.bond).append(p.connected);
    if(previous[0].equals(key.toString()))return;previous[0]=key.toString();LinearLayout body=screen.body;ScrollView scroll=(ScrollView)body.getParent();int position=scroll.getScrollY();body.removeAllViews();
-   body.addView(EditorialUI.text(activity,error[0].isEmpty()?label(state.note):error[0],18,EditorialUI.INK));
-   body.addView(EditorialUI.text(activity,state.shared?"原厂页面负责连接与配对，这里同步显示状态。状态读取不会重新配对或发送固件。":"登录后使用原厂底座连接眼镜，连接成功后仍需通过设备认证。",14,EditorialUI.MUTED));
-   boolean firmware=FirmwareQueue.busy();if(firmware)body.addView(EditorialUI.text(activity,"升级结果待核对，普通连接操作暂不可用。请回固件升级页恢复原眼镜连接。",15,EditorialUI.INK));
-   if(GlassesPermission.missing(activity).length>0)EditorialUI.button(activity,body,"允许附近设备",true,()->GlassesPermission.request(activity,()->{if(!closed[0]&&!FirmwareQueue.busy())action.accept(connection::enable);}));
-   else if(!state.owned&&!state.shared&&!firmware)EditorialUI.button(activity,body,"启用眼镜连接",true,()->action.accept(connection::enable));
+   AgentUI.summary(activity,body,"glasses",error[0].isEmpty()?label(state.note):error[0],state.shared?"连接由原厂底座管理":"连接状态与附近设备");AgentUI.gap(activity,body,16);
+   body.addView(AgentUI.text(activity,state.shared?"原厂页面负责连接与配对，这里同步显示状态。状态读取不会重新配对或发送固件。":"登录后使用原厂底座连接眼镜，连接成功后仍需通过设备认证。",14,AgentUI.MUTED));
+   boolean firmware=FirmwareQueue.busy();if(firmware)body.addView(AgentUI.text(activity,"升级结果待核对，普通连接操作暂不可用。请回固件升级页恢复原眼镜连接。",15,AgentUI.INK));
+   if(GlassesPermission.missing(activity).length>0)AgentUI.button(activity,body,"允许附近设备",true,()->GlassesPermission.request(activity,()->{if(!closed[0]&&!FirmwareQueue.busy())action.accept(connection::enable);}));
+   else if(!state.owned&&!state.shared&&!firmware)AgentUI.button(activity,body,"启用眼镜连接",true,()->action.accept(connection::enable));
    if(state.owned||state.shared){
-    if(state.owned&&!firmware)EditorialUI.button(activity,body,state.scanning?"停止扫描":"扫描眼镜（10秒）",true,()->action.accept(state.scanning?connection::stopScan:connection::scan));
-    for(GlassesConnection.Peer peer:state.peers){LinearLayout card=EditorialUI.card(activity,body);card.addView(EditorialUI.text(activity,peer.name.isEmpty()?"眼镜":peer.name,18,EditorialUI.INK));card.addView(EditorialUI.text(activity,"设备尾号 "+peer.suffix(),13,EditorialUI.MUTED));
-     card.addView(EditorialUI.text(activity,peer.authenticated()?"已连接 · 设备认证通过":peer.connected?"已连接 · 认证尚未完成":"尚未连接",15,EditorialUI.INK));
-     if(state.owned&&peer.connected&&!firmware)EditorialUI.button(activity,card,"断开这副眼镜",false,()->action.accept(()->connection.disconnect(peer.id)));
+    if(state.owned&&!firmware)AgentUI.button(activity,body,state.scanning?"停止扫描":"扫描眼镜（10秒）",true,()->action.accept(state.scanning?connection::stopScan:connection::scan));
+    for(GlassesConnection.Peer peer:state.peers){LinearLayout card=AgentUI.card(activity,body);card.addView(AgentUI.text(activity,peer.name.isEmpty()?"眼镜":peer.name,18,AgentUI.INK));card.addView(AgentUI.text(activity,"设备尾号 "+peer.suffix(),13,AgentUI.MUTED));
+     card.addView(AgentUI.text(activity,peer.authenticated()?"已连接 · 设备认证通过":peer.connected?"已连接 · 认证尚未完成":"尚未连接",15,AgentUI.INK));
+     if(state.owned&&peer.connected&&!firmware)AgentUI.button(activity,card,"断开这副眼镜",false,()->action.accept(()->connection.disconnect(peer.id)));
      else if(state.owned&&!firmware&&(peer.bond.equals("bonded")||peer.bond.equals("unbound")||peer.bond.equals("localBondedNativeUnbound"))){
-      boolean pair=!peer.bond.equals("bonded");EditorialUI.button(activity,card,pair?"配对并连接":"连接这副眼镜",false,()->new AlertDialog.Builder(activity).setTitle(pair?"配对并连接":"连接眼镜").setMessage((peer.name.isEmpty()?"眼镜":peer.name)+"\n设备尾号 "+peer.suffix()+(pair?"\n请按系统提示完成配对。":"")).setNegativeButton("取消",null).setPositiveButton("连接",(d,w)->{if(!closed[0])action.accept(()->connection.connect(peer.id,pair));}).show());
-     }else if(state.owned&&!firmware)card.addView(EditorialUI.text(activity,"设备绑定与当前手机不一致，请先核对原厂绑定状态。",14,EditorialUI.MUTED));
+      boolean pair=!peer.bond.equals("bonded");AgentUI.button(activity,card,pair?"配对并连接":"连接这副眼镜",false,()->AgentUI.alert(activity).setTitle(pair?"配对并连接":"连接眼镜").setMessage((peer.name.isEmpty()?"眼镜":peer.name)+"\n设备尾号 "+peer.suffix()+(pair?"\n请按系统提示完成配对。":"")).setNegativeButton("取消",null).setPositiveButton("连接",(d,w)->{if(!closed[0])action.accept(()->connection.connect(peer.id,pair));}).show());
+     }else if(state.owned&&!firmware)card.addView(AgentUI.text(activity,"设备绑定与当前手机不一致，请先核对原厂绑定状态。",14,AgentUI.MUTED));
     }
-    if(state.peers.isEmpty())body.addView(EditorialUI.text(activity,state.shared?"原厂底座尚未连接眼镜，请在原厂页面连接。":state.scanning?"寻找附近眼镜，请稍候。":"暂未发现眼镜，可以开启扫描。",15,EditorialUI.MUTED));
-    if(state.owned&&!firmware)EditorialUI.button(activity,body,"停用眼镜连接",false,()->action.accept(connection::disable));
+    if(state.peers.isEmpty())body.addView(AgentUI.text(activity,state.shared?"原厂底座尚未连接眼镜，请在原厂页面连接。":state.scanning?"寻找附近眼镜，请稍候。":"暂未发现眼镜，可以开启扫描。",15,AgentUI.MUTED));
+    if(state.owned&&!firmware)AgentUI.button(activity,body,"停用眼镜连接",false,()->action.accept(connection::disable));
    }
-   EditorialUI.button(activity,body,"系统蓝牙设置",false,()->activity.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS)));
-   EditorialUI.button(activity,body,"应用权限设置",false,()->activity.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+activity.getPackageName()))));
+   LinearLayout system=AgentUI.section(activity,body,"系统设置");AgentUI.iconRow(activity,system,"bluetooth","系统蓝牙设置",null,null,()->activity.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS)));
+   AgentUI.divider(activity,system);AgentUI.iconRow(activity,system,"shield-check","应用权限设置",null,null,()->activity.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+activity.getPackageName()))));
    scroll.post(()->{if(screen.dialog.isShowing())scroll.scrollTo(0,position);});
   };
   Runnable poll=new Runnable(){public void run(){if(closed[0])return;update[0].run();main.postDelayed(this,1000);}};

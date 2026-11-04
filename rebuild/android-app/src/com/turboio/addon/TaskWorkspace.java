@@ -66,7 +66,8 @@ final class TaskWorkspace {
   case "TASK_KEY_UNAVAILABLE":case "TASK_CONFIG_INVALID":return "本机连接无法读取，请重新登记";
   case "TASK_CONFIG_SAVE_FAILED":return "连接未能保存，请重试";
   case "TASK_PROFILES_FULL":return "手机最多登记 "+TaskProfiles.MAX+" 个会话，现在每个都是默认会话、在等你回复或有未发出的内容，没有能自动替换的。回复等待中的问题，或在「查看连接」里暂停一个不用的会话后再试";
-  case "TASK_PROFILE_ACTIVE":return "会话凭据仍有效，不能移除";case "TASK_TARGET_SELECTED":return "当前委托会话不能移除，请先切换委托会话";
+  case "TASK_PROFILE_PENDING":return "这条会话还有未发出的内容或等待回答的问题，请先处理后再移除";
+  case "TASK_PROFILE_ACTIVE":return "会话已恢复可用，请先暂停连接后再移除";case "TASK_TARGET_SELECTED":return "当前委托会话不能移除，请先切换委托会话";
   case "STORE_IN_USE":return "这个会话正由另一连接程序使用";
   case "TASK_TEXT_INVALID":case "TASK_ANSWER_INVALID":return "请填写完整内容，或为问题选择一个答案";
   case "TASK_STORE_FULL":return "本机会话记录已满，请先保留并整理历史记录";
@@ -191,7 +192,7 @@ final class TaskWorkspace {
    runtime.readDirectory((state,error)->{
     choosing=false;if(!screen.dialog.isShowing())return;change.setEnabled(!sending);targets=state;showTarget();if(sending)return;
     if(state.directory==null||state.directory.sessions.isEmpty()){AgentUI.notice(activity,error.isEmpty()?"暂无已接通的真实 Agent 会话，请在电脑接入原会话。":label(error));return;}
-    chooser=TaskTargetUI.pick(activity,state.directory.sessions,entry->TaskWire.same(entry.route,state.defaultRoute),entry->!binding.isEmpty()&&state.bindingFor(entry.route).equals(binding),entry->{
+    chooser=TaskTargetUI.pick(activity,state.visibleSessions(),entry->TaskWire.same(entry.route,state.defaultRoute),entry->!binding.isEmpty()&&state.bindingFor(entry.route).equals(binding),entry->{
      if(!screen.dialog.isShowing()||sending)return;preserve();choosing=true;change.setEnabled(false);
      runtime.ensureTarget(entry.route,(updated,code)->{choosing=false;if(!screen.dialog.isShowing())return;change.setEnabled(true);targets=updated;if(!code.isEmpty()){AgentUI.notice(activity,label(code));return;}String next=updated.bindingFor(entry.route);if(next.isEmpty()){AgentUI.notice(activity,label("DIRECTORY_TARGET_MISSING"));return;}loadTarget(next);if(!draftConsumed)status.setText("已切换本次会话，默认目标未改变；原目标的草稿仍保留。");});
     });

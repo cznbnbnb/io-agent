@@ -1,3 +1,13 @@
+## [codex] 2026-11-03 dev167候选已签名：智记兼容、设置图标、会话真实执行
+
+用户本批要求：离线会话长按移除；10-30正文/资料同步报宿主未适配；统一使用成熟图标库并重绘设置和二级页；恢复Codex/Claude工作区真实执行。fetch确认Claude仍520ad23且已含，独立包166为现装，167/10589预留。手机USB中途断开，用户明确“先修改，其他现在不方便”；本轮继续代码/电脑联调和离线验证，手机安装及真实资料刷新暂留后续，不反复索要连接。
+
+已完成：Host107LifelogHttp 补入已核对的新18795原生库SHA，保留未知版本拒绝；生产APK输入边界6项、HTTP74项通过，OTA策略入口也联跑此边界，避免再次漏接。设置与连接/换机/默认/配对/提醒/同步/导出等二级页统一，43个官方Lucide图标约75KiB、许可和摘要入包、缓存位图、仅可见读取时旋转。离线会话长按确认移除本机入口，待回复/未发内容保护，默认项先清共享默认，刷新/续期/重启不复现，按账号目录恢复并反馈实际数量；旧导入项明确重新导入。任务、聊天及电脑文件保留。28项加密偏好存储检查、目录126/控制98/上下文68/状态41项通过，另有只读独立审查。
+
+工作区：按当前ChatGPT Desktop实际bundle核对并更新精确profile，没有放宽门禁或改全局启动链。正式85ddd5原聊天任务已真实completed并收到独立result；Claude原手机任务因历史本地outcome_unknown堵住，现仅在host确实idle且无待确认Stop时放行后续任务，原任务自然完成。122项队列及36项CLI/Desktop回归通过。当前开发聊天已从错误cwd旧scoped登记切换到同账号电脑配对+显式Desktop控制，原生session ID不变；旧route离线保历史，新route及两种正式工作区online/can_execute均为true。默认85ddd5未动。正式runtime同步，服务保留运行；眼镜推送和watch保持关闭，设备锁已释放。手机UI结果尚未验证。
+
+构建：dev167/10589，独立包 `cn.cznbnb.ioagent`，SHA `a5989ebdb07b04b1409682d00ecbaded26fb62406bc15b5e5fbf41919c197eee`，签名v2/v3、DEX成员与来源/私密资源审计通过。166→167差异2,062,825字节，重建SHA核对通过；尚未安装。166独立现装、164旧包、163迁移回退及154离线旧机例外均保留；没有卸载旧包或安装原厂。已有Delegate未跟踪源临时移出编译后逐SHA恢复，不纳入本次提交。下一步恢复手机连接后差异安装，先自测10-30正文/同步和设置导航、长按移除/返回，再继续共存迁移。见[本批证据](../../rebuild/android-app/settings-host-compat-dev167-2026-11-03.json)、[UI范围](SETTINGS-UI-LUCIDE.md)、[原生执行恢复](workspace-recovery-2026-11-04.md)。
+
 ## [codex] 2026-11-03 当前真实会话重新登记，手机扫码与执行限制已核实
 
 用户要本session作为工作区并扫码。已由真实宿主CODEX_THREAD_ID（01a1670e-97c8-7083-a014-aa9ea3de6a98）在本工作区执行join，主题“iO Agent 开发与维护”，复用正式电脑配对，不创建Codex新会话或额外电脑。当前resident_live/cloud_online=true，但can_execute=false，CODEX_SESSION_NOT_LOADED：共享daemon未加载本Desktop会话。只读Desktop原持有者探针另报CODEX_DESKTOP_VERSION_UNVERIFIED；未绕过版本门禁、未注入CODEX_CLI_PATH或改全局启动配置，不能宣称可从手机唤起此聊天。进度推送和服务器watch已再次关闭。

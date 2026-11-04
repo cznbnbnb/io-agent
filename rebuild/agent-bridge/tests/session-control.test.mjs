@@ -349,3 +349,28 @@ test('an older interrupted observation stays unconfirmed without blocking a diff
   q.enqueue(f.command({task_id:current.task_id,resume_of:current.command_id}));await q.tick();await q.tick();
   assert.equal(q.list()[0].phase,'stop_unconfirmed');assert.equal(q.list()[2].phase,'running');assert.equal(f.calls.filter(c=>c.text).length,1);
 });
+test('lost historical observation does not block new phone work after exact host reports idle',async t=>{
+  const f=fixture(t);let q=f.open();const old=observedInput(f);
+  f.turns.set(old.client_user_message_id,{found:true,turnId:old.turn_id,status:'inProgress'});await q.adoptObserved(old);
+  f.turns.set(old.client_user_message_id,{found:true,turnId:old.turn_id,status:'unknown'});
+  q.enqueue(f.command());await q.tick();assert.equal(q.list()[1].reason,'waiting_for_observed_turn');
+  const status=f.host.status.bind(f.host);let activeTurnId=old.turn_id;
+  f.host.status=async()=>({...await status(),activeTurnId});
+  await q.tick();assert.equal(f.calls.length,0,'an identified active turn still fences input');
+  activeTurnId=null;f.host.busy=true;await q.tick();assert.equal(f.calls.length,0,'busy state still fences input');
+  await q.close();q=f.open();f.host.busy=false;await q.tick();await q.tick();
+  assert.deepEqual(q.list().map(c=>c.phase),['outcome_unknown','running']);assert.equal(f.calls.length,1);
+  assert.equal(q.list()[0].result,undefined);assert.equal(q.list()[0].turn_id,old.turn_id);
+});
+test('idle host never clears uncertain remote admission or an unresolved observed stop',async t=>{
+  for(const origin of ['remote','observed-stop'])await t.test(origin,async t=>{
+    const f=fixture(t),q=f.open(),status=f.host.status.bind(f.host);f.host.status=async()=>({...await status(),activeTurnId:null});
+    let id;
+    if(origin==='remote'){const {input}=await running(f,q);id=f.calls[0].clientUserMessageId;assert.equal(q.list()[0].command_id,input.command_id);}
+    else{const old=observedInput(f);id=old.client_user_message_id;f.turns.set(id,{found:true,turnId:old.turn_id,status:'inProgress'});await q.adoptObserved(old);
+      await q.requestStop({control_id:randomUUID(),command_id:old.command_id,expected_turn_id:old.turn_id});}
+    f.turns.get(id).status='unknown';q.enqueue(f.command());await q.tick();await q.tick();
+    assert.deepEqual(q.list().map(c=>c.phase),['outcome_unknown','queued']);
+    assert.equal(f.calls.filter(c=>c.text).length,origin==='remote'?1:0);
+  });
+});

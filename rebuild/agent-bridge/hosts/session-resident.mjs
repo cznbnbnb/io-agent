@@ -27,11 +27,12 @@ export async function runSessionResident(configFile,{signal,maximumMs=0}={}){
   const start=Date.now();
   async function connect(){
     let endpoint;
-    if(c.runtime==='codex')try{endpoint=await discoverCodexEndpoint({conversationId:c.binding.route.session_id,workspace:c.binding.workspace,
+    if(c.runtime==='codex'&&c.control!=='desktop')try{endpoint=await discoverCodexEndpoint({conversationId:c.binding.route.session_id,workspace:c.binding.workspace,
       ...(c.endpoint?{endpoint:c.endpoint,rpcPath:c.rpcPath}:{})});}catch(e){reason=code(e);}
     const native={...c.agent,state_file:'bridge.json',native_runtime:{state_file:'native.json',sessions:[{
       host_kind:c.binding.host_kind,workspace:c.binding.workspace,route:c.binding.route,label:c.label,
-      ...(c.runtime==='claude-code'?{broker_directory:path.join(directory,'broker')}:{endpoint:endpoint?.endpoint??'unix:///nonexistent/io-agent-native.sock',rpc_path:endpoint?.rpcPath??'/'})}]}};
+      ...(c.runtime==='claude-code'?{broker_directory:path.join(directory,'broker')}:c.control==='desktop'?{desktop:{session_id:c.binding.route.session_id,state_file:'desktop.json'}}:
+        {endpoint:endpoint?.endpoint??'unix:///nonexistent/io-agent-native.sock',rpc_path:endpoint?.rpcPath??'/'})}]}};
     adapter=createNativeBridgeAdapter(native,{configDirectory:directory,createClaudeBroker:async options=>{
       broker=await createClaudeModBroker(options);atomic(path.join(directory,'binding.json'),privateRecord(broker.configFile));return broker;
     }});

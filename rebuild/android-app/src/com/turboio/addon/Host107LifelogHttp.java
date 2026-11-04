@@ -18,7 +18,8 @@ final class Host107LifelogHttp implements OfficialLifelogRefresh.Transport,Offic
   try(ZipFile apk=new ZipFile(app.getApplicationInfo().sourceDir)){
    ZipEntry entry=apk.getEntry("lib/arm64-v8a/libapp.so");MaterialWire.require(entry!=null&&entry.getSize()==45089712L,"OFFICIAL_HOST_UNSUPPORTED");
    try(InputStream in=apk.getInputStream(entry)){int n;while((n=in.read(buffer))!=-1){check();hash.update(buffer,0,n);copy(buffer,n,position,9032994,appId);copy(buffer,n,position,12952786,key);position+=n;MaterialWire.require(position<=45089712L,"OFFICIAL_HOST_UNSUPPORTED");}}
-   StringBuilder hex=new StringBuilder();for(byte b:hash.digest())hex.append(String.format(Locale.ROOT,"%02x",b&255));MaterialWire.require(position==45089712L&&Arrays.asList("363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c","a60b405791a3f1ab3110a7f27a3ab06f95bf5277d63de0ad58ac8bfcae742511").contains(hex.toString()),"OFFICIAL_HOST_UNSUPPORTED");
+   // Pinned 1.0.10 source plus the audited legacy/independent OTA URL-only variants.
+   StringBuilder hex=new StringBuilder();for(byte b:hash.digest())hex.append(String.format(Locale.ROOT,"%02x",b&255));MaterialWire.require(position==45089712L&&Arrays.asList("363aa67372f41b65c3ef980d856ceb14013f3300257b9be6b91edd865911e15c","a60b405791a3f1ab3110a7f27a3ab06f95bf5277d63de0ad58ac8bfcae742511","51aa02e05a8df9fcd8730f778f8cd5eaaed78689487b2bc96e7308a690dd5a47").contains(hex.toString()),"OFFICIAL_HOST_UNSUPPORTED");
    inputs=new String[]{new String(appId,StandardCharsets.US_ASCII),new String(key,StandardCharsets.US_ASCII)};MaterialWire.require(inputs[0].matches("[!-~]{32}")&&inputs[1].matches("[!-~]{32}"),"OFFICIAL_SIGNING_UNAVAILABLE");return inputs;
   }finally{Arrays.fill(appId,(byte)0);Arrays.fill(key,(byte)0);Arrays.fill(buffer,(byte)0);}
  }

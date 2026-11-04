@@ -7,6 +7,7 @@ import {sessionFile,sessionPair,computerDeviceFile} from './session-pair-cli.mjs
 import {privatePath} from './private-path.mjs';
 import {ensureResident,residentStatus,leaveResident,privateRecord} from '../hosts/resident-manager.mjs';
 import {discoverCodexEndpoint} from '../hosts/codex-endpoint.mjs';
+import {CodexDesktopSession} from '../hosts/codex-desktop.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url)),workspace=path.resolve(here,'../../..');
 const privateRoot=path.join(workspace,'rebuild/agent-bridge/private');
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
@@ -96,45 +97,67 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
 // One-time computer enrollment (2026-10-24, user): the computer holds one renewing device credential
 // (tools/collab/enroll-computer.mjs writes it), the phone pairs once, and each agent session only runs
 // `join` to put its own task on the phone. No connection file goes to the phone any more.
-export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);return fs.existsSync(candidate)?candidate:computerDeviceFile(env);};
+export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);
+ const joined=path.join(callerBase(identity),'join.json');
+ if(!identity.error&&fs.existsSync(joined)&&readLocal(joined).pairing==='computer')return computerDeviceFile(env);
+ return fs.existsSync(candidate)?candidate:computerDeviceFile(env);};
+// The existing native owner is the authority for its working directory. This
+// reads only that exact conversation; it never loads or creates another one.
+export async function desktopJoinWorkspace(sessionId,{connect=(id)=>CodexDesktopSession.connect(id)}={}){
+ const host=await connect(sessionId);
+ try{const status=await host.status();if(status.conversationId!==sessionId||typeof status.workspace!=='string'||!path.isAbsolute(status.workspace))fail('CALLER_NATIVE_WORKSPACE_INVALID');
+  return fs.realpathSync(status.workspace);
+ }finally{await host.close();}
+}
 const JOIN_TASK_HOURS=12;
 async function join(value){
- if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python))))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
- const file=deviceFile();let device;try{device=readPrivateJson(file,8192);}catch{fail('DEVICE_NOT_ENROLLED');}
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python','control','pairing'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python)))||
+  ('control'in value&&(value.control!=='desktop'||runtime!=='codex'||current.managed))||('pairing'in value&&value.pairing!=='computer'))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
+ const base=location(),state=path.join(base,'join.json');let previous=null;if(fs.existsSync(state))previous=readLocal(state);
+ const control=value.control??previous?.control,pairing=value.pairing??previous?.pairing;
+ const oldFile=deviceFile(),file=pairing==='computer'?computerDeviceFile():oldFile;let device;try{device=readPrivateJson(file,8192);}catch{fail('DEVICE_NOT_ENROLLED');}
  if(device.role!=='agent'||typeof device.device_id!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(device.computer_id??''))fail('DEVICE_NOT_ENROLLED');
+ if(pairing==='computer'){
+  if(device.session_pairing&&device.session_pairing.metadata.mode!=='computer')fail('COMPUTER_PAIRING_FILE_SCOPED');
+  if(oldFile!==file){const prior=readPrivateJson(oldFile,8192);if(prior.owner_id!==device.owner_id||prior.server_id!==device.server_id)fail('CALLER_PAIRING_OWNER_MISMATCH');}
+ }
  if(device.session_pairing&&device.session_pairing.metadata.mode!=='computer'&&(device.session_pairing.metadata.runtime!==runtime||device.session_pairing.metadata.route.session_id!==session))fail('CALLER_SESSION_MISMATCH');
- const python=value.python??process.env.IO_AGENT_PYTHON??path.join(workspace,'.runtime/hermes-agent/.venv/bin/python3'),base=location(),state=path.join(base,'join.json'),topic=value.topic??null;
- let previous=null;try{previous=readPrivateJson(state);}catch{}
- const reuse=previous&&previous.device_id===device.device_id&&previous.topic===topic&&Date.parse(previous.task_expires_at)>Date.now()+600000;
+ const nativeWorkspace=control==='desktop'?await desktopJoinWorkspace(session):null;
+ const python=value.python??process.env.IO_AGENT_PYTHON??path.join(workspace,'.runtime/hermes-agent/.venv/bin/python3'),topic=value.topic??null;
+ const reuse=previous&&previous.device_id===device.device_id&&previous.topic===topic&&previous.control===control&&previous.native_workspace===(nativeWorkspace??undefined)&&Date.parse(previous.task_expires_at)>Date.now()+600000;
  const joins=path.join(path.dirname(file),'joins');fs.mkdirSync(joins,{recursive:true,mode:0o700});
  const pendingFile=path.join(joins,hash(base).slice(0,32)+'-pending.json');
  const pending=fs.existsSync(pendingFile)?readPrivateJson(pendingFile):null;
  const pendingLive=pending&&Date.parse(pending.task_expires_at)>Date.now()+600000;
- if(pendingLive&&(pending.device_id!==device.device_id||pending.topic!==topic))fail('CALLER_PENDING_REBIND_DENIED');
+ if(pendingLive&&(pending.device_id!==device.device_id||pending.topic!==topic||pending.control!==control||pending.native_workspace!==(nativeWorkspace??undefined)))fail('CALLER_PENDING_REBIND_DENIED');
  const key=pendingLive?pending.operation_key:reuse?previous.operation_key:'join-'+crypto.randomUUID();
  const expires=pendingLive?pending.task_expires_at:reuse?previous.task_expires_at:new Date(Date.now()+JOIN_TASK_HOURS*3600000-60000).toISOString();
  const spec={bridge:{schema_version:'1.0',base_url:device.base_url,owner_id:device.owner_id,producer_id:device.producer_id,server_id:device.server_id,credential_file:file,
-  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:(device.session_pairing?.metadata.mode==='computer'?null:device.session_pairing?.metadata.route.project_id)??(current.managed?'workspace-'+hash(current.managed.workspace).slice(0,24):null)??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
+  computer_id:device.computer_id,agent_id:runtime==='codex'?'io-current-codex':'io-'+runtime,timeout_ms:10000,...(device.allow_loopback_http===true?{allow_loopback_http:true}:{})},project_id:(nativeWorkspace?'workspace-'+hash(nativeWorkspace).slice(0,24):null)??(device.session_pairing?.metadata.mode==='computer'?null:device.session_pairing?.metadata.route.project_id)??(current.managed?'workspace-'+hash(current.managed.workspace).slice(0,24):null)??path.basename(workspace).replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,128),
   operation_key:key,python,task_hours:JOIN_TASK_HOURS,...(topic===null?{}:{topic})};
  const specFile=path.join(joins,hash(JSON.stringify([base,key])).slice(0,32)+'.json');
  // The spec sits beside the device credential (outside the repository private root writeNew guards).
  if(!fs.existsSync(specFile)){const fd=fs.openSync(specFile,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(spec,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}else if(!isDeepStrictEqual(readPrivateJson(specFile),spec))fail('CALLER_REGISTRATION_CONFLICT');
  // Persist the key before network I/O: a lost registration reply must resume the same task.
- if(!pendingLive){const temporary=pendingFile+'.'+process.pid+'.partial';const fd=fs.openSync(temporary,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify({schema:1,operation_key:key,topic,device_id:device.device_id,task_expires_at:expires}));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(temporary,pendingFile);}
+ if(!pendingLive){const temporary=pendingFile+'.'+process.pid+'.partial';const fd=fs.openSync(temporary,'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify({schema:1,operation_key:key,topic,device_id:device.device_id,task_expires_at:expires,...(control?{control,native_workspace:nativeWorkspace}:{}),...(pairing?{pairing}:{})}));fs.fsyncSync(fd);}finally{fs.closeSync(fd);}fs.renameSync(temporary,pendingFile);}
  // A previous binding that cannot be released refuses before anything is published: drop this call's pending key
  // so it does not pin the topic for the next attempt.
  let registered;try{registered=await register(specFile);}catch(e){if(!pendingLive&&['CALLER_PENDING_REBIND_DENIED','CALLER_PREVIOUS_ANSWER_UNCONSUMED'].includes(e.code))fs.rmSync(pendingFile,{force:true});throw e;}
- if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires});fs.renameSync(partial,state);}
+ if(control)replace(path.join(activeDirectory(),'native-control.json'),{schema:1,control,native_workspace:nativeWorkspace,session_id:session});
+ if(!reuse||previous.operation_key!==key){const partial=state+'.partial';fs.rmSync(partial,{force:true});writeNew(partial,{schema:1,operation_key:key,topic,device_id:device.device_id,task_id:registered.task_id,task_expires_at:expires,...(control?{control,native_workspace:nativeWorkspace}:{}),...(pairing?{pairing}:{})});fs.renameSync(partial,state);}
  fs.unlinkSync(pendingFile);
  let resident;
  try{resident=current.managed?{managed_connector:true,reason:'CONTROLLED_BY_ACP_CONNECTOR'}:await ensureResident(await residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
  return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
 }
 async function residentOptions(){
- const {config,context}=binding(activeDirectory());
- const transport=runtime==='codex'&&process.env.IO_AGENT_CODEX_ENDPOINT?await discoverCodexEndpoint({conversationId:session,endpoint:process.env.IO_AGENT_CODEX_ENDPOINT,rpcPath:process.env.IO_AGENT_CODEX_RPC_PATH??'/'}):null;
+ const directory=activeDirectory(),{config,context}=binding(directory),controlFile=path.join(directory,'native-control.json');
+ const native=fs.existsSync(controlFile)?readLocal(controlFile):null;
+ if(native&&(native.schema!==1||native.control!=='desktop'||runtime!=='codex'||native.session_id!==session||typeof native.native_workspace!=='string'||!path.isAbsolute(native.native_workspace)))fail('CALLER_NATIVE_CONTROL_INVALID');
+ const transport=!native&&runtime==='codex'&&process.env.IO_AGENT_CODEX_ENDPOINT?await discoverCodexEndpoint({conversationId:session,endpoint:process.env.IO_AGENT_CODEX_ENDPOINT,rpcPath:process.env.IO_AGENT_CODEX_RPC_PATH??'/'}):null;
  return{runtime,agent:{...config.bridge,credential_file:path.resolve(config.bridge.credential_file)},
-  binding:{server_id:config.bridge.server_id,owner_id:config.bridge.owner_id,host_kind:runtime==='codex'?'codex':'claude',workspace:transport?.workspace??fs.realpathSync(workspace),route:context.route},
+  binding:{server_id:config.bridge.server_id,owner_id:config.bridge.owner_id,host_kind:runtime==='codex'?'codex':'claude',workspace:native?.native_workspace??transport?.workspace??fs.realpathSync(workspace),route:context.route},
+  ...(native?{control:'desktop'}:{}),
   ...(transport?{endpoint:transport.endpoint,rpcPath:transport.rpcPath}:{}),
   label:config.topic??'当前会话',legacyTaskId:context.task_id};
 }
@@ -204,7 +227,7 @@ async function dispatch(action,args){if(['pair','pair-status'].includes(action))
   const {config,context}=binding(activeDirectory()),directory=await new BridgeClient(config.bridge).agentSessions(),entry=directory.sessions.find(e=>isDeepStrictEqual(e.route,context.route));
   return{managed_connector:true,cloud_online:entry?.online===true,can_execute:entry?.online===true&&entry.capabilities.can_execute,session_id:session};
  }const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
- if(action==='help'&&!args.length)return{cli_name:'cz-iot-cli',commands:{'phone-recovery':'label (already paired computer creates a single-use phone recovery code; no session or Python needed)',pair:'topic, workspace? (pair this computer once; later sessions reuse the credential)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python? (register and keep this native session connected)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',daily:'date? or from?/to?, keyword?, kind? (summary/segment/transcript), limit?, cursor?; selected days return complete effective text; no audio', 'daily-correct':'material_id, expected_source_revision, expected_revision, request_id, agent, reason, evidence[], edits[{block_id,text}], dependencies_version?; server only', 'daily-note':'same version/author/evidence fields, note; append later facts without rewriting history', 'daily-revert':'same version/author/evidence fields, revert_revision; undo a compatible change', 'daily-history':'material_id, before?, source_revision?; explicitly read original and edit history', 'todo-add':'todo_key, content (one line, <=48 UTF-16 units), source? (<=20), expires_at? (within 24h); suggest a native glasses todo for glasses confirmation; no session, join or Python required', 'todo-status':'proposal_id (read only; only native_created=true reports the native write; unknown must not trigger an automatic retry)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+ if(action==='help'&&!args.length)return{cli_name:'cz-iot-cli',commands:{'phone-recovery':'label (already paired computer creates a single-use phone recovery code; no session or Python needed)',pair:'topic, workspace? (pair this computer once; later sessions reuse the credential)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python?, control?=desktop, pairing?=computer (desktop follows this existing native chat only; computer reuses the paired computer after matching account/server)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',daily:'date? or from?/to?, keyword?, kind? (summary/segment/transcript), limit?, cursor?; selected days return complete effective text; no audio', 'daily-correct':'material_id, expected_source_revision, expected_revision, request_id, agent, reason, evidence[], edits[{block_id,text}], dependencies_version?; server only', 'daily-note':'same version/author/evidence fields, note; append later facts without rewriting history', 'daily-revert':'same version/author/evidence fields, revert_revision; undo a compatible change', 'daily-history':'material_id, before?, source_revision?; explicitly read original and edit history', 'todo-add':'todo_key, content (one line, <=48 UTF-16 units), source? (<=20), expires_at? (within 24h); suggest a native glasses todo for glasses confirmation; no session, join or Python required', 'todo-status':'proposal_id (read only; only native_created=true reports the native write; unknown must not trigger an automatic retry)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');
  if(['ask','notify','checkpoint'].includes(action)&&!fs.existsSync(path.join(location(),'active.json')))await join({});
  const directory=activeDirectory(),value=await input();

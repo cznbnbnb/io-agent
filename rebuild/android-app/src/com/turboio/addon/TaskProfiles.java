@@ -50,6 +50,12 @@ final class TaskProfiles {
   Profile prior=get(binding);TaskWire.require(!binding.equals(selected),"TASK_TARGET_SELECTED");TaskWire.require(!prior.enabled||prior.connection.expiresAt<=now,"TASK_PROFILE_ACTIVE");
   List<Profile> rows=new ArrayList<>();for(Profile p:profiles)if(!p.binding.equals(binding))rows.add(p);return new TaskProfiles(selected,rows);
  }
+ /** Explicit local removal after the runtime checks pending input and clears any shared default.
+  * The selected field is only the rollback registry's invariant, not the shared task destination. */
+ TaskProfiles forget(String binding){
+  get(binding);List<Profile> rows=new ArrayList<>();for(Profile p:profiles)if(!p.binding.equals(binding))rows.add(p);
+  return new TaskProfiles(rows.isEmpty()?"":selected.equals(binding)?rows.get(0).binding:selected,rows);
+ }
  /** Frees a slot held by an idle session connection derived from the paired device (TaskDevice);
   * its mailbox files stay on disk and a later join of the same session finds them again. */
  TaskProfiles drop(String binding){

@@ -43,7 +43,13 @@ final class AudioWorkspace {
   });}
   void close(){if(closed)return;closed=true;verified=false;epoch++;clear.run();runtime.cancelPending();activity.getApplication().unregisterActivityLifecycleCallbacks(lifecycle);for(UiOwner child:new ArrayList<>(children))child.close();if(parent!=null)parent.children.remove(this);if(screen.dialog.isShowing())screen.dialog.dismiss();if(!activity.isDestroyed()&&!suspended&&returned!=null)returned.run();}
  }
- static void show(Activity activity,Runnable returned){AgentUI.Screen screen=new AgentUI.Screen(activity,"原音与导出");screen.body.addView(AgentUI.text(activity,"原音只保存在手机",20,AgentUI.INK));screen.body.addView(AgentUI.text(activity,"原音和逐字转写不再自动上传服务器。可在资料卡右滑，导出音频或摘要文档到手机。既有服务器历史不自动清除。",14,AgentUI.MUTED));AgentUI.button(activity,screen.body,"默认保存位置",false,()->ExportDestination.settings(activity,()->{}));screen.dialog.setOnDismissListener(d->returned.run());}
+ static void show(Activity activity,Runnable returned){
+  AgentUI.Screen screen=new AgentUI.Screen(activity,"原音与导出");AgentUI.summary(activity,screen.body,"audio","原音保留在手机","原始音频不上传服务器。");
+  LinearLayout group=AgentUI.section(activity,screen.body,"导出文件");AgentUI.iconRow(activity,group,"folder-open","保存位置",ExportDestination.label(activity),null,()->ExportDestination.settings(activity,()->{}));AgentUI.divider(activity,group);
+  AgentUI.iconRow(activity,group,"audio","音频文件","在资料卡上右滑，选择导出音频",null,null);AgentUI.divider(activity,group);AgentUI.iconRow(activity,group,"document","摘要文档","保留时间与任务标签，导出到手机",null,null);
+  AgentUI.gap(activity,screen.body,20);screen.body.addView(AgentUI.text(activity,"分段智记、逐字转写和每日总结可同步到服务器。原音仅供 App 内导出，Agent 不能远程取音频文件。",13,AgentUI.MUTED));screen.dialog.setOnDismissListener(d->returned.run());
+ }
+
 
  private static byte[] read(InputStream input)throws IOException{try(InputStream in=input){ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buffer=new byte[2048];int count;while((count=in.read(buffer))!=-1){if(out.size()+count>8192)throw new IOException("AUDIO_CONNECTION_INVALID");out.write(buffer,0,count);}return out.toByteArray();}}
  private static void configure(UiOwner parent){Activity activity=parent.activity;MaterialRuntime runtime=parent.runtime;UiOwner owner=new UiOwner(activity,"原音连接设置",parent.account,()->{if(parent.active())parent.refresh.run();},parent);AudioConnection[] candidate={null};android.net.Uri[] pending={null};

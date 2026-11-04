@@ -11,14 +11,14 @@ final class AgentSessionPairUI {
  private void clear(){screen.body.removeAllViews();screen.dock.removeAllViews();}
  private boolean back(){if(saving)return true;previewGeneration++;busy(false);if(page.equals("review")){if(reviewSource.equals("paste"))paste();else entry();return true;}if(page.equals("paste")){draft=input.getText().toString();entry();return true;}return false;}
  private void entry(){
-  page="entry";clear();LinearLayout card=AgentUI.card(activity,screen.body);card.addView(AgentUI.text(activity,"电脑只需配对一次",20,AgentUI.INK));AgentUI.gap(activity,card,10);
-  card.addView(AgentUI.text(activity,"让电脑上的 iO CLI 生成配对信息。扫码或粘贴字符串，核对授权范围后保存。以后这台电脑的新会话自动接入。",15,AgentUI.MUTED));
+  page="entry";clear();LinearLayout card=AgentUI.summary(activity,screen.body,"monitor","电脑只需配对一次","新会话自动接入，无需反复扫码。");AgentUI.gap(activity,card,14);
+  card.addView(AgentUI.text(activity,"让电脑上的 cz-iot-cli 生成配对信息。扫码或粘贴字符串，核对授权范围后保存。以后这台电脑的新会话自动接入。",15,AgentUI.MUTED));
   AgentUI.button(activity,screen.body,"扫描二维码",true,()->AgentSessionScanner.scan(activity,text->{if(visible())preview(text);}));
   AgentUI.button(activity,screen.body,"粘贴配对字符串",false,this::paste);
   AgentUI.gap(activity,screen.body,20);status=AgentUI.text(activity,"配对自动续期。可在账号与设备中解除这台电脑的授权。",14,AgentUI.MUTED);screen.body.addView(status);
  }
  private void paste(){
-  page="paste";clear();screen.body.addView(AgentUI.text(activity,"粘贴配对字符串",20,AgentUI.INK));AgentUI.gap(activity,screen.body,12);
+  page="paste";clear();AgentUI.summary(activity,screen.body,"clipboard-copy","粘贴配对字符串","与扫描二维码使用同一份配对信息。");AgentUI.gap(activity,screen.body,18);
   screen.body.addView(AgentUI.text(activity,"复制 CLI 生成的完整字符串。扫码和粘贴使用同一份配对信息。",14,AgentUI.MUTED));AgentUI.gap(activity,screen.body,16);
   input=AgentUI.input(activity);input.setText(draft);input.setHint("io-agent-pair/1:…");input.setMinLines(4);input.setMaxLines(7);input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(512)});screen.body.addView(input,new LinearLayout.LayoutParams(-1,-2));
   AgentUI.gap(activity,screen.body,12);status=AgentUI.text(activity,"配对信息 10 分钟内有效。",14,AgentUI.MUTED);screen.body.addView(status);
@@ -30,10 +30,10 @@ final class AgentSessionPairUI {
  }
  private void field(LinearLayout card,String title,String value){card.addView(AgentUI.text(activity,title,13,AgentUI.MUTED));AgentUI.gap(activity,card,5);TextView text=AgentUI.text(activity,value,16,AgentUI.INK);text.setTextIsSelectable(true);card.addView(text);AgentUI.gap(activity,card,16);}
  private void confirm(SessionPairingCode.Preview p){
-  page="review";clear();screen.body.addView(AgentUI.text(activity,p.computer?"确认要配对的电脑":"确认要连接的会话",20,AgentUI.INK));LinearLayout card=AgentUI.card(activity,screen.body);
-  field(card,"电脑",String.valueOf(p.route.get("computer_id")));if(p.computer){field(card,"授权范围","这台电脑上使用 iO CLI 的 Agent 会话");field(card,"发起配对的 Agent",p.runtime);}else{field(card,"Agent",p.runtime);field(card,"任务主题",p.topic);field(card,"工作区",p.workspace);field(card,"会话",String.valueOf(p.route.get("session_id")));}
+  page="review";clear();AgentUI.summary(activity,screen.body,"shield-check",p.computer?"确认配对电脑":"确认连接会话","核对以下信息后保存。");LinearLayout card=AgentUI.section(activity,screen.body,"配对信息");
+  field(card,"电脑",String.valueOf(p.route.get("computer_id")));if(p.computer){field(card,"授权范围","这台电脑上使用 cz-iot-cli 的 Agent 会话");field(card,"发起配对的 Agent",p.runtime);}else{field(card,"Agent",p.runtime);field(card,"任务主题",p.topic);field(card,"工作区",p.workspace);field(card,"会话",String.valueOf(p.route.get("session_id")));}
   status=AgentUI.text(activity,p.computer?"新会话无需再次扫码，任务和回复同步到当前账号。授权自动续期，可随时在账号与设备中解除。":"仅这条会话的任务和回复将同步到当前手机账号。",14,AgentUI.MUTED);screen.body.addView(status);
-  AgentUI.button(activity,screen.dock,"保存并绑定",true,()->{if(busy)return;saving=true;busy(true);status.setText("正在保存到服务器…");runtime.approveSession(p,(state,error)->{saving=false;busy(false);if(!visible())return;if(!error.isEmpty()){status.setText(message(error));return;}page="done";clear();LinearLayout done=AgentUI.card(activity,screen.body);done.addView(AgentUI.text(activity,p.computer?"电脑已配对":"会话已绑定",20,AgentUI.INK));AgentUI.gap(activity,done,12);done.addView(AgentUI.text(activity,p.runtime+" · "+p.topic,16,AgentUI.INK));AgentUI.gap(activity,done,12);done.addView(AgentUI.text(activity,p.computer?"电脑完成连接检查后，新接入的 Agent 会话会自动出现在连接列表中，无需再次扫码。":"让电脑上的 Agent 完成连接检查并加入任务，随后会出现在电脑连接列表中。",14,AgentUI.MUTED));AgentUI.button(activity,screen.dock,"完成",true,screen.dialog::dismiss);});});
+  AgentUI.button(activity,screen.dock,"保存并绑定",true,()->{if(busy)return;saving=true;busy(true);status.setText("正在保存到服务器…");runtime.approveSession(p,(state,error)->{saving=false;busy(false);if(!visible())return;if(!error.isEmpty()){status.setText(message(error));return;}page="done";clear();LinearLayout done=AgentUI.summary(activity,screen.body,"circle-check",p.computer?"电脑已配对":"会话已绑定",p.runtime+" · "+p.topic);AgentUI.gap(activity,done,12);done.addView(AgentUI.text(activity,p.computer?"电脑完成连接检查后，新接入的 Agent 会话会自动出现在连接列表中，无需再次扫码。":"让电脑上的 Agent 完成连接检查并加入任务，随后会出现在电脑连接列表中。",14,AgentUI.MUTED));AgentUI.button(activity,screen.dock,"完成",true,screen.dialog::dismiss);});});
  }
  private String message(String code){
   if(code.equals("PAIRING_EXPIRED"))return "配对信息已过期，请让 Agent 重新生成。";

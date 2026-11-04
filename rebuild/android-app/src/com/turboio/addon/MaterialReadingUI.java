@@ -59,37 +59,9 @@ final class MaterialReadingUI {
  /** Readable full summary: markdown marks dropped, list items kept as lines. */
  static String readable(String summary){StringBuilder out=new StringBuilder();for(String raw:summary.split("\n")){String s=raw.replace("**","").replaceFirst("^\\s*#+\\s*","").replaceFirst("^\\s*[-*]\\s+","• ").trim();if(s.isEmpty()){if(out.length()>0&&out.charAt(out.length()-1)!='\n')out.append('\n');continue;}if(out.length()>0)out.append('\n');out.append(s);}return out.toString().trim();}
 
- /** Stroke glyphs drawn on a 24-unit grid. */
- static final class Glyph extends View {
-  private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);private final String name;private int color;private float turn;
-  Glyph(Activity a,String name,int color){super(a);this.name=name;this.color=color;setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
-  void rotate(float degrees){turn=degrees;invalidate();}
-  @Override protected void onDraw(Canvas c){float s=Math.min(getWidth(),getHeight())/24f;c.save();c.translate((getWidth()-24*s)/2,(getHeight()-24*s)/2);c.scale(s,s);c.rotate(turn,12,12);paint.setColor(color);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(2f);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeJoin(Paint.Join.ROUND);Path p=new Path();
-   switch(name){
-    case "star":for(int i=0;i<10;i++){double angle=-Math.PI/2+i*Math.PI/5;float radius=i%2==0?9:4.2f;float x=12+(float)Math.cos(angle)*radius,y=12+(float)Math.sin(angle)*radius;if(i==0)p.moveTo(x,y);else p.lineTo(x,y);}p.close();break;
-    case "down":p.moveTo(6,9);p.lineTo(12,15);p.lineTo(18,9);break;
-    case "right":p.moveTo(9,6);p.lineTo(15,12);p.lineTo(9,18);break;
-    case "refresh":{float r=7.5f,from=-60,sweep=300;p.addArc(new RectF(12-r,12-r,12+r,12+r),from,sweep);double end=Math.toRadians(from+sweep);float tx=12+(float)(r*Math.cos(end)),ty=12+(float)(r*Math.sin(end));
-     // Arrow head at the arc's end, pointing along its clockwise direction.
-     float dx=(float)-Math.sin(end),dy=(float)Math.cos(end),nx=(float)Math.cos(end),ny=(float)Math.sin(end);p.moveTo(tx-3.5f*dx+3*nx,ty-3.5f*dy+3*ny);p.lineTo(tx,ty);p.lineTo(tx-3.5f*dx-3*nx,ty-3.5f*dy-3*ny);break;}
-    case "sort":p.moveTo(7,4);p.lineTo(7,20);p.moveTo(3,16);p.lineTo(7,20);p.lineTo(11,16);p.moveTo(17,20);p.lineTo(17,4);p.moveTo(13,8);p.lineTo(17,4);p.lineTo(21,8);break;
-    case "pin":p.moveTo(12,21);p.cubicTo(12,21,5,14.8f,5,9.5f);p.arcTo(new RectF(5,2.5f,19,16.5f),180,180);p.cubicTo(19,14.8f,12,21,12,21);p.addCircle(12,9.5f,2.5f,Path.Direction.CW);break;
-    case "spark":p.moveTo(12,3);p.lineTo(13.8f,7.7f);p.lineTo(18.5f,9.5f);p.lineTo(13.8f,11.3f);p.lineTo(12,16);p.lineTo(10.2f,11.3f);p.lineTo(5.5f,9.5f);p.lineTo(10.2f,7.7f);p.close();p.moveTo(19,15);p.lineTo(19.8f,17.2f);p.lineTo(22,18);p.lineTo(19.8f,18.8f);p.lineTo(19,21);p.lineTo(18.2f,18.8f);p.lineTo(16,18);p.lineTo(18.2f,17.2f);p.close();break;
-    case "export":p.moveTo(12,15);p.lineTo(12,3);p.moveTo(7,8);p.lineTo(12,3);p.lineTo(17,8);p.moveTo(5,14);p.lineTo(5,19);p.quadTo(5,21,7,21);p.lineTo(17,21);p.quadTo(19,21,19,19);p.lineTo(19,14);break;
-    case "trash":p.moveTo(4,6);p.lineTo(20,6);p.moveTo(9,6);p.lineTo(9,3);p.lineTo(15,3);p.lineTo(15,6);p.moveTo(6,6);p.lineTo(7,21);p.lineTo(17,21);p.lineTo(18,6);p.moveTo(10,10);p.lineTo(10,17);p.moveTo(14,10);p.lineTo(14,17);break;
-    case "audio":p.moveTo(4,10);p.lineTo(4,14);p.moveTo(8,6);p.lineTo(8,18);p.moveTo(12,3);p.lineTo(12,21);p.moveTo(16,7);p.lineTo(16,17);p.moveTo(20,10);p.lineTo(20,14);break;
-    case "document":p.moveTo(5,3);p.lineTo(14,3);p.lineTo(19,8);p.lineTo(19,21);p.lineTo(5,21);p.close();p.moveTo(14,3);p.lineTo(14,8);p.lineTo(19,8);p.moveTo(8,12);p.lineTo(16,12);p.moveTo(8,16);p.lineTo(16,16);break;
-    case "check":p.moveTo(5,12.5f);p.lineTo(10,17);p.lineTo(19,7.5f);break;
-    case "select":p.addCircle(12,12,9,Path.Direction.CW);p.moveTo(8,12.5f);p.lineTo(11,15.5f);p.lineTo(16,9.5f);break;
-    case "folder":p.moveTo(3,7);p.lineTo(9,7);p.lineTo(11,9);p.lineTo(21,9);p.lineTo(21,19);p.lineTo(3,19);p.close();break;
-    case "link":p.moveTo(10,14);p.cubicTo(11.6f,15.6f,14.2f,15.6f,15.7f,14);p.lineTo(18.7f,11);p.cubicTo(20.3f,9.4f,20.3f,6.8f,18.7f,5.3f);p.cubicTo(17.1f,3.7f,14.6f,3.7f,13,5.3f);p.lineTo(12,6.3f);p.moveTo(14,10);p.cubicTo(12.4f,8.4f,9.8f,8.4f,8.3f,10);p.lineTo(5.3f,13);p.cubicTo(3.7f,14.6f,3.7f,17.2f,5.3f,18.7f);p.cubicTo(6.9f,20.3f,9.4f,20.3f,11,18.7f);p.lineTo(12,17.7f);break;
-    case "alert":p.moveTo(12,6.5f);p.lineTo(12,13.5f);p.moveTo(12,17.5f);p.lineTo(12,17.6f);break;
-    case "arc":p.addArc(new RectF(4,4,20,20),-90,250);break;
-    case "pause":p.moveTo(9,6.5f);p.lineTo(9,17.5f);p.moveTo(15,6.5f);p.lineTo(15,17.5f);break;
-    case "clock":p.addCircle(12,12,8,Path.Direction.CW);p.moveTo(12,7.5f);p.lineTo(12,12);p.lineTo(15,14);break;
-    default:p.addCircle(12,12,8,Path.Direction.CW);
-   }
-   c.drawPath(p,paint);c.restore();}
+ /** Shared official Lucide assets, decoded once and tinted to the current state. */
+ static final class Glyph extends AgentIcons.Icon {
+  Glyph(Activity a,String name,int color){super(a,name,color);}
  }
  static Glyph glyph(Activity a,LinearLayout parent,String name,int color,int size){Glyph g=new Glyph(a,name,color);parent.addView(g,new LinearLayout.LayoutParams(AgentUI.dp(a,size),AgentUI.dp(a,size)));return g;}
 
@@ -176,7 +148,7 @@ final class MaterialReadingUI {
   LinearLayout r=new LinearLayout(a);r.setGravity(Gravity.CENTER_VERTICAL);r.setMinimumHeight(AgentUI.dp(a,56));r.setPadding(AgentUI.dp(a,14),AgentUI.dp(a,10),AgentUI.dp(a,12),AgentUI.dp(a,10));
   if(group.getChildCount()>0){View rule=new View(a);rule.setBackgroundColor(LINE);LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,AgentUI.dp(a,1));rp.leftMargin=AgentUI.dp(a,14);group.addView(rule,rp);}
   LinearLayout text=AgentUI.column(a);text.addView(AgentUI.text(a,title,15,color));if(subtitle!=null&&!subtitle.isEmpty()){TextView s=AgentUI.text(a,subtitle,12,AgentUI.MUTED);s.setPadding(0,AgentUI.dp(a,3),0,0);text.addView(s);}r.addView(text,new LinearLayout.LayoutParams(0,-2,1));
-  if(value!=null){TextView v=line(a,value,13,AgentUI.MUTED,1);v.setPadding(AgentUI.dp(a,8),0,AgentUI.dp(a,4),0);r.addView(v);}
+  if(value!=null){TextView v=line(a,value,12,AgentUI.MUTED,2);v.setMaxWidth(AgentUI.dp(a,110));v.setGravity(Gravity.END);v.setPadding(AgentUI.dp(a,8),0,AgentUI.dp(a,4),0);r.addView(v);}
   if(click!=null){glyph(a,r,"right",AgentUI.MUTED,14);r.setBackground(pressable(a,null));r.setFocusable(true);r.setOnClickListener(v->click.run());}
   r.setContentDescription(title+(value==null?"":"，"+value));group.addView(r,new LinearLayout.LayoutParams(-1,-2));return r;
  }

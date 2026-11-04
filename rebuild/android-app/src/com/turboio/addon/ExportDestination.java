@@ -18,9 +18,9 @@ public final class ExportDestination extends Fragment {
  static String label(Context context){return context.getSharedPreferences(PREF,0).getString(LABEL,"Download/IO 文档");}
  static void settings(Activity a,Runnable changed){
   AgentUI.Screen screen=new AgentUI.Screen(a,"默认保存位置");
-  screen.body.addView(AgentUI.text(a,"音频和摘要文档自动保存到：\n"+label(a),15,AgentUI.INK));
-  AgentUI.button(a,screen.body,"选择文件夹",true,()->{screen.dialog.dismiss();ExportDestination picker=new ExportDestination();picker.changed=changed;a.getFragmentManager().beginTransaction().add(picker,"io-export-directory").commit();});
-  AgentUI.button(a,screen.body,"使用 Download/IO 文档",false,()->{Context app=a.getApplicationContext();IO.execute(()->{boolean ok=app.getSharedPreferences(PREF,0).edit().remove(TREE).remove(LABEL).commit();MAIN.post(()->{if(!a.isDestroyed()){screen.dialog.dismiss();AgentUI.notice(a,ok?"已恢复默认保存位置":"保存位置未能更新");changed.run();}});});});
+  AgentUI.summary(a,screen.body,"folder-open","导出到手机",label(a));AgentUI.gap(a,screen.body,18);screen.body.addView(AgentUI.text(a,"音频与带时间、标签的摘要文档，都会保存到这个文件夹。",14,AgentUI.MUTED));
+  AgentUI.button(a,screen.dock,"选择文件夹",true,()->{screen.dialog.dismiss();ExportDestination picker=new ExportDestination();picker.changed=changed;a.getFragmentManager().beginTransaction().add(picker,"io-export-directory").commit();});
+  AgentUI.button(a,screen.body,"恢复默认文件夹",false,()->{Context app=a.getApplicationContext();IO.execute(()->{boolean ok=app.getSharedPreferences(PREF,0).edit().remove(TREE).remove(LABEL).commit();MAIN.post(()->{if(!a.isDestroyed()){screen.dialog.dismiss();AgentUI.notice(a,ok?"已恢复默认保存位置":"保存位置未能更新");changed.run();}});});});
   screen.body.addView(AgentUI.text(a,"首次导出时自动创建 IO 文档文件夹。同名导出另存，不覆盖已有文件。",13,AgentUI.MUTED));
   screen.dialog.setOnDismissListener(d->changed.run());
  }

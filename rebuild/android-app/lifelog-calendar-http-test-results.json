@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "at": "2026-10-28T08:50:13.817Z",
+  "at": "2026-11-04T04:04:35.052Z",
   "scope": "Unmodified production calendar HTTP transport with synthetic Android/login/HTTPS doubles; real 30-second independent disconnect",
   "device": false,
   "network": false,
   "installed_apk_or_credentials_read": false,
   "passed": true,
-  "checks": 64,
+  "checks": 74,
   "sources": [
     {
       "path": "src/com/turboio/addon/Host107LifelogHttp.java",
-      "sha256": "bd365583554b0040c439a9ab8041b48eb0ba5267e49c13fc78fcd5937f71405f"
+      "sha256": "2af17f391a121f4fe22e276cca64412446a68b30905a066d7c133c95cd103f31"
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogCalendarRequest.java",
@@ -26,11 +26,11 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialLifelogJson.java",
-      "sha256": "1836818cc3eea72af0e29c9166a2871b27accc9b8dbc66fc5f642b173a782f01"
+      "sha256": "d7d21fc35a4da429ef6d53e8c50929c45a48c177d862802e0e6508aac9c45a8a"
     },
     {
       "path": "src/com/turboio/addon/WireJson.java",
-      "sha256": "a1158502343c4bd88adb71dc7e45dd31c9450e9c3d34bcb52f42f9f32b409214"
+      "sha256": "34312fe9fb5a313c69dd0f5f3db1a0ad8d013b55de7aba6a4c6ac421cdd4e96e"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/BoundedJson.java",
@@ -38,11 +38,11 @@
     },
     {
       "path": "../../tools/android/Host107LifelogCalendarHttpTest.java",
-      "sha256": "651f3ff21c8698ca13d57d8caef7564884b8a9941739996ade66f14322f5e5b3"
+      "sha256": "6095ceea39776e1efcd347e5ccb605c54e290aadcca1ca2329006088bc3a36c8"
     },
     {
       "path": "../../tools/android/test-lifelog-calendar-http.mjs",
-      "sha256": "f55d4af1e19a7c3e530e1718516b4a25a6950f9d725021eb1d4e496372703368"
+      "sha256": "5179ac16e8476ea6596d3b18c3bb64b7caa919c3e6e601c22c78c8a8947da52c"
     }
   ],
   "temporary_classes_removed": true

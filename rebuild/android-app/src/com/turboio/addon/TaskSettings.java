@@ -39,7 +39,8 @@ final class TaskSettings {
   try{return TaskProfiles.decode(plain);}finally{Arrays.fill(plain,(byte)0);}
  }}
  Saved load()throws Exception{synchronized(LOCK){TaskProfiles.Profile p=loadAll().selected();return p==null?null:new Saved(p.connection,p.enabled);}}
- private void write(TaskProfiles profiles)throws Exception{
+ private void write(TaskProfiles profiles)throws Exception{write(profiles,null);}
+ private void write(TaskProfiles profiles,Set<String> removed)throws Exception{
   byte[] plain=profiles.encode();TaskProfiles.Profile selected=profiles.selected();
   // A rollback host can read its selected target and original mailbox, but starts paused.
   // All registered targets remain in the separate v2 envelope for a forward upgrade.
@@ -47,14 +48,15 @@ final class TaskSettings {
   try{
    SharedPreferences.Editor edit=prefs.edit().putString(MULTI,seal(plain,MULTI_AAD));
    String old=prefs.getString("sealed",null);if(old!=null&&!prefs.contains("single_backup_v1"))edit.putString("single_backup_v1",old);
-   if(legacy!=null)edit.putString("sealed",seal(legacy,AAD));
+   if(legacy!=null)edit.putString("sealed",seal(legacy,AAD));else edit.remove("sealed");
+   if(removed!=null)edit.putString("removed_bindings_v1",new String(WireJson.bytes(new ArrayList<>(removed)),StandardCharsets.UTF_8));
    if(!edit.commit())throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");
    if(!Arrays.equals(loadAll().encode(),plain))throw new IllegalStateException("TASK_CONFIG_SAVE_FAILED");
   }finally{Arrays.fill(plain,(byte)0);if(legacy!=null)Arrays.fill(legacy,(byte)0);}
  }
- void saveQuestion(TaskConnection connection,boolean enabled)throws Exception{synchronized(LOCK){TaskProfiles current=loadAll();write(current.upsert(connection,enabled,System.currentTimeMillis(),current.selected()==null));}}
+ void saveQuestion(TaskConnection connection,boolean enabled)throws Exception{synchronized(LOCK){TaskProfiles current=loadAll();Set<String> hidden=removed();hidden.remove(connection.binding());write(current.upsert(connection,enabled,System.currentTimeMillis(),current.selected()==null),hidden);}}
  void save(TaskConnection connection,boolean enabled)throws Exception{save(connection,enabled,true);}
- void save(TaskConnection connection,boolean enabled,boolean makeDefault)throws Exception{synchronized(LOCK){write(loadAll().upsert(connection,enabled,System.currentTimeMillis(),makeDefault));}}
+ void save(TaskConnection connection,boolean enabled,boolean makeDefault)throws Exception{synchronized(LOCK){Set<String> hidden=removed();hidden.remove(connection.binding());write(loadAll().upsert(connection,enabled,System.currentTimeMillis(),makeDefault),hidden);}}
  /** Identity was checked for this exact registry. Do not restore stale tokens or
   * replace a default changed while the network preflight was in flight. */
  void resume(TaskProfiles expected,String binding)throws Exception{synchronized(LOCK){
@@ -64,6 +66,21 @@ final class TaskSettings {
  void select(String binding)throws Exception{synchronized(LOCK){write(loadAll().select(binding));}}
  void pause(String binding)throws Exception{synchronized(LOCK){write(loadAll().enabled(binding,false,System.currentTimeMillis()));}}
  void remove(String binding)throws Exception{synchronized(LOCK){write(loadAll().remove(binding,System.currentTimeMillis()));}}
+ private Set<String> removed(){Set<String> result=new HashSet<>();for(Object value:WireJson.list(WireJson.read(prefs.getString("removed_bindings_v1","[]").getBytes(StandardCharsets.UTF_8)))){TaskWire.require(value instanceof String&&((String)value).matches("[a-f0-9]{64}"),"TASK_CONFIG_INVALID");result.add((String)value);}return result;}
+ boolean hasRemoved(){synchronized(LOCK){return !removed().isEmpty();}}
+ Set<String> removedRoutes(TaskDevice device,TaskSessionDirectory directory){synchronized(LOCK){
+  if(device==null||directory==null||!device.server.equals(directory.server)||!device.owner.equals(directory.owner))return Collections.emptySet();
+  Set<String> hidden=removed(),routes=new HashSet<>();for(TaskSessionDirectory.Entry entry:directory.sessions)if(hidden.contains(device.derive(entry.route,0).binding()))routes.add(entry.key);return Collections.unmodifiableSet(routes);
+ }}
+ void forget(String binding)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll().forget(binding);Set<String> hidden=removed();hidden.add(binding);write(next,hidden);}}
+ int restoreRemoved(TaskDevice device,TaskSessionDirectory directory,long now)throws Exception{synchronized(LOCK){
+  TaskWire.require(device.server.equals(directory.server)&&device.owner.equals(directory.owner),"TASK_IDENTITY_MISMATCH");TaskProfiles next=loadAll();Set<String> hidden=removed();int restored=0;
+  for(TaskSessionDirectory.Entry entry:directory.sessions){TaskConnection connection=device.derive(entry.route,now);if(!hidden.contains(connection.binding()))continue;boolean known=false;for(TaskProfiles.Profile profile:next.profiles)if(profile.binding.equals(connection.binding()))known=true;if(!known&&next.profiles.size()>=TaskProfiles.MAX)continue;
+   next=next.upsert(connection,true,now,next.selected()==null);hidden.remove(connection.binding());restored++;
+  }
+  if(restored>0)write(next,hidden);return restored;
+ }}
+
  // One-time pairing (TaskDevice): the device credential has its own sealed slot; derived session
  // connections are ordinary profiles and are rewritten together whenever the token renews.
  private static final String DEVICE="device_sealed_v1";private static final byte[] DEVICE_AAD="io-agent/task-device/1".getBytes(StandardCharsets.UTF_8);
@@ -84,17 +101,17 @@ final class TaskSettings {
  boolean ensureSession(TaskDevice device,Map<String,Object> route,long now,Set<String> keep,Set<String> online)throws Exception{synchronized(LOCK){
   TaskSessionDirectory.route(route);TaskProfiles current=loadAll();TaskConnection connection=device.derive(route,now);
   for(TaskProfiles.Profile p:current.profiles)if(p.binding.equals(connection.binding())){if(p.connection.token().equals(device.token))return false;write(current.upsert(connection,p.enabled,now,false));return true;}
-  current=current.makeRoom(device,keep,online,now);write(current.upsert(connection,true,now,current.selected()==null));return true;
+  current=current.makeRoom(device,keep,online,now);Set<String> hidden=removed();hidden.remove(connection.binding());write(current.upsert(connection,true,now,current.selected()==null),hidden);return true;
  }}
  void pauseDevice(TaskDevice device)throws Exception{synchronized(LOCK){TaskProfiles next=loadAll();long now=System.currentTimeMillis();for(TaskProfiles.Profile p:next.profiles)if(device.owns(p.connection)&&p.enabled)next=next.enabled(p.binding,false,now);write(next);}}
  /** Adds connections for newly joined sessions and moves every derived connection to the device's
   * current token in one write. When full, a new session takes the oldest idle slot (TaskProfiles.makeRoom); if
   * every slot is busy or the default, capacity is reported explicitly. */
  boolean syncDevice(TaskDevice device,List<Map<String,Object>> routes,Set<String> busy,Set<String> online,long now)throws Exception{synchronized(LOCK){
-  TaskProfiles current=loadAll(),next=current;
+  TaskProfiles current=loadAll(),next=current;Set<String> hidden=removed();
   for(TaskProfiles.Profile p:current.profiles)if(device.owns(p.connection)&&!p.connection.token().equals(device.token))next=next.upsert(device.derive(p.connection.route(),now),p.enabled,now,false);
   for(Map<String,Object> route:routes){
-   TaskConnection c=device.derive(route,now);boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
+   TaskConnection c=device.derive(route,now);if(hidden.contains(c.binding()))continue;boolean known=false;for(TaskProfiles.Profile p:next.profiles)known|=p.binding.equals(c.binding());if(known)continue;
    try{next=next.makeRoom(device,busy,online,now);}catch(RuntimeException full){if(!"TASK_PROFILES_FULL".equals(full.getMessage()))throw full;break;}
    // Discovery never substitutes another session for an explicit default, even when
    // that default is paused or expired. Only an empty registry needs an initial choice.
