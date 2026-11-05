@@ -1,3 +1,9 @@
+## [codex] 2026-11-04 CLI 0.2.2正式本机更新完成
+
+- 源码725d653与分发b9e7d69已推送私库当前codex分支。本机cz-iot-cli update真实升级0.2.2，changed_files=6、pairing_state_touched=false；5个非MANIFEST本地文件inode/大小/mtime不变。正式help现返回11条共享规则，包含逐句speaker、已授权微信/飞书消息和项目认知交叉核对及可核查证据要求。
+- 持codex通道锁核对两个正式受管工作区操作均终态，按原入口安全stop/start并保留Claude原环境；Codex与Claude服务均实际running，新进程加载新版模块。没有关闭原生聊天、改全局Desktop设置、重绑或发眼镜测试题。设备锁已释放，dev176/回退175不变，进度推送关闭。
+- 另一设备执行cz-iot-cli update；D盘便携调用node cz-iot-cli.mjs update。既有微信/飞书工具权限由该Agent宿主提供，CLI没有新授消息查询权限。建议后续用新规则核对一篇现有总结并保留来源记录；本批没有擅自改写用户原文或实际查询微信/飞书。main不合并，外来未跟踪Delegate文件未提交。
+
 ## [codex] 2026-11-04 发布CLI 0.2.2说话人与消息交叉核对规范
 
 - 最终无凭据ZIP 200177字节/54文件，SHA256 cdc044e85c6f02a739dc23864c6ee2ab179cfbb27ccbadf73f4d0d5e357a76ce，MANIFEST source_commit=725d653；未收录用户截图、真实智记或账号凭据。源码暂存扫描无泄漏；ZIP仅两个既有todo_key文档示例提示，已核对不属于访问密钥。
