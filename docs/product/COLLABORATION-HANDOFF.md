@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 发布CLI 0.2.3运行时兼容探测
+
+- 无凭据ZIP 200026字节/54文件，SHA256 8dc4c1ebfc9d772503a6327b1027add6b4fef2eca4b15016d5bb499a344434ac，MANIFEST指向源码c898962。安装版本白名单和哈希检查已移除，保留方法协议参数与实际回包验证；不需要为正常Desktop重打包逐版更新。
+- 便携包逐文件哈希、普通/兼容CLI、合成配对、daily订正历史撤销及问答回执通过；Git更新check/apply/no-op、私有状态保留和失败恢复通过。源码扫描无泄漏，ZIP仅两处既有todo_key文档示例误报，已核实不是访问密钥。没有真实用户正文或密钥入包。
+- 新版适配器24项、join/resident/controller50项通过；真实当前聊天旧代码失败而新代码只读握手、设置、快照成功。真实手机投送或打断未在本批重测，不冒称镜片端到端通过。
+- 发布当前codex分支后更新本机正式CLI并重载空闲Codex连接器；其他真实会话在原聊天使用新版join control=desktop再核对can_execute，无需重新配对。仅实际协议不兼容时再适配，仍不会猜字段反复发执行命令。当前App仍dev176、进度推送关闭，main不合并。
+
 ## [codex] 2026-11-04 CLI 0.2.3取消Desktop安装版本硬拦截
 
 - 用户明确要求Codex高频更新不能被版本卡住。已fetch核对Claude远端仍520ad23，未合并main。本批删除Desktop app.asar四文件路径/长度/SHA白名单及verifyDesktopBuild调用，profile仅保留出站方法协议参数。入站状态版本数字变化但结构兼容时接受，不把协议参数当App版本白名单。
