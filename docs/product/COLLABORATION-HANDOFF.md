@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 CLI 0.2.1已发布并更新本机正式入口
+
+- 源码f45883b与分发5c87b59已推送私库当前分支。本机正式cz-iot-cli update真实取包成功，version=0.2.1、source_commit=f45883bc035b92d7a5a91428297e206406605894、changed_files=9、pairing_state_touched=false；help返回共享规范v1/8条规则。更新前后5个非MANIFEST本地状态文件的inode/大小/mtime完全不变，没有重绑。
+- 已取得codex通道锁，核对Codex/Claude两个正式受管工作区本地操作均终态，再通过原受管入口stop/start加载新模块。保留session/聊天/工作区与已有Claude环境，不改变模型配置、配对、Desktop全局启动环境或进度推送开关。两项launchd进程均已恢复running；这只是进程观察，本批未发题或制造真人闭环。设备锁已释放，手机仍dev176/回退175。
+- 另一电脑运行cz-iot-cli update，D盘便携调用则node cz-iot-cli.mjs update；需其已有私库读取认证，无需重新扫码。运行中的连接器等空闲后重启；WorkBuddy每次启动的普通CLI立即读取新版规则。
+- 后续建议订正时先读取daily/help中的规范并回读有效正文；本次没有擅自重写用户贴出的现有总结。prompt约束不能等同于确定性文体验证，仍需Agent依据事实与用户意图生成。main不合并，其他Agent未跟踪Delegate文件保留。
+
 ## [codex] 2026-11-04 发布CLI 0.2.1日记订正规范
 
 - 无凭据便携包已重建：docs/distribution/cz-iot-cli.zip，197751字节/54文件，SHA256 aa102b44c7cd8e0e6cb2233fe49e33887d06103567faebef1acff4291ef46eb5；MANIFEST指向源码提交f45883b。包含共享规范、四处文档入口和0.2.1版本，原配对文件不入包。
