@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 发布CLI 0.2.1日记订正规范
+
+- 无凭据便携包已重建：docs/distribution/cz-iot-cli.zip，197751字节/54文件，SHA256 aa102b44c7cd8e0e6cb2233fe49e33887d06103567faebef1acff4291ef46eb5；MANIFEST指向源码提交f45883b。包含共享规范、四处文档入口和0.2.1版本，原配对文件不入包。
+- 解包逐文件哈希、普通/兼容help、合成配对、daily完整正文/元数据、历史/订正/撤销、问答回执均通过；Git更新的check/apply/no-op、状态保留、损坏包和失败恢复测试通过。Windows未真机执行，不把本地合成验证当Windows验收。
+- 分发包密钥扫描仅两处既有todo_key幂等文档示例提示，逐项核实并非访问密钥；源码暂存扫描无泄漏。真实智记、凭据、设备信息均未提交，未修改用户现存总结。
+- 本批推送当前codex/agent-workspace-ui分支，不合并main。发布后用正式cz-iot-cli update更新本机；已运行连接器缓存模块需在确认空闲后通过原受管入口重启，不关闭原生聊天，不改Desktop环境。另一电脑更新用node cz-iot-cli.mjs update或cz-iot-cli update，无需重绑。
+
 ## [codex] 2026-11-04 CLI 0.2.1订正文风规范（源码完成）
 
 - 用户要求事实订正保留原每日总结的日记口吻，不能把编辑说明混入正文。本批新增共享 correction_guidance，由普通/受管 help、daily、daily-history 返回；受管 brief/full 提示只增加短指引，不在每轮灌入完整规则，短提示仍低于1500字符。
