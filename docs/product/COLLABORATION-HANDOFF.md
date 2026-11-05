@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 CLI 0.2.3正式接入完成：当前会话可执行
+
+- 源码c898962和分发8363d4e已推送私库当前分支。本机正式update真实取包0.2.3，changed_files=6、pairing_state_touched=false；14个非MANIFEST本地文件inode/大小/mtime不变，未重绑或改默认目标。
+- 持codex通道锁，使用当前宿主真实session的正式CLI join control=desktop：joined/caller_verified/resident_live/cloud_online/can_execute均true，reason=null。config明确关闭进度推送，session-status再次确认可执行。[证据](../../rebuild/agent-bridge/hosts/codex-desktop-live-compatibility-2026-11-04.json)。本批不发题、输入或打断；手机仍dev176/回退175，设备锁已释放。
+- 旧85ddd5受管Codex配置原进程已不运行；核对本地操作均终态后按原入口重载新版。版本硬拦截解除，但该旧原桌面owner当前未加载，日志转为CODEX_DESKTOP_OWNER_UNAVAILABLE，不能冒称这个历史工作区也已恢复或擅自改投当前聊天。Claude连接器不改、不重启。
+- 同一台Mac其他真实聊天使用同一已更新CLI，在它自己的原聊天重新join（stdin control=desktop），再核对session-status.can_execute；不代造或切换它的session ID。今后不为正常App版本/打包哈希变化强迫更新CLI，确有私有接口不兼容才适配。main不合并，其他Agent未跟踪Delegate文件不提交。
+
 ## [codex] 2026-11-04 发布CLI 0.2.3运行时兼容探测
 
 - 无凭据ZIP 200026字节/54文件，SHA256 8dc4c1ebfc9d772503a6327b1027add6b4fef2eca4b15016d5bb499a344434ac，MANIFEST指向源码c898962。安装版本白名单和哈希检查已移除，保留方法协议参数与实际回包验证；不需要为正常Desktop重打包逐版更新。

@@ -17,5 +17,25 @@
     "active_turn_known": true,
     "workspace_available": true,
     "loaded_turns": 6
+  },
+  "installed_cli_after": "0.2.3",
+  "formal_current_session_join": {
+    "joined": true,
+    "caller_verified": true,
+    "resident_live": true,
+    "cloud_online": true,
+    "can_execute": true,
+    "reason": null,
+    "progress_push_disabled": true,
+    "default_target_changed": false,
+    "pairing_repeated": false
+  },
+  "rollout": {
+    "changed_public_files": 6,
+    "pairing_state_touched": false,
+    "preserved_local_files": 14,
+    "phone_or_glasses_operated": false,
+    "device_lock_released": true,
+    "legacy_managed_workspace": "owner_unavailable; original desktop chat must be loaded, not redirected"
   }
 }
