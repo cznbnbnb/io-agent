@@ -12,9 +12,9 @@ test('private Git distribution update checks first, applies code, preserves stat
  const publish=()=>{const zip=fs.readFileSync(path.join(distribution,'cz-iot-cli.zip'));fs.writeFileSync(path.join(distribution,'SHA256SUMS'),hash(zip)+'  cz-iot-cli.zip\n');run('git',['add','.']);run('git',['-c','user.name=synthetic','-c','user.email=synthetic@example.invalid','-c','commit.gpgsign=false','commit','--quiet','-m','synthetic distribution']);};
  fs.copyFileSync(packageFile,path.join(distribution,'cz-iot-cli.zip'));publish();const options={directory:root,repository:repo,branch:'main'};
  const check=await update(['--check'],options);assert.equal(check.available,true);assert.equal(check.updated,false);assert.equal(hash(fs.readFileSync(path.join(root,'README.md'))),before);
- const applied=await update([],options);assert.equal(applied.updated,true);assert.equal(applied.version,'0.2.2');assert.equal(applied.pairing_state_touched,false);assert.equal(applied.running_connectors_need_restart,true);assert.notEqual(hash(fs.readFileSync(path.join(root,'README.md'))),before);
+ const applied=await update([],options);assert.equal(applied.updated,true);assert.equal(applied.version,'0.2.3');assert.equal(applied.pairing_state_touched,false);assert.equal(applied.running_connectors_need_restart,true);assert.notEqual(hash(fs.readFileSync(path.join(root,'README.md'))),before);
  for(const file of secrets)assert.equal(fs.readFileSync(path.join(root,file),'utf8'),'SYNTHETIC-LOCAL-STATE-KEEP');assert.equal((await update([],options)).updated,false);
- const help=JSON.parse(run(process.execPath,[path.join(root,'cz-iot-cli.mjs'),'help'],temp));assert.equal(help.cli_version,'0.2.2');assert.match(help.commands.update,/--check/);
+ const help=JSON.parse(run(process.execPath,[path.join(root,'cz-iot-cli.mjs'),'help'],temp));assert.equal(help.cli_version,'0.2.3');assert.match(help.commands.update,/--check/);
  fs.writeFileSync(path.join(root,'AGENTS.md'),'old Agent instructions');fs.writeFileSync(path.join(root,'README.md'),'old readme');
  const rollbackHashes=['AGENTS.md','README.md'].map(n=>hash(fs.readFileSync(path.join(root,n))));
  const rollback=spawnSync(py,['-I','-S','-B','-c',`import runpy,sys,os

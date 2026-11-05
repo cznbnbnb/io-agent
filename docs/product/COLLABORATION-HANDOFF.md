@@ -1,3 +1,10 @@
+## [codex] 2026-11-04 CLI 0.2.3取消Desktop安装版本硬拦截
+
+- 用户明确要求Codex高频更新不能被版本卡住。已fetch核对Claude远端仍520ad23，未合并main。本批删除Desktop app.asar四文件路径/长度/SHA白名单及verifyDesktopBuild调用，profile仅保留出站方法协议参数。入站状态版本数字变化但结构兼容时接受，不把协议参数当App版本白名单。
+- connect现在实际完成初始化、原owner的supportsUntrustedAppInput、读取设置及原session有效快照/状态，再返回；缺失turn集合不能默认为空闲。现有socket身份、原会话/工作区、忙时排队、精确轮次打断、回执不明不重发仍保留，没有猜测变更方法、启动新聊天或更改Desktop全局启动环境。
+- 官方公开app-server文档已查阅（https://learn.chatgpt.com/docs/app-server），它与本机私有follower IPC不是同一端点；没有用公开握手成功冒充私有接口兼容。真实当前caller只读对照：已安装0.2.2报CODEX_DESKTOP_VERSION_UNVERIFIED，新源码连接成功，读到原owner/工作区/6轮元数据、busy=true。没有发送输入或打断。[前后对照证据](../../rebuild/agent-bridge/hosts/codex-desktop-live-compatibility-2026-11-04.json)。
+- Desktop/共享入口24项通过，覆盖新协议版本数字仍兼容、真实不兼容初始化/owner/设置/状态分别拒绝、无测试输入、原有精确停止/结果边界。join/resident/controller另外50项通过；下一步发布0.2.3便携包。文档和永久约定同步更新。当前App仍dev176/回退175，其他Agent未跟踪Delegate文件保留，不操作手机/眼镜，不发题，进度推送关闭。
+
 ## [codex] 2026-11-04 CLI 0.2.2正式本机更新完成
 
 - 源码725d653与分发b9e7d69已推送私库当前codex分支。本机cz-iot-cli update真实升级0.2.2，changed_files=6、pairing_state_touched=false；5个非MANIFEST本地文件inode/大小/mtime不变。正式help现返回11条共享规则，包含逐句speaker、已授权微信/飞书消息和项目认知交叉核对及可核查证据要求。

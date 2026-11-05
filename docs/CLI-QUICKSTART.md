@@ -57,6 +57,8 @@ cz-iot-cli help
 
 一台电脑只配对一次；后续新会话复用电脑授权，首次投送会自动接入。`pair` 返回 `paired:true` 是已配对，不是失败。若专门测试“重新扫码”，使用一个新建的空私有目录作为 `IO_AGENT_PAIRING_HOME`，本次所有调用保持同一目录；不要删除正常使用的共享授权或修改默认工作区。
 
+macOS Codex Desktop 原聊天需要手机远程下发时，用 `join` 输入 `{"control":"desktop"}`，沿用当前真实聊天。CLI 0.2.3 起不再卡桌面 App 版本或安装包哈希，而是实际检查原会话接口。桌面正常更新后接口兼容就继续可用；真正的协议不兼容、会话未加载或连接断开仍会如实报错。云端配对成功与 `session-status` 的 `can_execute:true` 分别核对。旧版出现 `CODEX_DESKTOP_VERSION_UNVERIFIED` 时更新 CLI，再在原会话重新 `join`，无需重绑。
+
 ## 3. 做一轮双向测试
 
 一次只测一道题，收到答案或结束本题后再测下一种格式。多道题和待办一起发送会争用镜片；不要因为 pending 就换键重发。`NATIVE_HOST_UNSUPPORTED` 只表示没有当前宿主的常驻唤醒/下发适配；当前会话继续调用 `wait/status`，仍可读回眼镜答案并接着工作，不需要因此让用户回聊天补一句。

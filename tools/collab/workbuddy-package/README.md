@@ -81,6 +81,10 @@ cz-iot-cli help
 
 保存返回的 `proposal_id`，以 `node cz-iot-cli.mjs todo-status` 和 `{"proposal_id":"返回的标识"}` 查询。同一 `todo_key` 重试保持原内容；`pending_confirmation`、`shown`、`accepted`、`creating` 都不表示创建完成，仅 `native_created: true` 表示手机报告原厂创建成功。`unknown` 时先核对原厂待办，不自动重投。参数、状态及手机前置条件见 [原厂待办 CLI 说明](rebuild/agent-bridge/questions/NATIVE-TODOS.md)。
 
+## Codex 桌面更新兼容（0.2.3 起）
+
+macOS Codex 原聊天用 `join` 输入 `{"control":"desktop"}` 接手机远程指令，按 `session-status` 的 `can_execute` 核对。CLI 不再检查桌面 App 版本或安装文件哈希：实际握手、原会话持有者的能力、设置和状态结构兼容就接入，不因正常 App 更新失效。接口真正变化或连接失败时仍明确报告，不新建聊天替代、不改全局启动配置。旧版提示 `CODEX_DESKTOP_VERSION_UNVERIFIED` 时先更新 CLI，再在原聊天重新 `join`，不用重新配对；已运行监听器等任务空闲后重启以加载新代码。
+
 ## 当前边界
 
 - 此包连接的是已经运行的 Agent 会话。不会启动 WorkBuddy，也不能保证从手机远程唤醒、打断或恢复其进程。

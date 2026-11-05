@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import net from 'node:net';
-import {createHash, randomUUID} from 'node:crypto';
+import {randomUUID} from 'node:crypto';
 
 const PROFILE=JSON.parse(fs.readFileSync(new URL('./codex-desktop-profile.json',import.meta.url),'utf8'));
 const MAX_FRAME=256*1024*1024;
@@ -13,28 +13,6 @@ export class DesktopError extends Error {
   constructor(code,{outcomeUnknown=false}={}){super(code);this.code=code;this.outcomeUnknown=outcomeUnknown;}
 }
 function requireValue(value,code){if(!value)throw new DesktopError(code);}
-
-// This is a private desktop protocol, not the public app-server endpoint. An
-// unreviewed app update must disable it rather than guess a new wire format.
-export function verifyDesktopBuild(asar='/Applications/ChatGPT.app/Contents/Resources/app.asar') {
-  let fd;
-  try {
-    fd=fs.openSync(asar,'r');const prefix=Buffer.alloc(16);
-    requireValue(fs.readSync(fd,prefix,0,16,0)===16,'CODEX_DESKTOP_VERSION_UNVERIFIED');
-    const headerSize=prefix.readUInt32LE(12),dataOffset=8+prefix.readUInt32LE(4);
-    requireValue(headerSize>0&&headerSize<16*1024*1024&&dataOffset>=16+headerSize,'CODEX_DESKTOP_VERSION_UNVERIFIED');
-    const header=Buffer.alloc(headerSize);requireValue(fs.readSync(fd,header,0,header.length,16)===header.length,'CODEX_DESKTOP_VERSION_UNVERIFIED');
-    const tree=JSON.parse(header.toString('utf8'));
-    for(const source of PROFILE.sources){
-      let entry=tree;for(const component of source.path.split('/'))entry=entry.files?.[component];
-      requireValue(entry?.size===source.bytes&&/^\d+$/.test(entry.offset),'CODEX_DESKTOP_VERSION_UNVERIFIED');
-      const offset=dataOffset+Number(entry.offset);requireValue(Number.isSafeInteger(offset),'CODEX_DESKTOP_VERSION_UNVERIFIED');
-      const bytes=Buffer.alloc(source.bytes);requireValue(fs.readSync(fd,bytes,0,bytes.length,offset)===bytes.length&&createHash('sha256').update(bytes).digest('hex')===source.sha256,'CODEX_DESKTOP_VERSION_UNVERIFIED');
-    }
-    return true;
-  } catch {throw new DesktopError('CODEX_DESKTOP_VERSION_UNVERIFIED');}
-  finally {if(fd!==undefined)fs.closeSync(fd);}
-}
 
 function verifiedSocket(socketPath){
   try {
@@ -155,6 +133,7 @@ function projectHistory(history,includeItems=false){
   return{entitiesByKey:Object.fromEntries(entries.map(([key,turn])=>[key,projectTurn(turn,includeItems)])),islands:structuredClone(history.islands)};
 }
 function projectState(state,includeItems=false){
+  requireValue(object(state)&&(Array.isArray(state.turns)||state.turnHistory?.kind==='canonical'),'CODEX_DESKTOP_STATE_UNSUPPORTED');
   return{id:state.id,cwd:state.cwd??null,threadRuntimeStatus:state.threadRuntimeStatus??null,resumeState:state.resumeState??null,
     unconfirmedTurnSubmissions:Array.isArray(state.unconfirmedTurnSubmissions)?state.unconfirmedTurnSubmissions.map(projectSubmission):[],turns:Array.isArray(state.turns)?state.turns.map(t=>projectTurn(t,includeItems)):[],
     ...(state.turnHistory?.kind==='canonical'?{turnHistory:{kind:'canonical',history:projectHistory(state.turnHistory.history,includeItems)}}:{})};
@@ -237,9 +216,11 @@ export class CodexDesktopSession {
   constructor(channel,conversationId,{sharedConversation=false}={}){requireValue(uuid(conversationId),'CODEX_DESKTOP_SESSION_INVALID');this.#channel=channel;this.conversationId=conversationId;this.#shared=sharedConversation;}
   get capabilities(){return this.#shared?{...CAPABILITIES,shared_conversation_input:true,final_result_evidence:true}:CAPABILITIES;}
   lifecycle(){return{closed:this.#stateError!==null,reason:this.#stateError};}
-  static async connect(conversationId,{socketPath=path.join(os.homedir(),'.codex/ipc/ipc.sock'),asar,timeoutMs=5000,sharedConversation=false}={}){
-    verifyDesktopBuild(asar);const channel=await new DesktopChannel(socketPath,{timeoutMs}).connect();
-    try{return await new CodexDesktopSession(channel,conversationId,{sharedConversation}).attach();}catch(error){channel.close();throw error;}
+  static async connect(conversationId,{socketPath=path.join(os.homedir(),'.codex/ipc/ipc.sock'),timeoutMs=5000,sharedConversation=false}={}){
+    // Installed app versions and bundle hashes are not compatibility gates.
+    // Probe the existing owner's protocol and this exact session using reads.
+    const channel=await new DesktopChannel(socketPath,{timeoutMs}).connect();
+    try{const session=await new CodexDesktopSession(channel,conversationId,{sharedConversation}).attach();await session.status();return session;}catch(error){channel.close();throw error;}
   }
   async attach(){
     const reply=await this.#channel.request('thread-owner-discovery',{hostId:'local',conversationId:this.conversationId});
@@ -261,7 +242,7 @@ export class CodexDesktopSession {
         if(frame.method!=='thread-stream-state-changed')return;
         const p=frame.params;if(p?.hostId!=='local'||p.conversationId!==this.conversationId)return;
         try{
-          requireValue(frame.version===PROFILE.versions[frame.method],'CODEX_DESKTOP_STATE_UNSUPPORTED');
+          requireValue(Number.isSafeInteger(frame.version)&&frame.version>=0,'CODEX_DESKTOP_PROTOCOL');
           const change=p.change;requireValue(Number.isSafeInteger(change?.revision)&&change.revision>=0,'CODEX_DESKTOP_PATCH_INVALID');
           if(change.type==='snapshot'){
             requireValue(change.revision>=this.#revision,'CODEX_DESKTOP_STATE_GAP');

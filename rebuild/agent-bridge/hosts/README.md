@@ -1,10 +1,12 @@
 # 现有 Agent 会话控制
 
+2026-11-04（CLI 0.2.3）：原生同一会话入口以[共享 Desktop 说明](./codex-desktop-shared.md)为准。桌面接入不再检查 App 版本或安装文件哈希，改为实际初始化、原持有者能力、设置和会话状态检查。兼容的应用更新继续接入，真正不兼容的回包按具体协议/状态错误停止，不新建聊天替代。下方早期候选和隔离验证记录保留其历史范围。
+
 2026-10-27 更新：新增独立 stdio ACP 受管会话连接器，复用同一 CLI、配对、任务和结果链路；dev136 已装。Claude/Codex 的真实新建、同会话恢复、上下文和服务器结果已通过。用法及代价见 [ACP 接入说明](./acp-guide.md)。普通 Codex Desktop 原聊天接管仍未完成，造成启动协议故障的全局启动覆盖已停用；不再要求重启。既有 Claude 插件及显式 Codex 共享终端证据保留，见[常驻接入说明](./resident-guide.md)。
 
 本目录按已批准的[实施计划](../../../docs/product/DEFAULT-AGENT-CONTROL-PLAN.md)开发。新增官方 Codex 共享 app-server 适配器、[Claude 原会话 Mod](./claude-mod/README.md)与耐久控制器；已开始真实引擎隔离验证。已新增手机任务分派/打断的源码接线与本机 HTTP 联调；尚未部署、装机或接眼镜主动入口。旧私有 Desktop 适配器的输入仍禁用，不能把新共享服务器的成功称为任意现有 Desktop 聊天已可热接管。
 
-`codex-desktop.mjs` 通过已运行桌面的本机 Unix socket 找到原会话持有者，沿用其模型、工作目录和权限。不会另起 app-server、resume 同一会话、接管所有权或代答审批。私有协议只接受 `codex-desktop-profile.json` 核验过的安装源码；桌面更新后须重新核对，未知版本明确拒绝。
+`codex-desktop.mjs` 通过已运行桌面的本机 Unix socket 找到原会话持有者，沿用其模型、工作目录和权限。不会另起 app-server、resume 同一会话、接管所有权或代答审批。`codex-desktop-profile.json` 仅保留已使用的出站方法协议版本，不再包含应用安装源码白名单。初始化、原 owner 的输入能力、设置与状态结构在连接时实际核对；入站状态的协议版本数字变化但结构兼容时继续使用。
 
 首次快照之后只保留会话/轮次元信息，接收连续修订补丁；旧对话正文、图片和工具输出不进入状态结果。监听断开、修订缺失或结构变化后，缓存不能用于执行。内部协议仍需接收一次完整快照，最大 256 MiB；超限拒绝。本批对当前长对话的实际只读验证得到 59 个已加载轮次、约 18 KiB 保留元信息，不等于实际控制验收。
 
@@ -20,7 +22,7 @@ node tools/collab/probe-codex-desktop.mjs
 node --test rebuild/agent-bridge/tests/codex-desktop.test.mjs rebuild/agent-bridge/tests/session-control.test.mjs
 ```
 
-`start()` 始终拒绝，`atomic_idle_start:false`，没有 bypass 开关。一次或多次本地空闲检查无法防止桌面用户同时启动任务；`useUserMessageAdmission:true` 也可能 steer，整数组替换队列则可能覆盖用户并发添加的待办。已安装 CLI 有 `thread/queue/add`，但原持有者的安全可调用入口仍待接通。[具体证据](./codex-desktop-source-review-2026-10-25.md)。
+非共享模式的 `start()` 保持拒绝，`atomic_idle_start:false`；共享模式按用户选定的同一会话入口向原持有者提交。一次或多次本地空闲检查无法防止桌面用户同时启动任务；原持有者决定同会话输入的准入方式，不声称原子空闲锁。早期原子队列候选的调查见[历史证据](./codex-desktop-source-review-2026-10-25.md)。
 
 `session-control.mjs` 复用现有 BridgeState 的 fsync/原子替换和 BridgeRunLock 的进程锁，固定服务器、账号、电脑、Agent、项目、session 与工作目录。新任务先入耐久队列；只有宿主明确支持原子空闲准入或原生追加队列时才可能发送，普通新输入不会 steer 当前任务。不同文件也不能取得同一原生 session 的第二个执行锁。发送前保存操作 ID；回执丢失或进程死亡后只查原操作，部分历史没找到仍是不明，不重发。确定未发的排队命令可取消/过期；已发送的操作到期仍须核对。继续指示限有停止证据的原任务、原会话，未发的继续指示取消/过期后可重新填写。
 

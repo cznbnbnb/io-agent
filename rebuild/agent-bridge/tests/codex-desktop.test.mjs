@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import {randomUUID} from 'node:crypto';
-import {DesktopChannel,CodexDesktopSession,applyMetadataPatches,summarizeState,validateStartReceipt,verifyDesktopBuild} from '../hosts/codex-desktop.mjs';
+import {DesktopChannel,CodexDesktopSession,applyMetadataPatches,summarizeState,validateStartReceipt} from '../hosts/codex-desktop.mjs';
 
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const THREAD='10000000-0000-4000-8000-000000000001',OWNER='20000000-0000-4000-8000-000000000002',CLIENT='30000000-0000-4000-8000-000000000003';
@@ -13,11 +13,11 @@ const encode=frame=>{const body=Buffer.from(JSON.stringify(frame));const header=
 const turn=(id,status,messageId=null)=>({turnId:id,status,params:{clientUserMessageId:messageId},items:[{text:'private transcript that must not enter status'}]});
 function state(turns=[]){return{id:THREAD,cwd:'/synthetic/selected-workspace',turns,threadRuntimeStatus:{type:turns.some(t=>t.status==='inProgress')?'active':'idle'}};}
 
-async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true,sharedConversation=false}={}){
+async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true,sharedConversation=false,streamVersion=11}={}){
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'io-desktop-')));fs.chmodSync(dir,0o700);
   const socketPath=path.join(dir,'ipc.sock'),messages=[],sockets=new Set();let current=initial,revision=0,snapshots=0;
   function write(socket,frame){const bytes=encode(frame);if(fragment){socket.write(bytes.subarray(0,2));socket.write(bytes.subarray(2,7));socket.write(bytes.subarray(7));}else socket.write(bytes);}
-  function broadcast(socket,change,extra={}){write(socket,{type:'broadcast',method:'thread-stream-state-changed',sourceClientId:OWNER,version:11,params:{hostId:'local',conversationId:THREAD,change},...extra});}
+  function broadcast(socket,change,extra={}){write(socket,{type:'broadcast',method:'thread-stream-state-changed',sourceClientId:OWNER,version:streamVersion,params:{hostId:'local',conversationId:THREAD,change},...extra});}
   const server=net.createServer(socket=>{
     sockets.add(socket);socket.on('close',()=>sockets.delete(socket));socket.on('error',()=>{});let buffered=Buffer.alloc(0);
     socket.on('data',chunk=>{buffered=Buffer.concat([buffered,chunk]);while(buffered.length>=4){const n=buffered.readUInt32LE();if(buffered.length<n+4)break;const frame=JSON.parse(buffered.subarray(4,n+4));buffered=buffered.subarray(n+4);messages.push(frame);
@@ -41,6 +41,30 @@ async function fixture(t,{timeoutMs=300,initial=state(),handler,fragment=true,sh
     replace(next){current=next;revision++;for(const socket of sockets)broadcast(socket,{type:'snapshot',revision,conversationState:current});},
     writeRaw(bytes){for(const socket of sockets)socket.write(bytes);},disconnect(){for(const socket of sockets)socket.destroy();}};
 }
+
+test('connection probes live owner settings and state without installed build checks, accepting a compatible newer stream version',async t=>{
+  const f=await fixture(t,{streamVersion:99});
+  const session=await CodexDesktopSession.connect(THREAD,{socketPath:f.socketPath,timeoutMs:300,sharedConversation:true});
+  t.after(()=>session.close());
+  assert.equal((await session.status()).conversationId,THREAD);assert.equal(session.capabilities.shared_conversation_input,true);
+  assert(f.messages.some(m=>m.method==='initialize'));assert(f.messages.some(m=>m.method==='thread-follower-read-model-settings'));
+  assert(!f.messages.some(m=>m.method==='thread-follower-start-turn'||m.method==='thread-follower-interrupt-turn'));
+});
+
+test('incompatible initialization, owner capability, settings and state fail on the actual response',async t=>{
+  let broken=null;
+  const f=await fixture(t,{handler:({frame,reply,broadcast,socket})=>{
+    if(broken==='initialize'&&frame.method==='initialize'){reply({clientId:'not-a-client'});return true;}
+    if(broken==='owner'&&frame.method==='thread-owner-discovery'){reply({supportsUntrustedAppInput:false});return true;}
+    if(broken==='settings'&&frame.method==='thread-follower-read-model-settings'){reply({settings:null});return true;}
+    if(broken==='state'&&frame.type==='broadcast'&&frame.params.following){broadcast(socket,{type:'snapshot',revision:0,conversationState:{id:THREAD,turns:'changed-wire-shape'}});return true;}
+    return false;
+  }});
+  for(const [mode,code] of [['initialize','CODEX_DESKTOP_PROTOCOL'],['owner','CODEX_DESKTOP_OWNER_UNSUPPORTED'],['settings','CODEX_DESKTOP_SESSION_UNAVAILABLE'],['state','CODEX_DESKTOP_STATE_UNSUPPORTED']]){
+    broken=mode;await assert.rejects(CodexDesktopSession.connect(THREAD,{socketPath:f.socketPath,timeoutMs:300}),{code});
+  }
+  assert(!f.messages.some(m=>m.method==='thread-follower-start-turn'||m.method==='thread-follower-interrupt-turn'));
+});
 
 test('shared native owner receives clean user input and hidden task context, retaining desktop settings',async t=>{
   const messageId=randomUUID();let received;
@@ -199,5 +223,4 @@ test('oversized frame and prototype patch fail closed without mutating global pr
   const f=await fixture(t);await f.session.status();const head=Buffer.alloc(4);head.writeUInt32LE(256*1024*1024+1);f.writeRaw(head);await delay(10);
   await assert.rejects(async()=>f.session.status(),{code:'CODEX_DESKTOP_FRAME_LIMIT'});
   assert.throws(()=>applyMetadataPatches(state(),[{op:'add',path:['__proto__','polluted'],value:true}]),{code:'CODEX_DESKTOP_PATCH_INVALID'});assert.equal({}.polluted,undefined);
-  assert.throws(()=>verifyDesktopBuild('/synthetic/missing.asar'),{code:'CODEX_DESKTOP_VERSION_UNVERIFIED'});
 });

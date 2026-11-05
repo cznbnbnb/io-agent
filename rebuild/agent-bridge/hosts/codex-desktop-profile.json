@@ -1,29 +1,7 @@
 {
-  "schema": 1,
-  "inspected_at": "2026-11-03",
-  "scope": "Current installed Desktop owner follower IPC; shared conversation input, steer and settings; no launcher override",
-  "sources": [
-    {
-      "path": ".vite/build/src-tOjGKoT3.js",
-      "bytes": 814419,
-      "sha256": "4ec7ba9b620cc5949183c532287ae9da2f6bb5d4f7be0a0e4565a9b4170394c1"
-    },
-    {
-      "path": ".vite/build/main-UOTY8NmV.js",
-      "bytes": 5250222,
-      "sha256": "ad73b094efd3d5037bceb90b285cb20d6319c4043d3b7f52ee7fade6e3015c7a"
-    },
-    {
-      "path": ".vite/build/application-network-startup-DMyt3FBI.js",
-      "bytes": 298748,
-      "sha256": "c4497beb1a68f4322acd6ec2fd1a44c06c24025b115b12324aefae5569849e9d"
-    },
-    {
-      "path": "webview/assets/app-initial-b539f0af92f3.js",
-      "bytes": 10269610,
-      "sha256": "96d8d335e8bd4612da5f0f370c6fc2bdee5fccdbbc269d6d6db7ae899e2aa81f"
-    }
-  ],
+  "schema": 2,
+  "scope": "Desktop owner follower IPC method contracts; no app version or bundle hash allowlist; no launcher override",
+  "compatibility": "Live initialization, owner capability, settings and session state validation. Inbound state revisions are accepted by shape; outgoing method versions describe wire contracts, not app builds.",
   "versions": {
     "thread-owner-discovery": 1,
     "thread-follower-read-model-settings": 1,
