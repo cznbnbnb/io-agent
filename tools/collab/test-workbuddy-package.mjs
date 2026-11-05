@@ -8,7 +8,7 @@ const store=new MaterialStore(':memory:'),server=await listen(store);
 try{
  const manifest=JSON.parse(fs.readFileSync(path.join(dir,'MANIFEST.json')));
  for(const [file,digest] of Object.entries(manifest.files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(dir,file))).digest('hex'),digest);
- const help=await run('cz-iot-cli.mjs',['help']);assert.equal(help.code,0);assert.deepEqual(await run('io-agent.mjs',['help']),help);
+ const help=await run('cz-iot-cli.mjs',['help']);assert.equal(help.code,0);assert.deepEqual(await run('io-agent.mjs',['help']),help);assert.equal(help.value.correction_guidance.format,'cz-iot-cli/lifelog-correction-guidance/1');assert(help.value.correction_guidance.rules.some(rule=>rule.includes('日记口吻')));assert(help.value.correction_guidance.rules.some(rule=>rule.includes('逐字转写')));
  assert.equal(manifest.format,'cz-iot-cli-package/1');assert.equal(manifest.entrypoint,'cz-iot-cli.mjs');assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'package.json'))).bin['cz-iot-cli'],'cz-iot-cli.mjs');
  const install=spawnSync('npm',['install','--global','--offline','--ignore-scripts','--no-audit','--no-fund','--prefix',path.join(temp,'installed'),'--cache',path.join(temp,'npm-cache'),dir],{cwd:temp,env,encoding:'utf8',timeout:30000});assert.equal(install.status,0,install.stderr);
  const binary=spawnSync(path.join(temp,'installed/bin/cz-iot-cli'),['help'],{cwd:temp,env,encoding:'utf8',timeout:30000});assert.equal(binary.status,0,binary.stderr);assert.deepEqual(JSON.parse(binary.stdout),help.value);
@@ -29,10 +29,11 @@ try{
  Object.assign(daily.body,{material_id:'daily-package-fixture',revision:1,base_revision:0,text_revision:1,source:'agent_analysis',started_at:'2026-10-26T00:00:00Z',ended_at:'2026-10-27T00:00:00Z',utterances:[],audio:{state:'not_retained',sha256:null,object_id:null},full_text:{format:'markdown',text:'# 2026-10-26 每日 AI 总结\n\nPortable daily fixture',origin:'legacy'}});store.submit(phone.token,daily);
  const readerEnv={runtime:env.IO_AGENT_CALLER_RUNTIME,session:env.IO_AGENT_CALLER_SESSION,python:env.IO_AGENT_PYTHON};delete env.IO_AGENT_CALLER_RUNTIME;delete env.IO_AGENT_CALLER_SESSION;env.IO_AGENT_PYTHON='/not-installed/python';
  const read=await run('cz-iot-cli.mjs',['daily'],{date:'2026-10-26'});assert.equal(read.code,0,JSON.stringify(read.value));assert.equal(read.value.items[0].text,daily.body.full_text.text);assert.equal(read.value.coverage.scope,'server_stored_lifelog_text');const legacyRead=await run('io-agent.mjs',['daily'],{date:'2026-10-26'});assert.equal(legacyRead.code,0);for(const key of ['operation','service','filters','items','has_more','coverage'])assert.deepEqual(legacyRead.value[key],read.value[key]);
+ assert.deepEqual(read.value.correction_guidance,help.value.correction_guidance);assert.equal(read.value.items[0].correction_guidance,undefined);
  const before=read.value.items[0],correction={request_id:'portable-edit',material_id:before.material_id,expected_source_revision:before.revision,expected_revision:0,agent:'WorkBuddy',reason:'核对项目事实',evidence:['合成样本'],dependencies_version:before.dependencies_version,edits:[{block_id:'summary',text:'# 2026-10-26 每日 AI 总结\n\nCorrected portable fixture'}]};
  assert.equal((await run('cz-iot-cli.mjs',['daily-correct'],correction)).code,0);
  assert.match((await run('cz-iot-cli.mjs',['daily'],{date:'2026-10-26'})).value.items[0].text,/Corrected portable/);
- assert.equal((await run('cz-iot-cli.mjs',['daily-history'],{material_id:before.material_id})).value.items.length,1);
+ const history=(await run('cz-iot-cli.mjs',['daily-history'],{material_id:before.material_id})).value;assert.equal(history.items.length,1);assert.deepEqual(history.correction_guidance,help.value.correction_guidance);assert.equal(history.original.blocks.find(block=>block.id==='summary').text,daily.body.full_text.text);
  const undo={...correction,request_id:'portable-undo',expected_revision:1,revert_revision:1};delete undo.edits;delete undo.dependencies_version;
  assert.equal((await run('cz-iot-cli.mjs',['daily-revert'],undo)).code,0);
  const recovered=await run('cz-iot-cli.mjs',['phone-recovery'],{label:'Replacement phone'});assert.equal(recovered.code,0,JSON.stringify(recovered.value));assert.equal(recovered.value.role,'phone');

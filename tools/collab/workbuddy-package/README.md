@@ -127,6 +127,12 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 
 2026-11-02：`daily` 已升级为已同步智记文字查询，指定日期自动收齐总结、分段与转写。新增 `daily-correct`、`daily-note`、`daily-history`、`daily-revert`；订正在服务器单独保存，不回写手机。原音仍不上传。以 `help` 和 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md` 为准。
 
+### 智记订正文风（CLI 0.2.1 起）
+
+订正前读取 `daily` / `daily-history` / `help` 中的 `correction_guidance`。每日总结与分段智记保留原日记口吻、叙述视角、标题和自然段节奏；事实优先，必要的删改与段落重组可以做。修改原因与依据放在 `reason` / `evidence`，正文不加入“订正版”或订正说明；不能仅凭 `speaker=others` 判定本人未参与。逐字转写保留说话人和原话结构，后续事实使用 `daily-note`。
+
+出现 `summary_stale` 时，先用 `daily-history` 取得原总结，再结合有效转写修正并提交最新 `dependencies_version`，不要借此更换文风。提交后用 `daily` 回读确认有效正文和订正版本。完整规则见 [智记查询与订正说明](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+
 
 2026-11-04：新增 `node cz-iot-cli.mjs daily-context`，stdin `{"date":"2026-10-30"}`。读取账号已同步的原厂已有活动、定位和日历，完整定位点仅在 `include_points:true` 时返回。`daily` 默认附结构化概览；没有原音、没有新增定位采集，日历不是实际出席记录。分页与来源限制见 `DAILY-SUMMARIES.md`。
 

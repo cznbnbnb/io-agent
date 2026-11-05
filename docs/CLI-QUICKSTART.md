@@ -105,6 +105,10 @@ cz-iot-cli update
 | `daily-correct` / `daily-note` / `daily-history` / `daily-revert` | 服务器原文订正、补充及撤销，不回写手机 |
 | `todo-add` / `todo-status` | 先在眼镜建议，用户确认后加入原厂待办 |
 
+CLI 0.2.1 起，智记订正前先读 `daily` / `daily-history` / `help` 的 `correction_guidance`。每日总结和分段智记保留原日记口吻、视角、标题和自然段节奏；事实优先，必要删改可以做。编辑说明放 `reason` / `evidence`，不混入正文；不只凭 `speaker=others` 断言本人未参与。逐字转写保持原话结构，后续事实用 `daily-note`。
+
+`summary_stale` 时先用 `daily-history` 读原总结，再结合有效转写修正并携带最新 `dependencies_version`；提交后用 `daily` 回读确认生效。详见 [智记查询与订正规范](../rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+
 只在用户要求时使用相应资料/待办能力。已配对不等于有管理员权限。未知 Agent 的问答 CLI 不代表支持从手机唤醒或打断其原生进程；这需要单独的宿主适配或受管 ACP 接口。
 
 配对及更新故障详见 [完整使用说明](../tools/collab/workbuddy-package/README.md)。发布包 [SHA256SUMS](distribution/SHA256SUMS) 可用于下载校验，ZIP 不包含已授权连接、账号密钥、数据库、智记或原音。

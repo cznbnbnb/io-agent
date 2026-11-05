@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {renewSession,atomic} from './session-pairing.mjs';
+import {CORRECTION_GUIDANCE} from './lifelog-correction-policy.mjs';
 // P41 connection program: outbound-only client for the material/queue service.
 // Same transport rules as the query tool: file-only bearer, HTTPS (loopback http
 // only when explicitly allowed), no redirects, bounded bodies, one request per call.
@@ -147,7 +148,7 @@ export class BridgeClient{
       bytes+=Buffer.byteLength(JSON.stringify(page.items));if(bytes>32*1048576)fail('DAILY_RESULT_TOO_LARGE',{detail:'Use a smaller date range or explicit limit/cursor; no partial result was returned.'});
       items.push(...page.items);cursor=page.next_cursor;
     }while(completeDays&&page.has_more);
-    return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page,items,complete:!page.has_more};
+    return {operation:'daily',service:{server_id:this.config.server_id,owner_id:this.config.owner_id},retrieved_at:new Date(this.clock()).toISOString(),filters,...page,items,complete:!page.has_more,correction_guidance:CORRECTION_GUIDANCE};
   }
   async dailyContext(input={}){
     if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['date','from','to','include_points','limit','cursor'].includes(k)))fail('INVALID_QUERY');
@@ -155,7 +156,7 @@ export class BridgeClient{
   }
   async dailyEdit(action,input){
     if(!['daily-correct','daily-note','daily-revert','daily-history'].includes(action)||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_QUERY');
-    if(action==='daily-history')return (await this.#send('POST','lifelog-text/history',JSON.stringify(input))).body;
+    if(action==='daily-history')return {...(await this.#send('POST','lifelog-text/history',JSON.stringify(input))).body,correction_guidance:CORRECTION_GUIDANCE};
     if(action==='daily-correct'&&!Array.isArray(input.edits)||action==='daily-note'&&typeof input.note!=='string'||action==='daily-revert'&&!integer(input.revert_revision))fail('INVALID_CORRECTION');
     const payload=JSON.stringify(input);if(Buffer.byteLength(payload)>1048576)fail('CORRECTION_TOO_LARGE');
     return (await this.#send('POST','lifelog-text/correct',payload)).body;
