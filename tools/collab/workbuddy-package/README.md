@@ -133,6 +133,8 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 
 出现 `summary_stale` 时，先用 `daily-history` 取得原总结，再结合有效转写修正并提交最新 `dependencies_version`，不要借此更换文风。提交后用 `daily` 回读确认有效正文和订正版本。完整规则见 [智记查询与订正说明](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
+CLI 0.2.2 同时要求分析和订正结合逐句 `blocks[].speaker`、时间与语境；合并 `text` 不带说话人标注。不要把 `others` 的讨论当成本人的工作或待办；`me`、`others` 是原厂识别标签，不明标签不猜归属。能访问且已获授权时，结合微信、飞书消息与项目背景核对人名、品牌、型号、日期和责任，阅读相关完整上下文；不能仅凭熟悉度、词频或搜索零命中改词。将消息/文档来源、时间及具体事实写进 `reason/evidence`，无法访问时如实说明。CLI 不包含微信/飞书查询，也不能通过文字订正修改结构化说话人标签。
+
 
 2026-11-04：新增 `node cz-iot-cli.mjs daily-context`，stdin `{"date":"2026-10-30"}`。读取账号已同步的原厂已有活动、定位和日历，完整定位点仅在 `include_points:true` 时返回。`daily` 默认附结构化概览；没有原音、没有新增定位采集，日历不是实际出席记录。分页与来源限制见 `DAILY-SUMMARIES.md`。
 

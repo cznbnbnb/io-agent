@@ -109,6 +109,8 @@ CLI 0.2.1 起，智记订正前先读 `daily` / `daily-history` / `help` 的 `co
 
 `summary_stale` 时先用 `daily-history` 读原总结，再结合有效转写修正并携带最新 `dependencies_version`；提交后用 `daily` 回读确认生效。详见 [智记查询与订正规范](../rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
+CLI 0.2.2 起，分析、提取待办和订正必须结合逐句 `blocks[].speaker`（原厂 `me` / `others`）、时间与语境，不能只读无标注的合并正文。对人名、品牌、型号等信息，使用 Agent 现有已授权的微信、飞书及项目资料交叉核对；记忆只作线索，不凭词频或搜索零命中强改，证据保留渠道、时间和可核查来源。无法访问时如实说明。CLI 本身不新增微信/飞书接口。
+
 只在用户要求时使用相应资料/待办能力。已配对不等于有管理员权限。未知 Agent 的问答 CLI 不代表支持从手机唤醒或打断其原生进程；这需要单独的宿主适配或受管 ACP 接口。
 
 配对及更新故障详见 [完整使用说明](../tools/collab/workbuddy-package/README.md)。发布包 [SHA256SUMS](distribution/SHA256SUMS) 可用于下载校验，ZIP 不包含已授权连接、账号密钥、数据库、智记或原音。

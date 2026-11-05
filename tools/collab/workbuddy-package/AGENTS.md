@@ -12,6 +12,7 @@
 8. 提出原厂待办建议时使用 `node cz-iot-cli.mjs todo-add`，stdin 为 `{"todo_key":"稳定的事项标识","content":"单行且最多48个UTF-16代码单元的待办","source":"WorkBuddy"}`。此命令同样复用电脑配对，不需要 session、join 或 Python。眼镜先显示建议，用户确认后才创建原厂待办；用 `todo-status` 和返回的 `proposal_id` 查询结果。只有 `native_created:true` 才能报告原厂创建成功；结果未知时不能换键重发，也不能把创建成功说成用户已看见。完整说明见 `rebuild/agent-bridge/questions/NATIVE-TODOS.md`。
 9. 用户要求更新时先执行 `node cz-iot-cli.mjs update --check`，再执行 `update`；需要 Git 和本私有仓库读取权限，HTTPS认证可加 `--https`。不复制用户密钥，不修改仓库可见性，不自动关闭活跃 Agent；常驻连接器等任务结束后再重启。配对和私有目录保留，更新代码不代表重开一次绑定。
 10. CLI 0.2.1 起，订正前阅读 `daily` / `daily-history` / `help` 的 `correction_guidance`。每日总结和分段智记保留原日记口吻、视角、标题和自然段节奏；事实优先，必要时删改或重组相关段落。编辑说明只放 `reason` / `evidence`，不写入正文；不能仅凭 `speaker=others` 断言本人未参与。逐字转写保持原话结构，后续事实使用 `daily-note`。`summary_stale` 先用 `daily-history` 取原总结，再结合有效转写修正；提交后用 `daily` 回读确认。详细规范见 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md`。
+11. CLI 0.2.2 起，分析、提取本人待办及订正必须结合逐字转写 `blocks[].speaker`、时间和上下文，不能只读没有说话人标注的合并 `text`。`me`/`others` 分别为原厂标注本人/旁人，缺失或不明按未知处理；不能把旁人讨论算成本人工作，也不能仅凭旁人发言就断言本人未参与。用现有已授权微信、飞书及项目资料核对相关人名、品牌、型号和责任等信息，过往认知作线索；查看相关日期/实体的完整消息，不能凭词频、模糊命中或零命中强改。`reason/evidence` 记渠道、时间、可核查来源及支持的改动；没有访问能力时如实说明。CLI 不提供微信/飞书接口，不修改结构化说话人标签。
 
 
 2026-11-02：`daily` 已升级为已同步智记文字查询，指定日期自动收齐总结、分段与转写。新增 `daily-correct`、`daily-note`、`daily-history`、`daily-revert`；订正在服务器单独保存，不回写手机。原音仍不上传。以 `help` 和 `rebuild/agent-bridge/questions/DAILY-SUMMARIES.md` 为准。
