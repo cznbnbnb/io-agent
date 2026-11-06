@@ -1,58 +1,52 @@
-# 雷鸟 iO Agent
+# iO Agent
 
-基于固定版本 Turbo-IO 与官方 Android App 宿主，开发眼镜、手机、服务器与电脑 Agent 的任务及资料闭环。当前采用 Android 优先路线，保留鸿蒙源码，待 Android 成熟后适配。
+让电脑上的 AI 助手把问题发到眼镜上。比如 Codex 整理会议记录时需要你选一种格式，它可以在镜片上列出选项。你读完后长按退出、说出答案、点头确认，Codex 就能在刚才那条会话里按你的选择继续。手机也可以查看任务和回复。
 
-## 当前进展
+**[CLI 接入指南](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/CLI-QUICKSTART.md)** · **[下载 cz-iot-cli 便携包](https://raw.githubusercontent.com/cznbnbnb/io-agent/refs/heads/codex/agent-workspace-ui/docs/distribution/cz-iot-cli.zip)** · [校验文件](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/distribution/SHA256SUMS) · [当前适配源码](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui)
 
-截至 2026-10-23，当前装机 **0.5.3-dev38 /10460**（回退 dev37）。当前 Codex 原对话已接入眼镜 CLI，新增无需回答的阻塞通知：整稿接收、3分钟退出ACK及去重已真机核对，镜片可读待本人确认。**本轮长按退出后没有起录，仍未修复**；眼镜在时间页仍返回OTA忙碌，正在核对录音专用状态。双摇头退出尚未实现，优先补齐，再按R2→R3→R4推进。此前 dev36 熄屏真人闭环成功证据保留，不用旧成功覆盖本轮失败。
+## 能用它做什么
 
-| 阶段 | 进度 | 已核验 | 主要待办 |
-| --- | --- | --- | --- |
-| R2 眼镜任务卡与交互 | 85% | 一分钟静置及旋钮续时已人工确认；原任务绑定及部分交互保护已有实现；卡片正文实测约 56 字截断，上限定为 48 字；dev17 合成长问题经提词器完整显示，长按回时间页、未重启（单次） | 完整交接、异常恢复、锁屏后台与日常稳定 |
-| R3 Agent 语音及任务闭环 | 75% | 三路合成路由已回到服务器原问题；dev8 真人佩戴只取左声道，完整条件准确、本次未见旁人文字，全文服务器回读一致；重新口述和核对提示通过；当前真实 Codex 收到本人口述后实际生成记录及列目录，继续/完成各一次；dev10/11 起自由回答问题会显示到眼镜：按＋自动开始口述，结束后眼镜弹出识别文字确认卡，按＋提交；Hermes（开放文件和终端工具的工作区权限）连问两次，两次都用眼镜口述回答，随后按回答写入文件，任务完成 | 从眼镜结束口述、超过 48 字的识别文字在眼镜上确认（改走提词器）、前后台恢复、更多噪声和佩戴条件下的过滤稳定性、主动委托与中断恢复 |
-| R4 智记资料同步 | 55% | 真实智记正文及修订已同步并回读；月份选日同步及重复幂等真机通过（两天、无新增版本），取消提示已修 | 超 256KiB 正文已单条跳过不中止整批，上传仍需分块方案；自动增量、原音、权威删除及全天稳定 |
-
-已存三条资料、六个历史版本在本次覆盖升级前后保持；资料账本仍为 schema3。当前版本适合开发验证，8 小时日常验收尚未完成。此前合成路由测试没有启动真实电脑 Agent；本次已验证当前真实 Codex 对话的原任务口述继续，[本地记录](docs/product/眼镜语音验收记录-2026-10-22.md)与[证据](rebuild/android-app/current-codex-voice-2026-10-22.json)已留存。Hermes 原任务口述见[第一轮证据](rebuild/android-app/phone-hermes-original-task-2026-10-22.json)和[眼镜闭环证据](rebuild/android-app/phone-hermes-glasses-loop-2026-10-22.json)。测试凭据已撤销并核对失效。
-
-先阅读 [协作交接](docs/product/COLLABORATION-HANDOFF.md)、[开发状态](docs/product/DEVELOPMENT-STATUS.md)、[开发计划](docs/product/DEVELOPMENT-PLAN.md) 和 [项目约定](AGENTS.md)。需求以 [PRD](docs/product/PRD.md) 为准，人工观察统一登记到 [验收清单](docs/product/USER-VERIFICATION-TODO.md)。
-
-## 目录
-
-| 路径 | 内容 |
+| 场景 | 用法 |
 | --- | --- |
-| `rebuild/android-app/src/com/turboio/addon/` | Android 业务、宿主适配、任务与资料运行时 |
-| `rebuild/android-app/upstream/` | 固定上游参考，保持只读；提交及文件摘要见同级来源锁 |
-| `tools/android/` | Windows 构建、签名、定向测试及受控设备诊断 |
-| `rebuild/agent-bridge/` | 电脑任务桥、问题 CLI、Hermes 适配与测试 |
-| `rebuild/material-server/` | 资料及任务服务、查询接口、部署配置与测试 |
-| `docs/contracts/` | 共享协议与合成样例 |
-| `rebuild/harmony-sdk/` | 保留的鸿蒙工程与测试 |
-| `tools/phase1/`、`rebuild/phase1/` | 既有设备工具与鸿蒙构建入口 |
+| 让 Agent 主动联系你 | 用 `notify` 发一条提醒。需要你做决定时，用 `ask` 提问，再用 `wait` 取回同一道题的答案。 |
+| 从手机继续工作 | 手机按工作区整理会话。支持远程控制的 Codex、Claude Code 会话可以接收任务及打断指令。用 `session-status` 查看当前会话的实际能力。 |
+| 让 Agent 回顾日常 | 配对后用 `daily` 查询已同步的每日总结、分段智记和带说话人标注的转写。Agent 可以根据已有证据订正文字，后续查询读取生效版本。 |
+| 把建议变成待办 | Agent 用 `todo-add` 在镜片上提出建议。你点头确认后，它才加入原厂待办。 |
+| 在手机整理资料 | 普通录音和全天智记按时间排列。可以按标题和时间导出 MP3 到手机，单戴一只耳机也能听到双方。 |
 
-## 开发验证
+## 接入你的第一个 Agent
 
-Windows 需要 Node.js 22、Python 3 和 JDK 17。Android 构建另需 SDK 36 / build-tools 36.0.0 与固定 apktool；入口见 [Android 构建说明](rebuild/android-app/README.md)。
+需要一副已连接手机的雷鸟 iO 眼镜、已配置服务的 **iO Agent Android App**，以及能执行本地命令的电脑 Agent。电脑准备 Node.js 22.18+（22.x）和 Python 3.10+（带 sqlite3）。电脑和手机都能联网即可。
 
-以下测试使用合成输入，不操作手机或公网：
+1. 下载上方 ZIP，将它解压到电脑上的独立目录。让 Agent 在**要使用的那条真实会话**中进入解压后的 `cz-iot-cli` 目录，检查环境和命令。
 
-```powershell
-node tools/android/test-lifelog-calendar-core.mjs
-node tools/android/test-lifelog-calendar-http.mjs
-node tools/android/test-lifelog-month-discovery.mjs
-node tools/android/test-material-month-runtime.mjs
-node tools/android/test-context-voice-fixture.mjs
+   ```sh
+   node setup.mjs doctor
+   node cz-iot-cli.mjs help
+   ```
+
+2. 让 Agent 执行 `node cz-iot-cli.mjs pair`，通过标准输入传入主题和实际工作区。手机打开 **设置 → 电脑与 Agent → 添加/扫码绑定**，扫描二维码或粘贴配对字符串，核对工作区后点「保存并绑定」。同一台电脑的后续会话可复用配对。
+3. 让 Agent 用 `pair-status` 核对绑定，再用 `join` 登记当前会话。戴好眼镜后，可以直接对它说「在眼镜上问我一道选择题，等我回答再继续」。服务端接受消息后，Agent 用同一个请求 ID 等到你的答案，就完成了双向测试。
+
+**转发给另一个 Agent** 时，发 [CLI 接入指南](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/CLI-QUICKSTART.md) 即可。指南包含 Windows PowerShell 的中文编码设置、配对输入示例和回执判断。WorkBuddy 等可执行命令的宿主可以主动提问并读取答案，从手机唤醒或打断原会话则取决于宿主适配。
+
+已安装的便携包可以通过 Git HTTPS 检查或更新，配对可以继续使用。
+
+```sh
+node cz-iot-cli.mjs update --check --https
+node cz-iot-cli.mjs update --https
 ```
 
-传输测试包含一次真实 30 秒的本机截止等待，HTTPS 端口仍为测试替身。其他测试命令及分工见协作交接。手机诊断脚本不是离线测试，不应在新环境直接批量执行。
+## 系统怎么连接
 
-## 本地依赖和数据
+```text
+电脑上的 Agent ⇄ cz-iot-cli ⇄ 任务与资料服务 ⇄ iO Agent Android ⇄ 蓝牙眼镜
+```
 
-GitHub 只保存可审查的代码、协议、测试和进度。官方宿主 APK、固定自有签名、真实账号凭据、原音、智记正文、设备身份、工具缓存与历史原始日志保留在本地，不进入仓库。没有这些私有输入仍可推进纯核心、服务器和模拟测试；完整装包及真机验收由持有相应环境的开发者完成。
+服务器把问题、答案和回执关联到原任务。手机负责眼镜显示、口述确认，以及用户开启的资料同步。CLI 可查询已同步的文字，MP3 从手机导出。仓库可以公开下载，访问个人设备和资料另需手机批准配对。
 
-官方宿主固定为 **1.0.7 / 230**，SHA-256 为 `30239f65d910cf7008cfdf6cfacd5c068c5877068b4a637027786377a9ce4f91`。不要用其他官方版本替换输入来跳过 ABI 或来源门禁。不要为绕过签名冲突卸载 App 或清数据。
+## 开发与许可
 
-## 来源及许可
-
-Turbo-IO 固定提交为 `f57cc82d0c810435653b684fbdd8c07c533a012f`，原始选取文件与摘要保留于 `rebuild/android-app/upstream-source-manifest.json`。当前上游使用 [PolyForm Noncommercial 1.0.0](rebuild/android-app/upstream/LICENSE)，另保留 [NOTICE](rebuild/android-app/upstream/NOTICE) 及 [第三方说明](rebuild/android-app/upstream/THIRD_PARTY_NOTICES.md)。私有托管不改变相应许可要求，本仓库不将整体重新标为 MIT。
-
-本次为协作建立独立 Git 基线；本地早期开发历史及未公开的原始证据继续保留。部分历史文档链接指向仅存本地的证据，不能把链接缺失当作该功能已通过或已失败。
+- [Android 应用与构建说明](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/android-app) · [Agent 适配与 CLI](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/agent-bridge) · [任务与资料服务](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/material-server) · [接口与合成样例](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/docs/contracts)
+- 当前实现以 Android 为主，仓库另有[鸿蒙实验工程](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/harmony-sdk)。Android 完整构建使用指定版本的原厂宿主 APK 和开发者自己的签名材料。CLI 可独立运行。
+- iO Agent 是独立社区项目。仓库保留 Turbo-IO 上游的 [PolyForm Noncommercial 1.0.0 许可](rebuild/android-app/upstream/LICENSE)、[版权声明](rebuild/android-app/upstream/NOTICE)和[第三方许可说明](rebuild/android-app/upstream/THIRD_PARTY_NOTICES.md)。使用对应组件时请遵循其许可。
