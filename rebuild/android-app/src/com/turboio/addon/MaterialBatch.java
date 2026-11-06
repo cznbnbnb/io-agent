@@ -72,7 +72,7 @@ final class MaterialBatch {
     row.setContentDescription(part.title+"，"+clock(s,zone)+"到"+clock(e,zone));card.addView(row);list[0].add(row,tick,Collections.singletonList(part.id));
    }
   }
-  LinearLayout bottom=new LinearLayout(a);bottom.setGravity(Gravity.CENTER_VERTICAL);bottom.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,14),0,0);LinearLayout words=AgentUI.column(a);summary[0]=MaterialReadingUI.bold(AgentUI.text(a,"",15,AgentUI.INK));words.addView(summary[0]);TextView how=AgentUI.text(a,"每段保存为一个 ZIP，解压即可播放",12,AgentUI.MUTED);how.setPadding(0,AgentUI.dp(a,3),0,0);words.addView(how);bottom.addView(words,new LinearLayout.LayoutParams(0,-2,1));
+  LinearLayout bottom=new LinearLayout(a);bottom.setGravity(Gravity.CENTER_VERTICAL);bottom.setPadding(AgentUI.dp(a,4),AgentUI.dp(a,14),0,0);LinearLayout words=AgentUI.column(a);summary[0]=MaterialReadingUI.bold(AgentUI.text(a,"",15,AgentUI.INK));words.addView(summary[0]);TextView how=AgentUI.text(a,"同一记录相邻片段合成 MP4，间隔超过 5 分钟分开保存",12,AgentUI.MUTED);how.setPadding(0,AgentUI.dp(a,3),0,0);words.addView(how);bottom.addView(words,new LinearLayout.LayoutParams(0,-2,1));
   confirm[0]=MaterialReadingUI.sheetButton(a,bottom,"",MaterialReadingUI.ACCENT_SOFT,MaterialReadingUI.ON_ACCENT,0,()->{List<MaterialCatalog.Entry> picked=new ArrayList<>();for(MaterialCatalog.Entry e:all)if(list[0].chosen.contains(e.id))picked.add(e);if(picked.isEmpty())return;picked.sort(MaterialTimeline.CHRONOLOGICAL);sheet.dialog.dismiss();export.accept(picked);});
   LinearLayout.LayoutParams bp=(LinearLayout.LayoutParams)confirm[0].getLayoutParams();bp.width=-2;confirm[0].setPadding(AgentUI.dp(a,22),0,AgentUI.dp(a,22),0);sheet.footer.addView(bottom);
   sheet.action("全选",()->list[0].setAll(!list[0].everything()));changed.run();sheet.show();

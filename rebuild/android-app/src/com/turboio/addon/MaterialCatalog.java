@@ -14,11 +14,12 @@ final class MaterialCatalog {
  }
  static final class Entry {
   final String id,title,source,state,error,fullText,audioState,coverage;
+  final String recordingId;
   final long revision,startedAt,endedAt,storedAt,observedAt;final LocalDate day;final ZoneId zone;final Set<LocalDate> dates;
   final List<Segment> segments;
   Entry(Map<String,Object> body,Map<String,Object> row,ZoneId zone){this(body,row,zone,null,Collections.emptySet(),0);}
   Entry(Map<String,Object> body,Map<String,Object> row,ZoneId zone,String originalTitle,Set<LocalDate> memberships,long observedAt){
-   this.zone=zone;id=(String)body.get("material_id");source=(String)body.get("source");revision=MaterialWire.positive(body.get("revision"));
+   recordingId="";this.zone=zone;id=(String)body.get("material_id");source=(String)body.get("source");revision=MaterialWire.positive(body.get("revision"));
    startedAt=MaterialWire.time(body.get("started_at"));endedAt=MaterialWire.time(body.get("ended_at"));day=Instant.ofEpochMilli(startedAt).atZone(zone).toLocalDate();
    title=originalTitle!=null&&!originalTitle.trim().isEmpty()?originalTitle:("recording".equals(source)?"录音":"agent_analysis".equals(source)?"分析记录":"智记")+" · "+DateTimeFormatter.ofPattern("M月d日 HH:mm",Locale.CHINA).format(Instant.ofEpochMilli(startedAt).atZone(zone));
    this.observedAt=observedAt;Set<LocalDate> dates=new TreeSet<>(memberships);dates.add(day);this.dates=Collections.unmodifiableSet(dates);
@@ -29,7 +30,13 @@ final class MaterialCatalog {
    List<Segment> list=new ArrayList<>();for(Object raw:WireJson.list(body.get("utterances"))){Map<String,Object> u=WireJson.map(raw);list.add(new Segment((String)u.get("text"),speakers.getOrDefault(u.get("speaker_id"),"未标记说话人"),u.get("start_ms")==null?null:MaterialWire.number(u.get("start_ms")),u.get("end_ms")==null?null:MaterialWire.number(u.get("end_ms"))));}
    segments=Collections.unmodifiableList(list);
   }
-  private Entry(Entry entry,String title,Set<LocalDate> memberships){id=entry.id;this.title=title==null||title.trim().isEmpty()?entry.title:title;source=entry.source;state=entry.state;error=entry.error;fullText=entry.fullText;audioState=entry.audioState;coverage=entry.coverage;revision=entry.revision;startedAt=entry.startedAt;endedAt=entry.endedAt;storedAt=entry.storedAt;observedAt=entry.observedAt;day=entry.day;zone=entry.zone;segments=entry.segments;Set<LocalDate> dates=new TreeSet<>(memberships);this.dates=Collections.unmodifiableSet(dates);}
+  Entry(String account,String task,String label,long start,long end,ZoneId zone){
+   this.zone=zone;id=OfficialLifelogSnapshot.materialId(account,"recording",task);recordingId=task;source="recording";title=label.isEmpty()?"录音资料":label;
+   startedAt=start;endedAt=end;day=Instant.ofEpochMilli(start).atZone(zone).toLocalDate();dates=Collections.singleton(day);segments=Collections.emptyList();
+   state="local_only";error=fullText=coverage="";audioState="local";revision=storedAt=observedAt=0;
+  }
+  private Entry(Entry entry,String title,Set<LocalDate> memberships){this(entry,title,memberships,entry.recordingId);}
+  private Entry(Entry entry,String title,Set<LocalDate> memberships,String task){recordingId=task;id=entry.id;this.title=title==null||title.trim().isEmpty()?entry.title:title;source=entry.source;state=entry.state;error=entry.error;fullText=entry.fullText;audioState=entry.audioState;coverage=entry.coverage;revision=entry.revision;startedAt=entry.startedAt;endedAt=entry.endedAt;storedAt=entry.storedAt;observedAt=entry.observedAt;day=entry.day;zone=entry.zone;segments=entry.segments;Set<LocalDate> dates=new TreeSet<>(memberships);this.dates=Collections.unmodifiableSet(dates);}
   String timeRange(){DateTimeFormatter f=DateTimeFormatter.ofPattern("HH:mm",Locale.ROOT);return f.format(Instant.ofEpochMilli(startedAt).atZone(zone))+" – "+f.format(Instant.ofEpochMilli(endedAt).atZone(zone));}
   String syncLabel(){switch(state){case "local_only":return "手机原文 · 已读取";case "local_updated":return "手机原文 · 已更新";case "server_stored":return "文字已同步";case "blocked":return "同步需处理";case "expired":return "同步凭据或事件已到期";case "reconcile":return "正在核对同步结果";case "sending":return "正在同步";default:return "文字待同步";}}
  }
@@ -76,6 +83,23 @@ final class MaterialCatalog {
    if(prior!=null&&sameContent(prior,current))combined.put(record.id,new Entry(prior,record.source.title,current.dates));else combined.put(record.id,current);
   }
   List<Entry> entries=new ArrayList<>(combined.values());entries.sort(Comparator.comparingLong((Entry e)->e.startedAt).reversed().thenComparing(e->e.id));return new MaterialCatalog(local.account,uploaded.zone,entries,uploaded.lastStoredAt,uploaded.deleted);
+ }
+ /** Project ordinary recordings for the phone only. Stock recording rows have no transcript requirement. */
+ static MaterialCatalog withRecordings(MaterialCatalog catalog,LifelogInsightStore.Snapshot insights,String date,String timezone){
+  if(insights==null)return catalog;
+  OfficialLifelogInsight.Day day=insights.day(date,timezone);if(day==null)return catalog;
+  Map<String,Entry> shown=new LinkedHashMap<>();for(Entry e:catalog.entries)shown.put(e.id,e);
+  // A stand-alone event is more precise than an aggregate that also mentions this source.
+  List<OfficialLifelogInsight.Event> events=new ArrayList<>(day.events);events.sort(Comparator.comparingInt(e->e.refs.size()));
+  Set<String> seen=new HashSet<>();
+  for(OfficialLifelogInsight.Event event:events)for(String ref:event.refs)if(ref.startsWith("recording/")&&seen.add(ref)){
+   String task=ref.substring(10);if(!task.matches("[A-Za-z0-9_-]{1,128}"))continue;
+   String id=OfficialLifelogSnapshot.materialId(catalog.account,"recording",task);if(catalog.deleted.contains(id))continue;
+   Entry old=shown.get(id);
+   if(old!=null)shown.put(id,new Entry(old,old.title,old.dates,task));
+   else if(event.refs.size()==1)shown.put(id,new Entry(catalog.account,task,event.title,event.start,event.end,catalog.zone));
+  }
+  return new MaterialCatalog(catalog.account,catalog.zone,new ArrayList<>(shown.values()),catalog.lastStoredAt,catalog.deleted,catalog.dates);
  }
  List<Entry> on(LocalDate day){List<Entry> found=new ArrayList<>();for(Entry entry:entries)if(entry.dates.contains(day))found.add(entry);return Collections.unmodifiableList(found);}
 }

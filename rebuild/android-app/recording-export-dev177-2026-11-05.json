@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "verified_at": "2026-11-06T07:19:58.961167+00:00",
+  "version": "0.5.3-dev177",
+  "installed_version_code": 10599,
+  "installed_sha256": "1e9f68f5ac0ef03e33f1cc69a3e59ab0faad34854d46c85a17c1cb65f331738e",
+  "rollback": "0.5.3-dev176",
+  "delta_bytes": 2007387,
+  "on_device": {
+    "ordinary_recording": "Opened a recording row from the selected date and exported it using its detail sheet. One titled and timestamped .mp4 in Download/IO 文档; MediaStore indexed it as audio/mp4.",
+    "public_file_bytes": 24594060,
+    "public_file_duration_ms": 2175774,
+    "native_aac_audio_track_duration_us": 2175774000,
+    "real_lifelog": "Verified one source-linked local lifelog archive, decoded its Opus fragment and opened the resulting MP4 with Android MediaExtractor.",
+    "lifelog_duration_us": 14880000,
+    "synthetic_concat": "Two 1-second Opus inputs -> one AAC track, 2000000 us. A gap over 5 minutes and uncertain cached origin were kept separate.",
+    "floating_entry": "Dragged from upper right to left, relaunched and tapped at saved position to open workspace; restored near original position.",
+    "ordinary_recording_day_refs_matched_local_files": 3,
+    "temp_phone_tools_removed": true
+  },
+  "offline": {
+    "material_catalog_document": 45,
+    "local_library": 46,
+    "existing_day_context": 15,
+    "audio_archive": 37,
+    "document_picker": 28
+  },
+  "retention": {
+    "retired_version": "0.5.3-dev175",
+    "retired_sha256": "e1e0fcb814f2fce58d3d69e0c149ba6a68f49c219043e0f537a8b0ebfe5dda3f"
+  },
+  "privacy": "No private titles, filenames, identifiers, audio or transcripts included. Audio export stays local. Server, CLI and OTA channel unchanged."
+}

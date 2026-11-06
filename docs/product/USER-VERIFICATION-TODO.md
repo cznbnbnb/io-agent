@@ -1,3 +1,5 @@
+A03-AUDIO177 录音时间线与导出（dev177 已装，功能已真机自测，手感待自然使用反馈）：资料 → 有普通录音的日期 → 录音资料 → 导出音频到手机。可选一条包含多段的长智记，听片段接点；若有不自然的截断，反馈日期与大致分钟即可，无需发送原音。悬浮 iO 入口拖到任意可见位置后应仍能点开。[真机结果](../../rebuild/android-app/recording-export-dev177-2026-11-05.json)。
+
 A04-VS01 提词退出到口述（dev176已装，当前单轮人工反馈可接受）：dev175约12.937秒，用户反馈仍十几秒；dev176约3.364秒收到首个已解码音频，设备检查约0.436秒，原口述回到同一CLI。回答“犬一更快的能够接受。”中选项前缀被ASR识别成“犬一”，option_id仍null；保留全文，不擅自改成明确选择。当前时延单轮通过，不是多网络场景的长期指标，不继续催用户复测。[证据](../../rebuild/android-app/voice-startup-dev176-2026-11-04.json)。
 
 A04-WB01 Windows WorkBuddy主动问答（手机修复已装、当前Codex闭环通过，Windows原会话回传待一次单题验证）：dev174用户长按后口述“选一。正常开启录音。”并在眼镜确认，原Codex CLI收到完整voice答案；修复独立版缺旧开发准入状态及新路由历史补读迟缓。不要重测已通过的Mac闭环。WorkBuddy需要时只发一道有效期充足的题，并对同一request持续wait/status，确认voice全文回到它当前会话；不要notify/多题/待办一并轰炸。NATIVE_HOST_UNSUPPORTED不影响主动wait，但Windows后台唤起和手机下发执行仍不支持，不计通过。[证据](../../rebuild/android-app/workbuddy-delivery-dev174-2026-11-04.json)。

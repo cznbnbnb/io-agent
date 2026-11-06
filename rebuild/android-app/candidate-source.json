@@ -278,7 +278,7 @@
     },
     {
       "path": "src/com/turboio/addon/TurboAddon.java",
-      "sha256": "77cd62348767203f612f1d8e9ff0958527d4efbbc1592ed3c9a22dda3ecb7a74"
+      "sha256": "cdc9fe36114f8bd754570c395fb6c37a61311cb5162d88454a23831146a2e969"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/TurboStyle.java",
@@ -322,7 +322,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "cb35a919e41d49ce8e8b816b262e88f6d0f154d95bbbbab1ca9293c9f5de8a34"
+      "sha256": "6275b5e1d79957a8bbfa5db5af916ac5e3a2f6d488f5c84f709b0eeb51ef0b0b"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
@@ -509,6 +509,10 @@
       "sha256": "8fe77aa325f7d1135162d9635346d5cc3f872c0d4cdc92fed55d1c0d8441e353"
     },
     {
+      "path": "src/com/turboio/addon/FloatingEntryPosition.java",
+      "sha256": "7a3e05a5f6a97bb4764d1d7562d1cbf02a092943522c64908ac02a001b19009a"
+    },
+    {
       "path": "src/com/turboio/addon/GlassesConnection.java",
       "sha256": "294dce751acc3dc58aa36490b068797087ddf187477f68c52cf54b10a13faf1f"
     },
@@ -606,7 +610,7 @@
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioExport.java",
-      "sha256": "2335793599d4904d9ba0e5fe0b64fde6ec098aba0dd89e9f60cbb2e664a7f02b"
+      "sha256": "a7e30dd1d85a24aae8bf90bcfad3a0f478df3cc0d2384f1b3376afc3f851524b"
     },
     {
       "path": "src/com/turboio/addon/LifelogAudioHealth.java",
@@ -686,7 +690,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialAudioExport.java",
-      "sha256": "e2ef6fd997feb74060eae4776b9d8df83cf17d4460cc15a662d95598a5f697b7"
+      "sha256": "375673d8b0e477a75dd1287c562a12bf8ab2cbe9452fc566a90d8be67abec4c3"
     },
     {
       "path": "src/com/turboio/addon/MaterialAutoSchedule.java",
@@ -694,11 +698,11 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialBatch.java",
-      "sha256": "873b4f5eaf9775215e071ace9d849de2793c8e88620f5910cdab0bfab00b5bf6"
+      "sha256": "8c01ceb8eeb51d26702a4ad79480a6dc93c9bb909526ceccaf9d52e515a7c7a6"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
-      "sha256": "91d796e546500e75966b6a58868f2ad3988a2b9b7e20d3b6d25b9b9a684af4f6"
+      "sha256": "671dae9c046c06b49976d6a42248bc064771f8f2cbe2f20b2ca75d5992ab1016"
     },
     {
       "path": "src/com/turboio/addon/MaterialConfig.java",
@@ -746,7 +750,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialRuntime.java",
-      "sha256": "fde461920cfb117ab96de444a7196f963cc3e662621dc52d5314b78612e4773c"
+      "sha256": "d7d5a9483f2f2ce234a53d41a00f4dad77e4d6cb91d156c9eebd3503f9af4e14"
     },
     {
       "path": "src/com/turboio/addon/MaterialSelect.java",
@@ -774,7 +778,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialTimeline.java",
-      "sha256": "f4648292d1650a337e293dc32b4d535fe7c26c78b253747d21a07434ccfa30d4"
+      "sha256": "28499d893fcec5186a6feac59585fbae0141605ae34cc634f745af9ac898f033"
     },
     {
       "path": "src/com/turboio/addon/MaterialTransfer.java",
@@ -782,7 +786,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialVisibility.java",
-      "sha256": "f356bca44d6d57b2e0c372b3c22a09bf28b78407d052d736d65b84b847235a66"
+      "sha256": "deef55ff228cf66fc56ca37ce194289c21e8ec0280b53803b7675b35f8d36bf9"
     },
     {
       "path": "src/com/turboio/addon/MaterialWeekStrip.java",
@@ -814,7 +818,7 @@
     },
     {
       "path": "src/com/turboio/addon/OfficialAccountBinding.java",
-      "sha256": "6009b2f36e92136dca3a00677494c0c760d624e082e172a1a4e3a1a755683111"
+      "sha256": "85f52d34fd7d3fc254d2428e0c97486240ee19407963175e70dd338542a6f7a2"
     },
     {
       "path": "src/com/turboio/addon/OfficialDayContext.java",
@@ -891,6 +895,10 @@
     {
       "path": "src/com/turboio/addon/OpusFile.java",
       "sha256": "da53ca5068d79b0379f03841694bf0e131ba297f0cfe469d8ca6ad7261d6cca8"
+    },
+    {
+      "path": "src/com/turboio/addon/PhoneAudioExport.java",
+      "sha256": "d5e9e20c23332c595a3c529da907c2dd3df597659a90b180ffd286ee637e182c"
     },
     {
       "path": "src/com/turboio/addon/PhonePresence.java",
@@ -1094,11 +1102,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "bd0b59c2d1d587af8b7772781d186bb1d542f2bba4daa0485889c7cdf5cfbc0f"
+      "sha256": "3a9931a331cf17223060f7893670d70ac15d7adde14101c14ae7f46df440a135"
     }
   ],
-  "product_sha256": "aeeb8f099274bd53103b52df3fe96f5a69972db0162a8405681a12d757396a54",
-  "addon_sha256": "c42ee51259998284c1de866cd5ad32bd1753a38042a00170114984680b9f3715",
+  "product_sha256": "f00255a7210f3c0fe2253c32edfe00d359c2492910d73a8c83ce58e5f1d29af8",
+  "addon_sha256": "728bbc133e2204930a76ef303854258f88a21e60d1d4353f8372ae5979f9b1ce",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"

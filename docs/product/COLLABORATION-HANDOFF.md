@@ -1,3 +1,11 @@
+## [codex] 2026-11-05 dev177 录音资料、MP4 导出与可拖动入口
+
+- dev177（10599）已通过约 2 MB 差异包装入独立版，安装后 SHA 与签名候选一致；dev176 留作回退。基线包含 Claude 的 520ad23；构建排除了其他 Agent 尚未提交的 Delegate 工作。未更改线上更新清单、服务器或 CLI。
+- 资料页按原厂当天的 recording 来源引用显示普通录音，通过当前账号的原音文件精确对应。长智记折叠组遇到中间的独立录音会分开展示，批量操作仍按原事件。点录音详情或右滑可导出，复用设置中的保存目录。局部未下载的录音会提示先在原厂录音页下载；不会用其他录音顶替。
+- 手机本地导出生成仅含 AAC 音轨的 MP4，标题加本地开始时间。同一智记能确认时间、相距不超过 5 分钟的连续片段直接连接，不填补静音；不同记录、时间重叠或无法确认时间的缓存分开。历史远程备份恢复仍明确标识 ZIP。悬浮入口可拖动并记住位置。
+- [真机证据](../../rebuild/android-app/recording-export-dev177-2026-11-05.json)：通过资料页导出真实普通录音 36 分 15.774 秒，文件落在 Download/IO 文档；已关联的真实智记原音也转换并读取到 14.880 秒 AAC；两个各一秒的合成片段合并后准确两秒。入口拖动、重启、点开均已验证。临时诊断包已移除，设备锁已释放。
+- 复测命令：`node tools/android/test-material-catalog-document.mjs`、`node tools/android/test-lifelog-audio-export.mjs`；真机合成拼接用 `node tools/android/build-lifelog-read-probe.mjs --mp4` 构建独立测试包，安装后运行 `adb shell am instrument -w com.turboio.mp4probe.codex/com.turboio.addon.PhoneAudioMp4Probe`。可选 `-e recordingDate YYYY-MM-DD` 核对有本机原音的一天，不导出任何正文或音频到电脑。
+
 ## [codex] 2026-11-04 CLI 0.2.3正式接入完成：当前会话可执行
 
 - 源码c898962和分发8363d4e已推送私库当前分支。本机正式update真实取包0.2.3，changed_files=6、pairing_state_touched=false；14个非MANIFEST本地文件inode/大小/mtime不变，未重绑或改默认目标。

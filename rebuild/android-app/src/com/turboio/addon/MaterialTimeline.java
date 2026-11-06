@@ -31,13 +31,20 @@ final class MaterialTimeline {
  static List<Item> items(List<MaterialCatalog.Entry> entries,LifelogInsightStore.Snapshot insights,String date,String timezone){
   List<MaterialCatalog.Entry> pending=new ArrayList<>(entries);pending.sort(CHRONOLOGICAL);List<Item> items=new ArrayList<>();
   OfficialLifelogInsight.Day day=insights==null?null:insights.day(date,timezone);
-  if(day!=null)for(OfficialLifelogInsight.Event event:day.events){Set<String> ids=insights.materialIds(event);List<MaterialCatalog.Entry> parts=new ArrayList<>();for(Iterator<MaterialCatalog.Entry> it=pending.iterator();it.hasNext();){MaterialCatalog.Entry e=it.next();if(ids.contains(e.id)){parts.add(e);it.remove();}}if(!parts.isEmpty())items.add(new Item(event,parts));}
+  if(day!=null)for(OfficialLifelogInsight.Event event:day.events){Set<String> ids=insights.materialIds(event);List<MaterialCatalog.Entry> parts=new ArrayList<>();for(Iterator<MaterialCatalog.Entry> it=pending.iterator();it.hasNext();){MaterialCatalog.Entry e=it.next();if(e.recordingId.isEmpty()&&ids.contains(e.id)){parts.add(e);it.remove();}}if(!parts.isEmpty())items.add(new Item(event,parts));}
   // Entries read on other days may still carry their own event; look it up once.
-  for(MaterialCatalog.Entry e:pending)items.add(new Item(insights==null?null:insights.eventFor(e.id),Collections.singletonList(e)));
+  for(MaterialCatalog.Entry e:pending)items.add(new Item(insights==null||!e.recordingId.isEmpty()?null:insights.eventFor(e.id),Collections.singletonList(e)));
   return items;
  }
  static List<Section> sections(List<Item> items,ZoneId zone,boolean newestFirst){
-  List<Item> ordered=new ArrayList<>(items);ordered.sort(Comparator.comparingLong((Item i)->i.start).thenComparingLong(i->i.end));
+  // A collapsed event can straddle a recording. Split only its display rows;
+  // the underlying event and its export/delete selection remain the same.
+  NavigableSet<Long> recordings=new TreeSet<>();for(Item item:items)if(!item.parts.get(0).recordingId.isEmpty())recordings.add(item.start);
+  List<Item> ordered=new ArrayList<>();for(Item item:items){
+   if(!item.group()||recordings.isEmpty()){ordered.add(item);continue;}
+   int begin=0;for(int i=1;i<item.parts.size();i++){Long cut=recordings.higher(start(item.parts.get(i-1)));if(cut!=null&&cut<=start(item.parts.get(i))){ordered.add(new Item(item.event,item.parts.subList(begin,i)));begin=i;}}
+   ordered.add(begin==0?item:new Item(item.event,item.parts.subList(begin,item.parts.size())));
+  }ordered.sort(Comparator.comparingLong((Item i)->i.start).thenComparingLong(i->i.end));
   String[] names={"上午","下午","晚上"};List<List<Item>> buckets=Arrays.asList(new ArrayList<>(),new ArrayList<>(),new ArrayList<>());
   for(Item item:ordered){int hour=Instant.ofEpochMilli(item.start).atZone(zone).getHour();buckets.get(hour<12?0:hour<18?1:2).add(item);}
   List<Section> sections=new ArrayList<>();for(int i=0;i<3;i++){if(buckets.get(i).isEmpty())continue;List<Item> list=buckets.get(i);if(newestFirst)Collections.reverse(list);sections.add(new Section(names[i],list));}

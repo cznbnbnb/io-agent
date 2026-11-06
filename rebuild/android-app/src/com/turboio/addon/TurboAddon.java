@@ -141,6 +141,7 @@ public final class TurboAddon {
         root.addView(button, layout); entry = new WeakReference<>(button);
         button.setContentDescription("打开 iO Agent");
         button.setOnClickListener(v -> showHome());
+        FloatingEntryPosition.attach(button,root,prefs);
         diagnostic = "扩展已加载 · " + REVISION;
     }
     public static void shutdown() {

@@ -178,7 +178,7 @@ final class MaterialRuntime {
   LifelogInsightStore.Snapshot insights=null;try(LifelogInsightStore store=new LifelogInsightStore(app.getFilesDir(),current.binding)){insights=store.snapshot();}catch(Exception unreadable){insights=null;}
   MaterialWire.require(current.same(account(owner)),"OFFICIAL_ACCOUNT_CHANGED");check(owner);
   List<OfficialLifelogSnapshot.Source> audioSources=new ArrayList<>();for(MaterialLocalLibrary.Record record:local.records)audioSources.add(record.source);LifelogAudioRuntime.sources(current.binding,audioSources);
-  MaterialCatalog catalog=MaterialCatalog.merge(uploaded,local);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
+  MaterialCatalog catalog=MaterialCatalog.withRecordings(MaterialCatalog.merge(uploaded,local),insights,date,timezone);try(MaterialVisibility visibility=new MaterialVisibility(app.getFilesDir(),current.binding)){catalog=MaterialCatalog.visible(catalog,visibility);}
   catalog=MaterialCatalog.withDates(catalog,MaterialCatalog.markedDates(catalog,local.days,insights,historyDates(current.binding)));
   Map<String,Object> context=date.isEmpty()?null:OfficialDayContext.saved(app.getFilesDir(),current.binding,date,timezone);
   CatalogSnapshot loaded=new CatalogSnapshot(saved,catalog,local,uploadError,saved==null?recoveryError:saved.enabled&&saved.fingerprint().equals(autoTarget)?autoError:"",insights,date,timezone,context);

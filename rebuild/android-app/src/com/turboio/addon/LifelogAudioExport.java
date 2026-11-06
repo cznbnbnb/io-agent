@@ -25,7 +25,7 @@ final class LifelogAudioExport {
   OpusFile mux;String kind,name;long frames,samples,first,last,firstSequence,lastSequence;
   Runs(ZipOutputStream zip,File directory,File target,LifelogAudioSource source,Map<String,Object> proof,long[] totals,List<Object> manifest){this.zip=zip;this.directory=directory;this.target=target;this.source=source;this.proof=proof;this.totals=totals;this.manifest=manifest;}
   void packet(String channel,long at,long sequence,byte[] packet,int duration)throws IOException{
-   if(mux!=null&&!channel.equals(kind))finish();
+   if(mux!=null&&(!channel.equals(kind)||at<last||at-last>300000))finish();
    if(mux==null){require(totals[2]<256,"AUDIO_EXPORT_BUDGET");name=String.format(Locale.ROOT,"片段-%03d.opus",totals[2]+1);zip.putNextEntry(new ZipEntry(name));mux=new OpusFile(zip,(int)Long.parseLong(source.stream.substring(0,8),16));kind=channel;frames=samples=0;first=at;firstSequence=sequence;}
    require(totals[0]<5000000&&target.length()<MAX_BYTES-65536&&directory.getUsableSpace()>67108864,"AUDIO_EXPORT_BUDGET");mux.packet(packet);frames++;samples+=duration;last=at;lastSequence=sequence;totals[0]++;totals[1]+=duration;
   }
