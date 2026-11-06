@@ -1,12 +1,12 @@
 # 给另一个 Agent：连接我的眼镜
 
-只试用 CLI，先下载 [cz-iot-cli ZIP](distribution/cz-iot-cli.zip)，解压到独立目录，读取包内的 `AGENTS.md` 和 `README.md`。不需要构建手机 App、启动服务器，也不需要 USB、ADB、同一个 Wi-Fi 或复制其他电脑的密钥。
+只试用 CLI，先下载 [cz-iot-cli ZIP](https://raw.githubusercontent.com/cznbnbnb/io-agent/refs/heads/codex/agent-workspace-ui/docs/distribution/cz-iot-cli.zip)，解压到独立目录，读取包内的 `AGENTS.md` 和 `README.md`。不需要构建手机 App、启动服务器，也不需要 USB、ADB、同一个 Wi-Fi 或复制其他电脑的密钥。
 
-本仓库为私有仓库。浏览器没登录或 Agent 没有仓库读取权限时，链接可能显示 404；先使用你自己的 GitHub 登录或已配置的 Git 认证。不要为了下载让仓库公开，也不要向其他人索要密钥。
+仓库和便携包均可公开下载。访问个人眼镜及已同步资料需要设备主人在手机上批准配对。
 
 ## 1. 准备环境
 
-需要 Node.js 22.18+ 的 22.x 和 Python 3.10+（带标准库 sqlite3）。自动更新另外需要 Git，以及对本私有仓库的读取权限。
+需要 Node.js 22.18+ 的 22.x 和 Python 3.10+（带标准库 sqlite3）。通过公开 HTTPS 通道自动更新还需要 Git。
 
 ```sh
 node setup.mjs doctor
@@ -87,11 +87,11 @@ macOS Codex Desktop 原聊天需要手机远程下发时，用 `join` 输入 `{"
 CLI 0.2.0 起支持：
 
 ```sh
-cz-iot-cli update --check
-cz-iot-cli update
+cz-iot-cli update --check --https
+cz-iot-cli update --https
 ```
 
-未安装短命令时，用 `node cz-iot-cli.mjs update`。默认通过 Git SSH 读取本仓库的 `codex/agent-workspace-ui` 分发通道；使用 Git HTTPS 认证的电脑可加 `--https`。
+未安装短命令时，用 `node cz-iot-cli.mjs update --https`。该命令从公开的 `codex/agent-workspace-ui` 分支更新；省略 `--https` 则使用本机 Git SSH 配置。
 
 更新先核对 ZIP 与内部文件摘要，再替换清单中的代码；保留配对、私有会话和未列出的文件，不自动重绑、不触碰手机。普通文件替换失败会恢复本次已替换代码。不要并发更新；断电等中断后请重新执行更新，不宣称跨多个文件的原子升级。
 

@@ -34,7 +34,7 @@ JSON
 
 ```sh
 cz-iot-cli daily-correct <<'JSON'
-{"request_id":"model-fix-001","material_id":"从查询复制","expected_source_revision":1,"expected_revision":0,"agent":"Codex","reason":"根据项目 BOM 纠正识别错字","evidence":["项目 BOM 中型号为 S-CK023"],"edits":[{"block_id":"从 blocks 复制","text":"S-CK023 样机还没到货。"}]}
+{"request_id":"model-fix-001","material_id":"从查询复制","expected_source_revision":1,"expected_revision":0,"agent":"Codex","reason":"根据项目 BOM 纠正识别错字","evidence":["项目 BOM 中型号为 DEMO-X123"],"edits":[{"block_id":"从 blocks 复制","text":"DEMO-X123 样机还没到货。"}]}
 JSON
 ```
 

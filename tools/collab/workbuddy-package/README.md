@@ -1,6 +1,6 @@
 # cz-iot-cli
 
-当前 CLI 版本 **0.2.0**。首次接入按下方“电脑只配对一次”操作；本包只含代码，没有这台电脑的配对凭据。自动更新用 `node cz-iot-cli.mjs update --check` / `node cz-iot-cli.mjs update`，见文末说明。
+这是 cz-iot-cli 的便携发行包。首次接入按下方“电脑只配对一次”操作；本包只含代码，没有这台电脑的配对凭据。通过公开仓库更新用 `node cz-iot-cli.mjs update --check --https` / `node cz-iot-cli.mjs update --https`，见文末说明。
 
 每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。读取服务端已同步的总结、分段智记和逐字转写；不读音频或手机文件；空结果不代表当天没有活动。指定日期自动取全，显式分页时按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
@@ -150,7 +150,7 @@ node cz-iot-cli.mjs update --check
 node cz-iot-cli.mjs update
 ```
 
-已安装短命令时直接用 `cz-iot-cli update`。更新需 Git、已有的 Python3.10+ 环境以及私有仓库 `cznbnbnb/io-agent` 的读取权限；默认SSH，使用Git HTTPS认证时加 `--https`。不需要当前会话ID或手机连接。它只取 `codex/agent-workspace-ui` 通道中已经打包的 `docs/distribution/cz-iot-cli.zip`，不是直接运行未打包的开发源码。
+已安装短命令时直接用 `cz-iot-cli update`。更新需 Git、已有的 Python3.10+ 环境。公开仓库可通过 `--https` 匿名读取，省略此参数时使用本机的 Git SSH 配置。不需要当前会话ID或手机连接。它只取 `codex/agent-workspace-ui` 通道中已经打包的 `docs/distribution/cz-iot-cli.zip`，不是直接运行未打包的开发源码。
 
 先核对外层与逐文件SHA，检查拒绝损坏包和越界文件，再替换代码；保留 `~/.turboio`、`.io-agent`、`rebuild/agent-bridge/private` 及其他不在代码清单中的文件。普通文件替换错误会恢复本次已换代码；不要并发执行更新，断电中断后需重试。安装目录需当前用户可写，不自动提权或修改系统目录权限。
 

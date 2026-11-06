@@ -1,58 +1,52 @@
-# iO Agent · cz-iot-cli
+# iO Agent
 
-**让另一个 Agent 连接眼镜，先看 [CLI 快速接入](docs/CLI-QUICKSTART.md)。** [下载无凭据便携包](docs/distribution/cz-iot-cli.zip) · [文件摘要](docs/distribution/SHA256SUMS)。私有仓库需要 GitHub 读取权限；手机扫码或粘贴绑定字符串后才授予这台电脑访问，不转发原电脑密钥。
+让电脑上的 AI 助手把问题发到眼镜上。比如 Codex 整理会议记录时需要你选一种格式，它可以在镜片上列出选项。你读完后长按退出、说出答案、点头确认，Codex 就能在刚才那条会话里按你的选择继续。手机也可以查看任务和回复。
 
-CLI 0.2.0 起可用 `cz-iot-cli update --check` 检查、`cz-iot-cli update` 更新。只更新代码并保留配对；常驻连接器在原任务结束后重启加载新代码。完整步骤、问答验收和更新条件见快速接入。
+**[CLI 接入指南](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/CLI-QUICKSTART.md)** · **[下载 cz-iot-cli 便携包](https://raw.githubusercontent.com/cznbnbnb/io-agent/refs/heads/codex/agent-workspace-ui/docs/distribution/cz-iot-cli.zip)** · [校验文件](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/distribution/SHA256SUMS) · [当前适配源码](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui)
 
-基于固定版本 Turbo-IO 与官方 Android App 宿主，开发眼镜、手机、服务器与电脑 Agent 的任务及资料闭环。当前采用 Android 优先路线，保留鸿蒙源码，待 Android 成熟后适配。
+## 能用它做什么
 
-## 产品与入口
-
-手机 App 名称为 **iO Agent**；电脑端 CLI 正式名称为 **cz-iot-cli**，支持 Claude、Codex 和其他能够执行命令并提供真实会话身份的 Agent。配对一次后可投送眼镜消息、问答、查询已同步的总结/分段/转写与活动日历，并建议待办（点头确认后添加）。
-
-便携包入口与跨电脑使用见 [cz-iot-cli 使用说明](tools/collab/workbuddy-package/README.md)。旧 `io-agent.mjs` 调用继续兼容，现有配对、会话和本机资料不因改名迁移。当前功能与装机版本以 [协作交接](docs/product/COLLABORATION-HANDOFF.md) 顶部为准，不在此重复维护旧进度百分比。
-
-当前 Android 独立包 `cn.cznbnb.ioagent` 复用固定原厂宿主的登录、蓝牙、智记与待办能力；独立产品命名不等于这些依赖已经移除。原厂内置页面与第三方来源说明按实际保留。
-
-先阅读 [协作交接](docs/product/COLLABORATION-HANDOFF.md)、[开发状态](docs/product/DEVELOPMENT-STATUS.md)、[开发计划](docs/product/DEVELOPMENT-PLAN.md) 和 [项目约定](AGENTS.md)。需求以 [PRD](docs/product/PRD.md) 为准，人工观察统一登记到 [验收清单](docs/product/USER-VERIFICATION-TODO.md)。
-
-## 目录
-
-| 路径 | 内容 |
+| 场景 | 用法 |
 | --- | --- |
-| `rebuild/android-app/src/com/turboio/addon/` | Android 业务、宿主适配、任务与资料运行时 |
-| `rebuild/android-app/upstream/` | 固定上游参考，保持只读；提交及文件摘要见同级来源锁 |
-| `tools/android/` | Android 构建、签名、定向测试及受控设备诊断 |
-| `rebuild/agent-bridge/` | 电脑任务桥、cz-iot-cli、Agent 适配与测试 |
-| `rebuild/material-server/` | 资料及任务服务、查询接口、部署配置与测试 |
-| `docs/contracts/` | 共享协议与合成样例 |
-| `rebuild/harmony-sdk/` | 保留的鸿蒙工程与测试 |
-| `tools/phase1/`、`rebuild/phase1/` | 既有设备工具与鸿蒙构建入口 |
+| 让 Agent 主动联系你 | 用 `notify` 发一条提醒。需要你做决定时，用 `ask` 提问，再用 `wait` 取回同一道题的答案。 |
+| 从手机继续工作 | 手机按工作区整理会话。支持远程控制的 Codex、Claude Code 会话可以接收任务及打断指令。用 `session-status` 查看当前会话的实际能力。 |
+| 让 Agent 回顾日常 | 配对后用 `daily` 查询已同步的每日总结、分段智记和带说话人标注的转写。Agent 可以根据已有证据订正文字，后续查询读取生效版本。 |
+| 把建议变成待办 | Agent 用 `todo-add` 在镜片上提出建议。你点头确认后，它才加入原厂待办。 |
+| 在手机整理资料 | 普通录音和全天智记按时间排列。可以按标题和时间导出 MP3 到手机，单戴一只耳机也能听到双方。 |
 
-## 开发验证
+## 接入你的第一个 Agent
 
-Windows 需要 Node.js 22、Python 3 和 JDK 17。Android 构建另需 SDK 36 / build-tools 36.0.0 与固定 apktool；入口见 [Android 构建说明](rebuild/android-app/README.md)。
+需要一副已连接手机的雷鸟 iO 眼镜、已配置服务的 **iO Agent Android App**，以及能执行本地命令的电脑 Agent。电脑准备 Node.js 22.18+（22.x）和 Python 3.10+（带 sqlite3）。电脑和手机都能联网即可。
 
-以下测试使用合成输入，不操作手机或公网：
+1. 下载上方 ZIP，将它解压到电脑上的独立目录。让 Agent 在**要使用的那条真实会话**中进入解压后的 `cz-iot-cli` 目录，检查环境和命令。
 
-```powershell
-node tools/android/test-lifelog-calendar-core.mjs
-node tools/android/test-lifelog-calendar-http.mjs
-node tools/android/test-lifelog-month-discovery.mjs
-node tools/android/test-material-month-runtime.mjs
-node tools/android/test-context-voice-fixture.mjs
+   ```sh
+   node setup.mjs doctor
+   node cz-iot-cli.mjs help
+   ```
+
+2. 让 Agent 执行 `node cz-iot-cli.mjs pair`，通过标准输入传入主题和实际工作区。手机打开 **设置 → 电脑与 Agent → 添加/扫码绑定**，扫描二维码或粘贴配对字符串，核对工作区后点「保存并绑定」。同一台电脑的后续会话可复用配对。
+3. 让 Agent 用 `pair-status` 核对绑定，再用 `join` 登记当前会话。戴好眼镜后，可以直接对它说「在眼镜上问我一道选择题，等我回答再继续」。服务端接受消息后，Agent 用同一个请求 ID 等到你的答案，就完成了双向测试。
+
+**转发给另一个 Agent** 时，发 [CLI 接入指南](https://github.com/cznbnbnb/io-agent/blob/codex/agent-workspace-ui/docs/CLI-QUICKSTART.md) 即可。指南包含 Windows PowerShell 的中文编码设置、配对输入示例和回执判断。WorkBuddy 等可执行命令的宿主可以主动提问并读取答案，从手机唤醒或打断原会话则取决于宿主适配。
+
+已安装的便携包可以通过 Git HTTPS 检查或更新，配对可以继续使用。
+
+```sh
+node cz-iot-cli.mjs update --check --https
+node cz-iot-cli.mjs update --https
 ```
 
-传输测试包含一次真实 30 秒的本机截止等待，HTTPS 端口仍为测试替身。其他测试命令及分工见协作交接。手机诊断脚本不是离线测试，不应在新环境直接批量执行。
+## 系统怎么连接
 
-## 本地依赖和数据
+```text
+电脑上的 Agent ⇄ cz-iot-cli ⇄ 任务与资料服务 ⇄ iO Agent Android ⇄ 蓝牙眼镜
+```
 
-GitHub 只保存可审查的代码、协议、测试和进度。官方宿主 APK、固定自有签名、真实账号凭据、原音、智记正文、设备身份、工具缓存与历史原始日志保留在本地，不进入仓库。没有这些私有输入仍可推进纯核心、服务器和模拟测试；完整装包及真机验收由持有相应环境的开发者完成。
+服务器把问题、答案和回执关联到原任务。手机负责眼镜显示、口述确认，以及用户开启的资料同步。CLI 可查询已同步的文字，MP3 从手机导出。仓库可以公开下载，访问个人设备和资料另需手机批准配对。
 
-当前 Android 宿主固定为 **1.0.10 / 258**，摘要与适配门禁以 `rebuild/android-app/host-110.mjs` 为准。CLI 使用者不需要这个 APK。不要用其他官方版本替换构建输入来跳过 ABI 或来源门禁，不为绕过签名冲突卸载 App 或清数据。
+## 开发与许可
 
-## 来源及许可
-
-Turbo-IO 固定提交为 `f57cc82d0c810435653b684fbdd8c07c533a012f`，原始选取文件与摘要保留于 `rebuild/android-app/upstream-source-manifest.json`。当前上游使用 [PolyForm Noncommercial 1.0.0](rebuild/android-app/upstream/LICENSE)，另保留 [NOTICE](rebuild/android-app/upstream/NOTICE) 及 [第三方说明](rebuild/android-app/upstream/THIRD_PARTY_NOTICES.md)。私有托管不改变相应许可要求，本仓库不将整体重新标为 MIT。
-
-本次为协作建立独立 Git 基线；本地早期开发历史及未公开的原始证据继续保留。部分历史文档链接指向仅存本地的证据，不能把链接缺失当作该功能已通过或已失败。
+- [Android 应用与构建说明](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/android-app) · [Agent 适配与 CLI](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/agent-bridge) · [任务与资料服务](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/material-server) · [接口与合成样例](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/docs/contracts)
+- 当前实现以 Android 为主，仓库另有[鸿蒙实验工程](https://github.com/cznbnbnb/io-agent/tree/codex/agent-workspace-ui/rebuild/harmony-sdk)。Android 完整构建使用指定版本的原厂宿主 APK 和开发者自己的签名材料。CLI 可独立运行。
+- iO Agent 是独立社区项目。仓库保留 Turbo-IO 上游的 [PolyForm Noncommercial 1.0.0 许可](rebuild/android-app/upstream/LICENSE)、[版权声明](rebuild/android-app/upstream/NOTICE)和[第三方许可说明](rebuild/android-app/upstream/THIRD_PARTY_NOTICES.md)。使用对应组件时请遵循其许可。
