@@ -47,7 +47,10 @@ final class PhoneAudioExport {
   else{StringBuilder manifest=new StringBuilder();for(Part p:group){if(!p.file.getParentFile().equals(dir)||!p.file.getName().matches("[0-9]+\\.ogg"))throw new IOException("AUDIO_EXPORT_PATH");manifest.append("file ").append(p.file.getName()).append('\n');}
    File list=new File(dir,"inputs.txt");Files.write(list.toPath(),manifest.toString().getBytes(StandardCharsets.UTF_8));Collections.addAll(argv,"-f","concat","-safe","1","-i",list.getAbsolutePath());}
   File out = new File(dir, "output.mp3");
+  // Mix split microphones before duplicating the conversation into both ears.
+  // A mono source passes through the first filter without attenuation.
   Collections.addAll(argv, "-map", "0:a:0", "-vn", "-map_metadata", "-1",
+      "-af", "aformat=channel_layouts=mono,pan=stereo|c0=c0|c1=c0",
       "-c:a", "libmp3lame", "-b:a", "96k", "-f", "mp3", out.getAbsolutePath());
   Object session=Class.forName("com.antonkarpenko.ffmpegkit.FFmpegKit").getMethod("executeWithArguments",String[].class).invoke(null,(Object)argv.toArray(new String[0]));
   Object code=session.getClass().getMethod("getReturnCode").invoke(session);

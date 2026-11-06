@@ -898,7 +898,7 @@
     },
     {
       "path": "src/com/turboio/addon/PhoneAudioExport.java",
-      "sha256": "0abb69b7a623868c2f9609afc3f6ffdd822c31500a63f758e622aa95dc917540"
+      "sha256": "d65193b58818ba922dc9c97d92e6a08a2d6ee5c953e7ca6db55bb9f27b020fca"
     },
     {
       "path": "src/com/turboio/addon/PhonePresence.java",
@@ -1102,11 +1102,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "bd84e783efd6ff6b38506f7abcd6be821b8d7bf2994441e092f80d5581e66443"
+      "sha256": "e2ec8992e0b53f4924b3df505f51d39fe361cc6fd331bbd0494be4c35ac6c365"
     }
   ],
-  "product_sha256": "b1f5038004926016f83b71b3ec55877a8b45ddd896b54e3a8a68b42a18c5c10e",
-  "addon_sha256": "fb63038e735182325c461f9fcfa9a7024e1b1de407c1a9a482daa0ea32467378",
+  "product_sha256": "47b7466248d9c7761acf920b8c49c8f6578080732d0756b8b222c8b0642c25e4",
+  "addon_sha256": "75af13f10be43fbdab0e8c7fa1130c60467b8b26164491e0234e707f778cbb59",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"

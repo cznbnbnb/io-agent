@@ -1,0 +1,56 @@
+{
+  "version": "0.5.3-dev179",
+  "version_code": 10601,
+  "verified_at": "2026-11-06T07:38:46.870283+00:00",
+  "installed_sha256": "fec842665b21f07bef819523c91c283bd5ce1f25feb4b480cf6d02d99840df0c",
+  "rollback": "dev177",
+  "retired": [
+    "dev176",
+    "dev178 (never installed)"
+  ],
+  "delta_bytes": 2003291,
+  "device_probe": {
+    "audio_tracks": 1,
+    "both_source_tones_in_each_ear": true,
+    "fixture_channels": 2,
+    "fixture_duration_us": 2088000,
+    "fixture_max_lr_delta": 0,
+    "fixture_peak": 8600,
+    "joined_duration_us": 2040000,
+    "joined_track_mime": "audio/mpeg",
+    "lifelog_channels": 2,
+    "lifelog_duration_us": 14904000,
+    "lifelog_max_lr_delta": 0,
+    "lifelog_peak": 500,
+    "lifelog_source_channels": 1,
+    "stock_channels": 2,
+    "stock_duration_us": 2175816000,
+    "stock_file_found": true,
+    "stock_max_lr_delta": 0,
+    "stock_peak": 5152,
+    "stock_source_channels": 2,
+    "stock_source_max_lr_delta": 7700,
+    "time_gap_and_cached_split": true
+  },
+  "measurement": "Both source channels of a split stereo fixture carried distinct tones at different times. Both tones verified in each ear after encode and decode. Real file level differences are maximum absolute left-right sample differences in a bounded PCM window (16-bit scale), not speaker identification.",
+  "ui_public_export": {
+    "mime": "audio/mpeg",
+    "directory": "Download/IO 文档",
+    "has_title_and_local_timestamp": true,
+    "duration_ms": 2175816,
+    "bytes": 26110125
+  },
+  "floating_entry": {
+    "visible_label": "IO",
+    "visible_dp": 32,
+    "touch_dp": 48,
+    "touch_width_and_height_px": 180,
+    "drag_dx_dy_px": [
+      -161,
+      231
+    ],
+    "tap_opened_workspace": true,
+    "position_restored": true
+  },
+  "privacy": "Only aggregate measurements recorded. No recordings or transcripts transferred from the phone. Temporary device files and probe package removed."
+}

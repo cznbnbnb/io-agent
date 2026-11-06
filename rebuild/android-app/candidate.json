@@ -2,15 +2,15 @@
   "schema": 1,
   "product": "iO Agent Android",
   "application_id": "cn.cznbnb.ioagent",
-  "version": "0.5.3-dev178",
-  "version_code": 10600,
-  "revision": "v178-mp3-compact-entry",
+  "version": "0.5.3-dev179",
+  "version_code": 10601,
+  "revision": "v179-mp3-balanced-voices",
   "host_version": "1.0.10",
   "host_code": 258,
-  "signed": "2026-11-06T07:27:02.693Z",
-  "apk": "artifacts/iO-Agent-Android-0.5.3-dev178.apk",
+  "signed": "2026-11-06T07:35:02.849Z",
+  "apk": "artifacts/iO-Agent-Android-0.5.3-dev179.apk",
   "bytes": 435206371,
-  "sha256": "00539b3d8ff517e1d99a4c5f82aca75c956fb4c2150ec65e576a4942e48748d3",
+  "sha256": "fec842665b21f07bef819523c91c283bd5ce1f25feb4b480cf6d02d99840df0c",
   "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
   "signature_v2": true,
   "signature_v3": true,
@@ -52,7 +52,7 @@
       "instructions_changed": false
     },
     "source_dex_count": 4,
-    "device_installed": false
+    "device_installed": true
   },
   "dex_audit": {
     "schema": 1,
@@ -62,7 +62,9 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false
+  "release_gate_passed": false,
+  "installed_at": "2026-11-06T07:38:46.870283+00:00"
 }
