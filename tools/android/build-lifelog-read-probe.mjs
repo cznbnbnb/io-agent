@@ -5,15 +5,15 @@ import {spawnSync} from 'node:child_process';
 import {exe,PYTHON} from './host-tools.mjs';
 const workspace=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=path.join(workspace,'rebuild/android-app');
-const audio=process.argv.includes('--mp4'), probe=audio?'PhoneAudioMp4Probe':'LifelogReadBudgetProbe';
-const output=path.join(root,'build',audio?'phone-mp4-probe':'lifelog-read-probe');
+const audio=process.argv.includes('--mp3'), probe=audio?'PhoneAudioMp3Probe':'LifelogReadBudgetProbe';
+const output=path.join(root,'build',audio?'phone-mp3-probe':'lifelog-read-probe');
 const sdk=path.join(root,'.tools/sdk'),buildTools=path.join(sdk,'build-tools/36.0.0'),androidJar=path.join(sdk,'platforms/android-36/android.jar');
 fs.mkdirSync(path.join(output,'classes'),{recursive:true});fs.mkdirSync(path.join(output,'dex'),{recursive:true});
 const env={...process.env,IO_AGENT_SIGN_PASS:fs.readFileSync(path.join(root,'.private/signing/keystore-pass.txt'),'utf8').trim()};
 function run(command,args){const result=spawnSync(command,args,{cwd:workspace,env,encoding:'utf8',timeout:60000,maxBuffer:1048576});if(result.error||result.status!==0)throw Error('Probe build failed: '+command+'\n'+result.stderr);}
 const manifest=path.join(output,'AndroidManifest.xml');
 const target=audio?JSON.parse(fs.readFileSync(path.join(root,'product.json'))).application_id:'com.rayneo.venus.pub';
-fs.writeFileSync(manifest,`<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.turboio.${audio?'mp4probe':'lifelogprobe'}.codex" android:versionCode="1" android:versionName="1"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/><application android:label="iO Agent ${audio?'MP4 export':'lifelog read'} probe" android:allowBackup="false"/><instrumentation android:name="com.turboio.${audio?'addon':'androidtests'}.${probe}" android:targetPackage="${target}"/></manifest>`);
+fs.writeFileSync(manifest,`<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.turboio.${audio?'mp3probe':'lifelogprobe'}.codex" android:versionCode="1" android:versionName="1"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/><application android:label="iO Agent ${audio?'MP3 export':'lifelog read'} probe" android:allowBackup="false"/><instrumentation android:name="com.turboio.${audio?'addon':'androidtests'}.${probe}" android:targetPackage="${target}"/></manifest>`);
 const classpath=audio?[androidJar,path.join(root,'build/addon.jar')].join(path.delimiter):androidJar;
 run('javac',['-encoding','UTF-8','-source','8','-target','8','-cp',classpath,'-d',path.join(output,'classes'),`tools/android/${probe}.java`]);
 run('jar',['cf',path.join(output,'input.jar'),'-C',path.join(output,'classes'),'.']);

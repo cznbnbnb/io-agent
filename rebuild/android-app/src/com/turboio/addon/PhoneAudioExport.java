@@ -30,7 +30,7 @@ final class PhoneAudioExport {
  static String name(String title,long at,ZoneId zone){
   String safe=title.replaceAll("[\\p{Cntrl}\\\\/:*?\"<>|]+"," ").trim();StringBuilder stem=new StringBuilder();int bytes=0;
   for(int i=0;i<safe.length();){int cp=safe.codePointAt(i);String ch=new String(Character.toChars(cp));bytes+=ch.getBytes(StandardCharsets.UTF_8).length;if(bytes>170)break;stem.append(ch);i+=Character.charCount(cp);}
-  return (stem.length()==0?"录音":stem.toString().trim())+"_"+DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss",Locale.ROOT).format(Instant.ofEpochMilli(at).atZone(zone))+".mp4";
+  return (stem.length()==0?"录音":stem.toString().trim())+"_"+DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss",Locale.ROOT).format(Instant.ofEpochMilli(at).atZone(zone))+".mp3";
  }
  static File recording(Context app,String account,MaterialCatalog.Entry entry)throws IOException{
   OfficialAccountBinding login=Host107Login.account();if(login==null||!login.binding.equals(account))throw new IOException("OFFICIAL_ACCOUNT_CHANGED");
@@ -46,7 +46,9 @@ final class PhoneAudioExport {
   if(group.size()==1){argv.add("-i");argv.add(group.get(0).file.getAbsolutePath());}
   else{StringBuilder manifest=new StringBuilder();for(Part p:group){if(!p.file.getParentFile().equals(dir)||!p.file.getName().matches("[0-9]+\\.ogg"))throw new IOException("AUDIO_EXPORT_PATH");manifest.append("file ").append(p.file.getName()).append('\n');}
    File list=new File(dir,"inputs.txt");Files.write(list.toPath(),manifest.toString().getBytes(StandardCharsets.UTF_8));Collections.addAll(argv,"-f","concat","-safe","1","-i",list.getAbsolutePath());}
-  File out=new File(dir,"output.mp4");Collections.addAll(argv,"-map","0:a:0","-vn","-map_metadata","-1","-c:a","aac","-b:a","96k","-movflags","+faststart","-f","mp4",out.getAbsolutePath());
+  File out = new File(dir, "output.mp3");
+  Collections.addAll(argv, "-map", "0:a:0", "-vn", "-map_metadata", "-1",
+      "-c:a", "libmp3lame", "-b:a", "96k", "-f", "mp3", out.getAbsolutePath());
   Object session=Class.forName("com.antonkarpenko.ffmpegkit.FFmpegKit").getMethod("executeWithArguments",String[].class).invoke(null,(Object)argv.toArray(new String[0]));
   Object code=session.getClass().getMethod("getReturnCode").invoke(session);
   if(code==null||((Number)code.getClass().getMethod("getValue").invoke(code)).intValue()!=0||out.length()==0)throw new IOException("AUDIO_EXPORT_DECODE_FAILED");
@@ -54,11 +56,11 @@ final class PhoneAudioExport {
  }
  static void save(Activity a,String account,List<MaterialTimeline.Item> items,List<MaterialCatalog.Entry> selected){
   if(selected.isEmpty())return;if(!busy.compareAndSet(false,true)){AgentUI.notice(a,"已有音频正在导出");return;}
-  Context app=a.getApplicationContext();Toast.makeText(app,"正在合并并导出 MP4 音频…",Toast.LENGTH_SHORT).show();
+  Context app=a.getApplicationContext();Toast.makeText(app,"正在合并并导出 MP3 音频…",Toast.LENGTH_SHORT).show();
   Set<MaterialCatalog.Entry> wanted=new HashSet<>(selected);
   IO.execute(()->{int saved=0,failed=0;Set<String> errors=new LinkedHashSet<>();String last="";
    try{for(MaterialTimeline.Item item:items){if(Collections.disjoint(item.parts,wanted))continue;
-    File dir=Files.createTempDirectory(app.getCacheDir().toPath(),"io-mp4-").toFile();
+    File dir=Files.createTempDirectory(app.getCacheDir().toPath(),"io-mp3-").toFile();
     try{List<Part> parts=new ArrayList<>();int[] sequence={0};
      for(MaterialCatalog.Entry entry:item.parts)if(wanted.contains(entry)){
       LifelogAudioRuntime.account(account);
@@ -81,12 +83,12 @@ final class PhoneAudioExport {
        }finally{LifelogAudioExport.remove(app.getCacheDir(),draft.id);}
       }catch(Exception e){Throwable cause=e instanceof ExecutionException?e.getCause():e;if("OFFICIAL_ACCOUNT_CHANGED".equals(cause.getMessage()))throw new IOException("OFFICIAL_ACCOUNT_CHANGED");failed++;errors.add("RECORDING_NOT_LOCAL".equals(cause.getMessage())?"录音文件不在本机，可先到原厂录音页下载":MaterialAudioExport.label(Objects.toString(cause.getMessage(),"")));}
      }
-     for(List<Part> group:groups(parts)){LifelogAudioRuntime.account(account);File mp4=encode(dir,group);LifelogAudioRuntime.account(account);
-      last=ExportDestination.write(app,name(item.title(),group.get(0).start,item.parts.get(0).zone),"video/mp4",stream->{Files.copy(mp4.toPath(),stream);LifelogAudioRuntime.account(account);});saved++;}
+     for(List<Part> group:groups(parts)){LifelogAudioRuntime.account(account);File encoded=encode(dir,group);LifelogAudioRuntime.account(account);
+      last=ExportDestination.write(app,name(item.title(),group.get(0).start,item.parts.get(0).zone),"audio/mpeg",stream->{Files.copy(encoded.toPath(),stream);LifelogAudioRuntime.account(account);});saved++;}
     }finally{File[] tmp=dir.listFiles();if(tmp!=null)for(File f:tmp)Files.deleteIfExists(f.toPath());Files.deleteIfExists(dir.toPath());}
    }}catch(Exception e){failed++;errors.add(MaterialAudioExport.label(Objects.toString(e.getMessage(),"")));}
    finally{busy.set(false);}
-   String result=(saved==0?"未导出音频":saved==1?"已保存到 "+last:"已保存 "+saved+" 个 MP4 到 "+ExportDestination.label(app))+(failed==0?"":"；"+String.join("；",errors));
+   String result=(saved==0?"未导出音频":saved==1?"已保存到 "+last:"已保存 "+saved+" 个 MP3 到 "+ExportDestination.label(app))+(failed==0?"":"；"+String.join("；",errors));
    new Handler(Looper.getMainLooper()).post(()->Toast.makeText(app,result,Toast.LENGTH_LONG).show());
   });
  }

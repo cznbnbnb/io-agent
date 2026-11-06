@@ -10,13 +10,13 @@ import java.time.ZoneId;
 import java.util.*;
 
 /** On-device regression: two seconds of synthetic Opus silence, never the microphone. */
-public final class PhoneAudioMp4Probe extends Instrumentation {
+public final class PhoneAudioMp3Probe extends Instrumentation {
  private String date;
  @Override public void onCreate(Bundle args){super.onCreate(args);date=args.getString("recordingDate","");start();}
  @Override public void onStart(){
   Bundle facts=new Bundle();File dir=null;int status=0;
   try{
-   dir=Files.createTempDirectory(getTargetContext().getCacheDir().toPath(),"mp4-check-").toFile();
+   dir=Files.createTempDirectory(getTargetContext().getCacheDir().toPath(),"mp3-check-").toFile();
    List<PhoneAudioExport.Part> parts=new ArrayList<>();long at=1700000000000L;
    for(int i=0;i<2;i++){File f=new File(dir,(i+1)+".ogg");try(OutputStream stream=new FileOutputStream(f)){
     OpusFile writer=new OpusFile(stream,i+1);for(int packet=0;packet<50;packet++)writer.packet(new byte[]{(byte)0xf8,(byte)0xff,(byte)0xfe});writer.finish();}
@@ -28,10 +28,10 @@ public final class PhoneAudioMp4Probe extends Instrumentation {
    if(planned.size()!=3||planned.get(0).size()!=2)throw new AssertionError("split");
    File out=PhoneAudioExport.encode(dir,planned.get(0));MediaExtractor media=new MediaExtractor();try{
     media.setDataSource(out.getPath());MediaFormat fmt=media.getTrackFormat(0);long duration=fmt.getLong(MediaFormat.KEY_DURATION);
-    if(media.getTrackCount()!=1||!"audio/mp4a-latm".equals(fmt.getString(MediaFormat.KEY_MIME))||Math.abs(duration-2000000)>75000)throw new AssertionError("audio format/duration: "+duration);
-    facts.putLong("joined_duration_us",duration);facts.putInt("audio_tracks",media.getTrackCount());
+    if(media.getTrackCount()!=1||!"audio/mpeg".equals(fmt.getString(MediaFormat.KEY_MIME))||Math.abs(duration-2000000)>75000)throw new AssertionError("audio format/duration: "+duration);
+    facts.putString("joined_track_mime",fmt.getString(MediaFormat.KEY_MIME));facts.putLong("joined_duration_us",duration);facts.putInt("audio_tracks",media.getTrackCount());
    }finally{media.release();}
-   if(!PhoneAudioExport.name("测试/录音",at,ZoneId.of("UTC")).equals("测试 录音_2023-11-14_22-13-20.mp4"))throw new AssertionError("filename");
+   if(!PhoneAudioExport.name("测试/录音",at,ZoneId.of("UTC")).equals("测试 录音_2023-11-14_22-13-20.mp3"))throw new AssertionError("filename");
    facts.putBoolean("time_gap_and_cached_split",true);
    // Optional local recording check. Never print titles, identifiers, paths or audio.
    if(!date.isEmpty()){
@@ -44,7 +44,7 @@ public final class PhoneAudioMp4Probe extends Instrumentation {
     MaterialCatalog.Entry entry=catalog.entries.get(0);File stock=PhoneAudioExport.recording(app,account.binding,entry);
     facts.putBoolean("stock_file_found",true);
     File encoded=PhoneAudioExport.encode(dir,Collections.singletonList(new PhoneAudioExport.Part(stock,entry.startedAt,entry.endedAt,"recording")));
-    MediaExtractor actual=new MediaExtractor();try{actual.setDataSource(encoded.getPath());MediaFormat fmt=actual.getTrackFormat(0);if(actual.getTrackCount()!=1||!"audio/mp4a-latm".equals(fmt.getString(MediaFormat.KEY_MIME)))throw new AssertionError("stock export track");facts.putLong("stock_duration_us",fmt.getLong(MediaFormat.KEY_DURATION));}finally{actual.release();}
+    MediaExtractor actual=new MediaExtractor();try{actual.setDataSource(encoded.getPath());MediaFormat fmt=actual.getTrackFormat(0);if(actual.getTrackCount()!=1||!"audio/mpeg".equals(fmt.getString(MediaFormat.KEY_MIME)))throw new AssertionError("stock export track");facts.putLong("stock_duration_us",fmt.getLong(MediaFormat.KEY_DURATION));}finally{actual.release();}
    }status=-1;
   }catch(Throwable error){facts.putString("failure",android.util.Log.getStackTraceString(error));}
   finally{if(dir!=null){File[] tmp=dir.listFiles();if(tmp!=null)for(File f:tmp)f.delete();dir.delete();}}

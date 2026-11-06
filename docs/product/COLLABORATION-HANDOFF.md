@@ -1,3 +1,9 @@
+## [codex] 2026-11-05 dev178 录音导出改为 MP3，悬浮入口改为 IO 圆标
+
+- 普通录音和智记共用本地 MP3 导出，使用手机宿主已有的 libmp3lame 编码器，96 kb/s。文件使用「原标题_开始时间.mp3」，保存类型为 audio/mpeg，分段、排序和目录沿用 dev177 的规则。
+- 悬浮入口只显示 IO。32 dp 青绿圆标位于 48 dp 点击区域中，沿用已有位置和拖动手势。待回答数量仍可由读屏读出。
+- 候选已签名并通过 APK 核验。在电脑用产品 encode 方法拼接两段各一秒的测试音，解码得到 16000 个 8 kHz 样本，前后音调顺序正确。dev177 → dev178 的差异约 2 MB。手机 USB 在准备阶段断开，无线离线，安装及手机实测待接回。真机回归包现在使用 `node tools/android/build-lifelog-read-probe.mjs --mp3` 和 `com.turboio.mp3probe.codex/com.turboio.addon.PhoneAudioMp3Probe`。
+
 ## [codex] 2026-11-05 dev177 录音资料、MP4 导出与可拖动入口
 
 - dev177（10599）已通过约 2 MB 差异包装入独立版，安装后 SHA 与签名候选一致；dev176 留作回退。基线包含 Claude 的 520ad23；构建排除了其他 Agent 尚未提交的 Delegate 工作。未更改线上更新清单、服务器或 CLI。

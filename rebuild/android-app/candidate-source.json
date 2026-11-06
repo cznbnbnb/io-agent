@@ -278,7 +278,7 @@
     },
     {
       "path": "src/com/turboio/addon/TurboAddon.java",
-      "sha256": "cdc9fe36114f8bd754570c395fb6c37a61311cb5162d88454a23831146a2e969"
+      "sha256": "e816e51fa41e2418df3e69abd89d7935012b6712a42c14d43d6694059f78f532"
     },
     {
       "path": "upstream/android-addon/src/com/turboio/addon/TurboStyle.java",
@@ -322,7 +322,7 @@
     },
     {
       "path": "src/com/turboio/addon/AgentMaterialPage.java",
-      "sha256": "6275b5e1d79957a8bbfa5db5af916ac5e3a2f6d488f5c84f709b0eeb51ef0b0b"
+      "sha256": "c0748b0782322f4d92d3ce3a2e0d450e00452d19199c770d618c00222b97c6f6"
     },
     {
       "path": "src/com/turboio/addon/AgentSessionPairUI.java",
@@ -698,7 +698,7 @@
     },
     {
       "path": "src/com/turboio/addon/MaterialBatch.java",
-      "sha256": "8c01ceb8eeb51d26702a4ad79480a6dc93c9bb909526ceccaf9d52e515a7c7a6"
+      "sha256": "9c719bd2c480553951103892de4567c34d4249a827a489ef74a7dc0a49eccd48"
     },
     {
       "path": "src/com/turboio/addon/MaterialCatalog.java",
@@ -898,7 +898,7 @@
     },
     {
       "path": "src/com/turboio/addon/PhoneAudioExport.java",
-      "sha256": "d5e9e20c23332c595a3c529da907c2dd3df597659a90b180ffd286ee637e182c"
+      "sha256": "0abb69b7a623868c2f9609afc3f6ffdd822c31500a63f758e622aa95dc917540"
     },
     {
       "path": "src/com/turboio/addon/PhonePresence.java",
@@ -1102,11 +1102,11 @@
     },
     {
       "path": "build/generated/com/turboio/addon/ProductInfo.java",
-      "sha256": "3a9931a331cf17223060f7893670d70ac15d7adde14101c14ae7f46df440a135"
+      "sha256": "bd84e783efd6ff6b38506f7abcd6be821b8d7bf2994441e092f80d5581e66443"
     }
   ],
-  "product_sha256": "f00255a7210f3c0fe2253c32edfe00d359c2492910d73a8c83ce58e5f1d29af8",
-  "addon_sha256": "728bbc133e2204930a76ef303854258f88a21e60d1d4353f8372ae5979f9b1ce",
+  "product_sha256": "b1f5038004926016f83b71b3ec55877a8b45ddd896b54e3a8a68b42a18c5c10e",
+  "addon_sha256": "fb63038e735182325c461f9fcfa9a7024e1b1de407c1a9a482daa0ea32467378",
   "host_dex_sha256": {
     "classes2": "7630584bad69b638a60314df18f4e034f7caa29a5fe4223441c9d79cb33e4840",
     "classes3": "35b0d9fee9109a06510d2a00ba8582f4de805bb14202cc390a92209afe1354e6"
