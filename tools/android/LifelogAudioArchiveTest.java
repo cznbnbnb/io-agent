@@ -7,6 +7,7 @@ public final class LifelogAudioArchiveTest {
  static File dir(File f){return new File(f,"lifelog-audio/"+ACCOUNT+"/"+STREAM);}static File raw(File f){return new File(dir(f),"original.frames");}static File state(File f){return new File(dir(f),"state.json");}
  static File folder(File parent,String name)throws Exception{File f=new File(parent,name);yes(f.mkdir());return f;}
  static LifelogAudioArchive open(File f)throws Exception{return new LifelogAudioArchive(f,ACCOUNT,PEER,1,STREAM,OK);}
+ static LifelogAudioArchive grouped(File f)throws Exception{return new LifelogAudioArchive(f,ACCOUNT,PEER,1,STREAM,OK,LifelogAudioArchive.COMMIT_MS);}
  static boolean append(LifelogAudioArchive a,long seq,String text,byte[] bytes,LifelogAudioArchive.Guard guard)throws Exception{return a.append(seq,"A3",text,bytes,1000+seq,seq,CLOCK,guard);}
  static long number(Map<String,Object> m,String k){return ((Number)m.get(k)).longValue();}
  public static void main(String[] args)throws Exception{
@@ -36,6 +37,22 @@ public final class LifelogAudioArchiveTest {
   File unicode=folder(root,"unicode");try(LifelogAudioArchive a=open(unicode)){reject("AUDIO_ARCHIVE_INPUT_INVALID",()->append(a,1,"\ud800",new byte[]{1},OK));yes(append(a,1,"原音🙂\n保留全部",new byte[]{1},OK));}try(LifelogAudioArchive a=open(unicode)){yes(!append(a,1,"原音🙂\n保留全部",new byte[]{1},OK));}
   File controls=folder(root,"controls");try(LifelogAudioArchive a=open(controls)){yes(append(a,1,repeat('\u0001',16384),new byte[]{1},OK));}try(LifelogAudioArchive a=open(controls)){yes(number(a.snapshot(),"count")==1);}
   File process=folder(root,"process");try(LifelogAudioArchive a=open(process)){append(a,1,"{}",new byte[]{1},OK);}
+  // Group commit (production window): receipts follow at flush/size/seal; complete unreceipted records recover.
+  File group=folder(root,"group");
+  try(LifelogAudioArchive a=grouped(group)){yes(a.durable());for(int i=1;i<=3;i++)yes(append(a,i,"{}",payload,OK));yes(!a.durable()&&number(a.snapshot(),"count")==3);yes(number(WireJson.map(WireJson.read(Files.readAllBytes(state(group).toPath()))),"count")==0);yes(!append(a,2,"{}",payload,OK));reject("AUDIO_ARCHIVE_REPLAY_CONFLICT",()->append(a,3,"different",payload,OK));a.flush(OK);yes(a.durable()&&number(WireJson.map(WireJson.read(Files.readAllBytes(state(group).toPath()))),"count")==3);yes(append(a,4,"{}",payload,OK));yes(!a.durable());}
+  yes(number(WireJson.map(WireJson.read(Files.readAllBytes(state(group).toPath()))),"count")==3);
+  try(LifelogAudioArchive a=grouped(group)){yes(a.durable()&&number(a.snapshot(),"count")==4&&Boolean.FALSE.equals(a.snapshot().get("uncertain")));yes(number(WireJson.map(WireJson.read(Files.readAllBytes(state(group).toPath()))),"count")==4);yes(!append(a,4,"{}",payload,OK));yes(append(a,5,"{}",payload,OK));a.seal("source_ended",OK);yes(a.durable());Map<String,Object> sealedState=WireJson.map(WireJson.read(Files.readAllBytes(state(group).toPath())));yes(number(sealedState,"count")==5&&"source_ended".equals(sealedState.get("sealed")));final int[] seen={0};a.visit(b->seen[0]++,OK);yes(seen[0]==5);}
+  File groupSize=folder(root,"group-size");byte[] big=new byte[LifelogAudioArchive.MAX_PAYLOAD];
+  try(LifelogAudioArchive a=grouped(groupSize)){for(int i=1;i<=3;i++)append(a,i,"{}",big,OK);yes(!a.durable()&&number(WireJson.map(WireJson.read(Files.readAllBytes(state(groupSize).toPath()))),"count")==0);append(a,4,"{}",big,OK);yes(a.durable()&&number(WireJson.map(WireJson.read(Files.readAllBytes(state(groupSize).toPath()))),"count")==4);}
+  File groupTorn=folder(root,"group-torn");long whole;
+  try(LifelogAudioArchive a=grouped(groupTorn)){append(a,1,"{}",payload,OK);a.flush(OK);append(a,2,"{}",payload,OK);whole=raw(groupTorn).length();append(a,3,"{}",payload,OK);}
+  try(RandomAccessFile cut=new RandomAccessFile(raw(groupTorn),"rw")){cut.setLength(whole+20);}
+  try(LifelogAudioArchive a=grouped(groupTorn)){Map<String,Object> snap=a.snapshot();yes(number(snap,"count")==2&&Boolean.TRUE.equals(snap.get("uncertain"))&&"partial_record".equals(snap.get("tail_error")));reject("AUDIO_ARCHIVE_NOT_WRITABLE",()->append(a,3,"{}",payload,OK));reject("AUDIO_ARCHIVE_NOT_WRITABLE",()->a.flush(OK));}
+  yes(raw(groupTorn).length()==whole+20&&number(WireJson.map(WireJson.read(Files.readAllBytes(state(groupTorn).toPath()))),"count")==1);
+  File groupGuard=folder(root,"group-guard");
+  try(LifelogAudioArchive a=grouped(groupGuard)){append(a,1,"{}",payload,OK);reject("GUARD_STOP",()->a.flush(()->{throw new IOException("GUARD_STOP");}));yes(Boolean.TRUE.equals(a.snapshot().get("uncertain")));reject("AUDIO_ARCHIVE_NOT_WRITABLE",()->append(a,2,"{}",payload,OK));}
+  try(LifelogAudioArchive a=grouped(groupGuard)){yes(number(a.snapshot(),"count")==1&&!append(a,1,"{}",payload,OK));}
+  reject("AUDIO_ARCHIVE_OWNER_INVALID",()->new LifelogAudioArchive(folder(root,"group-window"),ACCOUNT,PEER,1,STREAM,OK,60001));
   System.out.println("Lifelog audio archive: "+checks+" checks passed; synthetic filesystem only");
  }
 }

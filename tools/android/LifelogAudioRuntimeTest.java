@@ -61,7 +61,10 @@ public final class LifelogAudioRuntimeTest {
   for(int i=0;i<20;i++)pending.add(writers.submit(()->{checkGuard(wake,sleeping);return null;}));
   for(Future<?> writer:pending){writer.get(5,TimeUnit.SECONDS);yes(true);}writers.shutdown();yes(writers.awaitTermination(3,TimeUnit.SECONDS));
   yes(Host107Login.reads-before==2);yes(field(current.get(wake).getClass(),"epoch").getLong(current.get(wake))==epoch);yes(android.os.SystemClock.now-field(current.get(wake).getClass(),"checked").getLong(current.get(wake))<=3000);
-  Thread.sleep(1200);yes(Host107Login.reads-before==4); // one periodic chain after urgent refresh
+  Thread.sleep(1200);yes(Host107Login.reads-before==2); // glasses connected but silent: the next periodic poll is five seconds away
+  // Flowing audio keeps the one-second chain that the three-second lease relies on.
+  android.os.SystemClock.now+=4000;field(wake.getClass(),"lastInputAt").setLong(wake,android.os.SystemClock.now);int flowing=Host107Login.reads;checkGuard(wake,sleeping);yes(Host107Login.reads-flowing==2);
+  Thread.sleep(1200);yes(Host107Login.reads-flowing==4); // one periodic chain after urgent refresh
   Host107Login.active=new OfficialAccountBinding(B);android.os.SystemClock.now+=4000;rejected(wake,sleeping,"OFFICIAL_ACCOUNT_CHANGED");
   File denied=new File(files,"changed-account");yes(denied.mkdir());try{new LifelogAudioManager(denied,A,P,1,repeat('e',32),new LifelogAudioManager.Limits(262144,131072,16),()->checkGuard(wake,sleeping));throw new AssertionError("wrong-account write");}catch(IOException e){yes("OFFICIAL_ACCOUNT_CHANGED".equals(e.getMessage()));}yes(!new File(denied,"lifelog-audio").exists());closeMonitor(wake);
   Host107Login.active=new OfficialAccountBinding(A);LifelogAudioRuntime stalled=monitored(c);Object stale=current.get(stalled);android.os.Handler.enabled=false;android.os.SystemClock.now+=4000;long began=System.nanoTime();rejected(stalled,stale,"AUDIO_CAPTURE_CONTEXT_STALE");long waited=TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-began);yes(waited>=3500&&waited<5000);yes(field(LifelogAudioRuntime.class,"refreshTimeouts").getLong(stalled)==1);

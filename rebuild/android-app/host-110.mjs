@@ -57,6 +57,9 @@ export function verifyHost(root){
  const location=check('LL8/u1;',['.method public final a(Lkotlin/jvm/functions/Function1;)V','    invoke-virtual {v2, v3, v4}, LL8/D2;->a(J)Ljava/util/Map;','    invoke-virtual {v0, p1}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z']);
  const locationResult=check('LL8/b1;',['.method public final a(Ljava/util/Map;Z)V','    iget-wide v0, p0, LL8/b1;->m:J']);
  const locationProvider=check('LL8/Z0;',['.method public final invoke(Ljava/lang/Object;)Ljava/lang/Object;','    check-cast v4, LL8/u0;','    sget-object v0, LL8/u0;->ANDROID_SYSTEM:LL8/u0;','    invoke-virtual {v9, p1, v5}, LL8/J2;->d(ZLE8/i;)V']);
- for(const file of [location,locationResult,locationProvider])if(!path.relative(root,file).startsWith('smali_classes3'+path.sep))throw new Error('Unexpected location hook DEX');
- const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,scanner,location,locationResult,locationProvider,proofs};
+ // Shared AMap option builder for continuous and one-shot requests. v2 is unassigned between the mode constant and setHttpTimeOut.
+ const locationOptions=check('LL8/m;',['.method public static k(LL8/C0;)Lcom/amap/api/location/AMapLocationClientOption;','    sget-object v1, Lcom/amap/api/location/AMapLocationClientOption$AMapLocationMode;->Hight_Accuracy:Lcom/amap/api/location/AMapLocationClientOption$AMapLocationMode;','    const-wide/16 v2, 0x1f40']);
+ check('Lcom/amap/api/location/AMapLocationClientOption$AMapLocationMode;',['.field public static final enum Battery_Saving:Lcom/amap/api/location/AMapLocationClientOption$AMapLocationMode;']);
+ for(const file of [location,locationResult,locationProvider,locationOptions])if(!path.relative(root,file).startsWith('smali_classes3'+path.sep))throw new Error('Unexpected location hook DEX');
+ const application=check('Lcom/rayneo/venus/VenusApplication;',['.method public final onCreate()V']);return {listener,activity,event,manager,queue,audio,application,scanner,location,locationResult,locationProvider,locationOptions,proofs};
 }

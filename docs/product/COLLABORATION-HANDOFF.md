@@ -1,3 +1,14 @@
+## [claude] 2026-11-11 功耗优化第一批：dev180 已构建签名，**尚未装机**
+
+分支 `claude/power-optimization`（基于 codex 42b415a / dev179），未改 codex 工作目录。计划见用户确认的方案：先基线，再分两批。
+
+- **基线（dev179，只读）**：[power-baseline-dev179](../../rebuild/android-app/power-baseline-dev179-2026-11-11.json)。独立包下原厂 AMap 持续定位每次启动都 code 8 鉴权失败，却仍开 10 秒高精度 GPS，约每分钟一次；41 分钟内 GPS 占空 35%，App 实际收到 0 个点。
+- **用户 2026-11-11 决定**：不自己做定位，只同步原厂已有位置；轨迹变稀、后台同步变慢、停诊断旁路、心跳并入长轮询均可接受。
+- **dev180 / 10602 改动**：音频归档组提交（5 秒或 256 KiB 一次 fsync，原为每包 5 次；默认构造仍逐包提交）；管理器索引跟随、容量扫描 30 秒缓存；采集器空闲 5 秒补刷；`LoginRecordsCache` 让登录存储只在变更时重新解密；`LifelogAudioRuntime` 由 200ms/1s 常驻改为输入唤醒 + 分级轮询；`LifelogAudioObservationRuntime` 默认关闭；`L8/m.k` 新钩子 `amapWithoutGps()` 在独立包改用仅网络模式，不再开 GPS。
+- **测试**：archive 128、manager 94、collector 48 + catalog 1970、runtime 509/2560/44/185、export 37、login cache 1021 通过。runtime 测试脚本原先缺 `Host107Abi` 桩无法编译，已补。build.mjs / sign.mjs 通过，签名者不变，SHA `3ba29b7f…926b75`。
+- **未做**：dev180 未安装（装机时用户正在用手机微信，未抢前台）；装机后需重复 `dumpsys location` 与线程采样对比；第二批（心跳并入 watch、后台同步 10 分钟、250ms 轮询按需、任务 tick 降频）只完成设计，未写代码。服务器租约方案：watch 带 presence 时等待 20 秒、租约 50 秒，旧 POST 路由保持 20 秒。
+- 眼镜 CLI `join` 返回 CREDENTIAL_EXPIRED_OR_INVALID，本轮没有任何眼镜推送。设备锁已释放。回退包仍为 dev179。
+
 ## [codex] 更新公开 CLI 下载包
 
 分发包同步了公开接入说明与虚构示例，逐文件核对清单与 ZIP 摘要。命令及配对格式沿用 0.2.3。

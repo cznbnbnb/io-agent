@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "date": "2026-11-11",
+  "device_model": "BRT-AN00",
+  "installed_version": "0.5.3-dev179",
+  "installed_sha256": "fec842665b21f07bef819523c91c283bd5ce1f25feb4b480cf6d02d99840df0c",
+  "method": "Read-only USB: dumpsys batterystats --charged, dumpsys location, top -H 30 s, logcat. No reset, no install, no permission change. logcat -c was run once.",
+  "batterystats_window": {"start": "2026-11-11 07:59:54", "on_battery": "10h46m", "screen_on": "6h59m", "process_uptime_at_read": "1h44m", "process_cpu_time": "10m25s"},
+  "app_uid": {"cpu_user_plus_kernel": "7m12s", "gps_active": "25m30s", "gps_count": 49, "wifi_sent_mb": 34.76, "mobile_sent_mb": 11.16, "bluetooth_received_mb": 17.83, "foreground_service": "1h26m"},
+  "gps_finding": {
+    "log_span_minutes": 41.5, "gps_sessions": 23, "gps_on_seconds": 868, "gps_duty_percent": 34.9,
+    "session_length_seconds": 10, "requested_intervals": {"1s": 5, "5s": 18}, "mode": "HIGH_ACCURACY",
+    "since_boot_registration_total": "16h18m", "since_boot_locations": 10468,
+    "cause": "Stock AMap continuous start under application ID cn.cznbnb.ioagent fails with code 8 INVALID_USER_SCODE on every attempt; the SDK still registers GPS until the stock ten-second start timeout rolls back; the stock layer retries about once a minute.",
+    "correlation": "candidateStarted 19:14:25.616 -> gps +registration 19:14:25.618 -> -registration 19:14:35.620",
+    "locations_accepted_by_app": 0
+  },
+  "thread_cpu_30s_sample_percent_of_one_core": {"main": 1.6, "pool-21": 0.7, "HeapTaskDaemon": 0.7, "process-memory": 0.5, "pool-27": 0.3},
+  "gc_observed": "background GC about every 10 s freeing 24-28 MB",
+  "limits": ["Phone on USB power during the read", "No same-condition before/after comparison yet", "mAh not derived from counters"]
+}

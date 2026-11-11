@@ -38,6 +38,12 @@ public final class Host107Connection implements GlassesConnection {
  /** The independent package cannot authenticate the stock AMap signing key. Use the host's
   * existing system one-shot provider; keep its cache, cancellation, timeout and retry budget. */
  public static boolean systemOneShotLocation(){Host107Connection self=instance;return self!=null&&"cn.cznbnb.ioagent".equals(self.app.getPackageName());}
+ /** The stock AMap key is bound to the stock package and certificate. Under our application ID every AMap
+  * start fails authentication (code 8) and delivers nothing, yet in high-accuracy mode the SDK still powers
+  * GPS for each ten-second start window, about once a minute (2026-11-11: GPS on a third of the time).
+  * Network-only mode keeps the stock start, failure and retry flow and leaves GPS off. Location is not ours
+  * to collect (user, 2026-11-11); remove this once the application ID has its own valid key. */
+ public static boolean amapWithoutGps(){return systemOneShotLocation();}
  /** No screen yet (TurboAddon.boot): cards, dictation and OTA links read the shared stock connection. */
  static synchronized void boot(Context context){if(instance==null)instance=new Host107Connection(context,null);}
  static void attach(Activity activity){Host107Connection self=get(activity);self.foreground.add(activity);self.visible=true;if(activity.getClass().getName().equals("com.rayneo.venus.MainActivity")&&self.owned)try{handoff();}catch(Exception failure){self.note=code(failure);}}

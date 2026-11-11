@@ -9,15 +9,39 @@ import java.util.concurrent.*;
 /** Read the already-open stock secure store. Never initializes, writes or exports it. */
 final class Host107Login {
  private Host107Login(){}
+ private static final LoginRecordsCache CACHE=new LoginRecordsCache();
+ // Strongly held: SharedPreferences keeps its listeners weakly.
+ private static Object watchedPreferences,changeListener;
+ /** The store's own SharedPreferences, with our change listener attached; null when it cannot be
+  * watched (JVM tests, a changed stock layout), in which case every read stays a fresh read. */
+ private static synchronized Object watch(Object store){
+  try{
+   Class<?> type=Class.forName("android.content.SharedPreferences"),listenerType=Class.forName("android.content.SharedPreferences$OnSharedPreferenceChangeListener");
+   Object preferences=null;
+   for(java.lang.reflect.Field field:store.getClass().getDeclaredFields()){if(java.lang.reflect.Modifier.isStatic(field.getModifiers())||!type.isAssignableFrom(field.getType()))continue;field.setAccessible(true);Object value=field.get(store);if(value!=null){if(preferences!=null)return null;preferences=value;}}
+   if(preferences==null)return null;if(preferences==watchedPreferences)return preferences;
+   if(changeListener==null)changeListener=java.lang.reflect.Proxy.newProxyInstance(listenerType.getClassLoader(),new Class<?>[]{listenerType},(proxy,method,args)->{
+    switch(method.getName()){case "onSharedPreferenceChanged":CACHE.changed();return null;case "hashCode":return System.identityHashCode(proxy);case "equals":return proxy==args[0];case "toString":return "LoginRecordsListener";default:return null;}});
+   if(watchedPreferences!=null)try{type.getMethod("unregisterOnSharedPreferenceChangeListener",listenerType).invoke(watchedPreferences,changeListener);}catch(Exception ignored){}
+   watchedPreferences=null;CACHE.changed();
+   type.getMethod("registerOnSharedPreferenceChangeListener",listenerType).invoke(preferences,changeListener);
+   watchedPreferences=preferences;return preferences;
+  }catch(Exception|LinkageError unavailable){return null;}
+ }
  private static Map<?,?> records()throws Exception{
    Object engine=NavReflect.field(NavReflect.type("y8.d"),"b");if(engine==null)return null;
    Object registry=NavReflect.field(engine,"d");
    Object plugin=((Map<?,?>)NavReflect.field(registry,"a")).get(NavReflect.type("g7.q"));if(plugin==null)return null;
    Map<?,?> stores=(Map<?,?>)NavReflect.field(plugin,"d");Object store;
    synchronized(stores){store=stores.get("FlutterSecureStorage");}if(store==null)return null;
-   final Object openedStore=store;FutureTask<Object> read=new FutureTask<>(()->NavReflect.call(openedStore,"x"));
-   if(!Boolean.TRUE.equals(NavReflect.call(NavReflect.field(plugin,"f"),"post",read)))return null;
-   Object values=read.get(1500,TimeUnit.MILLISECONDS);return values instanceof Map?(Map<?,?>)values:null;
+   final Object openedStore=store,poster=NavReflect.field(plugin,"f");
+   // Decrypt-all happens once per store change instead of on every call. Expiry is still
+   // evaluated by each caller against the current time.
+   return CACHE.get(watch(store),System.nanoTime()/1000000L,()->{
+    FutureTask<Object> read=new FutureTask<>(()->NavReflect.call(openedStore,"x"));
+    if(!Boolean.TRUE.equals(NavReflect.call(poster,"post",read)))return null;
+    Object values=read.get(1500,TimeUnit.MILLISECONDS);return values instanceof Map?java.util.Collections.unmodifiableMap((Map<?,?>)values):null;
+   });
  }
  private static boolean validRecords(Map<?,?> values){
    Map<?,?> record=tokenRecord(values);return record!=null&&valid(record,System.currentTimeMillis());

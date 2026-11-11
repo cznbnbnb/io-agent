@@ -3,15 +3,24 @@ import java.io.*;import java.nio.*;import java.nio.channels.*;import java.nio.fi
 
 /** Durable original A3/A4 batches. No microphone, decoder or server calls.
  * A sealed byte journal is not a complete recording or a verified material link.
- * Raw bytes are forced before publishing the durable receipt. Unacknowledged
+ * Raw bytes are forced before publishing the durable receipt. With a commit
+ * window, receipts are group-committed: appended records become durable at the
+ * next commit (at most the window or COMMIT_BYTES later, or at flush/seal/close);
+ * the default window of zero commits every append. Unacknowledged
  * complete records recover; an uncertain tail is retained without truncation. */
 final class LifelogAudioArchive implements AutoCloseable {
  interface Guard {void check()throws IOException;}
  static final long MAX_BYTES=268435456;static final int MAX_RECORDS=131072,MAX_MESSAGE=16384,MAX_PAYLOAD=65536;
+ /** One fsync pair per window instead of per batch: all-day capture otherwise
+  * forces the flash several times a second. A killed process loses at most this
+  * window of the local copy; checksummed records already written still recover. */
+ static final long COMMIT_MS=5000;static final int COMMIT_BYTES=262144;
  private static final byte[] MAGIC={'I','O','A','U','D','I','O','1'};
  private final File dir,raw;private final Map<String,Object> owner;private final AtomicDocument state;private final FileChannel channel;private final Map<Long,String> receipts=new HashMap<>();
- private long count,bytes;private String chain,tail="",sealed="";private boolean closed,uncertain;
- LifelogAudioArchive(File files,String account,String peer,long generation,String stream,Guard guard)throws IOException{
+ private final long commitNanos;private long count,bytes,pendingSince,pendingBytes;private String chain,tail="",sealed="";private boolean closed,uncertain;
+ LifelogAudioArchive(File files,String account,String peer,long generation,String stream,Guard guard)throws IOException{this(files,account,peer,generation,stream,guard,0);}
+ LifelogAudioArchive(File files,String account,String peer,long generation,String stream,Guard guard,long commitMillis)throws IOException{
+  require(commitMillis>=0&&commitMillis<=60000,"AUDIO_ARCHIVE_OWNER_INVALID");commitNanos=commitMillis*1000000L;
   require(account!=null&&account.matches("[a-f0-9]{64}")&&peer!=null&&peer.matches("[a-f0-9]{64}")&&generation>0&&stream!=null&&stream.matches("[a-f0-9]{32}"),"AUDIO_ARCHIVE_OWNER_INVALID");admit(guard);
   owner=WireJson.object("account",account,"peer",peer,"generation",generation,"stream",stream);
   File root=files.getCanonicalFile();require(root.isDirectory()&&!Files.isSymbolicLink(files.toPath()),"AUDIO_ARCHIVE_PATH_INVALID");
@@ -61,7 +70,8 @@ final class LifelogAudioArchive implements AutoCloseable {
   count=found;bytes=offset;chain=previous;uncertain=!tail.isEmpty();
   // Never mutate or delete uncertain bytes. A fully checksummed extra record is
   // durable even when the caller did not receive its manifest acknowledgement.
-  if(!uncertain&&(count!=expectedCount||bytes!=expectedBytes))save(guard);
+  // With group commit those records may never have been forced: force before acknowledging.
+  if(!uncertain&&(count!=expectedCount||bytes!=expectedBytes)){channel.force(true);save(guard);}
  }
  private static Map<String,Object> identity(Map<String,Object> header){Map<String,Object> copy=new TreeMap<>(header);copy.remove("previous");return copy;}
  private static byte[] unhex(String s){byte[] b=new byte[s.length()/2];for(int i=0;i<b.length;i++)b[i]=(byte)Integer.parseInt(s.substring(i*2,i*2+2),16);return b;}
@@ -69,9 +79,21 @@ final class LifelogAudioArchive implements AutoCloseable {
   require(!closed&&!uncertain&&sealed.isEmpty(),"AUDIO_ARCHIVE_NOT_WRITABLE");admit(guard);require(payload!=null&&payload.length<=MAX_PAYLOAD,"AUDIO_ARCHIVE_INPUT_INVALID");byte[] input=payload.clone();Map<String,Object> h=header(sequence,kind,message,received,elapsed,clock,chain);String identity=hash(WireJson.bytes(identity(h)),input);
   if(sequence<=count){require(identity.equals(receipts.get(sequence)),"AUDIO_ARCHIVE_REPLAY_CONFLICT");return false;}require(sequence==count+1,"AUDIO_ARCHIVE_SEQUENCE_GAP");byte[] meta=WireJson.bytes(h),sizes=sizes(meta.length,input.length);require(meta.length<=131072&&bytes+8L+meta.length+input.length+32<=MAX_BYTES,"AUDIO_ARCHIVE_BUDGET");
   checkDocuments();require(channel.size()==bytes,"AUDIO_ARCHIVE_RAW_CHANGED");String digest=hash(sizes,meta,input);boolean writing=false;
-  try{admit(guard);writing=true;channel.position(bytes);for(byte[] part:new byte[][]{sizes,meta,input,unhex(digest)}){ByteBuffer b=ByteBuffer.wrap(part);while(b.hasRemaining())require(channel.write(b)>0,"AUDIO_ARCHIVE_WRITE_FAILED");}channel.force(true);admit(guard);count=sequence;bytes=channel.position();chain=digest;receipts.put(sequence,identity);save(guard);return true;
+  try{admit(guard);writing=true;channel.position(bytes);for(byte[] part:new byte[][]{sizes,meta,input,unhex(digest)}){ByteBuffer b=ByteBuffer.wrap(part);while(b.hasRemaining())require(channel.write(b)>0,"AUDIO_ARCHIVE_WRITE_FAILED");}long written=channel.position()-bytes;count=sequence;bytes=channel.position();chain=digest;receipts.put(sequence,identity);
+   if(pendingSince==0)pendingSince=System.nanoTime()|1;pendingBytes+=written;
+   if(commitNanos==0||pendingBytes>=COMMIT_BYTES||System.nanoTime()-pendingSince>=commitNanos)commit(guard);return true;
   }catch(IOException|RuntimeException error){if(writing){uncertain=true;tail="write_or_ack_uncertain";}throw error;}
  }
+ /** Force appended bytes, then publish their receipt. A failure leaves the tail uncertain. */
+ private void commit(Guard guard)throws IOException{
+  if(pendingSince==0)return;
+  try{channel.force(true);admit(guard);save(guard);pendingSince=0;pendingBytes=0;}
+  catch(IOException|RuntimeException error){uncertain=true;tail="write_or_ack_uncertain";throw error;}
+ }
+ /** True when every appended record has a durable receipt. */
+ synchronized boolean durable(){return pendingSince==0;}
+ /** Commit records still waiting for the group window, e.g. when input pauses. */
+ synchronized void flush(Guard guard)throws IOException{require(!closed&&!uncertain,"AUDIO_ARCHIVE_NOT_WRITABLE");commit(guard);}
  static final class Batch {
   final Map<String,Object> metadata;private final byte[] bytes;
   Batch(Map<String,Object> m,byte[] p){metadata=Collections.unmodifiableMap(WireJson.map(WireJson.copy(m)));bytes=p.clone();}
@@ -116,7 +138,7 @@ final class LifelogAudioArchive implements AutoCloseable {
   }finally{channel.position(position);}
  }
  private static boolean reason(String s){return Arrays.asList("capture_stopped","disconnected","process_interrupted","source_ended","segment_boundary").contains(s);}
- synchronized void seal(String reason,Guard guard)throws IOException{require(!closed&&!uncertain&&reason(reason),"AUDIO_ARCHIVE_NOT_SEALABLE");admit(guard);recover(guard);require(!uncertain,"AUDIO_ARCHIVE_NOT_SEALABLE");if(!sealed.isEmpty()){require(sealed.equals(reason),"AUDIO_ARCHIVE_SEAL_CONFLICT");return;}sealed=reason;try{save(guard);}catch(IOException|RuntimeException error){uncertain=true;tail="seal_ack_uncertain";throw error;}}
+ synchronized void seal(String reason,Guard guard)throws IOException{require(!closed&&!uncertain&&reason(reason),"AUDIO_ARCHIVE_NOT_SEALABLE");admit(guard);recover(guard);require(!uncertain,"AUDIO_ARCHIVE_NOT_SEALABLE");if(!sealed.isEmpty()){require(sealed.equals(reason),"AUDIO_ARCHIVE_SEAL_CONFLICT");return;}commit(guard);sealed=reason;try{save(guard);}catch(IOException|RuntimeException error){uncertain=true;tail="seal_ack_uncertain";throw error;}}
  synchronized Map<String,Object> snapshot()throws IOException{require(!closed,"AUDIO_ARCHIVE_CLOSED");Map<String,Object> copy=WireJson.map(WireJson.copy(record()));copy.put("tail_error",tail);copy.put("raw_bytes",channel.size());copy.put("uncertain",uncertain);return copy;}
- public synchronized void close()throws IOException{if(!closed){closed=true;try{channel.close();}finally{state.close();}}}
+ public synchronized void close()throws IOException{if(!closed){closed=true;try{if(pendingSince!=0&&!uncertain)channel.force(true);}finally{try{channel.close();}finally{state.close();}}}}
 }
