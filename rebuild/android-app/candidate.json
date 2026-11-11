@@ -62,8 +62,11 @@
     "explicit_wrappers": 9,
     "runtime_tested": false
   },
-  "installed": false,
-  "phone_disconnected_by_user": true,
+  "installed": true,
+  "phone_disconnected_by_user": false,
   "one_minute_card_passed": false,
-  "release_gate_passed": false
+  "release_gate_passed": false,
+  "installed_sha256": "3ba29b7f3094a1a86afb963cf2c55a288ee537c9da63d37dd276ff0b91926b75",
+  "installed_via": "USB adb streamed install over dev179 (fec84266…df0c), user approved in chat 2026-11-11",
+  "installed_confirmed_at": "2026-11-11T11:48:42.549981+00:00"
 }

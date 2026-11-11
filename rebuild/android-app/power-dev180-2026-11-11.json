@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "at": "2026-11-11T11:48:42.549981+00:00",
+  "version": "0.5.3-dev180",
+  "version_code": 10602,
+  "baseline_sha256": "fec842665b21f07bef819523c91c283bd5ce1f25feb4b480cf6d02d99840df0c",
+  "installed_sha256": "3ba29b7f3094a1a86afb963cf2c55a288ee537c9da63d37dd276ff0b91926b75",
+  "signer_sha256": "174695b5352ddb1af105a5ef604caf7a8332a52986af8d8eb642e2d3c91ff7ad",
+  "install": {
+    "route": "USB adb streamed install",
+    "result": "Success",
+    "system_prompt_seen": false,
+    "data_cleared": false,
+    "user_foreground_app_unchanged": true,
+    "process_restarted_by_system_without_launch": true
+  },
+  "after_install": {
+    "foreground_service_running": true,
+    "crash_buffer_entries_for_package": 0,
+    "addon_status_file_version": "0.5.3-dev180",
+    "card_runtime_healthy": true
+  },
+  "gps": {
+    "before_dev179": {
+      "window_minutes": 41.5,
+      "gps_sessions": 23,
+      "gps_on_seconds": 868,
+      "duty_percent": 34.9
+    },
+    "after_dev180": {
+      "observed_minutes_after_addon_boot": 6,
+      "gps_sessions": 0,
+      "expected_sessions_at_old_cadence": "about 5",
+      "startup_exception": "One ten-second window at process start (19:41:53-19:42:03): the stock layer started location before the addon's delayed boot set the policy. Fix planned for the next build: decide by process name, not by the booted instance."
+    }
+  },
+  "cpu_30s_samples_percent_of_one_core": {
+    "dev179": {
+      "main": 1.6,
+      "HeapTaskDaemon": 0.7,
+      "process-memory": 0.5,
+      "busiest_pool": 0.7
+    },
+    "dev180_sample_a": {
+      "main": 1.1,
+      "HeapTaskDaemon": 0.5,
+      "process-memory": 0.6,
+      "busiest_pool": 1.1
+    },
+    "dev180_sample_b": {
+      "main": 1.2,
+      "HeapTaskDaemon": 0.3,
+      "process-memory": 0.3,
+      "transient": "voice thread 8.5 at sample time"
+    },
+    "note": "Thirty-second samples on USB power are noisy; no CPU saving is claimed from them."
+  },
+  "not_verified": [
+    "All-day lifelog recording and export on dev180 (group commit path) on the real glasses",
+    "Glasses question/notice delivery after the update",
+    "Natural-day battery comparison",
+    "Honor battery page share"
+  ],
+  "rollback": "artifacts/iO-Agent-Android-0.5.3-dev179.apk"
+}
