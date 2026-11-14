@@ -4,8 +4,11 @@ export const CORRECTION_GUIDANCE=Object.freeze({
   format:'cz-iot-cli/lifelog-correction-guidance/1',
   content_role:'cli_guidance',
   skill:Object.freeze({name:'cz-lifelog-correct',version:4,entrypoint:'rebuild/agent-bridge/skills/cz-lifelog-correct/SKILL.md',read_command:'cz-iot-cli skill read',check_command:'cz-iot-cli skill check',helper:'rebuild/agent-bridge/skills/cz-lifelog-correct/scripts/lifelog_review.py',required_before_correction:true}),
+  lexicon:Object.freeze({scope:'paired-account',query_command:'cz-iot-cli lexicon query',save_command:'cz-iot-cli lexicon save',use_command:'cz-iot-cli lexicon use',delete_command:'cz-iot-cli lexicon delete',guide:'rebuild/agent-bridge/questions/LEXICON.md',retention:'six calendar months since last confirmed use; reading does not renew',context_check_required:true}),
   default:'订正事实并保留原有文风；只有用户明确要求时才更换文体。事实准确优先于文风相似。',
   rules:Object.freeze([
+    '订正前批量查询同账号个人词库，减少重复核实标准写法；复用前核对本次项目/语境。词库只给词汇候选，不能证明发言人、角色、成果或因果。只有确实核实使用才刷新use；只读查询不续期。新核实词可由daily-correct.lexicon_entries在订正落库后积累，也可显式save；不得从全文diff或音近自动猜词学习。连续六个自然月未确认使用由服务器删除。',
+    'verify:true只说明计划、版本与落库结构通过，不证明引文能支撑断言。不得按关键词选事件、截取段首或套用事件第一条引文批量生成“已核实”结论；须逐项核对实际语义。最小修改不等于只改人名术语或保持字数不变，主线错归时按V4修正标题、开篇与结尾，保留原文中正确的内容。',
     '开始订正前读取CLI随包提供的cz-lifelog-correct V4完整SKILL.md及所引用的规则；本摘要不能替代完整流程。先建立事件与本人参与归属，再逐句核对角色、结果和录音串场；使用prepare/request/verify辅助脚本留档、核对实际写回，脚本不替Agent判断证据是否成立。',
     '每日总结和分段智记：先阅读原有正文，保持原来的日记口吻、叙述视角（如“你”）、时态、时间顺序和自然段节奏。不要改成工作报告、要点清单、审计说明或写给读者的解释。',
     '默认做最小必要修改。错字、型号、数量、时间和人物归属按证据修正；正确内容和自然衔接应保留。重大事实错误确需重组时可以重写相关段落，但仍写成同一天的日记。',

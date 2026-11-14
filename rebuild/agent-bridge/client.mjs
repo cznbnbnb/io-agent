@@ -158,8 +158,26 @@ export class BridgeClient{
     if(!['daily-correct','daily-note','daily-revert','daily-history'].includes(action)||!input||typeof input!=='object'||Array.isArray(input))fail('INVALID_QUERY');
     if(action==='daily-history')return {...(await this.#send('POST','lifelog-text/history',JSON.stringify(input))).body,correction_guidance:CORRECTION_GUIDANCE};
     if(action==='daily-correct'&&!Array.isArray(input.edits)||action==='daily-note'&&typeof input.note!=='string'||action==='daily-revert'&&!integer(input.revert_revision))fail('INVALID_CORRECTION');
-    const payload=JSON.stringify(input);if(Buffer.byteLength(payload)>1048576)fail('CORRECTION_TOO_LARGE');
-    return (await this.#send('POST','lifelog-text/correct',payload)).body;
+    const learning=action==='daily-correct'&&Object.hasOwn(input,'lexicon_entries');
+    const {lexicon_entries,...correction}=learning?input:{};
+    const payload=JSON.stringify(learning?correction:input);if(Buffer.byteLength(payload)>1048576)fail('CORRECTION_TOO_LARGE');
+    const result=(await this.#send('POST','lifelog-text/correct',payload)).body;
+    if(!learning)return result;
+    if(result.server_stored!==true)return{...result,lexicon_learning:{skipped:true,reason:'CORRECTION_NOT_CONFIRMED'}};
+    try{return{...result,lexicon_learning:await this.lexicon('save',{entries:lexicon_entries})};}
+    catch(error){return{...result,lexicon_learning:{error:safeCode(error.code)??'LEXICON_LEARNING_FAILED',server_stored_unconfirmed:true}};}
+  }
+  /** Account-private confirmed candidates; querying never confirms a match or renews its lifetime. */
+  async lexicon(action,input={}){
+    const fields={query:['query','terms','category','scope','limit','cursor'],save:['entries'],use:['ids'],delete:['ids']};
+    if(!Object.hasOwn(fields,action)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!fields[action].includes(key)))fail('INVALID_LEXICON');
+    const payload=JSON.stringify(input);if(Buffer.byteLength(payload)>262144)fail('LEXICON_TOO_LARGE');
+    const body=(await this.#send('POST','lexicon/'+action,payload)).body;
+    if(action==='delete'){
+      if(body?.server_stored!==true||!Array.isArray(body.deleted_ids))fail('INVALID_RESPONSE');
+    }else if(!Array.isArray(body?.items)||body.content_role!=='source_data'||body.requires_context_check!==true||
+      (action==='query'?typeof body.has_more!=='boolean'||body.has_more&&(typeof body.next_cursor!=='string'||!body.next_cursor):body.server_stored!==true))fail('INVALID_RESPONSE');
+    return body;
   }
   async inbox(cursor=null,limit=20){
     const query=new URLSearchParams({limit:String(limit)});

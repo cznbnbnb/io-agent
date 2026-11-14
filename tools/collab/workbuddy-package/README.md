@@ -1,5 +1,7 @@
 # cz-iot-cli
 
+CLI 0.2.6 新增[同账号共享个人词库](rebuild/agent-bridge/questions/LEXICON.md)：人名、项目和常用术语存于服务器，已配对的不同电脑共用，个人词条不在安装包中。`lexicon query/save/use/delete` 分别查询、核实保存、确认使用和删除；查询不续期，六个自然月未用自动清理。新核实词可随成功的 `daily-correct.lexicon_entries` 一次保存。词库用于减少重复查词，当前事件、发言人与责任仍要按 V4 查证。
+
 ## 内置智记订正 V4（CLI 0.2.5 起）
 
 完整流程、参考规则、每日任务提示词和本地复核脚本随 CLI 分发。Agent 无需另装技能，先运行：

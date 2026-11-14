@@ -1,5 +1,7 @@
 # Agent 接入 cz-iot-cli
 
+CLI 0.2.6 起个人词库按账号存于服务器，多电脑共用。订正前用 `lexicon query` 批量找已核实写法，按 [词库说明](rebuild/agent-bridge/questions/LEXICON.md) 查本次语境；只有实际核实使用才 `use` 续期，不能读全库就给所有词续期。新词必须带依据，可在成功订正后由 `lexicon_entries` 保存，不能按 diff、音近或已有词条猜测当前发言人和责任。查询不续期，连续六个自然月未用自动清理。个人词条不打入公开包。
+
 CLI 0.2.5 起完整内置 **cz-lifelog-correct V4**。开始智记订正前运行 `node cz-iot-cli.mjs skill check`，再运行 `node cz-iot-cli.mjs skill read` 并读取其引用的参考规则。`skill` 返回实际入口、脚本与文件列表。`help/daily` 中的 `correction_guidance` 是索引与摘要，不能替代完整流程。脚本仅作本地 prepare/request/verify，不替 Agent 判断证据是否成立，不自动写服务器。后续 `update` 同步更新 CLI 和随包技能，保留原配对与技能目录外的台账。旧定时任务若写死了独立技能路径，需改为先读取 CLI 随包版本；不要擅自更改任务调度或写回范围。
 
 先阅读 README.md。正式入口是 `node cz-iot-cli.mjs`；若已安装本地命令，也可用 `cz-iot-cli`。旧 `io-agent.mjs` 仅作兼容入口。仅操作这个解压包和当前任务，不修改原手机 App、其他电脑登记或其他会话。
