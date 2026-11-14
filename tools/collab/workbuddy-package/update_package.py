@@ -2,6 +2,24 @@
 import argparse,hashlib,json,os,re,shutil,stat,tempfile,zipfile
 from pathlib import Path,PurePosixPath
 
+def version_parts(value):
+ match=re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?',value) if isinstance(value,str) else None
+ assert match,'UPDATE_VERSION_INVALID'
+ prerelease=match[4].split('.') if match[4] is not None else None
+ assert prerelease is None or all(not part.isdigit() or part=='0' or not part.startswith('0') for part in prerelease),'UPDATE_VERSION_INVALID'
+ return tuple(int(match[n]) for n in (1,2,3)),prerelease
+
+def compare_versions(candidate,installed):
+ left,lp=version_parts(candidate);right,rp=version_parts(installed)
+ if left!=right:return 1 if left>right else -1
+ if lp is None or rp is None:return (lp is None)-(rp is None)
+ for a,b in zip(lp,rp):
+  if a==b:continue
+  if a.isdigit() and b.isdigit():return 1 if int(a)>int(b) else -1
+  if a.isdigit()!=b.isdigit():return -1 if a.isdigit() else 1
+  return 1 if a>b else -1
+ return (len(lp)>len(rp))-(len(lp)<len(rp))
+
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--root',type=Path,required=True);p.add_argument('--archive',type=Path,required=True);p.add_argument('--checksums',type=Path,required=True);p.add_argument('--check',action='store_true');args=p.parse_args()
  root=args.root.resolve();old=json.loads((root/'MANIFEST.json').read_text());assert isinstance(old,dict) and old.get('format')=='cz-iot-cli-package/1' and old.get('name')=='cz-iot-cli','UPDATE_INSTALL_INVALID'
@@ -21,7 +39,15 @@ def main():
  manifest=json.loads(payload['MANIFEST.json']);assert isinstance(manifest,dict) and manifest.get('format')=='cz-iot-cli-package/1' and manifest.get('name')=='cz-iot-cli' and manifest.get('entrypoint')=='cz-iot-cli.mjs' and manifest.get('contains_credentials') is False and isinstance(manifest.get('source_commit'),str) and re.fullmatch('[a-f0-9]{40}',manifest['source_commit']),'UPDATE_MANIFEST_INVALID'
  inventory=manifest['files'];assert isinstance(inventory,dict) and set(inventory)==set(payload)-{'MANIFEST.json'},'UPDATE_MANIFEST_INVALID'
  for name,digest in inventory.items():assert isinstance(digest,str) and re.fullmatch('[a-f0-9]{64}',digest) and hashlib.sha256(payload[name]).hexdigest()==digest,'UPDATE_FILE_HASH_MISMATCH'
- version=json.loads(payload['package.json'])['version'];assert isinstance(version,str) and re.fullmatch('[0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9.-]+)?',version),'UPDATE_VERSION_INVALID'
+ version=json.loads(payload['package.json'])['version'];installed_version=json.loads((root/'package.json').read_text())['version']
+ precedence=compare_versions(version,installed_version)
+ report={'cli_name':'cz-iot-cli','available':False,'updated':False,'check_only':args.check,'installed_version':installed_version,'version':version,'version_relation':'older' if precedence<0 else 'newer' if precedence>0 else 'same','source_commit':manifest['source_commit'],'changed_files':0,'pairing_state_touched':False,'running_connectors_need_restart':False}
+ if precedence<0:
+  report['status']='downgrade_blocked'
+  if not args.check:report['error']='UPDATE_DOWNGRADE_REFUSED'
+  print(json.dumps(report))
+  if not args.check:raise SystemExit(1)
+  return
  changed={};parents=set()
  for name,data in payload.items():
   target=root/name
@@ -31,7 +57,7 @@ def main():
   assert not target.is_symlink() and (not target.exists() or target.is_file()),'UPDATE_INSTALL_PATH_INVALID'
   before=target.read_bytes() if target.exists() else None
   if before!=data:changed[name]=before
- report={'cli_name':'cz-iot-cli','available':bool(changed),'updated':False,'check_only':args.check,'version':version,'source_commit':manifest['source_commit'],'changed_files':len(changed),'pairing_state_touched':False,'running_connectors_need_restart':False}
+ report.update(available=bool(changed),status='update_available' if changed else 'up_to_date',changed_files=len(changed))
  if args.check or not changed:print(json.dumps(report));return
  stage=Path(tempfile.mkdtemp(prefix='.cz-iot-cli-update-',dir=root));committed=[];rollback_failed=False
  try:
@@ -42,7 +68,7 @@ def main():
   # Publish metadata last. A normal file error restores the files changed in this run.
   for name in sorted(changed,key=lambda n:(n=='MANIFEST.json',n)):
    target=root/name;target.parent.mkdir(parents=True,exist_ok=True);os.replace(stage/'new'/name,target);committed.append(name)
-  report.update(updated=True,running_connectors_need_restart=True);print(json.dumps(report))
+  report.update(status='updated',updated=True,running_connectors_need_restart=True);print(json.dumps(report))
  except OSError:
   try:
    for name in reversed(committed):

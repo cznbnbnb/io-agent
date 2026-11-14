@@ -20,6 +20,8 @@ export async function update(args,{directory=root,repository,branch='codex/agent
   const result=spawnSync(py,['-I','-S','-B',helper,'--root',directory,'--archive',archive,'--checksums',sums,...(args.includes('--check')?['--check']:[])],{encoding:'utf8',timeout:30000,maxBuffer:1048576});
   need(!result.error,'UPDATE_APPLY_FAILED');let value;
   try{value=JSON.parse(result.stdout);}catch{throw Error('UPDATE_RESULT_INVALID');}
-  need(result.status===0,value.error??'UPDATE_APPLY_FAILED');return{...value,channel:branch,repository:source};
+  const report={...value,channel:branch,repository:source};
+  if(result.status!==0)throw Object.assign(Error(value.error??'UPDATE_APPLY_FAILED'),{report});
+  return report;
  }finally{fs.rmSync(temporary,{recursive:true,force:true});}
 }

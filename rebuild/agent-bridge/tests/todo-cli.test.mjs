@@ -83,6 +83,9 @@ test('managed native-session and restricted Desktop mailbox expose the same conf
   const binding=prepareManagedCli({directory:f.dir,journal,sessionId:native,workspace:f.dir,op,taskId:op.taskId,expiresAt,bridge,route,contextInWorkspace:true});
   op.cliContext=binding.file;fs.writeFileSync(journal,JSON.stringify({session_id:native,workspace:f.dir,operations:{[op.id]:op}}),{mode:0o600});
   const options={env:{CODEX_THREAD_ID:native}},help=await managedCli('help',{},binding.file,options);
+  assert(help.commands.includes('skill'));assert.equal((await managedCli('skill',{},binding.file,options)).version,4);
+  assert.equal((await managedCli('skill',{file:'references/event-review.md'},binding.file,options)).file,'references/event-review.md');
+  await assert.rejects(managedCli('skill',{},binding.file,{env:{CODEX_THREAD_ID:'foreign-session'}}),{code:'MANAGED_CLI_SESSION_MISMATCH'});
   assert(help.commands.includes('todo-add'));assert(help.commands.includes('todo-status'));assert(binding.briefInstruction.length<1500);
   const input={todo_key:'managed-synthetic',content:'受管会话合成待办'},added=await managedCli('todo-add',input,binding.file,options);
   assert.equal(added.state,'pending_confirmation');assert.equal(added.native_created,false);
@@ -92,5 +95,6 @@ test('managed native-session and restricted Desktop mailbox expose the same conf
   assert.deepEqual(await pending,added);
   op.status='completed';fs.writeFileSync(journal,JSON.stringify({session_id:native,workspace:f.dir,operations:{[op.id]:op}}),{mode:0o600});
   await assert.rejects(managedCli('todo-add',{...input,todo_key:'stale-turn'},binding.file,options),{code:'MANAGED_CLI_TURN_CLOSED'});
+  await assert.rejects(managedCli('skill',{},binding.file,options),{code:'MANAGED_CLI_TURN_CLOSED'});
   assert.equal(f.store.db.prepare('SELECT COUNT(*) AS n FROM todo_suggestions').get().n,1);
 });

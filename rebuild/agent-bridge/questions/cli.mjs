@@ -3,6 +3,7 @@
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {AgentBridge} from '../bridge.mjs';import {BridgeClient,BridgeError,readPrivateJson} from '../client.mjs';import {AdapterHost} from '../adapter-host.mjs';
 import {CORRECTION_GUIDANCE} from '../lifelog-correction-policy.mjs';
+import {lifelogSkill} from '../lifelog-skill.mjs';
 import {isDeepStrictEqual} from 'node:util';
 import {sessionFile,sessionPair,computerDeviceFile} from './session-pair-cli.mjs';
 import {privatePath} from './private-path.mjs';
@@ -101,7 +102,13 @@ async function register(file){const spec=readPrivateJson(file),base=location(),k
 export const deviceFile=(env=process.env)=>{const identity=caller(env),candidate=sessionFile(identity,identity.managed?.workspace??workspace,env);
  const joined=path.join(callerBase(identity),'join.json');
  if(!identity.error&&fs.existsSync(joined)&&readLocal(joined).pairing==='computer')return computerDeviceFile(env);
- return fs.existsSync(candidate)?candidate:computerDeviceFile(env);};
+ const computer=computerDeviceFile(env);
+ if(fs.existsSync(computer)){
+  const paired=readPrivateJson(computer,8192);if(paired.session_pairing&&paired.session_pairing.metadata.mode!=='computer')fail('COMPUTER_PAIRING_FILE_SCOPED');
+  if(candidate!==computer&&fs.existsSync(candidate)){const prior=readPrivateJson(candidate,8192);if(prior.owner_id!==paired.owner_id||prior.server_id!==paired.server_id)fail('CALLER_PAIRING_OWNER_MISMATCH');}
+  return computer;
+ }
+ return fs.existsSync(candidate)?candidate:computer;};
 // The existing native owner is the authority for its working directory. This
 // reads only that exact conversation; it never loads or creates another one.
 export async function desktopJoinWorkspace(sessionId,{connect=(id)=>CodexDesktopSession.connect(id)}={}){
@@ -115,8 +122,8 @@ async function join(value){
  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!['topic','python','control','pairing'].includes(k))||('topic' in value&&!topicValid(value.topic))||('python' in value&&(typeof value.python!=='string'||!path.isAbsolute(value.python)))||
   ('control'in value&&(value.control!=='desktop'||runtime!=='codex'||current.managed))||('pairing'in value&&value.pairing!=='computer'))fail('RUNTIME_TOOL_ARGUMENT_INVALID');
  const base=location(),state=path.join(base,'join.json');let previous=null;if(fs.existsSync(state))previous=readLocal(state);
- const control=value.control??previous?.control,pairing=value.pairing??previous?.pairing;
- const oldFile=deviceFile(),file=pairing==='computer'?computerDeviceFile():oldFile;let device;try{device=readPrivateJson(file,8192);}catch{fail('DEVICE_NOT_ENROLLED');}
+ const control=value.control??previous?.control,requestedPairing=value.pairing??previous?.pairing;
+ const oldFile=deviceFile(),file=requestedPairing==='computer'?computerDeviceFile():oldFile,pairing=file===computerDeviceFile()?'computer':undefined;let device;try{device=readPrivateJson(file,8192);}catch{fail('DEVICE_NOT_ENROLLED');}
  if(device.role!=='agent'||typeof device.device_id!=='string'||!/^[A-Za-z0-9_.-]{1,128}$/.test(device.computer_id??''))fail('DEVICE_NOT_ENROLLED');
  if(pairing==='computer'){
   if(device.session_pairing&&device.session_pairing.metadata.mode!=='computer')fail('COMPUTER_PAIRING_FILE_SCOPED');
@@ -149,7 +156,7 @@ async function join(value){
  fs.unlinkSync(pendingFile);
  let resident;
  try{resident=current.managed?{managed_connector:true,reason:'CONTROLLED_BY_ACP_CONNECTOR'}:await ensureResident(await residentOptions());}catch(e){resident={resident_live:false,can_execute:false,reason:e.code??'SESSION_RESIDENT_UNAVAILABLE'};}
- return{...registered,joined:true,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
+ return{...registered,joined:true,computer_paired:pairing==='computer',session_registered:true,computer_id:device.computer_id,session_id:session,reused:!!reuse,task_expires_at:expires,phone_import_required:false,resident};
 }
 async function residentOptions(){
  const directory=activeDirectory(),{config,context}=binding(directory),controlFile=path.join(directory,'native-control.json');
@@ -208,6 +215,7 @@ async function configure(directory,value){
 async function input(limit=32768){let bytes=0,parts=[];for await(const part of process.stdin){bytes+=part.length;if(bytes>limit)fail('RUNTIME_CLI_FRAME_TOO_LARGE');parts.push(part);}try{return JSON.parse(Buffer.concat(parts).toString('utf8'));}catch{fail('RUNTIME_TOOL_ARGUMENT_INVALID');}}
 export async function run(action,args){const result=await dispatch(action,args);if(['ask','wait','status','notify'].includes(action)&&result&&typeof result==='object')try{result.progress=progress(activeDirectory(),action==='wait'&&result.state==='answered');}catch{}return result;}
 async function dispatch(action,args){if(['pair','pair-status'].includes(action)){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');try{return await sessionPair(action,await input(),current,current.managed?.workspace??workspace);}catch(e){fail(e.code??'PAIRING_FAILED');}}if(action==='join'){if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');return{...await join(await input()),contract:CONTRACT};}
+ if(action==='skill')return lifelogSkill(args);
  if(['daily','daily-context','daily-correct','daily-note','daily-revert','daily-history','todo-add','todo-status','phone-recovery'].includes(action)){
   if(args.length)fail('RUNTIME_CLI_ACTION_INVALID');
   // Account reads and confirmation-gated native todo suggestions need neither
@@ -228,7 +236,7 @@ async function dispatch(action,args){if(['pair','pair-status'].includes(action))
   const {config,context}=binding(activeDirectory()),directory=await new BridgeClient(config.bridge).agentSessions(),entry=directory.sessions.find(e=>isDeepStrictEqual(e.route,context.route));
   return{managed_connector:true,cloud_online:entry?.online===true,can_execute:entry?.online===true&&entry.capabilities.can_execute,session_id:session};
  }const options=await residentOptions();return action==='leave'?leaveResident(options.binding):residentStatus(options.binding);}
- if(action==='help'&&!args.length)return{cli_name:'cz-iot-cli',correction_guidance:CORRECTION_GUIDANCE,commands:{'phone-recovery':'label (already paired computer creates a single-use phone recovery code; no session or Python needed)',pair:'topic, workspace? (pair this computer once; later sessions reuse the credential)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python?, control?=desktop, pairing?=computer (desktop follows this existing native chat only; computer reuses the paired computer after matching account/server)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',daily:'date? or from?/to?, keyword?, kind? (summary/segment/transcript), limit?, cursor?; selected days return complete effective text; no audio', 'daily-context':'date? or from?/to?, include_points? (default false), limit?, cursor?; existing official activity/trajectory/calendar observations, no collection', 'daily-correct':'material_id, expected_source_revision, expected_revision, request_id, agent, reason, evidence[], edits[{block_id,text}], dependencies_version?; server only', 'daily-note':'same version/author/evidence fields, note; append later facts without rewriting history', 'daily-revert':'same version/author/evidence fields, revert_revision; undo a compatible change', 'daily-history':'material_id, before?, source_revision?; explicitly read original and edit history', 'todo-add':'todo_key, content (one line, <=48 UTF-16 units), source? (<=20), expires_at? (within 24h); suggest a native glasses todo for glasses confirmation; no session, join or Python required', 'todo-status':'proposal_id (read only; only native_created=true reports the native write; unknown must not trigger an automatic retry)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
+ if(action==='help'&&!args.length)return{cli_name:'cz-iot-cli',correction_guidance:CORRECTION_GUIDANCE,commands:{skill:'[read [relative-file] | check] (offline complete lifelog correction skill; no pairing or Python needed)','phone-recovery':'label (already paired computer creates a single-use phone recovery code; no session or Python needed)',pair:'topic, workspace? (pair this computer once; later sessions reuse the credential)', 'pair-status':'{} (claim after phone confirmation)',join:'topic?, python?, control?=desktop, pairing?=computer (desktop follows this existing native chat only; computer reuses the paired computer after matching account/server)', 'session-status':'{} (resident/online/control readiness for this exact session)',leave:'{} (stop this session listener; does not kill the Agent)',daily:'date? or from?/to?, keyword?, kind? (summary/segment/transcript), limit?, cursor?; selected days return complete effective text; no audio', 'daily-context':'date? or from?/to?, include_points? (default false), limit?, cursor?; existing official activity/trajectory/calendar observations, no collection', 'daily-correct':'material_id, expected_source_revision, expected_revision, request_id, agent, reason, evidence[], edits[{block_id,text}], dependencies_version?; server only', 'daily-note':'same version/author/evidence fields, note; append later facts without rewriting history', 'daily-revert':'same version/author/evidence fields, revert_revision; undo a compatible change', 'daily-history':'material_id, before?, source_revision?; explicitly read original and edit history', 'todo-add':'todo_key, content (one line, <=48 UTF-16 units), source? (<=20), expires_at? (within 24h); suggest a native glasses todo for glasses confirmation; no session, join or Python required', 'todo-status':'proposal_id (read only; only native_created=true reports the native write; unknown must not trigger an automatic retry)',ask:'question_key, question, mode, options, expires_at',wait:'request_id, wait_seconds?',status:'request_id',notify:'notification_key, text, expires_at',checkpoint:'checkpoint_key, done, next, next_checkin_minutes?',config:'glasses_progress?, checkin_minutes?'},contract:CONTRACT};
  if(args.length||!['ask','wait','status','notify','checkpoint','config'].includes(action))fail('RUNTIME_CLI_ACTION_INVALID');
  if(['ask','notify','checkpoint'].includes(action)&&!fs.existsSync(path.join(location(),'active.json')))await join({});
  const directory=activeDirectory(),value=await input();

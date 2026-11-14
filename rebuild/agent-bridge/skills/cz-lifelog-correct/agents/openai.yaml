@@ -1,0 +1,4 @@
+interface:
+  display_name: "云端智记订正"
+  short_description: "用飞书与微信核查智记中本人参与和录音串场，逐句订正并回读验证"
+  default_prompt: "使用 $cz-lifelog-correct 订正北京时间昨天的云端智记，先核本人参与和录音串场，再按原文订正角色与结果，写回并回读验证。"

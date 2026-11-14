@@ -1,0 +1,33 @@
+{
+  "format": "cz-lifelog-correct-bundle/1",
+  "name": "cz-lifelog-correct",
+  "version": 4,
+  "entrypoint": "SKILL.md",
+  "helper": "scripts/lifelog_review.py",
+  "scheduled_prompt": "references/workbuddy-0700.txt",
+  "files": {
+    "SKILL.md": "a8de5c8e594029d0691a6ec1b9d1a4ee9b73d1ec8e8b579fc563e7781c0d5abb",
+    "agents/openai.yaml": "4e6c89bb8b9dd83d3e2ca86ad00f1b923e4a142f51c4e1beeaf143c079d15dbc",
+    "references/cli-and-writeback.md": "8442eaad46f1748678df792ab140552eff84c6917623e1c89b6ac681ed2c0e0c",
+    "references/event-review.md": "9553c5abe28871b5154f029f5538c8bd41284033f1f41fe6093ed1c6506b1319",
+    "references/evidence-rules.md": "cc0c6a90b35fc34c949930a92605c02a9eb4db5b31d722beee4a9456bb718f84",
+    "references/style-guide.md": "60be4dfbaa22a01003afff176cdb8bc41737413248162169d176fcf54619b3d3",
+    "references/workbuddy-0700.txt": "d8f81f94b3199dc5411f322f3bd805b215e9c3d3c10cc6749b5cbb1e58914e05",
+    "references/workbuddy-handoff.md": "6b0104a2dbd35c97990cd07d30858b30989d3c5c89db69e9216ef6e2af4a1c82",
+    "scripts/lifelog_review.py": "6e8a14d593239968b13164c76f21631cb2025333ce79bb8a6d715d4cf51b6746"
+  },
+  "source_files": {
+    "SKILL.md": "a8de5c8e594029d0691a6ec1b9d1a4ee9b73d1ec8e8b579fc563e7781c0d5abb",
+    "agents/openai.yaml": "4e6c89bb8b9dd83d3e2ca86ad00f1b923e4a142f51c4e1beeaf143c079d15dbc",
+    "references/cli-and-writeback.md": "8442eaad46f1748678df792ab140552eff84c6917623e1c89b6ac681ed2c0e0c",
+    "references/event-review.md": "9553c5abe28871b5154f029f5538c8bd41284033f1f41fe6093ed1c6506b1319",
+    "references/evidence-rules.md": "cc0c6a90b35fc34c949930a92605c02a9eb4db5b31d722beee4a9456bb718f84",
+    "references/style-guide.md": "60be4dfbaa22a01003afff176cdb8bc41737413248162169d176fcf54619b3d3",
+    "references/workbuddy-0700.txt": "d8f81f94b3199dc5411f322f3bd805b215e9c3d3c10cc6749b5cbb1e58914e05",
+    "references/workbuddy-handoff.md": "c666755571bb40c9b65e2ce8bf714075b29d4d85188195e640e81f351af2207c",
+    "scripts/lifelog_review.py": "6e8a14d593239968b13164c76f21631cb2025333ce79bb8a6d715d4cf51b6746"
+  },
+  "adaptations": [
+    "references/workbuddy-handoff.md"
+  ]
+}

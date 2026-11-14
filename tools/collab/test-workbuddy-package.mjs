@@ -10,20 +10,29 @@ try{
  for(const [file,digest] of Object.entries(manifest.files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(dir,file))).digest('hex'),digest);
  const help=await run('cz-iot-cli.mjs',['help']);assert.equal(help.code,0);assert.deepEqual(await run('io-agent.mjs',['help']),help);assert.equal(help.value.correction_guidance.format,'cz-iot-cli/lifelog-correction-guidance/1');assert(help.value.correction_guidance.rules.some(rule=>rule.includes('日记口吻')));assert(help.value.correction_guidance.rules.some(rule=>rule.includes('逐字转写')));
  assert.equal(manifest.format,'cz-iot-cli-package/1');assert.equal(manifest.entrypoint,'cz-iot-cli.mjs');assert.equal(JSON.parse(fs.readFileSync(path.join(dir,'package.json'))).bin['cz-iot-cli'],'cz-iot-cli.mjs');
+ const skill=await run('cz-iot-cli.mjs',['skill','check']);assert.equal(skill.code,0);assert.equal(skill.value.version,4);assert.equal(skill.value.verified,true);assert.equal(skill.value.checked_files,9);assert.equal(help.value.correction_guidance.skill.version,4);
+ const savedPython=env.IO_AGENT_PYTHON;env.IO_AGENT_PYTHON='/not-installed/python';
+ const workflow=await run('cz-iot-cli.mjs',['skill','read']);assert.equal(workflow.code,0);assert.match(workflow.value.content,/version: "4"/);assert.equal(workflow.value.content_role,'cli_guidance');
+ assert.equal((await run('io-agent.mjs',['skill','read','references/event-review.md'])).code,0);
+ assert.equal((await run('cz-iot-cli.mjs',['skill','read','../../agent-device.json'])).value.error,'SKILL_FILE_NOT_FOUND');
+ assert.equal((await run('cz-iot-cli.mjs',['skill','unrecognized'])).value.error,'SKILL_ARGUMENT_INVALID');env.IO_AGENT_PYTHON=savedPython;
  const install=spawnSync('npm',['install','--global','--offline','--ignore-scripts','--no-audit','--no-fund','--prefix',path.join(temp,'installed'),'--cache',path.join(temp,'npm-cache'),dir],{cwd:temp,env,encoding:'utf8',timeout:30000});assert.equal(install.status,0,install.stderr);
  const binary=spawnSync(path.join(temp,'installed/bin/cz-iot-cli'),['help'],{cwd:temp,env,encoding:'utf8',timeout:30000});assert.equal(binary.status,0,binary.stderr);assert.deepEqual(JSON.parse(binary.stdout),help.value);
  assert.equal((await run('cz-iot-cli.mjs',['connector','help'])).code,0);
- assert.equal((await run('setup.mjs',['doctor'])).code,0);
+ const unpairedDoctor=await run('setup.mjs',['doctor']);assert.equal(unpairedDoctor.code,0);assert.equal(unpairedDoctor.value.computer.paired,false);assert.equal(unpairedDoctor.value.cli.path,fs.realpathSync(path.join(dir,'cz-iot-cli.mjs')));
  assert.equal((await run('cz-iot-cli.mjs',['join'],{topic:'合成问答'})).value.error,'DEVICE_NOT_ENROLLED');
  // A test-only preload redirects the fixed HTTPS service to this isolated in-memory fixture.
  const hook=path.join(temp,'loopback.mjs');fs.writeFileSync(hook,`const original=globalThis.fetch;globalThis.fetch=(url,options)=>{const value=String(url);if(!value.startsWith('https://cznbnb.cn/io-api/v1/'))throw Error('unexpected server');return original(value.replace('https://cznbnb.cn/io-api/v1/','http://127.0.0.1:${server.address().port}/v1/'),options);};`);env.NODE_OPTIONS='--import '+hook;
  const phone=store.devices.enroll({owner:'synthetic-workbuddy',role:'phone',label:'Synthetic phone'});
  const pair=await run('cz-iot-cli.mjs',['pair'],{topic:'合成问答',workspace:'/synthetic/project'});assert.equal(pair.code,0,JSON.stringify(pair.value));
+ const firstSession=env.IO_AGENT_CALLER_SESSION;env.IO_AGENT_CALLER_SESSION='synthetic-pending-'+crypto.randomUUID();
+ const pendingReuse=await run('cz-iot-cli.mjs',['pair'],{topic:'另一项任务',workspace:'/synthetic/other-project'});assert.equal(pendingReuse.value.pairing_string,pair.value.pairing_string);assert.equal(pendingReuse.value.pairing_session_id,firstSession);env.IO_AGENT_CALLER_SESSION=firstSession;
  assert.equal((await run('cz-iot-cli.mjs',['pair-status'],{})).value.waiting_for_phone,true);
  const html=fs.readFileSync(pair.value.qr_html,'utf8');assert(html.includes('<svg')&&html.includes(pair.value.pairing_string));
  const [prefix,id,code]=pair.value.pairing_string.split(':');assert.equal(prefix,'io-agent-pair/1');
  const preview=store.sessionPairings.preview(phone.token,{id,code});assert.equal(preview.metadata.route.session_id,env.IO_AGENT_CALLER_SESSION);assert.equal(preview.metadata.mode,'computer');store.sessionPairings.approve(phone.token,{id,code});
  assert.equal((await run('cz-iot-cli.mjs',['pair-status'],{})).value.paired,true);
+ const pairedDoctor=await run('setup.mjs',['doctor']);assert.equal(pairedDoctor.value.computer.paired,true);assert.equal(pairedDoctor.value.computer.next,'join');assert.match(pairedDoctor.value.next,/无需再扫码/);assert(!JSON.stringify(pairedDoctor.value).includes('claim_secret'));
  const daily=JSON.parse(fs.readFileSync(new URL('../../docs/contracts/material-v1.1.json',import.meta.url))).events[2];
  Object.assign(daily,{event_id:crypto.randomUUID(),idempotency_key:crypto.randomUUID(),producer_id:phone.producer_id,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+600000).toISOString()});
  Object.assign(daily.body,{material_id:'daily-package-fixture',revision:1,base_revision:0,text_revision:1,source:'agent_analysis',started_at:'2026-10-26T00:00:00Z',ended_at:'2026-10-27T00:00:00Z',utterances:[],audio:{state:'not_retained',sha256:null,object_id:null},full_text:{format:'markdown',text:'# 2026-10-26 每日 AI 总结\n\nPortable daily fixture',origin:'legacy'}});store.submit(phone.token,daily);
@@ -53,5 +62,13 @@ try{
  env.IO_AGENT_CALLER_SESSION='synthetic-new-'+crypto.randomUUID();
  const reused=await run('io-agent.mjs',['pair'],{});assert.equal(reused.value.paired,true);assert.equal(reused.value.scope,'computer');
  const second=await run('cz-iot-cli.mjs',['notify'],{notification_key:'new-session-auto-join',text:'Synthetic auto-join notice',expires_at:new Date(Date.now()+300000).toISOString()});assert.equal(second.code,0,JSON.stringify(second.value));assert.equal(second.value.server_stored,true);
- console.log(JSON.stringify({canonical_cli:'cz-iot-cli',offline_local_bin_install:true,compatibility_entry_same_help_daily_pairing:true,todo_alias_reuses_same_proposal_without_session_python:true,computer_pair_once_new_session_reuses:true,passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,daily_read_without_session_or_python:true,phone_recovery_without_session_or_python:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
+ const deviceFile=path.join(env.IO_AGENT_PAIRING_HOME,'agent-device.json'),beforeDevice=JSON.parse(fs.readFileSync(deviceFile));
+ const otherOwner={...beforeDevice,owner_id:'another-account'};fs.writeFileSync(deviceFile,JSON.stringify(otherOwner),{mode:0o600});assert.equal((await run('cz-iot-cli.mjs',['pair'],{})).value.error,'PAIRING_BINDING_MISMATCH');
+ fs.writeFileSync(deviceFile,JSON.stringify({...beforeDevice,server_id:'another-server'}),{mode:0o600});assert.equal((await run('cz-iot-cli.mjs',['pair'],{})).value.error,'PAIRING_BINDING_MISMATCH');
+ fs.writeFileSync(deviceFile,JSON.stringify({...beforeDevice,expires_at:new Date(Date.now()-1000).toISOString(),refresh_after:new Date(Date.now()-2000).toISOString()}),{mode:0o600});
+ store.clock=()=>Date.now()+40*86400000;
+ const recoveredComputer=await run('setup.mjs',['doctor']);assert.equal(recoveredComputer.value.computer.paired,true,JSON.stringify(recoveredComputer));const afterDevice=JSON.parse(fs.readFileSync(deviceFile));assert.equal(afterDevice.device_id,beforeDevice.device_id);assert.equal(afterDevice.owner_id,beforeDevice.owner_id);assert.notEqual(afterDevice.token_id,beforeDevice.token_id);
+ store.devices.revoke(afterDevice.device_id);
+ assert.notEqual((await run('cz-iot-cli.mjs',['pair'],{})).value.paired,true);const revokedDoctor=await run('setup.mjs',['doctor']);assert.equal(revokedDoctor.value.computer.paired,null);assert.equal(revokedDoctor.value.computer.state,'verification_failed');
+ console.log(JSON.stringify({canonical_cli:'cz-iot-cli',offline_local_bin_install:true,compatibility_entry_same_help_daily_pairing:true,todo_alias_reuses_same_proposal_without_session_python:true,computer_pair_once_new_session_reuses:true,pending_qr_reused_across_sessions:true,doctor_verifies_identity_renewal_and_revocation:true,offline_40_day_computer_recovery:true,passed:true,files:Object.keys(manifest.files).length,zip_hashes_verified:true,standalone_help_doctor_pair_string_qr:true,no_registration_reports_error:true,generic_workbuddy_join_ask_wait:true,synthetic_answer_received:true,daily_read_without_session_or_python:true,phone_recovery_without_session_or_python:true,real_devices_or_public_server_accessed:false,windows_tested:false}));
 }finally{await new Promise(r=>server.close(r));store.close();fs.rmSync(temp,{recursive:true,force:true});}

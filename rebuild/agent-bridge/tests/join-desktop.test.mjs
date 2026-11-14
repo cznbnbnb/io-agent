@@ -25,7 +25,7 @@ test('desktop join takes cwd from only the exact original owner and always close
   assert.throws(()=>validateResidentConfig({...config,endpoint:'unix:///tmp/test.sock'}),{code:'RESIDENT_CONFIG_INVALID'});
 });
 
-test('explicit computer migration keeps native chat identity, checks owner before publish, and remembers the selected transport',async t=>{
+test('computer migration defaults to shared authorization, checks owner before publish, and remembers the selected transport',async t=>{
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'io-join-migration-'))),project=fileURLToPath(new URL('../../../',import.meta.url)),copy=path.join(dir,'project'),nativeWorkspace=path.join(dir,'native-project');
   fs.mkdirSync(nativeWorkspace);fs.cpSync(path.join(project,'rebuild/agent-bridge'),path.join(copy,'rebuild/agent-bridge'),{recursive:true,filter:p=>!['private','node_modules','__pycache__','tests'].includes(path.basename(p))});
   fs.cpSync(path.join(project,'docs/contracts'),path.join(copy,'docs/contracts'),{recursive:true});fs.mkdirSync(path.join(copy,'rebuild/agent-bridge/private'),{mode:0o700});
@@ -47,7 +47,7 @@ test('explicit computer migration keeps native chat identity, checks owner befor
   fs.writeFileSync(device,JSON.stringify({...base,...paired,server_id:'different-server'}),{mode:0o600});
   assert.equal((await run(input)).value.error,'CALLER_PAIRING_OWNER_MISMATCH');assert.equal(store.db.prepare('SELECT COUNT(*) AS n FROM queue_revisions').get().n,0);
   fs.writeFileSync(device,JSON.stringify({...base,...paired}),{mode:0o600});
-  const joined=await run(input);assert.equal(joined.code,0,joined.err+JSON.stringify(joined.value));assert.equal(joined.value.joined,true);assert.equal(joined.value.creates_codex_session,false);
+  const joined=await run({...input,pairing:undefined});assert.equal(joined.code,0,joined.err+JSON.stringify(joined.value));assert.equal(joined.value.joined,true);assert.equal(joined.value.computer_paired,true);assert.equal(joined.value.session_registered,true);assert.equal(joined.value.session_id,session);assert.equal(joined.value.creates_codex_session,false);
   const callerKey=createHash('sha256').update(JSON.stringify([copy.toLowerCase(),session])).digest('hex').slice(0,24),caller=path.join(copy,'rebuild/agent-bridge/private','codex-'+callerKey);
   const active=JSON.parse(fs.readFileSync(path.join(caller,'active.json'))),registration=path.join(caller,'registrations',active.profile),context=JSON.parse(fs.readFileSync(path.join(registration,'context.json')));
   assert.equal(context.route.session_id,session);assert.equal(context.route.computer_id,'computer-paired');

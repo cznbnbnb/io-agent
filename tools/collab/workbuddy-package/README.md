@@ -1,5 +1,20 @@
 # cz-iot-cli
 
+## 内置智记订正 V4（CLI 0.2.5 起）
+
+完整流程、参考规则、每日任务提示词和本地复核脚本随 CLI 分发。Agent 无需另装技能，先运行：
+
+```sh
+node cz-iot-cli.mjs skill check
+node cz-iot-cli.mjs skill read
+```
+
+`skill` 显示版本、绝对入口路径和文件列表；`skill read references/event-review.md` 读取对应规则。脚本位置由 `skill` 的 `helper` 返回，运行 `python <helper路径> --version` 应输出 `cz-lifelog-correct v4`。辅助脚本需要 Python 3.10+，无第三方依赖。`help/daily` 的 `correction_guidance.skill` 指向同一版本。受管任务使用本轮 `IO_AGENT_CLI_ARGS` 后接 `skill`，stdin 为 `{"file":"SKILL.md"}`。
+
+先查本人参与和录音串场，再查外部证据、逐句最小修改；按转写、分段、每日总结顺序写回并回读。脚本处理本地快照、请求及校验；外部查询、事实判断和云端写回仍由获得对应授权的 Agent 执行。运行记录放在技能目录之外。
+
+`node cz-iot-cli.mjs update --check --https` 检查更新，`node cz-iot-cli.mjs update --https` 更新 CLI 和随包技能。新版拒绝更低 CLI 版本；同版本代码有差异仍会核对更新。配对和独立数据目录保留。定时任务若写死旧独立技能路径，需要改为先读取 CLI 随包技能；更新不会自动修改既有任务提示词或调度。
+
 这是 cz-iot-cli 的便携发行包。首次接入按下方“电脑只配对一次”操作；本包只含代码，没有这台电脑的配对凭据。通过公开仓库更新用 `node cz-iot-cli.mjs update --check --https` / `node cz-iot-cli.mjs update --https`，见文末说明。
 
 每日智记 AI 总结已接入 `node cz-iot-cli.mjs daily`，stdin 例如 `{"date":"2026-10-26"}` 或 `{"from":"2026-10-23","to":"2026-10-27"}`。已配对电脑可供任意 Agent 或定时任务只读调用，无需当前 session、join 或 Python。读取服务端已同步的总结、分段智记和逐字转写；不读音频或手机文件；空结果不代表当天没有活动。指定日期自动取全，显式分页时按 `has_more` / `next_cursor` 继续，保留原过滤条件；完整参数、来源和权限说明见 [每日总结查询](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
@@ -22,7 +37,11 @@ cz-iot-cli help
 
 ## 1. 电脑只配对一次
 
-在解压目录运行 `node setup.mjs doctor` 检查环境。然后让 WorkBuddy 读取 AGENTS.md，由它使用宿主提供的真实会话 ID 执行配对。无需把登记文件发回另一台电脑。
+在解压目录运行 `node setup.mjs doctor` 检查环境和已有电脑授权。输出包含 CLI 的绝对路径、版本及 `computer` 状态：`paired:true` 表示已向服务器核实，可以直接 `join`；`paired:false` 才需要首次扫码；`paired:null` 表示已有授权但验证失败，应按错误排查网络或授权，不要反复生成二维码。检查会自动续期已有电脑访问凭据，不登记新的会话。
+
+让 WorkBuddy 读取 AGENTS.md，由它使用宿主提供的真实会话 ID 接入。已绑定电脑的新会话可直接 `join`；首次 `ask` / `notify` / `checkpoint` 也会自动登记自己的 session ID，返回的 `computer_paired` 与 `session_registered` 分别表示电脑授权和本会话接入。无需把登记文件发回另一台电脑。
+
+同一系统用户的各个项目、Agent 和 CLI 安装共用 `~/.turboio/agent-device.json` 的电脑授权。更新或重新解压代码保留它；不要把凭据放在项目里或分享给其他电脑。显式设置 `IO_AGENT_DEVICE_FILE` / `IO_AGENT_PAIRING_HOME` 会改变查找位置，不同安装应使用相同配置。旧单会话凭据仍保留；已有同账号、同服务器的电脑授权时优先使用，身份不一致会拒绝接入。配对尚未完成时，更换会话会复用仍有效的电脑二维码。
 
 以下命令从标准输入读取 JSON（见下一节的身份要求）：
 
@@ -133,9 +152,9 @@ printf '%s' '{"label":"新手机"}' | cz-iot-cli phone-recovery
 
 ### 智记订正文风（CLI 0.2.1 起）
 
-订正前读取 `daily` / `daily-history` / `help` 中的 `correction_guidance`。每日总结与分段智记保留原日记口吻、叙述视角、标题和自然段节奏；事实优先，必要的删改与段落重组可以做。修改原因与依据放在 `reason` / `evidence`，正文不加入“订正版”或订正说明；不能仅凭 `speaker=others` 判定本人未参与。逐字转写保留说话人和原话结构，后续事实使用 `daily-note`。
+订正前读取 `daily` / `daily-history` / `help` 中的 `correction_guidance`。每日总结与分段智记保留原日记口吻、叙述视角、标题和自然段节奏；事实优先，必要的删改与段落重组可以做。修改原因与依据放在 `reason` / `evidence`，正文不加入“订正版”或订正说明；不能仅凭 `speaker=others` 判定本人未参与。逐字转写保留说话人和原话结构，仅在用户授权时使用 `daily-note` 记录后续事实。
 
-出现 `summary_stale` 时，先用 `daily-history` 取得原总结，再结合有效转写修正并提交最新 `dependencies_version`，不要借此更换文风。提交后用 `daily` 回读确认有效正文和订正版本。完整规则见 [智记查询与订正说明](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
+出现 `summary_stale` 时，优先保留本轮写入前的有效摘要，用 `daily-history` 核实最后有效稿及订正历史；`original` 是手机原文，不等于上一版已订正正文。结合有效转写修正并提交最新 `dependencies_version`，保留文风；提交后用 `daily` 回读确认。完整规则见 [智记查询与订正说明](rebuild/agent-bridge/questions/DAILY-SUMMARIES.md)。
 
 CLI 0.2.2 同时要求分析和订正结合逐句 `blocks[].speaker`、时间与语境；合并 `text` 不带说话人标注。不要把 `others` 的讨论当成本人的工作或待办；`me`、`others` 是原厂识别标签，不明标签不猜归属。能访问且已获授权时，结合微信、飞书消息与项目背景核对人名、品牌、型号、日期和责任，阅读相关完整上下文；不能仅凭熟悉度、词频或搜索零命中改词。将消息/文档来源、时间及具体事实写进 `reason/evidence`，无法访问时如实说明。CLI 不包含微信/飞书查询，也不能通过文字订正修改结构化说话人标签。
 
